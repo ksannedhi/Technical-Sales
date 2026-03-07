@@ -1,0 +1,4 @@
+interface:
+  display_name: "Autonomous Presales Engineer"
+  short_description: "Draft bid packs from RFP, vendor docs, and gold proposal."
+  default_prompt: "Create SoW, HLD, and technical proposal drafts from the provided RFP, current-bid vendor documentation, and gold proposal; insert contextual inline images from vendor docs first; and output Markdown plus submission-ready DOCX files to the target folder."
