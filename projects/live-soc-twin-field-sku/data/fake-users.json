@@ -1,0 +1,6 @@
+[
+  {"username":"jane.foster","role":"Finance Analyst","privileged":false},
+  {"username":"omar.saeed","role":"IT Support","privileged":true},
+  {"username":"sarah.ali","role":"HR Manager","privileged":false},
+  {"username":"svc_backup","role":"Service Account","privileged":true}
+]

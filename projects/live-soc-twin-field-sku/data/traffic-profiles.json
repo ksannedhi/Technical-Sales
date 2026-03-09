@@ -1,0 +1,5 @@
+{
+  "quiet": {"background_rate_ms": 5000, "max_eps": 2},
+  "business_hours": {"background_rate_ms": 2500, "max_eps": 4},
+  "incident_spike": {"background_rate_ms": 800, "max_eps": 6}
+}

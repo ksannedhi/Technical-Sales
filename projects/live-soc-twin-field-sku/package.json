@@ -1,0 +1,25 @@
+{
+    "name":  "soc-twin",
+    "version":  "0.1.0",
+    "private":  true,
+    "description":  "Field SKU Live SOC Twin demo app",
+    "main":  "api/server.js",
+    "scripts":  {
+                    "demo:start":  "node api/server.js",
+                    "demo:health":  "node scripts/healthcheck.js",
+                    "demo:prep":  "node scripts/demo-prep.js",
+                    "demo:stop":  "node scripts/stop-note.js",
+                    "seed":  "node scripts/seed.js",
+                    "reset":  "node scripts/reset.js",
+                    "scenario:phishing":  "node scripts/trigger-scenario.js phishing-credential-lateral",
+                    "scenario:ransomware":  "node scripts/trigger-scenario.js ransomware-precursor",
+                    "scenario:cloud-identity":  "node scripts/trigger-scenario.js cloud-identity-abuse",
+                    "scenario:stop":  "node scripts/stop-scenarios.js",
+                    "demo:launch":  "powershell -ExecutionPolicy Bypass -File .\\Start-SocTwin.ps1"
+                },
+    "dependencies":  {
+                         "cors":  "^2.8.5",
+                         "express":  "^4.21.2",
+                         "socket.io":  "^4.8.1"
+                     }
+}

@@ -1,0 +1,8 @@
+[
+  {"technique_id":"T1566.002","technique_name":"Phishing: Spearphishing Link","tactic":"Initial Access"},
+  {"technique_id":"T1110.003","technique_name":"Password Spraying","tactic":"Credential Access"},
+  {"technique_id":"T1021.001","technique_name":"Remote Services: SMB","tactic":"Lateral Movement"},
+  {"technique_id":"T1486","technique_name":"Data Encrypted for Impact","tactic":"Impact"},
+  {"technique_id":"T1078","technique_name":"Valid Accounts","tactic":"Defense Evasion"},
+  {"technique_id":"T1098","technique_name":"Account Manipulation","tactic":"Persistence"}
+]

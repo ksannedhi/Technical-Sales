@@ -1,0 +1,1 @@
+console.log("Use Ctrl+C in the server terminal to stop demo:start.");

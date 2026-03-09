@@ -1,0 +1,7 @@
+[
+  {"hostname":"DC-01","ip":"10.0.10.10","os":"Windows Server","criticality":"high","business_service":"Identity"},
+  {"hostname":"WS-FIN-22","ip":"10.0.20.22","os":"Windows 11","criticality":"medium","business_service":"Finance Workstation"},
+  {"hostname":"WS-HR-13","ip":"10.0.20.13","os":"Windows 11","criticality":"medium","business_service":"HR Workstation"},
+  {"hostname":"APP-CRM-01","ip":"10.0.30.31","os":"Linux","criticality":"high","business_service":"CRM"},
+  {"hostname":"FILE-01","ip":"10.0.40.14","os":"Windows Server","criticality":"high","business_service":"File Services"}
+]
