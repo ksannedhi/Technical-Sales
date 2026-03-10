@@ -1,0 +1,212 @@
+﻿:root {
+  --bg-1: #f5f8f7;
+  --bg-2: #e6eeea;
+  --card: #ffffff;
+  --text: #152222;
+  --muted: #5b6f6b;
+  --accent: #0f8b6b;
+  --accent-2: #114b5f;
+  --danger: #c53d3d;
+  --warn: #cc7a00;
+  --ok: #1a7f37;
+  --border: #cfe0da;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at 10% 10%, var(--bg-2), var(--bg-1));
+}
+
+.container {
+  width: min(1200px, 94vw);
+  margin: 24px auto 48px;
+}
+
+.hero {
+  background: linear-gradient(115deg, #0f8b6b, #114b5f);
+  color: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 28px rgba(17, 75, 95, 0.2);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.hero p {
+  margin: 10px 0 0;
+  opacity: 0.95;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 16px;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+}
+
+.grid.cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid.cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .grid.cols-4,
+  .grid.cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-weight: 700;
+}
+
+button.secondary {
+  background: var(--accent-2);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.kpi {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fbfffe;
+}
+
+.kpi .value {
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+
+.kpi .label {
+  color: var(--muted);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table-wrap table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 700px;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  padding: 9px;
+  font-size: 0.92rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.badge.high {
+  background: #ffe6e6;
+  color: var(--danger);
+}
+
+.badge.medium {
+  background: #fff1de;
+  color: var(--warn);
+}
+
+.badge.low,
+.badge.covered {
+  background: #e7f7ea;
+  color: var(--ok);
+}
+
+.badge.partial {
+  background: #fff5df;
+  color: var(--warn);
+}
+
+.badge.missing {
+  background: #ffe6e6;
+  color: var(--danger);
+}
+
+.diagram {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fcfffe;
+}
+
+.nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.node {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #edf7f3;
+  border: 1px solid #c5dfd6;
+  font-size: 0.86rem;
+}
+
+.helper {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actions > button {
+  flex: 1;
+}
