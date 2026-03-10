@@ -1,4 +1,4 @@
-# Technical-Sales Skills and Projects
+﻿# Technical-Sales Skills and Projects
 
 This repository hosts reusable Codex skills and presales demo projects.
 
@@ -45,6 +45,20 @@ See project docs:
 - `projects/live-soc-twin-field-sku/README.md`
 - `projects/live-soc-twin-field-sku/runbooks/demo-quickstart.md`
 - `projects/live-soc-twin-field-sku/runbooks/executive-10min-script-and-faq.md`
+
+### Security Tools Mapping Navigator (MVP)
+- Path: `projects/security-tools-mapping-navigator`
+- Purpose: GUI app to map security tools to controls, identify control gaps and redundancies, and generate a migration roadmap.
+- Framework modes: `NIST`, `CIS`, `BOTH`
+- One-click launch (Windows):
+
+```text
+cd C:\Users\ksann\Downloads\Technical-Sales\projects\security-tools-mapping-navigator && start.cmd
+```
+
+See project docs:
+- `projects/security-tools-mapping-navigator/README.md`
+- `projects/security-tools-mapping-navigator/docs/Security_Tools_Mapping_Navigator_MVP_Spec.md`
 
 ## Notes
 - Inline contextual figures are sourced from vendor documentation first.
