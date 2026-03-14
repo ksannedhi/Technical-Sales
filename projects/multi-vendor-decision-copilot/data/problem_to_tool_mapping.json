@@ -1,0 +1,34 @@
+{
+  "ransomware_protection": [
+    "EDR",
+    "XDR"
+  ],
+  "cloud_security": [
+    "CNAPP",
+    "CSPM",
+    "CWPP"
+  ],
+  "identity_protection": [
+    "PAM",
+    "MFA",
+    "ITDR"
+  ],
+  "api_security": [
+    "WAF",
+    "API Security"
+  ],
+  "data_security": [
+    "DSPM",
+    "DLP"
+  ],
+  "network_visibility": [
+    "NDR",
+    "SIEM"
+  ],
+  "email_protection": [
+    "Email Security"
+  ],
+  "mobile_security": [
+    "Mobile Security"
+  ]
+}

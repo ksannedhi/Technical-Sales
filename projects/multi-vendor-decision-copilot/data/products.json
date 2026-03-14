@@ -1,0 +1,263 @@
+[
+  {
+    "vendor": "CrowdStrike",
+    "product": "Falcon Insight XDR",
+    "category": [
+      "EDR",
+      "XDR"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "CrowdStrike",
+    "product": "Falcon Prevent",
+    "category": [
+      "EDR"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Palo Alto Networks",
+    "product": "Cortex XDR",
+    "category": [
+      "XDR"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Palo Alto Networks",
+    "product": "Prisma Cloud",
+    "category": [
+      "CNAPP"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Microsoft Security",
+    "product": "Defender for Endpoint",
+    "category": [
+      "EDR"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Microsoft Security",
+    "product": "Microsoft Sentinel",
+    "category": [
+      "SIEM"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "SentinelOne",
+    "product": "Singularity Endpoint",
+    "category": [
+      "EDR"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Fortinet",
+    "product": "FortiEDR",
+    "category": [
+      "EDR"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "Cisco",
+    "product": "SecureX",
+    "category": [
+      "XDR"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Splunk",
+    "product": "Splunk Enterprise Security",
+    "category": [
+      "SIEM"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "IBM Security",
+    "product": "QRadar SIEM",
+    "category": [
+      "SIEM"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "Trend Micro",
+    "product": "Vision One",
+    "category": [
+      "XDR"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Imperva",
+    "product": "Imperva Cloud WAF",
+    "category": [
+      "WAF"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Varonis",
+    "product": "Varonis Data Security Platform",
+    "category": [
+      "DSPM"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "BigID",
+    "product": "BigID Data Intelligence Platform",
+    "category": [
+      "Data Privacy"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Cyera",
+    "product": "Cyera DSPM",
+    "category": [
+      "DSPM"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Illumio",
+    "product": "Illumio Core",
+    "category": [
+      "Microsegmentation"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "Silverfort",
+    "product": "Silverfort Identity Security Platform",
+    "category": [
+      "Identity Security"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "BeyondTrust",
+    "product": "Password Safe",
+    "category": [
+      "PAM"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "Wallarm",
+    "product": "Wallarm API Security Platform",
+    "category": [
+      "API Security"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "TXOne",
+    "product": "Stellar",
+    "category": [
+      "OT Security"
+    ],
+    "deployment": [
+      "Hybrid"
+    ]
+  },
+  {
+    "vendor": "Yubico",
+    "product": "YubiKey",
+    "category": [
+      "MFA"
+    ],
+    "deployment": [
+      "Hardware"
+    ]
+  },
+  {
+    "vendor": "Zimperium",
+    "product": "Zimperium Mobile Threat Defense",
+    "category": [
+      "Mobile Security"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Wiz",
+    "product": "Wiz Cloud Security Platform",
+    "category": [
+      "CNAPP"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Orca Security",
+    "product": "Orca Platform",
+    "category": [
+      "CNAPP"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  },
+  {
+    "vendor": "Sysdig",
+    "product": "Sysdig Secure",
+    "category": [
+      "CNAPP"
+    ],
+    "deployment": [
+      "SaaS"
+    ]
+  }
+]

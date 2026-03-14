@@ -1,0 +1,317 @@
+[
+  {
+    "vendor": "CrowdStrike",
+    "categories": [
+      "EDR",
+      "XDR",
+      "Cloud Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Palo Alto Networks",
+    "categories": [
+      "Network Security",
+      "CNAPP",
+      "XDR",
+      "SASE"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Microsoft Security",
+    "categories": [
+      "EDR",
+      "SIEM",
+      "CNAPP",
+      "Identity Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "SentinelOne",
+    "categories": [
+      "EDR",
+      "XDR",
+      "Cloud Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Fortinet",
+    "categories": [
+      "Firewall",
+      "EDR",
+      "SASE"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Cisco",
+    "categories": [
+      "Network Security",
+      "XDR",
+      "SIEM"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Splunk",
+    "categories": [
+      "SIEM",
+      "SOAR"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "IBM Security",
+    "categories": [
+      "SIEM",
+      "Identity Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Trend Micro",
+    "categories": [
+      "EDR",
+      "Cloud Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Sophos",
+    "categories": [
+      "Endpoint Security",
+      "Firewall"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Imperva",
+    "categories": [
+      "WAF",
+      "API Security",
+      "Database Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Varonis",
+    "categories": [
+      "Data Security",
+      "DSPM"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "BigID",
+    "categories": [
+      "Data Privacy",
+      "DSPM"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Cyera",
+    "categories": [
+      "DSPM"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Illumio",
+    "categories": [
+      "Microsegmentation"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Silverfort",
+    "categories": [
+      "Identity Security",
+      "ITDR"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "BeyondTrust",
+    "categories": [
+      "PAM"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Wallarm",
+    "categories": [
+      "API Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "TXOne",
+    "categories": [
+      "OT Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Yubico",
+    "categories": [
+      "MFA",
+      "Passwordless"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Zimperium",
+    "categories": [
+      "Mobile Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Wiz",
+    "categories": [
+      "CNAPP"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Orca Security",
+    "categories": [
+      "CNAPP"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Sysdig",
+    "categories": [
+      "CNAPP",
+      "Container Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Okta",
+    "categories": [
+      "Identity Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Ping Identity",
+    "categories": [
+      "Identity Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Proofpoint",
+    "categories": [
+      "Email Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Cloudflare",
+    "categories": [
+      "WAF",
+      "DDoS Protection"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Akamai",
+    "categories": [
+      "WAF",
+      "DDoS Protection"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Darktrace",
+    "categories": [
+      "NDR"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Vectra AI",
+    "categories": [
+      "NDR"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "ExtraHop",
+    "categories": [
+      "NDR"
+    ],
+    "regions": [
+      "Global"
+    ]
+  }
+]

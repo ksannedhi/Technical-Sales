@@ -1,0 +1,64 @@
+[
+  {
+    "category": "EDR",
+    "vendors": [
+      {
+        "vendor": "CrowdStrike",
+        "product": "Falcon Insight XDR",
+        "features": [
+          "behavioral detection",
+          "threat hunting",
+          "managed detection"
+        ]
+      },
+      {
+        "vendor": "SentinelOne",
+        "product": "Singularity Endpoint",
+        "features": [
+          "behavioral detection",
+          "rollback",
+          "autonomous remediation"
+        ]
+      },
+      {
+        "vendor": "Microsoft",
+        "product": "Defender for Endpoint",
+        "features": [
+          "behavioral detection",
+          "integrated XDR",
+          "cloud analytics"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "CNAPP",
+    "vendors": [
+      {
+        "vendor": "Palo Alto Networks",
+        "product": "Prisma Cloud",
+        "features": [
+          "CSPM",
+          "CWPP",
+          "CIEM"
+        ]
+      },
+      {
+        "vendor": "Wiz",
+        "product": "Wiz Platform",
+        "features": [
+          "agentless scanning",
+          "risk prioritization"
+        ]
+      },
+      {
+        "vendor": "Orca Security",
+        "product": "Orca Platform",
+        "features": [
+          "agentless scanning",
+          "cloud graph"
+        ]
+      }
+    ]
+  }
+]

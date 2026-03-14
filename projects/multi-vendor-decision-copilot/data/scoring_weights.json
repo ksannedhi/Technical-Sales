@@ -1,0 +1,8 @@
+{
+  "deployment_fit": 0.25,
+  "feature_match": 0.25,
+  "integration_fit": 0.15,
+  "compliance_fit": 0.15,
+  "cost_score": 0.1,
+  "operational_complexity": 0.1
+}

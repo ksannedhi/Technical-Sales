@@ -1,0 +1,8 @@
+{
+  "rules": [
+    "exclude_if_required_onprem_and_product_saas_only",
+    "exclude_if_required_compliance_missing",
+    "exclude_if_product_not_available_in_region",
+    "exclude_if_required_integration_missing"
+  ]
+}
