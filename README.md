@@ -75,6 +75,20 @@ See project docs:
 - `projects/multi-vendor-decision-copilot/README.md`
 - `projects/multi-vendor-decision-copilot/docs/PROJECT_SPEC.md`
 
+### Threat-to-Business Translator
+- Path: `projects/threat-to-business-translator`
+- Purpose: executive-facing cyber risk translator that converts synthetic scenarios, CVEs, SOC alerts, and vulnerability scan-style findings into quantified business impact and leadership narratives.
+- Current strengths: scenario-first workflow, optional customer-specific inputs, deterministic scoring, risk-reduction output, and leadership-ready reporting.
+- One-click launch (Windows):
+
+```text
+cd C:\Users\ksann\Downloads\Technical-Sales\projects\threat-to-business-translator && Launch Threat-to-Business Translator.cmd
+```
+
+See project docs:
+- `projects/threat-to-business-translator/README.md`
+- `projects/threat-to-business-translator/docs/SPECS.md`
+
 ## Notes
 - Inline contextual figures are sourced from vendor documentation first.
 - Gold proposal is used primarily for proposal structure, tone, and submission packaging.
