@@ -60,6 +60,21 @@ See project docs:
 - `projects/security-tools-mapping-navigator/README.md`
 - `projects/security-tools-mapping-navigator/docs/Security_Tools_Mapping_Navigator_MVP_Spec.md`
 
+### Multi-Vendor Decision Copilot
+- Path: `projects/multi-vendor-decision-copilot`
+- Purpose: customer-facing cybersecurity copilot for vendor lookup, product lookup, named comparisons, category recommendations, and honest insufficient-data responses.
+- Current strengths: lookup, comparison, category recommendation, vendor-level fallback where product data is missing.
+- Quick launch (Windows PowerShell):
+
+```text
+cd C:\Users\ksann\Downloads\Technical-Sales\projects\multi-vendor-decision-copilot
+python -m streamlit run app.py
+```
+
+See project docs:
+- `projects/multi-vendor-decision-copilot/README.md`
+- `projects/multi-vendor-decision-copilot/docs/PROJECT_SPEC.md`
+
 ## Notes
 - Inline contextual figures are sourced from vendor documentation first.
 - Gold proposal is used primarily for proposal structure, tone, and submission packaging.
