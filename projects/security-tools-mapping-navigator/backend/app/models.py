@@ -90,6 +90,7 @@ class AnalysisResponse(BaseModel):
     controls_covered: int
     controls_partial: int
     controls_missing: int
+    warnings: List[str] = []
     gaps: List[GapFinding]
     redundancies: List[RedundancyFinding]
     roadmap: List[RoadmapItem]

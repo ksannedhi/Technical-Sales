@@ -41,7 +41,7 @@ if not exist "%FRONTEND%\node_modules" (
 )
 
 echo [Launcher] Starting backend in new window...
-start "Navigator Backend" cmd /k "set PYTHONPATH=%BACKEND_DEPS%;%BACKEND%&& cd /d %BACKEND% && python -m uvicorn app.main:app --reload --port 8000"
+start "Navigator Backend" cmd /k "set PYTHONPATH=%BACKEND_DEPS%;%BACKEND%&& cd /d %BACKEND% && python -m uvicorn app.main:app --reload --port 8010"
 
 timeout /t 2 >nul
 
@@ -51,7 +51,7 @@ start "Navigator Frontend" cmd /k "cd /d %FRONTEND% && npm.cmd run dev"
 echo.
 echo [Launcher] Security Tools Mapping Navigator is starting.
 echo [Launcher] Frontend URL: http://localhost:5173
-echo [Launcher] API URL: http://127.0.0.1:8000
+echo [Launcher] API URL: http://127.0.0.1:8010
 echo [Launcher] Use Ctrl+C in each spawned terminal to stop services.
 
 endlocal

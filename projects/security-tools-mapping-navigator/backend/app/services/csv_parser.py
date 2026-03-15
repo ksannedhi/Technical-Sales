@@ -10,7 +10,6 @@ REQUIRED_COLUMNS = [
     "tool_name",
     "control_domain",
     "control_objective",
-    "framework_alignment",
 ]
 
 NUMERIC_COLUMNS = ["effectiveness_score", "annual_cost_usd", "utilization_percent", "license_count"]

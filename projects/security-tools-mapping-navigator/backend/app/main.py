@@ -1,11 +1,14 @@
 ﻿import csv
 import io
 import json
+from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .models import AnalysisResponse, FrameworkChoice
 from .services.analyzer import analyze_mappings
@@ -24,6 +27,38 @@ app.add_middleware(
 )
 
 LAST_ANALYSIS: AnalysisResponse | None = None
+TEMPLATE_PATH = Path(__file__).resolve().parents[2] / "data" / "tools_controls_mapping_template.csv"
+
+
+def _default_framework_alignment(framework: FrameworkChoice) -> str:
+    if framework == FrameworkChoice.NIST:
+        return "NIST-CSF-2.0"
+    if framework == FrameworkChoice.CIS:
+        return "CIS-v8"
+    return "NIST-CSF-2.0;CIS-v8"
+
+
+def _apply_framework_alignment_defaults(rows, framework: FrameworkChoice) -> list[str]:
+    default_value = _default_framework_alignment(framework)
+    updated_records: list[str] = []
+
+    for row in rows:
+        if not (row.framework_alignment or "").strip():
+            row.framework_alignment = default_value
+            updated_records.append(row.record_id)
+
+    if not updated_records:
+        return []
+
+    preview = ", ".join(updated_records[:10])
+    suffix = "" if len(updated_records) <= 10 else f", and {len(updated_records) - 10} more"
+    return [
+        (
+            f"Framework alignment was blank for {len(updated_records)} row(s). "
+            f"Defaulted to '{default_value}' using the selected framework mode. "
+            f"Affected record_ids: {preview}{suffix}."
+        )
+    ]
 
 
 @app.on_event("startup")
@@ -31,9 +66,57 @@ def startup_event() -> None:
     init_db()
 
 
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    if exc.status_code == 404:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "detail": (
+                    f"API route not found: {request.method} {request.url.path}. "
+                    "Check that the Security Tools Mapping Navigator backend is running "
+                    "and that the frontend is calling the correct API."
+                )
+            },
+        )
+
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": (
+                "Request validation failed. This usually means the frontend sent the wrong form "
+                "fields or the backend/frontend versions are out of sync."
+            ),
+            "errors": exc.errors(),
+        },
+    )
+
+
+@app.get("/")
+def root() -> dict[str, str]:
+    return {"message": "Security Tools Mapping Navigator API is running."}
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/template")
+def download_template():
+    if not TEMPLATE_PATH.exists():
+        raise HTTPException(status_code=404, detail="Template file not found on server.")
+
+    return StreamingResponse(
+        io.BytesIO(TEMPLATE_PATH.read_bytes()),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=tools_controls_mapping_template.csv"},
+    )
 
 
 @app.post("/analyze", response_model=AnalysisResponse)
@@ -50,9 +133,12 @@ async def analyze(
     raw = await mapping_file.read()
     try:
         rows = parse_tool_control_csv(raw)
+        warnings = _apply_framework_alignment_defaults(rows, framework)
         result = analyze_mappings(rows, framework)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    result.warnings = warnings
 
     if project_name.strip():
         project_id = save_project_result(

@@ -1,6 +1,42 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "http://127.0.0.1:8010";
+
+async function parseApiError(response) {
+  let payload = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  const detail = payload?.detail;
+
+  if (response.status === 404) {
+    return (
+      detail ||
+      "Backend route not found. Make sure the Navigator backend is running on http://127.0.0.1:8010 and restart both windows if needed."
+    );
+  }
+
+  if (response.status === 422) {
+    return (
+      detail ||
+      "Request validation failed. The frontend and backend may be out of sync. Restart the app and try again."
+    );
+  }
+
+  if (response.status === 400 && typeof detail === "string" && detail.includes("Missing required columns")) {
+    return `${detail}. This app expects the tools-controls mapping format, not the older inventory format.`;
+  }
+
+  if (typeof detail === "string" && detail.trim()) {
+    return detail;
+  }
+
+  return `Request failed (${response.status}).`;
+}
 
 function Badge({ text, type }) {
   return <span className={`badge ${type}`}>{text}</span>;
@@ -121,8 +157,7 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const payload = await response.json();
-        throw new Error(payload.detail || "Failed to run analysis.");
+        throw new Error(await parseApiError(response));
       }
 
       setResult(await response.json());
@@ -138,8 +173,7 @@ export default function App() {
     try {
       const response = await fetch(`${API_BASE}/projects/${id}`);
       if (!response.ok) {
-        const payload = await response.json();
-        throw new Error(payload.detail || "Failed to load project.");
+        throw new Error(await parseApiError(response));
       }
       const payload = await response.json();
       setResult(payload.result);
@@ -151,6 +185,10 @@ export default function App() {
 
   const download = (format) => {
     window.open(`${API_BASE}/export?format=${format}`, "_blank");
+  };
+
+  const downloadTemplate = () => {
+    window.open(`${window.location.origin}/tools_controls_mapping_template.csv`, "_blank");
   };
 
   return (
@@ -200,6 +238,15 @@ export default function App() {
           </div>
         </form>
         {error && <p style={{ color: "#c53d3d", fontWeight: 700 }}>{error}</p>}
+        {result?.warnings?.length > 0 && (
+          <div style={{ marginTop: "12px", padding: "12px", borderRadius: "10px", background: "#fff6e5", color: "#8a5600" }}>
+            {result.warnings.map((warning, idx) => (
+              <p key={idx} style={{ margin: idx === 0 ? 0 : "8px 0 0" }}>
+                {warning}
+              </p>
+            ))}
+          </div>
+        )}
         <p className="helper">
           Use the tools-controls mapping template to ensure required columns are present. If project
           name is provided, the result is saved to SQLite.
@@ -208,11 +255,14 @@ export default function App() {
 
       <section className="card">
         <div className="actions">
+          <button type="button" className="secondary" onClick={downloadTemplate}>
+            Download Sample Template
+          </button>
           <button type="button" className="secondary" onClick={() => download("json")} disabled={!result}>
-            Download JSON
+            Download JSON Output
           </button>
           <button type="button" className="secondary" onClick={() => download("csv")} disabled={!result}>
-            Download CSV
+            Download CSV Output
           </button>
           <button type="button" className="secondary" onClick={loadSavedProjects}>
             Refresh Saved Projects
