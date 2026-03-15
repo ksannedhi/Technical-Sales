@@ -52,6 +52,7 @@ def analyze_raw_input(raw_text: str, file_name: str | None = None, profile: dict
     report["scenario_name"] = scenario["name"]
     report["scenario_id"] = scenario["id"]
     report["technical_summary"] = raw_text.strip()[:2000]
+    report["leadership_output"]["headline"] = _ad_hoc_headline(raw_text, report["leadership_output"]["headline"])
     return report
 
 
@@ -350,6 +351,21 @@ def _rationale(
 
 def _headline(service: dict, impact_band: dict) -> str:
     return f"{service['name']} faces a likely ${impact_band['likely_usd']:,} risk event if current exposure persists."
+
+
+def _ad_hoc_headline(raw_text: str, fallback: str) -> str:
+    text = (raw_text or "").strip()
+    if not text:
+        return fallback
+
+    first_line = text.splitlines()[0].strip()
+    if len(first_line) <= 64 and first_line.lower().startswith("cve-"):
+        return f"{first_line} maps to a likely business risk event that leadership should review now."
+
+    if len(first_line) <= 90:
+        return f"Ad hoc input indicates a business-impacting cyber risk that leadership should review now."
+
+    return fallback
 
 
 def _executive_summary(scenario: dict, service: dict, primary_asset: dict, impact_band: dict, likelihood: int, impact: int) -> str:

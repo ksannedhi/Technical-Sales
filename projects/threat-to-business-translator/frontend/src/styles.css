@@ -276,6 +276,45 @@ select {
   margin-bottom: 12px;
 }
 
+.report-context-banner,
+.technical-summary-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.report-context-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.report-context-banner.ad-hoc {
+  background: rgba(134, 183, 255, 0.1);
+  border-color: rgba(134, 183, 255, 0.34);
+}
+
+.report-context-banner strong {
+  color: var(--accent-strong);
+}
+
+.context-copy {
+  margin: 0;
+  max-width: 420px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.technical-summary-card p:last-child {
+  margin: 0;
+  color: var(--accent-strong);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 .headline-card h2 {
   margin: 0 0 10px;
   font-family: "IBM Plex Serif", serif;
@@ -410,6 +449,11 @@ select {
 
   .metrics-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .report-context-banner {
+    flex-direction: column;
+    align-items: start;
   }
 }
 

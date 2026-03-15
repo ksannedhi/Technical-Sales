@@ -36,6 +36,7 @@ export default function App() {
   const [rawText, setRawText] = useState("");
   const [sourceFile, setSourceFile] = useState(null);
   const [scenarioLoadError, setScenarioLoadError] = useState("");
+  const [reportMode, setReportMode] = useState("scenario");
 
   useEffect(() => {
     async function bootstrap() {
@@ -96,6 +97,7 @@ export default function App() {
         throw new Error("Failed to load report");
       }
       setReport(await response.json());
+      setReportMode("scenario");
     } catch (loadError) {
       setError("Unable to translate the selected scenario.");
     } finally {
@@ -126,6 +128,8 @@ export default function App() {
         throw new Error(payload.detail || "Analysis failed");
       }
       setReport(await response.json());
+      setReportMode("adHoc");
+      window.scrollTo({ top: document.querySelector(".report-panel")?.offsetTop - 24 || 0, behavior: "smooth" });
     } catch (loadError) {
       setError(loadError.message || "Unable to analyze the supplied input.");
     } finally {
@@ -262,10 +266,31 @@ export default function App() {
           {error ? <div className="error-banner">{error}</div> : null}
           {report ? (
             <>
+              <div className={reportMode === "adHoc" ? "report-context-banner ad-hoc" : "report-context-banner"}>
+                <div>
+                  <p className="section-label">{reportMode === "adHoc" ? "Ad Hoc Analysis" : "Scenario Outcome"}</p>
+                  <strong>{report.scenario_name}</strong>
+                </div>
+                {reportMode === "adHoc" ? (
+                  <p className="context-copy">
+                    Showing analysis derived from your pasted input or uploaded report.
+                  </p>
+                ) : (
+                  <p className="context-copy">
+                    Showing the built-in synthetic scenario outcome for leadership review.
+                  </p>
+                )}
+              </div>
+
               <div className="headline-card">
                 <p className="section-label">Leadership Headline</p>
                 <h2>{report.leadership_output.headline}</h2>
                 <p>{report.leadership_output.executive_summary}</p>
+              </div>
+
+              <div className="technical-summary-card">
+                <p className="section-label">Technical Input</p>
+                <p>{report.technical_summary}</p>
               </div>
 
               <div className="metrics-grid">
