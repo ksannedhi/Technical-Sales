@@ -1,8 +1,8 @@
-# Presales Deal Gating MVP Specification
+# Presales Deal Gating Specification
 
 ## Overview
 
-Presales Deal Gating MVP is a laptop-runnable local web app for reviewing presales opportunity readiness across multiple customer and presales artifacts.
+Presales Deal Gating is a laptop-runnable local web app for reviewing presales opportunity readiness across multiple customer and presales artifacts.
 
 The app is designed to help a user:
 
@@ -12,7 +12,7 @@ The app is designed to help a user:
 - preserve reviews in a session-level left-side deal history
 - download findings for follow-up or sharing
 
-This MVP is intentionally a `soft-gating` app. It does not block progression automatically and does not generate missing deliverables.
+The app is intentionally `soft-gating`. It does not block progression automatically and does not generate missing deliverables.
 
 ## Primary Goal
 
@@ -87,7 +87,7 @@ The result area should display:
 
 ### Gate Areas
 
-The MVP scores three gates:
+The app scores three gates:
 
 - `Requirements`
 - `Architecture`
@@ -163,7 +163,7 @@ Checks include:
 
 ### Supported Inputs
 
-The MVP currently supports:
+The app currently supports:
 
 - `.txt`
 - `.md`
@@ -222,7 +222,7 @@ The `Download Findings` action should export a plain-text summary containing:
 
 ## Current Non-Goals
 
-The MVP does not currently include:
+The app does not currently include:
 
 - autonomous multi-agent orchestration
 - document generation

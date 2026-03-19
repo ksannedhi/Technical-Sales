@@ -19,7 +19,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from file_ingest import extract_text_from_bytes, load_artifacts_from_zip_data
-from pdg_mvp import PresalesGateEngine
+from presales_gate_engine import PresalesGateEngine
 
 
 HOST = "127.0.0.1"
@@ -235,7 +235,7 @@ def render_page(state: dict[str, object]) -> str:
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Presales Deal Gating MVP</title>
+  <title>Presales Deal Gating</title>
   <style>
     body {{ font-family: Segoe UI, Arial, sans-serif; margin: 0; background: #f5f1e8; color: #1f2933; }}
     .wrap {{ max-width: 1360px; margin: 0 auto; padding: 24px; }}
@@ -282,7 +282,7 @@ def render_page(state: dict[str, object]) -> str:
 </head>
 <body>
   <div class="wrap">
-    <h1>Presales Deal Gating MVP</h1>
+    <h1>Presales Deal Gating</h1>
     <p class="hint">Local web app for gating requirements, architecture, proposal, and supporting presales context on your laptop.</p>
     <div class="layout">
       <aside class="sticky">
@@ -534,7 +534,7 @@ def render_session_history(selected_review_id: str) -> str:
 
 def main() -> None:
     url = f"http://{HOST}:{PORT}"
-    print(f"Presales Deal Gating MVP running at {url}")
+    print(f"Presales Deal Gating running at {url}")
     with make_server(HOST, PORT, application) as server:
         threading.Thread(target=open_browser_when_ready, args=(url,), daemon=True).start()
         server.serve_forever()

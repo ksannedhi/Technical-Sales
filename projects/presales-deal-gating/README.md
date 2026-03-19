@@ -1,4 +1,4 @@
-# Presales Deal Gating MVP
+# Presales Deal Gating
 
 Local web app for reviewing presales deal readiness across requirements, architecture, proposal, and supporting notes.
 
@@ -40,7 +40,7 @@ The app opens locally at:
 
 - `app.py`
   Local web server and UI rendering
-- `src/pdg_mvp.py`
+- `src/presales_gate_engine.py`
   Gating engine and scoring logic
 - `src/file_ingest.py`
   File ingestion and extraction helpers
@@ -67,6 +67,6 @@ The app opens locally at:
 ## Verification
 
 ```powershell
-python -m py_compile app.py src\pdg_mvp.py src\file_ingest.py tests\test_engine.py
+python -m py_compile app.py src\presales_gate_engine.py src\file_ingest.py tests\test_engine.py
 python -m unittest discover -s tests
 ```
