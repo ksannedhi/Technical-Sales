@@ -1,0 +1,4 @@
+Enterprise SOC
+- 2TB/day logs
+- AD + O365 integration
+- 90-day retention

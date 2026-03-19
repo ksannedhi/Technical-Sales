@@ -1,0 +1,4 @@
+- Active-active SIEM cluster across 2 DCs
+- Cloud ingestion via secure collectors
+- UEBA integrated with AD + HR
+- DR site defined

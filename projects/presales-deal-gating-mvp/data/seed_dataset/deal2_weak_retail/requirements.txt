@@ -1,0 +1,4 @@
+Retail security
+- Improve visibility
+- Cloud + some endpoints
+(No log volume, vague scope)

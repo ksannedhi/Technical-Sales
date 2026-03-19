@@ -89,6 +89,20 @@ See project docs:
 - `projects/threat-to-business-translator/README.md`
 - `projects/threat-to-business-translator/docs/SPECS.md`
 
+### Presales Deal Gating MVP
+- Path: `projects/presales-deal-gating-mvp`
+- Purpose: local web app for reviewing presales deal readiness across requirements, architecture, proposal, and supporting notes.
+- Current strengths: laptop-runnable workflow, artifact ingestion, weighted gating scores, deal history navigation, rename support, and downloadable findings.
+- Quick launch (Windows):
+
+```text
+cd C:\Users\ksann\Downloads\Technical-Sales\projects\presales-deal-gating-mvp && start.cmd
+```
+
+See project docs:
+- `projects/presales-deal-gating-mvp/README.md`
+- `projects/presales-deal-gating-mvp/docs/PRODUCT_SPEC.md`
+
 ## Notes
 - Inline contextual figures are sourced from vendor documentation first.
 - Gold proposal is used primarily for proposal structure, tone, and submission packaging.

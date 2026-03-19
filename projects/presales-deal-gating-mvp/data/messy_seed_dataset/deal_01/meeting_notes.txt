@@ -1,0 +1,6 @@
+Meeting Notes:
+- Stakeholders not all present
+- Log sources list incomplete
+- Someone mentioned "maybe 3-5 TB/day?" (not confirmed)
+- Timeline pressure due to audit next quarter
+- Integration with HR system? unclear API

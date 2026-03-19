@@ -1,0 +1,3 @@
+- Scrubbing center
+- No latency analysis
+- No failover

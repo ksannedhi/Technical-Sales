@@ -1,0 +1,4 @@
+Government SOC
+- Air-gapped required
+- Full automation SOAR
+- 1 year logs

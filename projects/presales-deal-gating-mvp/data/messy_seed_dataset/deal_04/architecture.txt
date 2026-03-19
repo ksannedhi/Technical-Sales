@@ -1,0 +1,10 @@
+### Architecture Notes (text)
+• SIEM single node deployed in DC1
+• Collectors in sites; forwarding via syslog/agent
+* UEBA enabled
+* SOAR TBD
+* Cloud ingestion: Azure
+• DR site: defined (DC2)
+• Data flow: endpoints → collectors → SIEM → SOAR → tickets
+• Gaps: identity source details unclear; API access not confirmed
+Potential Issues: No HA defined.

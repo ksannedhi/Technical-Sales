@@ -1,0 +1,10 @@
+### RFP / Discovery Notes
+* Customer: Org-07 (Retail)
+Users ~ 7000, Servers ~ 80
+• Objectives: improve visibility; compliance; faster IR; insider threat
+* Environment: hybrid ; Cloud: AWS
+* Retention: 90 days (min)
+- Log volume: 10 TB/day
+• Constraints: Data residency in-country ; Budget tight
+- Integrations: AD, O365, Firewalls, EDR, VPN, Apps (SAP/Custom?)
+- Notes: some legacy systems, APIs not well documented

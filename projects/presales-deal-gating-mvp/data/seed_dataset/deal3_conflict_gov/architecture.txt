@@ -1,0 +1,2 @@
+- SOAR requires cloud updates
+- SIEM on-prem

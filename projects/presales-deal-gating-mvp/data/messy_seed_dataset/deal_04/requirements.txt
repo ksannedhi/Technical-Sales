@@ -1,0 +1,10 @@
+### RFP / Discovery Notes
+Customer: Org-04 (Gov)
+- Users ~ 1200, Servers ~ 150
+- Objectives: improve visibility; compliance; faster IR; fraud detection
+• Environment: hybrid ; Cloud: Azure
+- Retention: 90 days (min)
+Log volume: 10 TB/day
+Constraints: Data residency in-country ; Budget tight
+* Integrations: AD, O365, Firewalls, EDR, VPN, Apps (SAP/Custom?)
+• Notes: some legacy systems, APIs not well documented

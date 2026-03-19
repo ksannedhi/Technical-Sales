@@ -1,0 +1,10 @@
+### RFP / Discovery Notes
+• Customer: Org-02 (Energy)
+• Users ~ 2500, Servers ~ 300
+* Objectives: improve visibility; compliance; faster IR; fraud detection
+• Environment: on-prem only ; Cloud: AWS
+Retention: 30 days (min)
+* Log volume: TBD
+• Constraints: Air-gapped ; Budget tight
+- Integrations: AD, O365, Firewalls, EDR, VPN, Apps (SAP/Custom?)
+* Notes: some legacy systems, APIs not well documented

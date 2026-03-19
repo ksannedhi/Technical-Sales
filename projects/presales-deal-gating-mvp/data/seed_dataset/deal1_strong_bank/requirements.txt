@@ -1,0 +1,5 @@
+Tier-1 Bank SOC Upgrade
+- Clear use cases (fraud, insider threat)
+- 8TB/day logs, 1-year retention
+- Hybrid (on-prem + AWS)
+- Strict compliance mapping provided (CBK)
