@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import socket
 import sys
 import threading
@@ -536,7 +537,8 @@ def main() -> None:
     url = f"http://{HOST}:{PORT}"
     print(f"Presales Deal Gating running at {url}")
     with make_server(HOST, PORT, application) as server:
-        threading.Thread(target=open_browser_when_ready, args=(url,), daemon=True).start()
+        if os.environ.get("PDG_OPEN_BROWSER", "1") != "0":
+            threading.Thread(target=open_browser_when_ready, args=(url,), daemon=True).start()
         server.serve_forever()
 
 
