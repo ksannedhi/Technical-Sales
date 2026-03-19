@@ -537,7 +537,7 @@ def main() -> None:
     url = f"http://{HOST}:{PORT}"
     print(f"Presales Deal Gating running at {url}")
     with make_server(HOST, PORT, application) as server:
-        if os.environ.get("PDG_OPEN_BROWSER", "1") != "0":
+        if os.environ.get("PDG_OPEN_BROWSER", "0") == "1":
             threading.Thread(target=open_browser_when_ready, args=(url,), daemon=True).start()
         server.serve_forever()
 
