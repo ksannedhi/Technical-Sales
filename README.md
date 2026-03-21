@@ -20,8 +20,10 @@ Outputs:
 In Codex, run:
 
 ```text
-Use $skill-installer to install skill from https://github.com/ksannedhi/Technical-Sales
+Use $skill-installer to install skill from https://github.com/ksannedhi/Technical-Sales/tree/main/autonomous-presales-engineer
 ```
+
+For multi-skill repos, install the specific skill subfolder rather than the repo root.
 
 ## Use Skill
 After install, invoke:
