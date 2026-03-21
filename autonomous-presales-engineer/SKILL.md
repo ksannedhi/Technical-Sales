@@ -21,11 +21,12 @@ Collect these before drafting:
 1. Extract source text from RFP, vendor documentation, and gold proposal.
 2. Validate extraction quality before drafting.
 3. Build requirements matrix from RFP.
-4. Identify candidate figures from vendor documentation for each deliverable and section.
-5. Draft SoW, HLD, and Technical Proposal with planned figure locations.
-6. Insert inline contextual images into Markdown and DOCX drafts.
-7. Run quality gate checks.
-8. Export Markdown and DOCX outputs.
+4. If vendor documentation includes multiple files or a folder, extract each file, retain source attribution, and merge the useful technical content into one working set.
+5. Identify candidate figures from vendor documentation for each deliverable and section.
+6. Draft SoW, HLD, and Technical Proposal with planned figure locations.
+7. Insert inline contextual images into Markdown and DOCX drafts.
+8. Run quality gate checks.
+9. Export Markdown and DOCX outputs.
 
 ## Extraction Rules
 1. Prefer direct DOCX XML body extraction for DOCX files.
@@ -34,6 +35,8 @@ Collect these before drafting:
 4. If extracted text is blank or mostly line breaks, retry using alternate path (Word conversion first, then XML extraction).
 5. Treat vendor documentation as the primary technical-content and figure source for the current bid.
 6. Use the gold proposal primarily as a structure, tone, and packaging benchmark.
+7. When vendor documentation is supplied as multiple files, process every relevant file rather than stopping at the first successful extraction.
+8. When a vendor documentation folder is supplied, enumerate supported files first, then extract and consolidate them into a single working set with file-level traceability.
 
 ## Drafting Rules
 1. Keep structure practical and submission-ready.
@@ -94,5 +97,6 @@ Generate all of the following unless user narrows scope:
 5. Confirm vendor documentation was actively reviewed for usable figures per deliverable.
 6. Confirm figure provenance is primarily from current-opportunity vendor documentation.
 7. Confirm gold proposal was used primarily for structure/style guidance.
-8. Provide absolute output paths.
-9. State caveats (for example OCR quality or scanned PDF limitations).
+8. Confirm all relevant vendor files were processed when multiple vendor documents were provided.
+9. Provide absolute output paths.
+10. State caveats (for example OCR quality or scanned PDF limitations).

@@ -36,3 +36,16 @@
 8. Support model.
 9. Assumptions.
 10. Value and conclusion.
+
+## BOQ Mini-Template
+Use this structure whenever the source contains a BOQ or commercial line intent that needs to be reflected in the technical drafts:
+
+| Line Item | Qty | Unit | Description | Source Reference | Commercial Placeholder |
+|---|---:|---|---|---|---|
+| Example: Endpoint Protection Renewal | 500 | License | Renewal of endpoint protection entitlement for covered users/devices | RFP BOQ / Vendor proposal | To be priced separately |
+
+Rules:
+1. Keep quantities and line intent unchanged from source unless the user explicitly asks for normalization.
+2. Use `TBD`, `As per final BOQ`, or `To be priced separately` for commercial placeholders when pricing is unavailable.
+3. Add `Source Reference` using the originating document or section so the row can be traced later.
+4. If OCR quality is weak, preserve the commercial placeholder and note the quantity/source ambiguity nearby.
