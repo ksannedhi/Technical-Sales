@@ -159,7 +159,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <h2>SOC Twin Demo (Field SKU)</h2>
+      <h2>SOC Twin Demo</h2>
       <div className="card">
         <button onClick={() => runScenario("phishing-credential-lateral")}>Start Phishing Scenario</button>
         <button onClick={() => runScenario("ransomware-precursor")}>Start Ransomware Scenario</button>

@@ -1,8 +1,8 @@
-# SOC Twin (Field SKU v1)
+# SOC Twin (v1)
 
 Laptop-first simulated SOC environment for cybersecurity presales demos.
 
-## Baseline for this laptop
+## Baseline
 
 - Backend background noise rate: 3200 ms
 - Scenario noise rate: 1200 ms
@@ -14,7 +14,7 @@ Laptop-first simulated SOC environment for cybersecurity presales demos.
 ## Quick launch (recommended)
 
 ```bash
-cd C:\Users\ksann\Downloads\soc-twin && npm.cmd run demo:launch
+npm.cmd run demo:launch
 ```
 
 This launcher:
@@ -30,7 +30,6 @@ Open: `http://localhost:5173`
 1. Backend:
 
 ```bash
-cd C:\Users\ksann\Downloads\soc-twin
 npm.cmd install
 npm.cmd run demo:start
 ```
@@ -38,7 +37,7 @@ npm.cmd run demo:start
 2. Frontend:
 
 ```bash
-cd C:\Users\ksann\Downloads\soc-twin\frontend
+cd frontend
 npm.cmd install
 npm.cmd run dev
 ```
@@ -77,7 +76,6 @@ npm.cmd run reset
 - v1 uses deterministic synthetic alerts for repeatable demos.
 - No destructive payloads are executed.
 - AI triage is currently a local stub until live provider wiring is enabled.
-- On this machine, use `npm.cmd` instead of `npm` in PowerShell.
 ## Audience Mode behavior
 
 Switching mode now changes visible dashboard content:

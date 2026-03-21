@@ -1,4 +1,4 @@
-# Live SOC Twin for Demos - Field SKU v1 Spec
+# Live SOC Twin for Demos - v1 Spec
 
 ## 1) Objective
 
@@ -25,7 +25,7 @@ Out of scope (v1):
 - Full SOAR actioning on real infrastructure.
 - Multi-tenant deployment.
 
-## 3) Field SKU Principles
+## 3) Core Principles
 
 - Demo-first: reliability and story quality over maximum realism.
 - Deterministic runs: no dependence on internet attack noise.
@@ -180,31 +180,25 @@ Operator controls:
 - UI latency for new event display: < 1 second.
 - Reset command complete: <= 5 minutes.
 
-## 13) 4-Week Delivery Plan
+## 13) Delivery Plan
 
-Week 1 - Foundation
+What was built quickly:
 - Repo and app skeleton
-- Schemas and store
-- Engine skeleton and one playbook
-- Healthcheck and reset
+- Schemas and in-memory store
+- Scenario engine and core playbooks
+- Analyst, SOC Manager, and CISO audience modes
+- Demo launcher, prep/reset flow, and runbooks
 
-Week 2 - Core Demo Flow
-- Scenario orchestration and speed controls
-- Correlation logic and incident lifecycle
-- Analyst + manager views
-- Seed utility and traffic profiles
+What remains for hardened v1:
+- Richer scenario branching and decision-dependent outcomes
+- Live AI analyst integration instead of a stub adapter
+- Deeper health checks and operational logging
+- Formal repeatability evidence across multiple dry runs
+- Additional polish for executive storytelling and demo resilience
 
-Week 3 - Story and Buyer Views
-- CISO KPI panel and business impact mapping
-- Scenario branching
-- Optional AI triage adapter
-- Demo script and operator checklist
-
-Week 4 - Hardening and Rehearsal
-- Performance tuning on target laptop
-- 10-run repeatability test
-- Objection handling runbook
-- Acceptance evidence
+Expected hardening window:
+- MVP: built in days
+- Hardened v1: 2 to 4 weeks depending on polish, testing, and scenario depth
 
 ## 14) Roles
 
@@ -244,7 +238,7 @@ Week 4 - Hardening and Rehearsal
 
 ## 18) v1 Exit Criteria
 
-Ship Field SKU v1 when:
+Ship v1 when:
 - Acceptance checklist passes
 - 10 consecutive dry runs pass
 - Operator can run and reset unassisted

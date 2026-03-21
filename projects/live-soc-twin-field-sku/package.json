@@ -2,7 +2,7 @@
     "name":  "soc-twin",
     "version":  "0.1.0",
     "private":  true,
-    "description":  "Field SKU Live SOC Twin demo app",
+    "description":  "Live SOC Twin demo app",
     "main":  "api/server.js",
     "scripts":  {
                     "demo:start":  "node api/server.js",

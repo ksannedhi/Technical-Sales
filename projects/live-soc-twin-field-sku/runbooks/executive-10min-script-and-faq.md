@@ -53,7 +53,7 @@ Talk track:
 - Response: "This is scenario-driven and outcome-based. We show complete attack progression, correlation, and response decisions, not isolated dashboard clicks."
 
 3. "Can this integrate with our existing tools?"
-- Response: "Yes. Field SKU proves workflow value first. Integration depth is done in the next phase based on your required sources and control points."
+- Response: "Yes. This demo proves workflow value first. Integration depth is done in the next phase based on your required sources and control points."
 
 4. "How accurate is ATT&CK mapping here?"
 - Response: "Mappings are explicit and visible at event level. We can tune techniques and thresholds to your threat model in a custom pack."
@@ -65,7 +65,7 @@ Talk track:
 - Response: "No. Recommendations are assistive. Analyst approval remains the control gate for any action."
 
 7. "How quickly can we stand this up for our team?"
-- Response: "The Field SKU is laptop-runnable and can be operational quickly. Then we tune scenarios to your environment and KPIs."
+- Response: "The current version is laptop-runnable and can be operational quickly. Then we tune scenarios to your environment and KPIs."
 
 8. "Can this support executive workshops?"
 - Response: "Yes. The CISO mode is designed for risk and business impact storytelling, while retaining technical traceability in analyst/manager views."
@@ -86,7 +86,7 @@ Talk track:
 - Response: "One-scenario-at-a-time guardrails, deterministic event generation, prep/reset commands, and operator runbooks keep the flow predictable."
 
 14. "Can this run offline in customer sites?"
-- Response: "Yes, that is one of the core design goals for Field SKU."
+- Response: "Yes, that is one of the core design goals for this demo."
 
 15. "What does a good next step look like?"
 - Response: "A scoped POV with agreed success metrics: two attack paths, target detection/response KPIs, and decision timeline."
@@ -97,10 +97,10 @@ Talk track:
 ## 3) Objection Handling Shortcuts
 
 - "Too synthetic": "Correct for demo reliability; we switch to your telemetry in POV."
-- "Too basic": "This is Field SKU for speed; depth is unlocked in integration phase."
+- "Too basic": "This is the fast demo version; depth is unlocked in the integration phase."
 - "Too risky with AI": "Human-in-the-loop stays mandatory."
 - "Not our environment": "We can mirror your environment with custom scenario packs."
 
 ## 4) Closing Ask Template
 
-"If this aligns, let’s schedule a 60-minute design workshop to map your top two attack paths, define success criteria, and agree a POV plan."
+"If this aligns, let's schedule a 60-minute design workshop to map your top two attack paths, define success criteria, and agree a POV plan."

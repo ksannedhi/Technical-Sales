@@ -55,16 +55,16 @@ SE line:
 ## 2) SE Talk Track (modular)
 
 ### Opening
-"Today I’ll show a live SOC twin that simulates realistic attacks and operations without touching production systems. The goal is to validate detection-to-response outcomes in a repeatable way."
+"Today I'll show a live SOC twin that simulates realistic attacks and operations without touching production systems. The goal is to validate detection-to-response outcomes in a repeatable way."
 
 ### Value framing
 "We focus on three outcomes: faster triage, cleaner incident correlation, and clearer executive risk communication."
 
 ### During alerts
-"Notice we’re not chasing individual noisy events. We’re building a coherent incident narrative mapped to ATT&CK techniques."
+"Notice we're not chasing individual noisy events. We're building a coherent incident narrative mapped to ATT&CK techniques."
 
 ### During incident escalation
-"At this point, the decision is not ‘is this bad,’ it is ‘how fast can we contain while minimizing analyst fatigue.’"
+"At this point, the decision is not 'is this bad,' it is 'how fast can we contain while minimizing analyst fatigue.'"
 
 ### Executive framing
 "For leadership, the key metric is reduced blast radius and time to containment, not just alert count."
@@ -73,7 +73,7 @@ SE line:
 - Synthetic data objection:
   "Correct, this is synthetic by design so demos remain stable and comparable across sessions."
 - Integration objection:
-  "This Field SKU proves operational value first; integration depth is handled in Cloud SKU/POV."
+  "This demo proves operational value first; integration depth is handled in a deeper integration or POV phase."
 - AI trust objection:
   "Recommendations are assistive, not autonomous. Analysts retain final control."
 
