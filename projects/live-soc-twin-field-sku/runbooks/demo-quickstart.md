@@ -12,6 +12,9 @@
 
 4. In UI
 - Start with Analyst mode and call out the "MITRE" last column plus analyst KPIs.
+- Tell the audience that alert rows are selectable in Analyst mode.
+- Click a live alert row and call out the selection message.
+- Scroll to the bottom and use `Analyze Selected Alert` to show `ARIA (Automated Response & Investigation Assistant)` triage.
 - Run Phishing scenario.
 - Switch to SOC Manager mode and show last column changes to "Status" with manager KPIs.
 - Switch to CISO mode and show last column changes to "Service" with executive risk KPIs.

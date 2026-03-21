@@ -62,7 +62,7 @@ Talk track:
 - Response: "We intentionally include baseline noise to demonstrate triage discipline and correlation quality under realistic SOC conditions."
 
 6. "Does AI make autonomous decisions?"
-- Response: "No. Recommendations are assistive. Analyst approval remains the control gate for any action."
+- Response: "No. ARIA, the Automated Response & Investigation Assistant, provides triage guidance only. Analyst approval remains the control gate for any action."
 
 7. "How quickly can we stand this up for our team?"
 - Response: "The current version is laptop-runnable and can be operational quickly. Then we tune scenarios to your environment and KPIs."
@@ -93,6 +93,9 @@ Talk track:
 
 16. "What changes when you switch Audience Mode?"
 - Response: "The dashboard visibly changes: role-specific title, role-specific KPI card, and different last table column (`MITRE`, `Status`, or `Service`)."
+
+17. "How does the analyst use AI during the demo?"
+- Response: "In Analyst mode, we select a live alert, scroll to the bottom investigation panel, and run ARIA analysis on that alert. It produces a concise triage summary and recommended next step."
 
 ## 3) Objection Handling Shortcuts
 

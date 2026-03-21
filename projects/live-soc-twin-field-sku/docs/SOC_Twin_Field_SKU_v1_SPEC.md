@@ -16,7 +16,7 @@ In scope:
 - Simulated enterprise entities (users, hosts, services, crown jewels).
 - Synthetic telemetry and attack scenarios mapped to MITRE ATT&CK.
 - SIEM-style dashboard with live alert stream and incident correlation.
-- Optional AI analyst copilot for triage summaries.
+- AI analyst copilot for triage summaries.
 - Operator controls: trigger, pause, stop, speed, reset, seed.
 
 Out of scope (v1):
@@ -62,11 +62,8 @@ Core app:
 - Store: In-memory default, optional SQLite fallback
 - Packaging: Docker Compose (optional), npm scripts first
 
-Optional AI analyst:
-- Provider adapter interface with support for:
-  - OpenAI
-  - Anthropic
-  - Azure OpenAI
+AI analyst:
+- Anthropic-backed `ARIA (Automated Response & Investigation Assistant)` with local fallback when no API key is configured.
 
 Note:
 - Keep SIEM visual style, but do not integrate full external SIEM tooling in v1.
@@ -164,6 +161,11 @@ Operator controls:
 - Reset
 - Seed historical baseline alerts
 
+Analyst interaction:
+- Alerts are selectable in Analyst mode.
+- After selecting an alert, the user is prompted to scroll to the bottom investigation panel.
+- `Analyze Selected Alert` runs ARIA triage for the selected alert.
+
 ## 11) Security and Safety Constraints
 
 - No real destructive payloads.
@@ -191,7 +193,6 @@ What was built quickly:
 
 What remains for hardened v1:
 - Richer scenario branching and decision-dependent outcomes
-- Live AI analyst integration instead of a stub adapter
 - Deeper health checks and operational logging
 - Formal repeatability evidence across multiple dry runs
 - Additional polish for executive storytelling and demo resilience

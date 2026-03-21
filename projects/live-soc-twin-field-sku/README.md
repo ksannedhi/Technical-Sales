@@ -9,7 +9,7 @@ Laptop-first simulated SOC environment for cybersecurity presales demos.
 - Recommended concurrent scenarios: 1 (enforced)
 - Store: in-memory with alert cap (500)
 - Branding: generic
-- AI provider preference: OpenAI (provider adapter stub)
+- AI provider preference: Claude via Anthropic
 
 ## Quick launch (recommended)
 
@@ -41,6 +41,22 @@ cd frontend
 npm.cmd install
 npm.cmd run dev
 ```
+
+## Configuration
+
+Backend `.env`:
+- `PORT`
+- `DEMO_BRAND`
+- `DEMO_MODE`
+- `EVENT_RATE_MS`
+- `SCENARIO_NOISE_MS`
+- `MAX_EVENTS_PER_SECOND`
+- `ANTHROPIC_MODEL`
+- `ANTHROPIC_API_KEY`
+
+Frontend optional `.env`:
+- `VITE_API_URL`
+- `VITE_WS_URL`
 
 ## Operator commands
 
@@ -75,7 +91,10 @@ npm.cmd run reset
 
 - v1 uses deterministic synthetic alerts for repeatable demos.
 - No destructive payloads are executed.
-- AI triage is currently a local stub until live provider wiring is enabled.
+- AI triage uses Anthropic when `ANTHROPIC_API_KEY` is configured, and falls back locally if not.
+- The supported analyst assistant is `ARIA (Automated Response & Investigation Assistant)`.
+- In Analyst mode, alert rows are selectable. After selecting a row, the UI prompts you to scroll to the bottom to run ARIA analysis.
+- Scenario start buttons are disabled while another scenario is running.
 ## Audience Mode behavior
 
 Switching mode now changes visible dashboard content:

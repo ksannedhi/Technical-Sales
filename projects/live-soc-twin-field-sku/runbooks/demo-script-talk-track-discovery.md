@@ -14,9 +14,14 @@ SE line:
 - Show Analyst mode.
 - Point out normal event flow and low-severity background traffic.
 - Show queue discipline: status, severity, MITRE mapping (Analyst mode shows MITRE column).
+- Click a live alert row and point out that alerts are selectable.
+- Scroll to the bottom of the page and run `Analyze Selected Alert` to show ARIA's triage summary.
 
 SE line:
 "Before attack simulation, this is your normal SOC operating state: manageable queue, mapped telemetry, and consistent triage context."
+
+SE line:
+"For analysts, any alert row is actionable. They can select an alert, scroll to the investigation panel, and have ARIA summarize what matters before they decide the next step."
 
 ### 2. Scenario 1: Phishing -> Credential -> Lateral (8 min)
 - Click: `Start Phishing Scenario`
@@ -75,7 +80,7 @@ SE line:
 - Integration objection:
   "This demo proves operational value first; integration depth is handled in a deeper integration or POV phase."
 - AI trust objection:
-  "Recommendations are assistive, not autonomous. Analysts retain final control."
+  "Recommendations are assistive, not autonomous. Analysts retain final control, and ARIA is only a triage assistant."
 
 ### Close
 "If this aligns with your SOC priorities, the next step is to map your top 2 attack paths into this twin and run a joint success criteria workshop."
