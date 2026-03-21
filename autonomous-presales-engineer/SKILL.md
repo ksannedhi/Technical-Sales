@@ -41,18 +41,21 @@ Collect these before drafting:
 4. Include explicit BOQ mapping and scope boundaries.
 5. Keep commercial placeholders as placeholders unless pricing is provided.
 6. Use concise, formal reseller language.
-7. Place figures in the section where they add technical clarity (architecture, flow, performance, support model, or implementation method).
+7. Place figures directly inside the section where they add technical clarity (architecture, flow, performance, support model, or implementation method).
+8. Do not create a standalone `Contextual Figures`, `Figures`, or similar catch-all section unless the user explicitly asks for one.
 
 ## Inline Image Insertion Rules
 1. Prefer figures extracted from current-opportunity vendor documentation before using any external source.
 2. Use gold proposal visuals only when they are directly relevant and no better current-opportunity vendor figure is available.
 3. Insert images inline near the relevant text section, not as a detached appendix.
-4. In Markdown drafts, use relative image paths (for example: `![caption](figures/vendor/diagram.png)`).
-5. In DOCX outputs, embed images as inline objects (not broken links or placeholders).
-6. Add a short caption below each figure using `Figure N: ...`.
-7. Include at least one contextual inline figure in each deliverable when relevant material exists.
-8. If no relevant figure exists for a deliverable, state this explicitly in that deliverable.
-9. Avoid decorative logos/certificates unless they support a stated requirement.
+4. Place each figure immediately after the paragraph or subsection it supports whenever practical.
+5. Do not group otherwise unrelated figures under a dedicated figure-only section.
+6. In Markdown drafts, use relative image paths (for example: `![caption](figures/vendor/diagram.png)`).
+7. In DOCX outputs, embed images as inline objects (not broken links or placeholders).
+8. Add a short caption below each figure using `Figure N: ...`.
+9. Include at least one contextual inline figure in each deliverable when relevant material exists.
+10. If no relevant figure exists for a deliverable, state this explicitly in that deliverable.
+11. Avoid decorative logos/certificates unless they support a stated requirement.
 
 Use [references/section-outlines.md](references/section-outlines.md) for required sections.
 Use [references/quality-gates.md](references/quality-gates.md) before finalizing.
@@ -68,7 +71,8 @@ Use [references/docx-submission-format.md](references/docx-submission-format.md)
 7. Ensure tables are readable and aligned for BOQ and SLA sections.
 8. Insert relevant figures inline contextually in all deliverables where relevant.
 9. Prefer figures extracted from current-opportunity vendor documentation.
-10. If user asks for online figures, include only relevant product architecture visuals and cite source links in the response.
+10. Do not create a standalone figure gallery or `Contextual Figures` section unless the user explicitly requests it.
+11. If user asks for online figures, include only relevant product architecture visuals and cite source links in the response.
 
 ## Output Contract
 Generate all of the following unless user narrows scope:
