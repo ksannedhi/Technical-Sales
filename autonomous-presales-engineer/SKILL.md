@@ -21,10 +21,11 @@ Collect these before drafting:
 1. Extract source text from RFP, vendor documentation, and gold proposal.
 2. Validate extraction quality before drafting.
 3. Build requirements matrix from RFP.
-4. Draft SoW, HLD, and Technical Proposal with planned figure locations.
-5. Insert inline contextual images into Markdown and DOCX drafts.
-6. Run quality gate checks.
-7. Export Markdown and DOCX outputs.
+4. Identify candidate figures from vendor documentation for each deliverable and section.
+5. Draft SoW, HLD, and Technical Proposal with planned figure locations.
+6. Insert inline contextual images into Markdown and DOCX drafts.
+7. Run quality gate checks.
+8. Export Markdown and DOCX outputs.
 
 ## Extraction Rules
 1. Prefer direct DOCX XML body extraction for DOCX files.
@@ -53,9 +54,11 @@ Collect these before drafting:
 6. In Markdown drafts, use relative image paths (for example: `![caption](figures/vendor/diagram.png)`).
 7. In DOCX outputs, embed images as inline objects (not broken links or placeholders).
 8. Add a short caption below each figure using `Figure N: ...`.
-9. Include at least one contextual inline figure in each deliverable when relevant material exists.
-10. If no relevant figure exists for a deliverable, state this explicitly in that deliverable.
-11. Avoid decorative logos/certificates unless they support a stated requirement.
+9. When vendor documentation is provided, actively search it for at least one usable figure per deliverable before concluding none are relevant.
+10. Include at least one contextual inline figure in each deliverable when relevant material exists.
+11. State that no relevant figure exists for a deliverable only after vendor documentation has been checked and no technically suitable figure was found.
+12. If a deliverable genuinely has no suitable figure, keep the statement brief and place it in the relevant section rather than in a standalone figure section.
+13. Avoid decorative logos/certificates unless they support a stated requirement.
 
 Use [references/section-outlines.md](references/section-outlines.md) for required sections.
 Use [references/quality-gates.md](references/quality-gates.md) before finalizing.
@@ -88,7 +91,8 @@ Generate all of the following unless user narrows scope:
 2. Confirm BOQ references captured.
 3. Confirm all requested formats are created.
 4. Confirm inline contextual images are inserted and visible in Markdown and DOCX outputs.
-5. Confirm figure provenance is primarily from current-opportunity vendor documentation.
-6. Confirm gold proposal was used primarily for structure/style guidance.
-7. Provide absolute output paths.
-8. State caveats (for example OCR quality or scanned PDF limitations).
+5. Confirm vendor documentation was actively reviewed for usable figures per deliverable.
+6. Confirm figure provenance is primarily from current-opportunity vendor documentation.
+7. Confirm gold proposal was used primarily for structure/style guidance.
+8. Provide absolute output paths.
+9. State caveats (for example OCR quality or scanned PDF limitations).
