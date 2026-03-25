@@ -24,19 +24,97 @@ class ControlDef:
     keywords: List[str]
 
 
+ALIAS_TOKEN_MAP: Dict[str, List[str]] = {
+    "capability_identity": [
+        "entra id",
+        "okta",
+        "pingfederate",
+        "sailpoint",
+        "cyberark",
+        "beyondtrust",
+        "privileged account management",
+        "pam",
+    ],
+    "capability_endpoint": [
+        "crowdstrike",
+        "falcon",
+        "sentinelone",
+        "carbon black",
+        "defender for endpoint",
+        "deep security",
+        "qualys",
+        "tenable",
+        "mcafee",
+        "trend micro",
+    ],
+    "capability_soc": [
+        "microsoft sentinel",
+        "sentinel",
+        "ibm qradar",
+        "qradar",
+        "elastic security",
+        "elasticsearch",
+        "splunk",
+        "insightidr",
+        "darktrace",
+        "fortianalyzer",
+        "anomali",
+        "logrhythm",
+    ],
+    "capability_network": [
+        "palo alto",
+        "fortigate",
+        "fortinet",
+        "check point",
+        "zscaler",
+        "netskope",
+        "tippingpoint",
+        "algosec",
+        "gigamon",
+        "solarwinds",
+    ],
+    "capability_data": [
+        "imperva",
+        "proofpoint",
+        "mimecast",
+        "barracuda",
+        "purview",
+        "invicti",
+        "f5",
+        "cloudflare",
+        "boldon james",
+        "goanywhere",
+        "archer",
+        "reversing labs",
+    ],
+    "capability_cloud": [
+        "wiz",
+        "prisma cloud",
+        "orca",
+        "aqua",
+        "panoptica",
+        "sonrai",
+    ],
+}
+
+
+def _keywords(*terms: str) -> List[str]:
+    return list(terms)
+
+
 CONTROL_LIBRARY: List[ControlDef] = [
-    ControlDef("NIST-PR.AA", "NIST", "Identity Management and Access Control", "Identity", ["identity", "sso", "mfa", "access"]),
-    ControlDef("NIST-PR.PS", "NIST", "Endpoint and Platform Security", "Endpoint", ["endpoint", "edr", "xdr", "antimalware"]),
-    ControlDef("NIST-DE.CM", "NIST", "Security Continuous Monitoring", "SOC", ["siem", "monitor", "detection", "log"]),
-    ControlDef("NIST-PR.AC", "NIST", "Network Access and Segmentation", "Network", ["firewall", "ztna", "ids", "ips", "segment"]),
-    ControlDef("NIST-PR.DS", "NIST", "Data Security", "Data", ["dlp", "encryption", "data"]),
-    ControlDef("NIST-RS.RP", "NIST", "Incident Response Planning", "SOC", ["soar", "incident", "response"]),
-    ControlDef("CIS-5", "CIS", "Account Management", "Identity", ["identity", "mfa", "access", "account"]),
-    ControlDef("CIS-10", "CIS", "Malware Defenses", "Endpoint", ["edr", "xdr", "antimalware", "endpoint"]),
-    ControlDef("CIS-8", "CIS", "Audit Log Management", "SOC", ["siem", "log", "monitor"]),
-    ControlDef("CIS-12", "CIS", "Network Infrastructure Management", "Network", ["firewall", "network", "ids", "ips"]),
-    ControlDef("CIS-3", "CIS", "Data Protection", "Data", ["dlp", "encryption", "classification"]),
-    ControlDef("CIS-17", "CIS", "Incident Response Management", "SOC", ["incident", "response", "soar"]),
+    ControlDef("NIST-PR.AA", "NIST", "Identity Management and Access Control", "Identity", _keywords("identity", "sso", "mfa", "access", "iam", "directory", "capability_identity")),
+    ControlDef("NIST-PR.PS", "NIST", "Endpoint and Platform Security", "Endpoint", _keywords("endpoint", "edr", "xdr", "antimalware", "workload", "vulnerability", "capability_endpoint", "capability_cloud")),
+    ControlDef("NIST-DE.CM", "NIST", "Security Continuous Monitoring", "SOC", _keywords("siem", "monitor", "detection", "log", "telemetry", "observability", "capability_soc")),
+    ControlDef("NIST-PR.AC", "NIST", "Network Access and Segmentation", "Network", _keywords("firewall", "ztna", "ids", "ips", "segment", "sase", "proxy", "dns", "capability_network")),
+    ControlDef("NIST-PR.DS", "NIST", "Data Security", "Data", _keywords("dlp", "encryption", "data", "classification", "email security", "waf", "capability_data")),
+    ControlDef("NIST-RS.RP", "NIST", "Incident Response Planning", "SOC", _keywords("soar", "incident", "response", "playbook", "containment", "capability_soc")),
+    ControlDef("CIS-5", "CIS", "Account Management", "Identity", _keywords("identity", "mfa", "access", "account", "directory", "provisioning", "capability_identity")),
+    ControlDef("CIS-10", "CIS", "Malware Defenses", "Endpoint", _keywords("edr", "xdr", "antimalware", "endpoint", "workload", "capability_endpoint", "capability_cloud")),
+    ControlDef("CIS-8", "CIS", "Audit Log Management", "SOC", _keywords("siem", "log", "monitor", "telemetry", "detection", "capability_soc")),
+    ControlDef("CIS-12", "CIS", "Network Infrastructure Management", "Network", _keywords("firewall", "network", "ids", "ips", "ztna", "sase", "capability_network")),
+    ControlDef("CIS-3", "CIS", "Data Protection", "Data", _keywords("dlp", "encryption", "classification", "email security", "waf", "capability_data")),
+    ControlDef("CIS-17", "CIS", "Incident Response Management", "SOC", _keywords("incident", "response", "soar", "playbook", "case management", "capability_soc")),
 ]
 
 
@@ -59,7 +137,62 @@ def _normalize_text(row: ToolControlRow) -> str:
         row.framework_alignment or "",
         row.notes or "",
     ]
-    return " ".join(parts).lower()
+    normalized = " ".join(parts).lower()
+    alias_tokens = [
+        token
+        for token, aliases in ALIAS_TOKEN_MAP.items()
+        if any(alias in normalized for alias in aliases)
+    ]
+    if alias_tokens:
+        normalized = f"{normalized} {' '.join(alias_tokens)}"
+    return normalized
+
+
+def _build_current_state_diagram(rows: List[ToolControlRow]) -> Diagram:
+    grouped_rows: Dict[str, List[ToolControlRow]] = defaultdict(list)
+    for row in rows:
+        domain = (row.control_domain or "Unmapped").strip() or "Unmapped"
+        grouped_rows[domain].append(row)
+
+    nodes: List[DiagramNode] = []
+    edges: List[DiagramEdge] = []
+
+    for domain in sorted(grouped_rows):
+        domain_id = f"cur-domain-{domain.lower().replace(' ', '-')}"
+        nodes.append(
+            DiagramNode(
+                id=domain_id,
+                label=f"{domain} Controls",
+                domain=domain,
+                state="current",
+            )
+        )
+
+        seen_tools = set()
+        for idx, row in enumerate(sorted(grouped_rows[domain], key=lambda item: item.tool_name.lower())):
+            tool_key = (row.tool_name or "").strip().lower()
+            if not tool_key or tool_key in seen_tools:
+                continue
+            seen_tools.add(tool_key)
+
+            tool_id = f"{domain_id}-tool-{idx}"
+            nodes.append(
+                DiagramNode(
+                    id=tool_id,
+                    label=row.tool_name,
+                    domain=domain,
+                    state="current",
+                )
+            )
+            edges.append(
+                DiagramEdge(
+                    source=domain_id,
+                    target=tool_id,
+                    label="mapped tool",
+                )
+            )
+
+    return Diagram(title="Current Tool-Control Map", nodes=nodes[:30], edges=edges[:40])
 
 
 def _coverage_status(match_count: int) -> Tuple[str, float, str]:
@@ -74,15 +207,15 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
     controls = _selected_controls(framework)
     normalized = [_normalize_text(r) for r in rows]
     gaps: List[GapFinding] = []
-    domain_to_tools: Dict[Tuple[str, str], List[str]] = defaultdict(list)
+    domain_to_rows: Dict[Tuple[str, str], List[ToolControlRow]] = defaultdict(list)
 
     for control in controls:
         match_count = 0
-        matched_tools = []
+        matched_rows: List[ToolControlRow] = []
         for idx, text in enumerate(normalized):
             if any(k in text for k in control.keywords):
                 match_count += 1
-                matched_tools.append(rows[idx].tool_name)
+                matched_rows.append(rows[idx])
 
         status, score, rationale = _coverage_status(match_count)
         severity = "high" if status == "missing" else "medium" if status == "partial" else "low"
@@ -99,14 +232,17 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
             )
         )
 
-        if matched_tools:
-            domain_to_tools[(control.domain, control.name)].extend(matched_tools)
+        if matched_rows:
+            domain_to_rows[(control.domain, control.name)].extend(matched_rows)
 
     redundancies: List[RedundancyFinding] = []
-    for (domain, objective), tools in domain_to_tools.items():
-        unique_tools = sorted(set(tools))
+    for (domain, objective), matching_rows in domain_to_rows.items():
+        unique_tools = sorted({row.tool_name for row in matching_rows})
         if len(unique_tools) < 2:
             continue
+
+        unique_vendors = sorted({(row.vendor or "").strip() for row in matching_rows if (row.vendor or "").strip()})
+        unique_products = sorted({(row.product or "").strip() for row in matching_rows if (row.product or "").strip()})
 
         overlap_score = min(1.0, len(unique_tools) / 5)
         avg_cost = sum([(r.annual_cost_usd or 0) for r in rows]) / max(1, len(rows))
@@ -118,6 +254,8 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
                 domain=domain,
                 objective=objective,
                 tools=unique_tools,
+                vendors=unique_vendors,
+                products=unique_products,
                 overlap_score=overlap_score,
                 classification=classification,
                 estimated_savings_usd=savings,
@@ -158,14 +296,7 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
         ),
     ]
 
-    current_nodes = [
-        DiagramNode(id=f"cur-{idx}", label=row.tool_name, domain=row.control_domain, state="current")
-        for idx, row in enumerate(rows[:20])
-    ]
-    current_edges = [
-        DiagramEdge(source=current_nodes[i].id, target=current_nodes[i + 1].id, label="control dependency")
-        for i in range(0, max(0, len(current_nodes) - 1))
-    ]
+    current_diagram = _build_current_state_diagram(rows)
 
     target_nodes = [
         DiagramNode(id="t-identity", label="Unified IAM Control Stack", domain="Identity", state="target"),
@@ -191,6 +322,6 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
         gaps=sorted(gaps, key=lambda g: (g.severity, g.control_id), reverse=True),
         redundancies=sorted(redundancies, key=lambda r: r.overlap_score, reverse=True),
         roadmap=roadmap,
-        current_state_diagram=Diagram(title="Current Tool-Control Map", nodes=current_nodes, edges=current_edges),
+        current_state_diagram=current_diagram,
         target_state_diagram=Diagram(title="Target Tool-Control Map", nodes=target_nodes, edges=target_edges),
     )

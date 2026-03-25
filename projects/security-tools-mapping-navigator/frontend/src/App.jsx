@@ -2,6 +2,32 @@
 
 const API_BASE = "http://127.0.0.1:8010";
 
+function InfoTip({ text }) {
+  return (
+    <span
+      title={text}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "16px",
+        height: "16px",
+        marginLeft: "6px",
+        borderRadius: "999px",
+        background: "#d9e9ea",
+        color: "#114b5f",
+        fontSize: "0.75rem",
+        fontWeight: 700,
+        cursor: "help",
+        verticalAlign: "middle",
+      }}
+      aria-label={text}
+    >
+      i
+    </span>
+  );
+}
+
 async function parseApiError(response) {
   let payload = null;
 
@@ -88,9 +114,24 @@ function DiagramView({ title, nodes = [], edges = [] }) {
           </div>
         ))}
       </div>
-      <p className="helper">Flows: {edges.length}</p>
+      <p className="helper">
+        Generated Links: {edges.length}
+        <InfoTip text="Count of generated relationships between map nodes." />
+      </p>
     </div>
   );
+}
+
+function triggerDownload(filename, content, contentType) {
+  const blob = new Blob([content], { type: contentType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 export default function App() {
@@ -183,8 +224,63 @@ export default function App() {
     }
   };
 
+  const deleteProject = async (id, name) => {
+    const confirmed = window.confirm(`Delete saved project "${name || id}"?`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setError("");
+      const response = await fetch(`${API_BASE}/projects/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(await parseApiError(response));
+      }
+
+      setSavedProjects((current) => current.filter((project) => project.id !== id));
+      setResult((current) => (current?.project_id === id ? null : current));
+      if (projectName === name) {
+        setProjectName("");
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
   const download = (format) => {
-    window.open(`${API_BASE}/export?format=${format}`, "_blank");
+    if (!result) {
+      return;
+    }
+
+    if (format === "json") {
+      triggerDownload("tools_mapping_result.json", JSON.stringify(result, null, 2), "application/json");
+      return;
+    }
+
+    const lines = [
+      ["control_id", "framework", "control_name", "domain", "status", "severity", "coverage_score", "rationale"],
+      ...result.gaps.map((gap) => [
+        gap.control_id,
+        gap.framework,
+        gap.control_name,
+        gap.domain,
+        gap.status,
+        gap.severity,
+        gap.coverage_score,
+        gap.rationale,
+      ]),
+    ];
+    const csv = lines
+      .map((row) =>
+        row
+          .map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`)
+          .join(",")
+      )
+      .join("\n");
+    triggerDownload("tools_control_gap_summary.csv", csv, "text/csv");
   };
 
   const downloadTemplate = () => {
@@ -214,7 +310,10 @@ export default function App() {
             />
           </div>
           <div>
-            <label htmlFor="framework">Framework Mode</label>
+            <div className="label-row">
+              <label htmlFor="framework">Framework Mode</label>
+              <InfoTip text="Sets the primary scoring framework and the default for blank framework alignment values." />
+            </div>
             <select id="framework" value={framework} onChange={(e) => setFramework(e.target.value)}>
               <option value="NIST">NIST CSF 2.0</option>
               <option value="CIS">CIS Controls v8</option>
@@ -282,10 +381,15 @@ export default function App() {
             {
               key: "id",
               label: "Action",
-              render: (id) => (
-                <button type="button" className="secondary" onClick={() => loadProject(id)}>
-                  Load
-                </button>
+              render: (id, row) => (
+                <div className="inline-actions">
+                  <button type="button" className="secondary" onClick={() => loadProject(id)}>
+                    Load
+                  </button>
+                  <button type="button" className="secondary danger" onClick={() => deleteProject(id, row.project_name)}>
+                    Delete
+                  </button>
+                </div>
               ),
             },
           ]}
@@ -316,7 +420,10 @@ export default function App() {
       </section>
 
       <section className="card">
-        <h3>Control Gaps</h3>
+        <h3>
+          Control Gaps
+          <InfoTip text="Coverage is inferred from matching tool-control rows." />
+        </h3>
         <Table
           columns={[
             { key: "control_id", label: "Control ID" },
@@ -326,12 +433,20 @@ export default function App() {
             {
               key: "status",
               label: "Status",
-              render: (v) => <Badge text={v} type={v} />,
+              render: (v, row) => (
+                <span title={row.rationale}>
+                  <Badge text={v} type={v} />
+                </span>
+              ),
             },
             {
               key: "severity",
               label: "Severity",
-              render: (v) => <Badge text={v} type={v} />,
+              render: (v, row) => (
+                <span title={row.rationale}>
+                  <Badge text={v} type={v} />
+                </span>
+              ),
             },
             { key: "coverage_score", label: "Score" },
           ]}
@@ -340,7 +455,10 @@ export default function App() {
       </section>
 
       <section className="card">
-        <h3>Redundancy Opportunities</h3>
+        <h3>
+          Redundancy Opportunities
+          <InfoTip text="Groups tools mapped to the same control objective." />
+        </h3>
         <Table
           columns={[
             { key: "domain", label: "Domain" },
@@ -349,6 +467,18 @@ export default function App() {
               key: "tools",
               label: "Tools",
               render: (v) => (Array.isArray(v) ? v.join(", ") : v),
+            },
+            {
+              key: "vendors",
+              label: "Vendors",
+              render: (v) =>
+                Array.isArray(v) && v.length > 0 ? v.join(", ") : <span className="helper">Not captured</span>,
+            },
+            {
+              key: "products",
+              label: "Products",
+              render: (v) =>
+                Array.isArray(v) && v.length > 0 ? v.join(", ") : <span className="helper">Not captured</span>,
             },
             { key: "classification", label: "Classification" },
             { key: "overlap_score", label: "Overlap Score" },
