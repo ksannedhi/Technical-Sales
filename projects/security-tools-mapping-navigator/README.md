@@ -19,12 +19,14 @@ GUI-first proprietary MVP that ingests a security tools-controls mapping CSV and
 - Focuses on security tools and control mappings only
 - Does not require full asset inventory
 - Uses deterministic rule-based mapping for explainability
+- Enriches matching with vendor and product aliases before scoring controls
+- Groups current-state maps by control domain instead of CSV row order
 
 ## Persistence (SQLite)
 
 - Database file: `backend/data/navigator.db`
 - Saved when `project_name` is sent during `/analyze`
-- Supports list/load of historical results
+- Supports list/load/delete of historical results
 
 ## Project Structure
 
@@ -42,7 +44,7 @@ GUI-first proprietary MVP that ingests a security tools-controls mapping CSV and
 ## One-Click Start (Recommended)
 
 ```cmd
-cd C:\Users\ksann\Downloads\security-architecture-auto-mapper
+cd security-architecture-auto-mapper
 start.cmd
 ```
 
@@ -57,17 +59,17 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 ## Manual Run Backend
 
 ```powershell
-cd C:\Users\ksann\Downloads\security-architecture-auto-mapper\backend
+cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8010
 ```
 
 ## Manual Run Frontend
 
 ```powershell
-cd C:\Users\ksann\Downloads\security-architecture-auto-mapper\frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -80,10 +82,16 @@ Open [http://localhost:5173](http://localhost:5173).
 - `POST /analyze` (multipart form: `framework`, `mapping_file`, optional `project_name`)
 - `GET /projects`
 - `GET /projects/{project_id}`
+- `DELETE /projects/{project_id}`
 - `GET /export?format=json|csv`
 
 ## Notes
 
 - MVP accepts CSV only.
-- Last run is held in-memory for export convenience.
+- `framework_alignment` can be blank; the selected framework mode will be used as the default.
+- Matching is enriched with vendor and product aliases to reduce brittle free-text misses.
+- The generated current-state map groups tools by control domain for a more defensible view.
+- Last run is held in-memory for API export convenience, while the UI downloads outputs directly from the loaded result.
 - Saved projects/results are persisted in SQLite.
+- Saved projects can be removed directly from the GUI.
+- Local dependency directories such as `backend/.deps/` and `frontend/node_modules/` are runtime artifacts and should stay out of source control.

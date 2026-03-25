@@ -52,6 +52,7 @@ See project docs:
 - Path: `projects/security-tools-mapping-navigator`
 - Purpose: GUI app to map security tools to controls, identify control gaps and redundancies, and generate a migration roadmap.
 - Framework modes: `NIST`, `CIS`, `BOTH`
+- Current strengths: alias-assisted matching, domain-grouped current-state maps, SQLite save/load/delete workflow, and downloadable outputs.
 - One-click launch (Windows):
 
 ```text

@@ -1,8 +1,14 @@
-﻿.venv/
+.venv/
 .deps/
+backend/.venv/
+backend/.deps/
+frontend/node_modules/
+frontend/dist/
 __pycache__/
 *.pyc
 node_modules/
 dist/
 .DS_Store
 *.db
+tools_mapping_result.json
+tools_control_gap_summary.csv

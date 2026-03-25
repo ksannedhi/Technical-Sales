@@ -86,3 +86,19 @@ def get_project_result(project_id: int) -> dict[str, Any] | None:
         return payload
     finally:
         conn.close()
+
+
+def delete_project_result(project_id: int) -> bool:
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            """
+            DELETE FROM project_results
+            WHERE id = ?
+            """,
+            (project_id,),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+    finally:
+        conn.close()

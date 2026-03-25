@@ -48,6 +48,8 @@ class RedundancyFinding(BaseModel):
     domain: str
     objective: str
     tools: List[str]
+    vendors: List[str]
+    products: List[str]
     overlap_score: float
     classification: str
     estimated_savings_usd: float

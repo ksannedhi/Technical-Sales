@@ -81,6 +81,17 @@ label {
   font-weight: 600;
 }
 
+.label-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.label-row label {
+  margin-bottom: 0;
+}
+
 input,
 select,
 button {
@@ -101,6 +112,10 @@ button {
 
 button.secondary {
   background: var(--accent-2);
+}
+
+button.danger {
+  background: var(--danger);
 }
 
 button:disabled {
@@ -209,4 +224,14 @@ td {
 
 .actions > button {
   flex: 1;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.inline-actions > button {
+  width: auto;
+  min-width: 88px;
 }

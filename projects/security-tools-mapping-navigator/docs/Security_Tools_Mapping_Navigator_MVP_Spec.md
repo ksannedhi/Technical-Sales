@@ -1,7 +1,7 @@
 ﻿# Security Tools Mapping Navigator - Project Specification (MVP)
 
 Version: 0.3.0  
-Date: 2026-03-10
+Date: 2026-03-25
 
 ## 1. Executive Summary
 Security Tools Mapping Navigator is a GUI-based proprietary application that analyzes an organization's security tool-to-control mapping data and generates:
@@ -27,6 +27,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 - Tool/control mapping ingestion via CSV
 - Framework-aware analysis (`NIST`, `CIS`, `BOTH`)
 - Deterministic gap and redundancy analysis
+- Alias-assisted normalization for vendor and product naming variance
 - Generated current/target control maps
 - Migration roadmap recommendations
 - Project result persistence in SQLite
@@ -49,6 +50,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 - Compare control coverage across tools
 - Identify overlap and estimate consolidation savings
 - Save and reload project analysis snapshots
+- Delete saved project snapshots when they are no longer needed
 - Export findings for proposal/report workflows
 
 ## 5. Functional Requirements
@@ -61,6 +63,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 7. Export last analysis to JSON/CSV
 8. Save project results to SQLite when `project_name` provided
 9. List and load historical projects from SQLite
+10. Delete saved projects from SQLite
 
 ## 6. Non-Functional Requirements
 - Explainable analysis (rule-based, deterministic)
@@ -77,7 +80,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 ### Backend
 - FastAPI
 - CSV parser service
-- Analyzer service (framework mapping + scoring)
+- Analyzer service (framework mapping, alias-assisted normalization, and scoring)
 - Storage service (SQLite)
 
 ### Persistence
@@ -86,7 +89,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 
 ### Runtime
 - Frontend: `http://localhost:5173`
-- Backend API: `http://127.0.0.1:8000`
+- Backend API: `http://127.0.0.1:8010`
 
 ## 8. Technology Stack
 - Python 3.13+
@@ -103,6 +106,8 @@ Required columns:
 - `tool_name`
 - `control_domain`
 - `control_objective`
+
+Optional but recommended:
 - `framework_alignment`
 
 Full schema:
@@ -117,6 +122,11 @@ For each framework control objective:
 - `covered` if 2+ matching tool/control mappings
 - `partial` if 1 matching mapping
 - `missing` if no mapping
+
+### Matching
+- Normalize free-text row content to lowercase
+- Enrich normalized text with vendor and product alias tokens
+- Score controls against the enriched text instead of raw keywords alone
 
 ### Gap Severity
 - `high` for missing
@@ -136,6 +146,11 @@ Generated in 3 phases:
 - Phase 2 (3-6 months): consolidate overlapping controls/tools
 - Phase 3 (6-12 months): optimize effectiveness and align target architecture
 
+### Current-State Diagram
+- Group tools by `control_domain`
+- Render domain nodes and mapped tool nodes
+- Avoid implying tool-to-tool dependencies based only on CSV row order
+
 ## 11. API Specification
 ### `GET /health`
 Returns service health status.
@@ -154,8 +169,8 @@ Returns saved project summaries.
 ### `GET /projects/{project_id}`
 Returns full saved analysis payload.
 
-### `GET /export?format=json|csv`
-Exports last in-memory analysis run.
+### `DELETE /projects/{project_id}`
+Deletes a saved project record from SQLite.
 
 ## 12. Persistence Model
 ### Database
@@ -176,6 +191,7 @@ Exports last in-memory analysis run.
 - `backend/app/services/analyzer.py` - analysis engine
 - `backend/app/services/storage.py` - SQLite persistence
 - `frontend/src/App.jsx` - GUI flow
+- `frontend/public/tools_controls_mapping_template.csv` - downloadable sample template
 - `data/tools_controls_mapping_template.csv` - input template
 - `data/sample_tools_controls_1200.csv` - large synthetic dataset
 - `start.cmd` - recommended one-click launcher
@@ -184,7 +200,7 @@ Exports last in-memory analysis run.
 ## 14. Startup and Operations
 ### Recommended one-click start
 ```cmd
-cd C:\Users\ksann\Downloads\security-architecture-auto-mapper
+cd security-architecture-auto-mapper
 start.cmd
 ```
 
@@ -194,8 +210,7 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
 
 ## 15. Known Constraints and Risks
-- Rule-based matching can misclassify free-text entries without custom dictionary tuning
-- Export endpoint is tied to last in-memory run unless loaded from saved project first
+- Rule-based matching still depends on the quality of the alias dictionary and control taxonomy
 - Local environment permissions or AV policies may affect Node/esbuild process spawning
 
 ## 16. Suggested Next Enhancements

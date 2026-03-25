@@ -13,7 +13,13 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .models import AnalysisResponse, FrameworkChoice
 from .services.analyzer import analyze_mappings
 from .services.csv_parser import parse_tool_control_csv
-from .services.storage import get_project_result, init_db, list_project_results, save_project_result
+from .services.storage import (
+    delete_project_result,
+    get_project_result,
+    init_db,
+    list_project_results,
+    save_project_result,
+)
 
 
 app = FastAPI(title="Security Tools Mapping Navigator API", version="0.3.0")
@@ -165,6 +171,15 @@ def get_project(project_id: int):
         raise HTTPException(status_code=404, detail="Project not found")
 
     return record
+
+
+@app.delete("/projects/{project_id}")
+def delete_project(project_id: int):
+    deleted = delete_project_result(project_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    return {"deleted": True, "project_id": project_id}
 
 
 @app.get("/export")
