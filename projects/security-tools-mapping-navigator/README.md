@@ -41,6 +41,11 @@ GUI-first proprietary MVP that ingests a security tools-controls mapping CSV and
 
 `record_id, tool_name, vendor, product, version, control_domain, control_objective, current_control_id, current_control_name, framework_alignment, deployment_scope, environment, coverage_level, effectiveness_score, operational_status, annual_cost_usd, utilization_percent, license_count, eol_date, notes`
 
+## Sample Template Download
+
+- In the GUI, use `Download Sample Template` to download a ready-to-fill CSV.
+- The downloadable sample is also available at `frontend/public/tools_controls_mapping_template.csv`.
+
 ## One-Click Start (Recommended)
 
 ```cmd
