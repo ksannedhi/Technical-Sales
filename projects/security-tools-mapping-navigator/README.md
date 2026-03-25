@@ -99,4 +99,3 @@ Open [http://localhost:5173](http://localhost:5173).
 - Last run is held in-memory for API export convenience, while the UI downloads outputs directly from the loaded result.
 - Saved projects/results are persisted in SQLite.
 - Saved projects can be removed directly from the GUI.
-- Local dependency directories such as `backend/.deps/` and `frontend/node_modules/` are runtime artifacts and should stay out of source control.
