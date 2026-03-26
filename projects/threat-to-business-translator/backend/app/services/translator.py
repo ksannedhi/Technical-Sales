@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+from collections import Counter
 from copy import deepcopy
 
 from .data_loader import get_scenario_bundle, load_domain
@@ -20,6 +22,102 @@ DEFAULT_PROFILE = {
     "security_maturity": 3,
     "regulatory_sensitivity": 4,
     "crown_jewel_dependency": 4,
+}
+
+SEVERITY_ORDER = {
+    "critical": 4,
+    "high": 3,
+    "medium": 2,
+    "low": 1,
+}
+
+AD_HOC_SUMMARY_LIMIT = 2000
+SCAN_REPORT_SUMMARY_LIMIT = 12000
+
+SCENARIO_MATCHERS = {
+    "deepfake-payment-diversion": {
+        "keywords": {
+            "deepfake": 4,
+            "voice note": 3,
+            "impersonat": 3,
+            "payment reroute": 4,
+            "urgent transfer": 3,
+            "cfo": 2,
+        },
+    },
+    "cloud-storage-regulated-data": {
+        "keywords": {
+            "bucket": 4,
+            "public read": 4,
+            "storage": 2,
+            "s3": 5,
+            "blob": 3,
+            "object storage": 3,
+        },
+    },
+    "privileged-admin-mfa-gap": {
+        "keywords": {
+            "mfa not enabled": 5,
+            "multi-factor authentication not enabled": 5,
+            "without mfa": 4,
+            "administrator accounts": 3,
+            "privileged accounts": 3,
+            "vpn authentication": 3,
+            "remote access": 2,
+        },
+    },
+    "finance-sql-server-rce": {
+        "keywords": {
+            "sql server": 5,
+            "microsoft sql": 4,
+            "database server": 3,
+            "remote code execution": 4,
+            "rce": 4,
+            "cve-2022-41064": 5,
+        },
+    },
+    "customer-portal-outdated-web": {
+        "keywords": {
+            "apache": 4,
+            "nginx": 4,
+            "web server": 4,
+            "customer portal": 4,
+            "outdated version": 3,
+            "known vulnerabilities": 2,
+        },
+    },
+    "vpn-zero-day-finance": {
+        "keywords": {
+            "vpn gateway": 5,
+            "cve-": 3,
+            "cvss": 2,
+            "remote code execution": 3,
+            "vulnerable": 2,
+            "authentication bypass": 4,
+            "internet-facing": 3,
+            "scan report": 1,
+        },
+        "file_extensions": {".csv", ".json", ".pdf", ".log", ".txt"},
+    },
+    "edr-identity-lateral": {
+        "keywords": {
+            "lateral movement": 4,
+            "powershell": 4,
+            "token reuse": 4,
+            "edr": 3,
+            "identity compromise": 4,
+            "impossible travel": 3,
+        },
+    },
+    "supplier-ransomware-chain": {
+        "keywords": {
+            "supplier": 4,
+            "third-party": 4,
+            "ransomware": 5,
+            "fulfillment": 4,
+            "partner vpn": 3,
+        },
+    },
 }
 
 
@@ -46,30 +144,180 @@ def translate_scenario(scenario_id: str, profile: dict | None = None) -> dict | 
 def analyze_raw_input(raw_text: str, file_name: str | None = None, profile: dict | None = None) -> dict:
     domain = load_domain()
     org_profile = normalize_profile(profile)
+    parsed_findings = _parse_scan_report(raw_text)
+    if len(parsed_findings) >= 2:
+        return _analyze_scan_report(raw_text, file_name, org_profile, domain, parsed_findings)
+    return _analyze_single_input(raw_text, file_name, org_profile, domain)
+
+
+def _analyze_single_input(
+    raw_text: str,
+    file_name: str | None,
+    org_profile: dict,
+    domain: dict,
+    finding: dict | None = None,
+) -> dict:
     scenario = _infer_scenario(raw_text, file_name, domain)
+    if finding is not None:
+        scenario = _apply_finding_overrides(scenario, finding)
     bundle = _bundle_for_inferred_scenario(scenario, domain)
     report = _build_report(bundle, org_profile)
     report["scenario_name"] = scenario["name"]
     report["scenario_id"] = scenario["id"]
-    report["technical_summary"] = raw_text.strip()[:2000]
+    report["technical_summary"] = raw_text.strip()[:AD_HOC_SUMMARY_LIMIT]
+    report["analysis_type"] = "ad_hoc"
     report["leadership_output"]["headline"] = _ad_hoc_headline(raw_text, report["leadership_output"]["headline"])
+    return report
+
+
+def _analyze_scan_report(
+    raw_text: str,
+    file_name: str | None,
+    org_profile: dict,
+    domain: dict,
+    findings: list[dict],
+) -> dict:
+    finding_reports = [
+        _analyze_single_input(_finding_text(finding), file_name, org_profile, domain, finding=finding)
+        for finding in findings
+    ]
+    ranked_reports = sorted(
+        zip(findings, finding_reports, strict=False),
+        key=lambda item: (
+            SEVERITY_ORDER.get(item[0]["severity"], 1),
+            item[1]["business_impact"]["impact_band"]["likely_usd"],
+            item[1]["risk_assessment"]["urgency"],
+        ),
+        reverse=True,
+    )
+    top_finding, top_report = ranked_reports[0]
+    report = deepcopy(top_report)
+
+    low_total = sum(item["business_impact"]["impact_band"]["low_usd"] for _, item in ranked_reports)
+    likely_total = sum(item["business_impact"]["impact_band"]["likely_usd"] for _, item in ranked_reports)
+    high_total = sum(item["business_impact"]["impact_band"]["high_usd"] for _, item in ranked_reports)
+    downtime_max = max(item["business_impact"]["impact_band"]["downtime_hours"] for _, item in ranked_reports)
+    people_total = max(item["business_impact"]["impact_band"]["people_affected"] for _, item in ranked_reports)
+    likelihood = max(item["risk_assessment"]["likelihood"] for _, item in ranked_reports)
+    impact = max(item["risk_assessment"]["impact"] for _, item in ranked_reports)
+    urgency = max(item["risk_assessment"]["urgency"] for _, item in ranked_reports)
+    confidence = round(sum(item["risk_assessment"]["confidence"] for _, item in ranked_reports) / len(ranked_reports), 2)
+    severity_counts = Counter(finding["severity"] for finding in findings)
+    top_services = _top_ranked_values(
+        [item["business_context"]["business_service"] for _, item in ranked_reports],
+        limit=3,
+    )
+    top_actions = _top_ranked_values(
+        [
+            action
+            for finding, item in ranked_reports
+            for action in _merge_actions(finding.get("recommendations", []), item["leadership_output"]["recommended_actions"])
+        ],
+        limit=4,
+    )
+
+    report["analysis_type"] = "scan_report"
+    report["scenario_id"] = "ad-hoc-scan-report"
+    report["scenario_name"] = f"Vulnerability scan report analysis{f' ({file_name})' if file_name else ''}"
+    report["technical_summary"] = raw_text.strip()[:SCAN_REPORT_SUMMARY_LIMIT]
+    report["business_context"] = _aggregate_business_context(ranked_reports)
+    report["exposure_scores"] = _aggregate_exposure_scores(ranked_reports)
+    report["business_impact"]["impact_band"] = {
+        "low_usd": low_total,
+        "likely_usd": likely_total,
+        "high_usd": high_total,
+        "downtime_hours": downtime_max,
+        "people_affected": people_total,
+    }
+    report["business_impact"]["summary"] = (
+        f"This scan report contains {len(findings)} findings, including {severity_counts.get('critical', 0)} critical and "
+        f"{severity_counts.get('high', 0)} high issues. The modeled combined likely loss exposure is ${likely_total:,}, "
+        f"with the highest business disruption pressure on {', '.join(top_services)}."
+    )
+    report["risk_assessment"]["likelihood"] = likelihood
+    report["risk_assessment"]["impact"] = impact
+    report["risk_assessment"]["urgency"] = urgency
+    report["risk_assessment"]["confidence"] = confidence
+    report["risk_assessment"]["overall_risk"] = RISK_LABELS[max(likelihood, impact)]
+    report["risk_assessment"]["rationale"] = [
+        f"Uploaded report contains {len(findings)} discrete findings mapped across {len(top_services)} business services.",
+        f"Highest-severity finding is '{top_finding['title']}' with severity {top_finding['severity']}.",
+        f"Top exposed business services are {', '.join(top_services)}.",
+        f"Combined modeled likely loss exposure is ${likely_total:,} across the uploaded findings.",
+    ]
+    report["risk_reduction_if_fixed"]["likely_loss_avoided_usd"] = sum(
+        item["risk_reduction_if_fixed"]["likely_loss_avoided_usd"] for _, item in ranked_reports
+    )
+    report["risk_reduction_if_fixed"]["downtime_avoided_hours"] = max(
+        item["risk_reduction_if_fixed"]["downtime_avoided_hours"] for _, item in ranked_reports
+    )
+    report["risk_reduction_if_fixed"]["summary"] = (
+        f"If the highest-priority remediation actions are completed, leadership can reduce the report-level risk concentration "
+        f"and avoid about ${report['risk_reduction_if_fixed']['likely_loss_avoided_usd']:,} in modeled likely loss exposure."
+    )
+    report["leadership_output"]["headline"] = (
+        f"{len(findings)} scan findings map to a likely ${likely_total:,} business risk concentration requiring leadership review."
+    )
+    report["leadership_output"]["executive_summary"] = (
+        f"The uploaded vulnerability assessment identifies multiple issues across internet-facing access, cloud data exposure, "
+        f"and core business platforms. The highest-risk findings affect {', '.join(top_services)}, and the combined modeled "
+        f"likely loss exposure is ${likely_total:,}. Leadership should prioritize the critical findings first and track closure "
+        f"against the actions listed in the roll-up."
+    )
+    report["leadership_output"]["board_brief"] = (
+        f"Leadership should treat this as a multi-finding exposure event rather than a single vulnerability. The report includes "
+        f"{severity_counts.get('critical', 0)} critical and {severity_counts.get('high', 0)} high findings, with a modeled high-case "
+        f"exposure of ${high_total:,}."
+    )
+    report["leadership_output"]["recommended_actions"] = top_actions
+    report["report_rollup"] = {
+        "total_findings": len(findings),
+        "severity_counts": {
+            "critical": severity_counts.get("critical", 0),
+            "high": severity_counts.get("high", 0),
+            "medium": severity_counts.get("medium", 0),
+            "low": severity_counts.get("low", 0),
+        },
+        "highest_severity": _highest_severity(findings),
+        "top_business_services": top_services,
+        "top_actions": top_actions,
+        "summary": report["leadership_output"]["executive_summary"],
+    }
+    report["finding_summaries"] = [
+        {
+            "finding_id": finding["finding_id"],
+            "title": finding["title"],
+            "severity": finding["severity"],
+            "scenario_name": item["scenario_name"],
+            "mapped_business_service": item["business_context"]["business_service"],
+            "affected_asset": finding.get("affected_asset") or item["business_context"]["primary_asset"],
+            "overall_risk": item["risk_assessment"]["overall_risk"],
+            "likely_loss_usd": item["business_impact"]["impact_band"]["likely_usd"],
+            "headline": item["leadership_output"]["headline"],
+            "recommended_actions": _merge_actions(finding.get("recommendations", []), item["leadership_output"]["recommended_actions"])[:3],
+        }
+        for finding, item in ranked_reports
+    ]
     return report
 
 
 def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
     text = (raw_text or "").lower()
     file_name = (file_name or "manual-input").lower()
+    scored_templates = []
+    for scenario_id, matcher in SCENARIO_MATCHERS.items():
+        score = 0
+        for token, weight in matcher.get("keywords", {}).items():
+            if token in text:
+                score += weight
+        if any(file_name.endswith(ext) for ext in matcher.get("file_extensions", set())):
+            score += 1
+        if score > 0:
+            scored_templates.append((score, scenario_id))
 
-    if any(token in text for token in ["deepfake", "voice note", "impersonat", "payment reroute", "urgent transfer"]):
-        template = _scenario_by_id(domain, "deepfake-payment-diversion")
-    elif any(token in text for token in ["bucket", "public read", "storage", "s3", "blob"]):
-        template = _scenario_by_id(domain, "cloud-storage-regulated-data")
-    elif any(token in text for token in ["lateral movement", "powershell", "token reuse", "edr", "identity compromise"]):
-        template = _scenario_by_id(domain, "edr-identity-lateral")
-    elif any(token in text for token in ["supplier", "third-party", "ransomware", "fulfillment", "partner vpn"]):
-        template = _scenario_by_id(domain, "supplier-ransomware-chain")
-    elif any(token in text for token in ["cve-", "cvss", "remote code execution", "vulnerable", "scan report"]) or file_name.endswith((".csv", ".xlsx", ".json", ".xml")):
-        template = _scenario_by_id(domain, "vpn-zero-day-finance")
+    if scored_templates:
+        scored_templates.sort(key=lambda item: item[0], reverse=True)
+        template = _scenario_by_id(domain, scored_templates[0][1])
     else:
         template = _scenario_by_id(domain, "edr-identity-lateral")
 
@@ -108,6 +356,8 @@ def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
         evidence_quality = min(5, evidence_quality + 1)
     if any(token in text for token in ["asset", "owner", "business unit", "internet-facing", "public"]):
         context_completeness = min(5, context_completeness + 1)
+    if "medium" in text and exploitability > 3:
+        exploitability -= 1
 
     return {
         "exploitability": exploitability,
@@ -115,6 +365,171 @@ def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
         "evidence_quality": evidence_quality,
         "context_completeness": context_completeness,
     }
+
+
+def _parse_scan_report(raw_text: str) -> list[dict]:
+    matches = list(
+        re.finditer(
+            r"Finding\s+(?P<number>\d+)\s*:\s*(?P<title>[^\r\n]+)\s*(?P<body>.*?)(?=Finding\s+\d+\s*:|Conclusion|$)",
+            raw_text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+    )
+    findings: list[dict] = []
+    for match in matches:
+        block = f"Finding {match.group('number')}: {match.group('title').strip()}\n{match.group('body').strip()}".strip()
+        findings.append(
+            {
+                "finding_id": f"finding-{match.group('number')}",
+                "title": match.group("title").strip(),
+                "severity": _extract_field(block, "Severity", default="medium").lower(),
+                "cve": _extract_field(block, "CVE"),
+                "description": _extract_field(block, "Description"),
+                "affected_asset": _extract_field(block, "Affected Asset"),
+                "business_impact": _extract_field(block, "Business Impact"),
+                "recommendations": _split_recommendations(_extract_field(block, "Recommendation")),
+                "raw_text": block,
+            }
+        )
+    return findings
+
+
+def _extract_field(block: str, label: str, default: str = "") -> str:
+    match = re.search(rf"{label}:\s*(.+)", block, flags=re.IGNORECASE)
+    return match.group(1).strip() if match else default
+
+
+def _split_recommendations(value: str) -> list[str]:
+    if not value:
+        return []
+    return [part.strip() for part in re.split(r"[;]|(?:\.\s+)", value) if part.strip()]
+
+
+def _finding_text(finding: dict) -> str:
+    parts = [
+        finding["title"],
+        f"Severity: {finding['severity']}",
+        f"CVE: {finding['cve']}" if finding.get("cve") else "",
+        finding.get("description", ""),
+        f"Affected Asset: {finding['affected_asset']}" if finding.get("affected_asset") else "",
+        f"Business Impact: {finding['business_impact']}" if finding.get("business_impact") else "",
+        finding.get("raw_text", ""),
+    ]
+    return "\n".join(part for part in parts if part)
+
+
+def _apply_finding_overrides(scenario: dict, finding: dict) -> dict:
+    scenario = deepcopy(scenario)
+    scenario["id"] = f"ad-hoc-{finding['finding_id']}-{scenario['id']}"
+    scenario["name"] = f"{finding['title']} mapped to {scenario['name']}"
+    scenario["technical_signal"] = _finding_text(finding)[:2000]
+    scenario["executive_trigger"] = _derive_executive_trigger(
+        f"{finding['title']}. {finding.get('business_impact', '')}".strip(),
+        scenario["executive_trigger"],
+    )
+    scenario["signal_factors"] = _derive_signal_factors(scenario["technical_signal"], scenario["signal_factors"])
+    scenario["recommended_actions"] = _merge_actions(finding.get("recommendations", []), scenario["recommended_actions"])
+    return scenario
+
+
+def _merge_actions(*action_lists: list[str]) -> list[str]:
+    merged: list[str] = []
+    for action_list in action_lists:
+        for action in action_list:
+            if action and action not in merged:
+                merged.append(action)
+    return merged
+
+
+def _top_ranked_values(values: list[str], limit: int) -> list[str]:
+    counts = Counter(value for value in values if value)
+    return [item for item, _ in counts.most_common(limit)]
+
+
+def _highest_severity(findings: list[dict]) -> str:
+    return max(findings, key=lambda item: SEVERITY_ORDER.get(item["severity"], 1))["severity"]
+
+
+def _aggregate_business_context(ranked_reports: list[tuple[dict, dict]]) -> dict:
+    finding_count = len(ranked_reports)
+    business_units = _top_ranked_values(
+        [item["business_context"]["business_unit"] for _, item in ranked_reports],
+        limit=4,
+    )
+    business_services = _top_ranked_values(
+        [item["business_context"]["business_service"] for _, item in ranked_reports],
+        limit=4,
+    )
+    owners = _top_ranked_values(
+        [item["business_context"]["service_owner"] for _, item in ranked_reports],
+        limit=4,
+    )
+    primary_assets = _top_ranked_values(
+        [item["business_context"]["primary_asset"] for _, item in ranked_reports],
+        limit=6,
+    )
+    primary_asset_types = _top_ranked_values(
+        [item["business_context"]["primary_asset_type"] for _, item in ranked_reports],
+        limit=6,
+    )
+    affected_assets = _top_ranked_values(
+        [
+            asset
+            for _, item in ranked_reports
+            for asset in item["business_context"]["affected_assets"]
+        ],
+        limit=10,
+    )
+    impacted_identities = _top_ranked_values(
+        [
+            identity
+            for _, item in ranked_reports
+            for identity in item["business_context"]["impacted_identities"]
+        ],
+        limit=8,
+    )
+    controls = _top_ranked_values(
+        [
+            control
+            for _, item in ranked_reports
+            for control in item["business_context"]["control_posture"]
+        ],
+        limit=10,
+    )
+    dependencies = _top_ranked_values(
+        [
+            dependency
+            for _, item in ranked_reports
+            for dependency in item["business_context"]["key_dependencies"]
+        ],
+        limit=8,
+    )
+
+    return {
+        "business_unit": ", ".join(business_units),
+        "business_service": ", ".join(business_services),
+        "service_owner": ", ".join(owners),
+        "internet_exposed": any(item["business_context"]["internet_exposed"] for _, item in ranked_reports),
+        "primary_asset": f"{finding_count} assets across the uploaded findings",
+        "primary_asset_type": ", ".join(primary_asset_types[:3]),
+        "affected_assets": affected_assets or primary_assets,
+        "impacted_identities": impacted_identities,
+        "control_posture": controls,
+        "key_dependencies": dependencies,
+    }
+
+
+def _aggregate_exposure_scores(ranked_reports: list[tuple[dict, dict]]) -> dict[str, int]:
+    all_keys = {
+        key
+        for _, item in ranked_reports
+        for key in item["exposure_scores"].keys()
+    }
+    aggregated: dict[str, int] = {}
+    for key in all_keys:
+        values = [item["exposure_scores"].get(key, 0) for _, item in ranked_reports]
+        aggregated[key] = round(sum(values) / len(values))
+    return aggregated
 
 
 def _scenario_by_id(domain: dict, scenario_id: str) -> dict:
@@ -205,6 +620,7 @@ def _build_report(bundle: dict, profile: dict) -> dict:
         "scenario_id": scenario["id"],
         "scenario_name": scenario["name"],
         "audience": "CISO / Senior Leadership",
+        "analysis_type": "scenario",
         "technical_summary": scenario["technical_signal"],
         "business_context": _business_context(service, business_unit, primary_asset, linked_assets, linked_identities, linked_controls),
         "exposure_scores": _exposure_scores(exploitability, internet_exposure, control_gap, threat_activity, service, profile),
@@ -231,6 +647,8 @@ def _build_report(bundle: dict, profile: dict) -> dict:
             "board_brief": _board_brief(service, business_unit, impact_band, urgency),
             "recommended_actions": scenario["recommended_actions"],
         },
+        "report_rollup": None,
+        "finding_summaries": [],
     }
 
 

@@ -40,6 +40,10 @@ select {
   width: 100%;
 }
 
+select {
+  color-scheme: dark;
+}
+
 .app-shell {
   max-width: 1520px;
   margin: 0 auto;
@@ -203,6 +207,11 @@ select {
   padding: 10px 12px;
 }
 
+.profile-field select option {
+  background: #162235;
+  color: #e8ecef;
+}
+
 .text-input {
   resize: vertical;
   min-height: 54px;
@@ -301,6 +310,45 @@ select {
   color: var(--accent-strong);
 }
 
+.report-context-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.download-button {
+  white-space: nowrap;
+}
+
+.scan-rollup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.scan-rollup-card,
+.finding-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 12px 14px;
+}
+
+.scan-rollup-card p,
+.finding-card p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.scan-rollup-card p:last-child,
+.finding-card p:last-child {
+  margin-bottom: 0;
+}
+
 .context-copy {
   margin: 0;
   max-width: 420px;
@@ -308,11 +356,17 @@ select {
   line-height: 1.5;
 }
 
-.technical-summary-card p:last-child {
+.technical-summary-text {
   margin: 0;
   color: var(--accent-strong);
-  line-height: 1.5;
+  line-height: 1.55;
+  white-space: pre-wrap;
   word-break: break-word;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.98rem;
+  max-height: 420px;
+  overflow: auto;
+  padding-right: 6px;
 }
 
 .headline-card h2 {
@@ -367,6 +421,53 @@ select {
 
 .panel p:last-child {
   margin-bottom: 0;
+}
+
+.finding-list {
+  display: grid;
+  gap: 10px;
+}
+
+.finding-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.finding-head strong {
+  color: var(--accent-strong);
+}
+
+.severity-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.severity-pill.critical {
+  background: rgba(220, 90, 90, 0.18);
+  color: #ffb0b0;
+}
+
+.severity-pill.high {
+  background: rgba(242, 138, 52, 0.16);
+  color: #ffca92;
+}
+
+.severity-pill.medium {
+  background: rgba(209, 181, 60, 0.16);
+  color: #f2dd72;
+}
+
+.severity-pill.low {
+  background: rgba(75, 191, 115, 0.16);
+  color: #9ce4b6;
 }
 
 .exposure-row {
@@ -451,9 +552,17 @@ select {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .scan-rollup-grid {
+    grid-template-columns: 1fr;
+  }
+
   .report-context-banner {
     flex-direction: column;
     align-items: start;
+  }
+
+  .report-context-actions {
+    justify-content: start;
   }
 }
 
