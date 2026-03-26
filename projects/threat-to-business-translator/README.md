@@ -1,6 +1,6 @@
 # Threat-to-Business Translator
 
-Threat-to-Business Translator is a local-first MVP for converting technical security evidence into executive cyber risk narratives. It takes synthetic scenarios or optional customer-specific inputs such as CVEs, SOC alerts, and vulnerability scan-style reports, then translates them into quantified business impact, urgency, and recommended leadership actions.
+Threat-to-Business Translator is a local-first MVP that converts technical security evidence into executive cyber risk narratives. It supports built-in synthetic scenarios as well as optional customer-specific inputs such as CVEs, SOC alerts, and vulnerability scan reports, then translates them into quantified business impact, urgency, and recommended leadership actions.
 
 ## Why this project exists
 
@@ -14,18 +14,35 @@ Security evidence is usually technical, fragmented, and difficult to communicate
 ## Current capabilities
 
 ### Scenario library
+
 The app includes five built-in synthetic scenarios that can be explored without any customer input.
 
 ### Optional customer-specific analysis
+
 Users can optionally tailor the output by:
 - pasting a CVE description
 - pasting a SOC alert or incident summary
-- uploading a vulnerability scan style report
+- uploading a vulnerability scan report
+
+Supported upload formats:
+- `.pdf`
+- `.txt`
+- `.csv`
+- `.json`
+- `.log`
 
 ### Optional organization assumptions
-Users can optionally apply assumptions such as revenue, employee count, security maturity, internet exposure, regulatory sensitivity, and crown jewel dependency.
+
+Users can optionally apply assumptions such as:
+- annual revenue
+- employee count
+- internet exposure
+- security maturity
+- regulatory sensitivity
+- crown jewel dependency
 
 ### Executive output
+
 Each report currently includes:
 - leadership headline
 - executive summary
@@ -35,6 +52,15 @@ Each report currently includes:
 - exposure profile bars
 - scoring rationale
 - recommended actions
+- downloadable markdown export
+
+### Scan report workflow
+
+When a scan report contains multiple findings, the app now:
+- parses individual findings
+- maps each finding to the closest synthetic scenario pattern
+- generates per-finding summaries
+- generates a report-level roll-up for leadership
 
 ## Tech stack
 
@@ -52,22 +78,24 @@ Each report currently includes:
 ## Project structure
 
 ```text
-Threat-to-Business Translator/
-|- backend/
-|  |- app/
-|  |- data/
-|  \- requirements.txt
-|- docs/
-|  \- SPECS.md
-|- frontend/
-|- Launch Threat-to-Business Translator.cmd
-|- launch.ps1
-\- README.md
+.
+├─ backend/
+│  ├─ app/
+│  ├─ data/
+│  └─ requirements.txt
+├─ docs/
+│  └─ SPECS.md
+├─ frontend/
+│  └─ .env.example
+├─ Launch Threat-to-Business Translator.cmd
+├─ launch.ps1
+└─ README.md
 ```
 
 ## Getting started
 
 ### Option 1: one-click launcher
+
 Double-click `Launch Threat-to-Business Translator.cmd` from the project root.
 
 The launcher will:
@@ -81,9 +109,9 @@ The launcher will:
 #### Backend
 
 ```powershell
-cd "C:\Users\ksann\Downloads\Threat-to-Business Translator\backend"
+cd ./backend
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+./.venv/Scripts/Activate.ps1
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
@@ -91,9 +119,26 @@ uvicorn app.main:app --reload
 #### Frontend
 
 ```powershell
-cd "C:\Users\ksann\Downloads\Threat-to-Business Translator\frontend"
+cd ./frontend
 npm install
 npm run dev
+```
+
+### Environment configuration
+
+The frontend reads the API base from `VITE_API_URL` and falls back to `http://127.0.0.1:8000` for local development.
+
+To override it:
+
+```powershell
+cd ./frontend
+Copy-Item .env.example .env
+```
+
+Then edit `.env` as needed:
+
+```text
+VITE_API_URL=http://127.0.0.1:8000
 ```
 
 ### Local URLs
@@ -114,17 +159,8 @@ npm run dev
 
 ## Current limitations
 
-- Ad hoc analysis uses heuristic classification.
-- Upload support is currently text-first and best suited for `.txt`, `.csv`, `.json`, `.xml`, and `.log` files.
-- No PDF/XLSX ingestion yet.
+- Ad hoc analysis still uses heuristic template matching rather than a trained classifier.
+- Dollar estimates are synthetic and directional, not benchmark-calibrated.
+- Scenario and matcher configuration are still data/code driven rather than editable in the UI.
 - No persistence or saved project history yet.
-- No export to PDF or slide format yet.
-
-## GitHub readiness notes
-
-Before publishing, consider adding:
-- screenshots or GIFs of the UI
-- a license
-- a `.gitignore` if not already present
-- example inputs under a safe sample-data folder
-- issue templates or contribution guidance if the repo will be collaborative
+- No PDF or slide-deck board-pack export yet.

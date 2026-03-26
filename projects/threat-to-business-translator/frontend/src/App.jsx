@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 const DEFAULT_PROFILE = {
   annual_revenue_musd: 250,
   employee_count: 5000,
@@ -23,6 +23,14 @@ function formatLabel(key) {
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function slugify(value) {
+  return String(value || "analysis")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
 }
 
 export default function App() {
@@ -127,8 +135,11 @@ export default function App() {
         const payload = await response.json();
         throw new Error(payload.detail || "Analysis failed");
       }
-      setReport(await response.json());
-      setReportMode("adHoc");
+      const payload = await response.json();
+      setReport(payload);
+      setReportMode(payload.analysis_type === "scan_report" ? "scanReport" : "adHoc");
+      setRawText("");
+      setSourceFile(null);
       window.scrollTo({ top: document.querySelector(".report-panel")?.offsetTop - 24 || 0, behavior: "smooth" });
     } catch (loadError) {
       setError(loadError.message || "Unable to analyze the supplied input.");
@@ -139,6 +150,104 @@ export default function App() {
 
   function handleProfileChange(key, value) {
     setProfile((current) => ({ ...current, [key]: Number(value) }));
+  }
+
+  function handleDownloadAnalysis() {
+    if (!report) {
+      return;
+    }
+
+    const lines = [
+      "# Threat-to-Business Translator Analysis",
+      "",
+      `Scenario: ${report.scenario_name}`,
+      `Analysis Type: ${formatLabel(report.analysis_type || "scenario")}`,
+      `Audience: ${report.audience}`,
+      "",
+      "## Leadership Headline",
+      report.leadership_output.headline,
+      "",
+      "## Executive Summary",
+      report.leadership_output.executive_summary,
+      "",
+      "## Risk Snapshot",
+      `Overall Risk: ${report.risk_assessment.overall_risk}`,
+      `Likelihood: ${report.risk_assessment.likelihood}/5`,
+      `Impact: ${report.risk_assessment.impact}/5`,
+      `Urgency: ${report.risk_assessment.urgency}/5`,
+      `Confidence: ${Math.round(report.risk_assessment.confidence * 100)}%`,
+      `Likely Loss: ${formatCurrency(report.business_impact.impact_band.likely_usd)}`,
+      "",
+      "## Business Impact",
+      report.business_impact.summary,
+      `Low: ${formatCurrency(report.business_impact.impact_band.low_usd)}`,
+      `Likely: ${formatCurrency(report.business_impact.impact_band.likely_usd)}`,
+      `High: ${formatCurrency(report.business_impact.impact_band.high_usd)}`,
+      `Downtime: ${report.business_impact.impact_band.downtime_hours} hours`,
+      `People Affected: ${report.business_impact.impact_band.people_affected.toLocaleString()}`,
+      "",
+      "## Business Context",
+      `Business Unit: ${report.business_context.business_unit}`,
+      `Business Service: ${report.business_context.business_service}`,
+      `Service Owner: ${report.business_context.service_owner}`,
+      `Primary Asset: ${report.business_context.primary_asset} (${report.business_context.primary_asset_type})`,
+      `Internet Exposed: ${report.business_context.internet_exposed ? "Yes" : "No"}`,
+      `Affected Assets: ${report.business_context.affected_assets.join(", ") || "None listed"}`,
+      `Impacted Identities: ${report.business_context.impacted_identities.join(", ") || "None listed"}`,
+      "",
+      "## Recommended Actions",
+      ...report.leadership_output.recommended_actions.map((action) => `- ${action}`),
+      "",
+    ];
+
+    if (report.report_rollup) {
+      lines.push(
+        "## Scan Report Roll-Up",
+        report.report_rollup.summary,
+        `Total Findings: ${report.report_rollup.total_findings}`,
+        `Highest Severity: ${formatLabel(report.report_rollup.highest_severity)}`,
+        `Severity Counts: Critical ${report.report_rollup.severity_counts.critical}, High ${report.report_rollup.severity_counts.high}, Medium ${report.report_rollup.severity_counts.medium}, Low ${report.report_rollup.severity_counts.low}`,
+        `Top Business Services: ${report.report_rollup.top_business_services.join(", ")}`,
+        "",
+        "## Parsed Findings",
+        ...report.finding_summaries.flatMap((finding) => [
+          `### ${finding.title}`,
+          `Severity: ${formatLabel(finding.severity)}`,
+          `Mapped Business Service: ${finding.mapped_business_service}`,
+          `Affected Asset: ${finding.affected_asset}`,
+          `Overall Risk: ${finding.overall_risk}`,
+          `Likely Loss: ${formatCurrency(finding.likely_loss_usd)}`,
+          `Headline: ${finding.headline}`,
+          ...finding.recommended_actions.map((action) => `- ${action}`),
+          "",
+        ]),
+      );
+    } else {
+      lines.push("## Technical Input", report.technical_summary, "");
+    }
+
+    lines.push(
+      "## Scoring Rationale",
+      ...report.risk_assessment.rationale.map((item) => `- ${item}`),
+      "",
+      "## Active Assumptions",
+      `Annual Revenue (USD M): ${report.organization_profile.annual_revenue_musd}`,
+      `Employee Count: ${report.organization_profile.employee_count}`,
+      `Internet Exposure: ${report.organization_profile.internet_exposure}/5`,
+      `Security Maturity: ${report.organization_profile.security_maturity}/5`,
+      `Regulatory Sensitivity: ${report.organization_profile.regulatory_sensitivity}/5`,
+      `Crown Jewel Dependency: ${report.organization_profile.crown_jewel_dependency}/5`,
+    );
+
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${slugify(report.scenario_name)}-analysis.md`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -180,13 +289,14 @@ export default function App() {
               </div>
               <div className="intake-field compact">
                 <label className="input-label" htmlFor="sourceFile">
-                  Optional upload: vulnerability scan report for analysis
+                  Optional upload: vulnerability scan report for analysis (.pdf, .txt, .csv, .json, .log)
                 </label>
                 <input
+                  key={sourceFile ? sourceFile.name : "empty-file-input"}
                   id="sourceFile"
                   className="file-input"
                   type="file"
-                  accept=".txt,.csv,.json,.xml,.log"
+                  accept=".pdf,.txt,.csv,.json,.log"
                   onChange={(event) => setSourceFile(event.target.files?.[0] ?? null)}
                 />
               </div>
@@ -231,7 +341,7 @@ export default function App() {
 
               <div className="action-row">
                 <button className="primary-button" type="submit" disabled={loading}>
-                  {loading ? "Analyzing..." : "Analyze Optional Input"}
+                  {loading ? "Analyzing..." : "Analyze Input"}
                 </button>
                 <button className="secondary-button" type="button" onClick={() => selectedId && loadScenario(selectedId, useCustomProfile)} disabled={loading || !selectedId}>
                   {useCustomProfile ? "Apply Optional Assumptions To Scenario" : "Restore Scenario Outcome"}
@@ -266,20 +376,29 @@ export default function App() {
           {error ? <div className="error-banner">{error}</div> : null}
           {report ? (
             <>
-              <div className={reportMode === "adHoc" ? "report-context-banner ad-hoc" : "report-context-banner"}>
+              <div className={reportMode !== "scenario" ? "report-context-banner ad-hoc" : "report-context-banner"}>
                 <div>
-                  <p className="section-label">{reportMode === "adHoc" ? "Ad Hoc Analysis" : "Scenario Outcome"}</p>
+                  <p className="section-label">{reportMode === "scanReport" ? "Scan Report Analysis" : reportMode === "adHoc" ? "Ad Hoc Analysis" : "Scenario Outcome"}</p>
                   <strong>{report.scenario_name}</strong>
                 </div>
-                {reportMode === "adHoc" ? (
-                  <p className="context-copy">
-                    Showing analysis derived from your pasted input or uploaded report.
-                  </p>
-                ) : (
-                  <p className="context-copy">
-                    Showing the built-in synthetic scenario outcome for leadership review.
-                  </p>
-                )}
+                <div className="report-context-actions">
+                  {reportMode === "scanReport" ? (
+                    <p className="context-copy">
+                      Showing report-level analysis derived from multiple uploaded scan findings.
+                    </p>
+                  ) : reportMode === "adHoc" ? (
+                    <p className="context-copy">
+                      Showing analysis derived from your pasted input or uploaded report.
+                    </p>
+                  ) : (
+                    <p className="context-copy">
+                      Showing the built-in synthetic scenario outcome for leadership review.
+                    </p>
+                  )}
+                  <button className="secondary-button download-button" type="button" onClick={handleDownloadAnalysis}>
+                    Download Analysis
+                  </button>
+                </div>
               </div>
 
               <div className="headline-card">
@@ -288,9 +407,27 @@ export default function App() {
                 <p>{report.leadership_output.executive_summary}</p>
               </div>
 
+              {report.report_rollup ? (
+                <div className="scan-rollup-grid">
+                  <article className="scan-rollup-card">
+                    <p className="section-label">Scan Report Roll-Up</p>
+                    <p>{report.report_rollup.summary}</p>
+                    <p>Total findings: {report.report_rollup.total_findings}</p>
+                    <p>Highest severity: {formatLabel(report.report_rollup.highest_severity)}</p>
+                  </article>
+                  <article className="scan-rollup-card">
+                    <p className="section-label">Severity Distribution</p>
+                    <p>Critical: {report.report_rollup.severity_counts.critical}</p>
+                    <p>High: {report.report_rollup.severity_counts.high}</p>
+                    <p>Medium: {report.report_rollup.severity_counts.medium}</p>
+                    <p>Low: {report.report_rollup.severity_counts.low}</p>
+                  </article>
+                </div>
+              ) : null}
+
               <div className="technical-summary-card">
                 <p className="section-label">Technical Input</p>
-                <p>{report.technical_summary}</p>
+                <pre className="technical-summary-text">{report.technical_summary}</pre>
               </div>
 
               <div className="metrics-grid">
@@ -303,6 +440,25 @@ export default function App() {
               </div>
 
               <div className="detail-grid">
+                {report.finding_summaries?.length ? (
+                  <Panel title="Parsed Findings">
+                    <div className="finding-list">
+                      {report.finding_summaries.map((finding) => (
+                        <article className="finding-card" key={finding.finding_id}>
+                          <div className="finding-head">
+                            <strong>{finding.title}</strong>
+                            <span className={`severity-pill ${finding.severity}`}>{formatLabel(finding.severity)}</span>
+                          </div>
+                          <p>{finding.headline}</p>
+                          <p>Business service: {finding.mapped_business_service}</p>
+                          <p>Affected asset: {finding.affected_asset}</p>
+                          <p>Likely loss: {formatCurrency(finding.likely_loss_usd)}</p>
+                        </article>
+                      ))}
+                    </div>
+                  </Panel>
+                ) : null}
+
                 <Panel title="Exposure Profile">
                   {Object.entries(report.exposure_scores).map(([key, value]) => (
                     <ExposureBar key={key} label={formatLabel(key)} value={value} />

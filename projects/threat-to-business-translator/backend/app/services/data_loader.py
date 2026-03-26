@@ -20,6 +20,8 @@ def list_scenario_cards() -> list[dict]:
 
     cards = []
     for scenario in domain["scenarios"]:
+        if scenario.get("library_visible", True) is False:
+            continue
         service = service_map[scenario["service_id"]]
         cards.append(
             {

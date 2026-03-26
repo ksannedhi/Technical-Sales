@@ -18,7 +18,7 @@ The current implementation is an MVP focused on:
 
 ## Core Problem
 
-Security teams typically receive technical evidence in forms that are not directly useful for executive decision-making. Threat-to-Business Translator bridges that gap by answering:
+Security teams usually receive technical evidence in forms that are not directly useful for executive decision-making. Threat-to-Business Translator bridges that gap by answering:
 - what happened
 - why it matters to the business
 - what the likely impact range is
@@ -29,12 +29,17 @@ Security teams typically receive technical evidence in forms that are not direct
 
 ### Built-in scenario library
 
-The application includes five synthetic scenarios:
+The application includes five visible synthetic scenarios:
 1. Internet-facing VPN zero-day threatening payroll operations
 2. Privileged identity compromise with lateral movement into customer support
 3. Cloud misconfiguration exposing regulated customer records
 4. Supplier connectivity compromise disrupting fulfillment operations
 5. Deepfake executive impersonation targeting urgent payment approval
+
+The backend also includes additional hidden scenario patterns used to classify uploaded scan findings such as:
+- weak administrator authentication
+- SQL Server remote code execution
+- outdated internet-facing web servers
 
 Each scenario is tied to a synthetic enterprise graph made up of:
 - business units
@@ -49,20 +54,28 @@ Each scenario is tied to a synthetic enterprise graph made up of:
 Users can optionally submit customer-specific input by:
 - pasting a CVE description
 - pasting a SOC alert or incident summary
-- uploading a vulnerability scan style report
+- uploading a vulnerability scan report
 
-The current upload-friendly file types are:
+Supported upload formats:
+- `.pdf`
 - `.txt`
 - `.csv`
 - `.json`
-- `.xml`
 - `.log`
 
-The uploaded or pasted content is matched heuristically to the closest scenario pattern and translated into a leadership report.
+The uploaded or pasted content is matched to the closest scenario pattern using weighted keyword scoring across available templates.
+
+### Multi-finding scan report analysis
+
+If an uploaded scan report contains multiple findings, the backend:
+- parses each `Finding N` block
+- classifies each finding independently
+- builds per-finding risk summaries
+- builds a report-level roll-up with aggregate business context, exposure profile, and recommended actions
 
 ### Optional organization assumptions
 
-Users may optionally tailor the report with customer assumptions such as:
+Users may optionally tailor the report with assumptions such as:
 - annual revenue
 - employee count
 - internet exposure
@@ -77,7 +90,7 @@ If the user does not apply custom assumptions, the app uses built-in defaults.
 ### FR1. Scenario exploration
 - The user can select a built-in scenario from the scenario library.
 - The app generates a default leadership report for the selected scenario.
-- The selected scenario should remain the primary entry point for the product.
+- The selected scenario remains the primary entry point for the product.
 
 ### FR2. Technical-to-business translation
 - The backend must resolve technical context into business context.
@@ -106,24 +119,35 @@ If the user does not apply custom assumptions, the app uses built-in defaults.
 ### FR6. Optional customer-specific analysis
 - The user can provide customer-specific technical evidence.
 - The user can choose whether or not customer-specific organization assumptions are applied.
-- The application should still be fully usable without customer-specific input.
+- The application remains fully usable without customer-specific input.
 
-### FR7. Single-click launch
-- A Windows launcher must start backend and frontend together.
-- The launcher should handle first-run dependency installation when possible.
+### FR7. Multi-finding report roll-up
+- The backend must support multi-finding scan report analysis.
+- The UI must show both report-level and per-finding summaries.
+
+### FR8. Downloadable analysis
+- The current analysis can be downloaded from the UI as a markdown file.
+
+### FR9. Single-click launch
+- A Windows launcher starts backend and frontend together.
+- The launcher handles first-run dependency installation when possible.
 
 ## Non-Functional Requirements
 
 ### NFR1. Explainability
+
 The scoring model should remain deterministic and inspectable. The narrative should explain the score, not invent it.
 
 ### NFR2. Executive readability
+
 The UI should prioritize clarity, hierarchy, and concise business framing over dense security detail.
 
 ### NFR3. Local-first setup
+
 The MVP should run locally using FastAPI and React/Vite without requiring cloud infrastructure.
 
 ### NFR4. Extensibility
+
 The current synthetic graph should be replaceable later with real-world sources such as:
 - CMDB data
 - scan platforms
@@ -135,44 +159,54 @@ The current synthetic graph should be replaceable later with real-world sources 
 
 ### Frontend
 - React + Vite
-- Scenario-first workflow
-- Optional input strip for customer-specific evidence
-- Executive report layout with metrics, bars, and panels
+- scenario-first workflow
+- optional input strip for customer-specific evidence
+- executive report layout with metrics, bars, panels, and download action
 
 ### Backend
 - FastAPI
-- Synthetic enterprise graph stored in JSON
-- Deterministic enrichment and scoring engine
-- Ad hoc text/report classification logic
+- synthetic enterprise graph stored in JSON
+- deterministic enrichment and scoring engine
+- weighted scenario template matching for ad hoc analysis
+- scan-report parsing and roll-up logic
 
 ### Data model
+
 The synthetic graph currently includes:
 - business units
 - business services
 - assets
 - identities
 - controls
-- scenarios
+- visible scenarios
+- hidden classifier-only scenario patterns
 
 ## Current API Surface
 
 ### `GET /health`
+
 Basic health check.
 
 ### `GET /api/default-profile`
+
 Returns the default organization profile used for assumptions.
 
 ### `GET /api/scenarios`
-Returns the built-in scenario cards for the left-hand scenario library.
+
+Returns the visible built-in scenario cards for the left-hand scenario library.
 
 ### `GET /api/translate/{scenario_id}`
+
 Returns the translated report for a selected built-in scenario.
 Optional query parameters allow profile customization.
 
 ### `POST /api/analyze`
+
 Accepts pasted text and/or uploaded file input.
 Optional form parameters allow profile customization.
-Returns a translated leadership report.
+Returns:
+- a single ad hoc report for simple input
+- a scan-report roll-up with finding summaries for multi-finding uploads
 
 ## Current UX Structure
 
@@ -183,16 +217,17 @@ The intended reading order is:
 
 ## Known Limitations
 
-- Ad hoc analysis currently uses heuristic matching, not a full parser or ML classifier.
-- File upload support is text-first and does not yet handle PDF or XLSX natively.
+- Ad hoc analysis still relies on heuristic matching rather than trained classification.
+- Dollar estimates are synthetic and directional, not benchmark-calibrated.
+- Scenario management and scoring weights are not yet editable through the UI.
 - No authentication or multi-user workflow exists in the MVP.
 - No persistence layer is included yet for saved analyses.
-- No PDF export or board-pack generation is included yet.
+- No PDF or slide-deck export exists for board-pack output.
 
 ## Suggested Next Steps
 
-1. Add first-class PDF/XLSX ingestion for scan reports and customer documents.
+1. Move scoring weights and matcher configuration into editable config files.
 2. Add saved analyses and scenario history.
 3. Add export options such as PDF, DOCX, or executive summary slide output.
-4. Separate scoring configuration from code into editable config files.
-5. Add source traceability in the UI so every narrative is tied back to evidence.
+4. Add source traceability in the UI so every narrative is tied back to evidence.
+5. Add an admin workflow for managing scenario templates and synthetic graph entities.

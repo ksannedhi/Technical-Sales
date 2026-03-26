@@ -1,435 +1,614 @@
 {
-  "business_units": [
-    {
-      "id": "finance",
-      "name": "Finance",
-      "annual_revenue_musd": 42,
-      "executive_owner": "CFO"
-    },
-    {
-      "id": "customer-ops",
-      "name": "Customer Operations",
-      "annual_revenue_musd": 58,
-      "executive_owner": "Chief Customer Officer"
-    },
-    {
-      "id": "digital-banking",
-      "name": "Digital Banking",
-      "annual_revenue_musd": 65,
-      "executive_owner": "Chief Digital Officer"
-    },
-    {
-      "id": "supply-chain",
-      "name": "Supply Chain",
-      "annual_revenue_musd": 34,
-      "executive_owner": "COO"
-    }
-  ],
-  "business_services": [
-    {
-      "id": "payroll-processing",
-      "name": "Payroll Processing",
-      "business_unit_id": "finance",
-      "business_unit": "Finance",
-      "service_owner": "Director of Payroll Systems",
-      "criticality": 5,
-      "data_sensitivity": 5,
-      "user_scale": 4,
-      "revenue_dependency": 4,
-      "estimated_people_affected": 4800,
-      "key_dependencies": [
-        "Remote access gateway",
-        "Payroll API cluster",
-        "Identity federation"
-      ]
-    },
-    {
-      "id": "customer-support-platform",
-      "name": "Customer Support Platform",
-      "business_unit_id": "customer-ops",
-      "business_unit": "Customer Operations",
-      "service_owner": "VP of Customer Experience",
-      "criticality": 4,
-      "data_sensitivity": 4,
-      "user_scale": 5,
-      "revenue_dependency": 4,
-      "estimated_people_affected": 12500,
-      "key_dependencies": [
-        "Support CRM",
-        "Single sign-on",
-        "Voice routing"
-      ]
-    },
-    {
-      "id": "customer-onboarding-analytics",
-      "name": "Customer Onboarding Analytics",
-      "business_unit_id": "digital-banking",
-      "business_unit": "Digital Banking",
-      "service_owner": "Head of Digital Channels",
-      "criticality": 4,
-      "data_sensitivity": 5,
-      "user_scale": 4,
-      "revenue_dependency": 3,
-      "estimated_people_affected": 9300,
-      "key_dependencies": [
-        "Cloud object storage",
-        "Analytics pipeline",
-        "Data governance workflow"
-      ]
-    },
-    {
-      "id": "supplier-fulfillment-hub",
-      "name": "Supplier Fulfillment Hub",
-      "business_unit_id": "supply-chain",
-      "business_unit": "Supply Chain",
-      "service_owner": "Head of Logistics Platforms",
-      "criticality": 4,
-      "data_sensitivity": 3,
-      "user_scale": 3,
-      "revenue_dependency": 5,
-      "estimated_people_affected": 2600,
-      "key_dependencies": [
-        "EDI gateway",
-        "Warehouse scheduler",
-        "Partner VPN"
-      ]
-    }
-  ],
-  "assets": [
-    {
-      "id": "vpn-gateway-01",
-      "name": "vpn-gateway-01",
-      "service_id": "payroll-processing",
-      "asset_type": "Remote access gateway",
-      "criticality": "high",
-      "internet_exposed": true,
-      "control_ids": [
-        "mfa-remote",
-        "patch-sla-edge",
-        "edr-gateway"
-      ]
-    },
-    {
-      "id": "payroll-api-cluster",
-      "name": "payroll-api-cluster",
-      "service_id": "payroll-processing",
-      "asset_type": "Application cluster",
-      "criticality": "high",
-      "internet_exposed": false,
-      "control_ids": [
-        "segmentation-prod",
-        "backup-core"
-      ]
-    },
-    {
-      "id": "admin-workstation-44",
-      "name": "admin-workstation-44",
-      "service_id": "customer-support-platform",
-      "asset_type": "Privileged workstation",
-      "criticality": "high",
-      "internet_exposed": false,
-      "control_ids": [
-        "edr-endpoint",
-        "pam-session-monitoring"
-      ]
-    },
-    {
-      "id": "support-crm-prod",
-      "name": "support-crm-prod",
-      "service_id": "customer-support-platform",
-      "asset_type": "Customer platform",
-      "criticality": "high",
-      "internet_exposed": true,
-      "control_ids": [
-        "mfa-remote",
-        "segmentation-prod",
-        "backup-core"
-      ]
-    },
-    {
-      "id": "analytics-bucket-public",
-      "name": "analytics-bucket-public",
-      "service_id": "customer-onboarding-analytics",
-      "asset_type": "Cloud object storage",
-      "criticality": "high",
-      "internet_exposed": true,
-      "control_ids": [
-        "cloud-dlp",
-        "cloud-cspm"
-      ]
-    },
-    {
-      "id": "supplier-vpn-hub",
-      "name": "supplier-vpn-hub",
-      "service_id": "supplier-fulfillment-hub",
-      "asset_type": "Partner connectivity gateway",
-      "criticality": "medium",
-      "internet_exposed": true,
-      "control_ids": [
-        "patch-sla-edge",
-        "mfa-remote"
-      ]
-    },
-    {
-      "id": "warehouse-scheduler",
-      "name": "warehouse-scheduler",
-      "service_id": "supplier-fulfillment-hub",
-      "asset_type": "Operations scheduler",
-      "criticality": "high",
-      "internet_exposed": false,
-      "control_ids": [
-        "backup-core",
-        "segmentation-prod"
-      ]
-    },
-    {
-      "id": "finance-collab-suite",
-      "name": "finance-collab-suite",
-      "service_id": "payroll-processing",
-      "asset_type": "Collaboration and approval workflow",
-      "criticality": "high",
-      "internet_exposed": true,
-      "control_ids": [
-        "mfa-remote",
-        "voice-verification",
-        "email-authentication"
-      ]
-    }
-  ],
-  "identities": [
-    {
-      "id": "admin-rpatel",
-      "name": "Riya Patel (Privileged Admin)",
-      "role": "Infrastructure Administrator",
-      "privilege_level": "high"
-    },
-    {
-      "id": "svc-onboarding-analytics",
-      "name": "svc-onboarding-analytics",
-      "role": "Service Account",
-      "privilege_level": "medium"
-    },
-    {
-      "id": "partner-edi-sync",
-      "name": "partner-edi-sync",
-      "role": "Third-party Service Account",
-      "privilege_level": "medium"
-    },
-    {
-      "id": "cfo-aalharbi",
-      "name": "Aisha Alharbi (CFO)",
-      "role": "Chief Financial Officer",
-      "privilege_level": "high"
-    },
-    {
-      "id": "finance-analyst-noor",
-      "name": "Noor Hassan (Finance Analyst)",
-      "role": "Treasury Operations Analyst",
-      "privilege_level": "medium"
-    }
-  ],
-  "controls": [
-    {
-      "id": "mfa-remote",
-      "name": "MFA for remote access",
-      "status": "partial",
-      "effectiveness": 62
-    },
-    {
-      "id": "patch-sla-edge",
-      "name": "Edge patch SLA",
-      "status": "weak",
-      "effectiveness": 38
-    },
-    {
-      "id": "edr-gateway",
-      "name": "Gateway telemetry coverage",
-      "status": "partial",
-      "effectiveness": 54
-    },
-    {
-      "id": "segmentation-prod",
-      "name": "Production network segmentation",
-      "status": "strong",
-      "effectiveness": 82
-    },
-    {
-      "id": "backup-core",
-      "name": "Core service backup and restore",
-      "status": "strong",
-      "effectiveness": 88
-    },
-    {
-      "id": "edr-endpoint",
-      "name": "Endpoint detection and response",
-      "status": "partial",
-      "effectiveness": 59
-    },
-    {
-      "id": "pam-session-monitoring",
-      "name": "Privileged session monitoring",
-      "status": "weak",
-      "effectiveness": 41
-    },
-    {
-      "id": "cloud-dlp",
-      "name": "Cloud data loss prevention",
-      "status": "weak",
-      "effectiveness": 36
-    },
-    {
-      "id": "cloud-cspm",
-      "name": "Cloud security posture management",
-      "status": "partial",
-      "effectiveness": 52
-    },
-    {
-      "id": "voice-verification",
-      "name": "Out-of-band voice verification for payment approvals",
-      "status": "weak",
-      "effectiveness": 34
-    },
-    {
-      "id": "email-authentication",
-      "name": "Email authentication and impersonation protection",
-      "status": "partial",
-      "effectiveness": 57
-    }
-  ],
-  "scenarios": [
-    {
-      "id": "vpn-zero-day-finance",
-      "name": "Internet-facing VPN zero-day threatening payroll operations",
-      "category": "CVE / exposure",
-      "service_id": "payroll-processing",
-      "primary_asset_id": "vpn-gateway-01",
-      "asset_ids": [
-        "vpn-gateway-01",
-        "payroll-api-cluster"
-      ],
-      "identity_ids": [
-        "admin-rpatel"
-      ],
-      "technical_signal": "Multiple internet scans identified a vulnerable VPN gateway exposed to the public internet. The software version matches a high-severity remote code execution CVE with active exploitation reported by industry sources.",
-      "executive_trigger": "A remotely exploitable edge vulnerability on the corporate VPN gateway",
-      "signal_factors": {
-        "exploitability": 5,
-        "threat_activity": 5,
-        "evidence_quality": 5,
-        "context_completeness": 5
-      },
-      "recommended_actions": [
-        "Patch or isolate the VPN gateway within 24 hours.",
-        "Force credential reset for privileged remote access accounts.",
-        "Increase executive monitoring cadence until exposure is removed."
-      ]
-    },
-    {
-      "id": "edr-identity-lateral",
-      "name": "Privileged identity compromise with lateral movement into customer support",
-      "category": "EDR / identity",
-      "service_id": "customer-support-platform",
-      "primary_asset_id": "admin-workstation-44",
-      "asset_ids": [
-        "admin-workstation-44",
-        "support-crm-prod"
-      ],
-      "identity_ids": [
-        "admin-rpatel"
-      ],
-      "technical_signal": "EDR and identity telemetry show suspicious PowerShell activity on an administrator workstation followed by impossible travel and unusual token reuse against customer support systems.",
-      "executive_trigger": "A likely compromise of a privileged administrator identity",
-      "signal_factors": {
-        "exploitability": 4,
-        "threat_activity": 4,
-        "evidence_quality": 4,
-        "context_completeness": 4
-      },
-      "recommended_actions": [
-        "Disable the compromised accounts and revoke active sessions immediately.",
-        "Contain lateral movement paths into support infrastructure.",
-        "Brief senior leadership on potential customer-impacting delays."
-      ]
-    },
-    {
-      "id": "cloud-storage-regulated-data",
-      "name": "Cloud misconfiguration exposing regulated customer records",
-      "category": "Cloud / data exposure",
-      "service_id": "customer-onboarding-analytics",
-      "primary_asset_id": "analytics-bucket-public",
-      "asset_ids": [
-        "analytics-bucket-public"
-      ],
-      "identity_ids": [
-        "svc-onboarding-analytics"
-      ],
-      "technical_signal": "A routine cloud posture scan identified a public storage bucket tied to an analytics workflow. The bucket contains customer onboarding exports and has permissive anonymous read access.",
-      "executive_trigger": "A cloud storage misconfiguration exposing regulated customer data",
-      "signal_factors": {
-        "exploitability": 4,
-        "threat_activity": 3,
-        "evidence_quality": 5,
-        "context_completeness": 5
-      },
-      "recommended_actions": [
-        "Remove public access and rotate any exposed credentials.",
-        "Launch legal and privacy impact assessment within 24 hours.",
-        "Prepare an executive update on customer notification obligations."
-      ]
-    },
-    {
-      "id": "supplier-ransomware-chain",
-      "name": "Supplier connectivity compromise disrupting fulfillment operations",
-      "category": "Third-party / operations",
-      "service_id": "supplier-fulfillment-hub",
-      "primary_asset_id": "supplier-vpn-hub",
-      "asset_ids": [
-        "supplier-vpn-hub",
-        "warehouse-scheduler"
-      ],
-      "identity_ids": [
-        "partner-edi-sync"
-      ],
-      "technical_signal": "Threat monitoring and partner-side notifications indicate ransomware activity against a supplier account connected through the B2B VPN hub, with unusual file synchronization behavior observed in the warehouse scheduler environment.",
-      "executive_trigger": "A third-party compromise moving into the supplier connectivity path",
-      "signal_factors": {
-        "exploitability": 4,
-        "threat_activity": 5,
-        "evidence_quality": 4,
-        "context_completeness": 4
-      },
-      "recommended_actions": [
-        "Suspend partner synchronization channels until integrity is confirmed.",
-        "Move warehouse operations to contingency workflows for the next business cycle.",
-        "Issue an executive operations update tied to order fulfillment risk."
-      ]
-    },
-    {
-      "id": "deepfake-payment-diversion",
-      "name": "Deepfake executive impersonation targeting urgent payment approval",
-      "category": "Deepfake / social engineering",
-      "service_id": "payroll-processing",
-      "primary_asset_id": "finance-collab-suite",
-      "asset_ids": [
-        "finance-collab-suite"
-      ],
-      "identity_ids": [
-        "cfo-aalharbi",
-        "finance-analyst-noor"
-      ],
-      "technical_signal": "Finance staff received an urgent voice note and follow-up collaboration message that convincingly impersonated the CFO and requested a confidential vendor payment reroute before quarter close. Message metadata, timing anomalies, and callback mismatch indicators suggest AI-generated voice spoofing and social engineering.",
-      "executive_trigger": "A likely deepfake impersonation of the CFO aimed at manipulating treasury approvals",
-      "signal_factors": {
-        "exploitability": 4,
-        "threat_activity": 4,
-        "evidence_quality": 4,
-        "context_completeness": 4
-      },
-      "recommended_actions": [
-        "Freeze the requested payment workflow until executive identity is revalidated through a second channel.",
-        "Notify finance leadership and treasury operations of the impersonation attempt immediately.",
-        "Accelerate rollout of mandatory out-of-band approval checks for high-value payment changes."
-      ]
-    }
-  ]
+    "business_units":  [
+                           {
+                               "id":  "finance",
+                               "name":  "Finance",
+                               "annual_revenue_musd":  42,
+                               "executive_owner":  "CFO"
+                           },
+                           {
+                               "id":  "customer-ops",
+                               "name":  "Customer Operations",
+                               "annual_revenue_musd":  58,
+                               "executive_owner":  "Chief Customer Officer"
+                           },
+                           {
+                               "id":  "digital-banking",
+                               "name":  "Digital Banking",
+                               "annual_revenue_musd":  65,
+                               "executive_owner":  "Chief Digital Officer"
+                           },
+                           {
+                               "id":  "supply-chain",
+                               "name":  "Supply Chain",
+                               "annual_revenue_musd":  34,
+                               "executive_owner":  "COO"
+                           }
+                       ],
+    "business_services":  [
+                              {
+                                  "id":  "payroll-processing",
+                                  "name":  "Payroll Processing",
+                                  "business_unit_id":  "finance",
+                                  "business_unit":  "Finance",
+                                  "service_owner":  "Director of Payroll Systems",
+                                  "criticality":  5,
+                                  "data_sensitivity":  5,
+                                  "user_scale":  4,
+                                  "revenue_dependency":  4,
+                                  "estimated_people_affected":  4800,
+                                  "key_dependencies":  [
+                                                           "Remote access gateway",
+                                                           "Payroll API cluster",
+                                                           "Identity federation"
+                                                       ]
+                              },
+                              {
+                                  "id":  "customer-support-platform",
+                                  "name":  "Customer Support Platform",
+                                  "business_unit_id":  "customer-ops",
+                                  "business_unit":  "Customer Operations",
+                                  "service_owner":  "VP of Customer Experience",
+                                  "criticality":  4,
+                                  "data_sensitivity":  4,
+                                  "user_scale":  5,
+                                  "revenue_dependency":  4,
+                                  "estimated_people_affected":  12500,
+                                  "key_dependencies":  [
+                                                           "Support CRM",
+                                                           "Single sign-on",
+                                                           "Voice routing"
+                                                       ]
+                              },
+                              {
+                                  "id":  "customer-onboarding-analytics",
+                                  "name":  "Customer Onboarding Analytics",
+                                  "business_unit_id":  "digital-banking",
+                                  "business_unit":  "Digital Banking",
+                                  "service_owner":  "Head of Digital Channels",
+                                  "criticality":  4,
+                                  "data_sensitivity":  5,
+                                  "user_scale":  4,
+                                  "revenue_dependency":  3,
+                                  "estimated_people_affected":  9300,
+                                  "key_dependencies":  [
+                                                           "Cloud object storage",
+                                                           "Analytics pipeline",
+                                                           "Data governance workflow"
+                                                       ]
+                              },
+                              {
+                                  "id":  "supplier-fulfillment-hub",
+                                  "name":  "Supplier Fulfillment Hub",
+                                  "business_unit_id":  "supply-chain",
+                                  "business_unit":  "Supply Chain",
+                                  "service_owner":  "Head of Logistics Platforms",
+                                  "criticality":  4,
+                                  "data_sensitivity":  3,
+                                  "user_scale":  3,
+                                  "revenue_dependency":  5,
+                                  "estimated_people_affected":  2600,
+                                  "key_dependencies":  [
+                                                           "EDI gateway",
+                                                           "Warehouse scheduler",
+                                                           "Partner VPN"
+                                                       ]
+                              },
+                              {
+                                  "id":  "finance-data-platform",
+                                  "name":  "Finance Data Platform",
+                                  "business_unit_id":  "finance",
+                                  "business_unit":  "Finance",
+                                  "service_owner":  "Director of Finance Data Platforms",
+                                  "criticality":  5,
+                                  "data_sensitivity":  5,
+                                  "user_scale":  3,
+                                  "revenue_dependency":  4,
+                                  "estimated_people_affected":  1200,
+                                  "key_dependencies":  [
+                                                           "SQL Server cluster",
+                                                           "Finance reporting jobs",
+                                                           "Privileged database administration"
+                                                       ]
+                              },
+                              {
+                                  "id":  "customer-portal-experience",
+                                  "name":  "Customer Portal Experience",
+                                  "business_unit_id":  "digital-banking",
+                                  "business_unit":  "Digital Banking",
+                                  "service_owner":  "Director of Customer Channels",
+                                  "criticality":  4,
+                                  "data_sensitivity":  4,
+                                  "user_scale":  5,
+                                  "revenue_dependency":  5,
+                                  "estimated_people_affected":  18500,
+                                  "key_dependencies":  [
+                                                           "Web application tier",
+                                                           "Identity provider",
+                                                           "Application delivery controls"
+                                                       ]
+                              }
+                          ],
+    "assets":  [
+                   {
+                       "id":  "vpn-gateway-01",
+                       "name":  "vpn-gateway-01",
+                       "service_id":  "payroll-processing",
+                       "asset_type":  "Remote access gateway",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [
+                                           "mfa-remote",
+                                           "patch-sla-edge",
+                                           "edr-gateway"
+                                       ]
+                   },
+                   {
+                       "id":  "payroll-api-cluster",
+                       "name":  "payroll-api-cluster",
+                       "service_id":  "payroll-processing",
+                       "asset_type":  "Application cluster",
+                       "criticality":  "high",
+                       "internet_exposed":  false,
+                       "control_ids":  [
+                                           "segmentation-prod",
+                                           "backup-core"
+                                       ]
+                   },
+                   {
+                       "id":  "admin-workstation-44",
+                       "name":  "admin-workstation-44",
+                       "service_id":  "customer-support-platform",
+                       "asset_type":  "Privileged workstation",
+                       "criticality":  "high",
+                       "internet_exposed":  false,
+                       "control_ids":  [
+                                           "edr-endpoint",
+                                           "pam-session-monitoring"
+                                       ]
+                   },
+                   {
+                       "id":  "support-crm-prod",
+                       "name":  "support-crm-prod",
+                       "service_id":  "customer-support-platform",
+                       "asset_type":  "Customer platform",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [
+                                           "mfa-remote",
+                                           "segmentation-prod",
+                                           "backup-core"
+                                       ]
+                   },
+                   {
+                       "id":  "analytics-bucket-public",
+                       "name":  "analytics-bucket-public",
+                       "service_id":  "customer-onboarding-analytics",
+                       "asset_type":  "Cloud object storage",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [
+                                           "cloud-dlp",
+                                           "cloud-cspm"
+                                       ]
+                   },
+                   {
+                       "id":  "supplier-vpn-hub",
+                       "name":  "supplier-vpn-hub",
+                       "service_id":  "supplier-fulfillment-hub",
+                       "asset_type":  "Partner connectivity gateway",
+                       "criticality":  "medium",
+                       "internet_exposed":  true,
+                       "control_ids":  [
+                                           "patch-sla-edge",
+                                           "mfa-remote"
+                                       ]
+                   },
+                   {
+                       "id":  "warehouse-scheduler",
+                       "name":  "warehouse-scheduler",
+                       "service_id":  "supplier-fulfillment-hub",
+                       "asset_type":  "Operations scheduler",
+                       "criticality":  "high",
+                       "internet_exposed":  false,
+                       "control_ids":  [
+                                           "backup-core",
+                                           "segmentation-prod"
+                                       ]
+                   },
+                   {
+                       "id":  "finance-collab-suite",
+                       "name":  "finance-collab-suite",
+                       "service_id":  "payroll-processing",
+                       "asset_type":  "Collaboration and approval workflow",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [
+                                           "mfa-remote",
+                                           "voice-verification",
+                                           "email-authentication"
+                                       ]
+                   },
+                   {
+                       "id":  "vpn-auth-service",
+                       "name":  "vpn-auth-service",
+                       "service_id":  "payroll-processing",
+                       "asset_type":  "Remote access authentication service",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [
+                                           "mfa-remote",
+                                           "patch-sla-edge",
+                                           "edr-gateway"
+                                       ]
+                   },
+                   {
+                       "id":  "finance-db-sql-01",
+                       "name":  "finance-db-sql-01",
+                       "service_id":  "finance-data-platform",
+                       "asset_type":  "Finance database server",
+                       "criticality":  "high",
+                       "internet_exposed":  false,
+                       "control_ids":  [
+                                           "backup-core",
+                                           "segmentation-prod",
+                                           "patch-sla-server",
+                                           "database-hardening"
+                                       ]
+                   },
+                   {
+                       "id":  "customer-portal-web-01",
+                       "name":  "customer-portal-web-01",
+                       "service_id":  "customer-portal-experience",
+                       "asset_type":  "Customer-facing web server",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [
+                                           "patch-sla-web",
+                                           "waf-edge",
+                                           "backup-core"
+                                       ]
+                   }
+               ],
+    "identities":  [
+                       {
+                           "id":  "admin-rpatel",
+                           "name":  "Riya Patel (Privileged Admin)",
+                           "role":  "Infrastructure Administrator",
+                           "privilege_level":  "high"
+                       },
+                       {
+                           "id":  "svc-onboarding-analytics",
+                           "name":  "svc-onboarding-analytics",
+                           "role":  "Service Account",
+                           "privilege_level":  "medium"
+                       },
+                       {
+                           "id":  "partner-edi-sync",
+                           "name":  "partner-edi-sync",
+                           "role":  "Third-party Service Account",
+                           "privilege_level":  "medium"
+                       },
+                       {
+                           "id":  "cfo-aalharbi",
+                           "name":  "Aisha Alharbi (CFO)",
+                           "role":  "Chief Financial Officer",
+                           "privilege_level":  "high"
+                       },
+                       {
+                           "id":  "finance-analyst-noor",
+                           "name":  "Noor Hassan (Finance Analyst)",
+                           "role":  "Treasury Operations Analyst",
+                           "privilege_level":  "medium"
+                       }
+                   ],
+    "controls":  [
+                     {
+                         "id":  "mfa-remote",
+                         "name":  "MFA for remote access",
+                         "status":  "partial",
+                         "effectiveness":  62
+                     },
+                     {
+                         "id":  "patch-sla-edge",
+                         "name":  "Edge patch SLA",
+                         "status":  "weak",
+                         "effectiveness":  38
+                     },
+                     {
+                         "id":  "edr-gateway",
+                         "name":  "Gateway telemetry coverage",
+                         "status":  "partial",
+                         "effectiveness":  54
+                     },
+                     {
+                         "id":  "segmentation-prod",
+                         "name":  "Production network segmentation",
+                         "status":  "strong",
+                         "effectiveness":  82
+                     },
+                     {
+                         "id":  "backup-core",
+                         "name":  "Core service backup and restore",
+                         "status":  "strong",
+                         "effectiveness":  88
+                     },
+                     {
+                         "id":  "edr-endpoint",
+                         "name":  "Endpoint detection and response",
+                         "status":  "partial",
+                         "effectiveness":  59
+                     },
+                     {
+                         "id":  "pam-session-monitoring",
+                         "name":  "Privileged session monitoring",
+                         "status":  "weak",
+                         "effectiveness":  41
+                     },
+                     {
+                         "id":  "cloud-dlp",
+                         "name":  "Cloud data loss prevention",
+                         "status":  "weak",
+                         "effectiveness":  36
+                     },
+                     {
+                         "id":  "cloud-cspm",
+                         "name":  "Cloud security posture management",
+                         "status":  "partial",
+                         "effectiveness":  52
+                     },
+                     {
+                         "id":  "voice-verification",
+                         "name":  "Out-of-band voice verification for payment approvals",
+                         "status":  "weak",
+                         "effectiveness":  34
+                     },
+                     {
+                         "id":  "email-authentication",
+                         "name":  "Email authentication and impersonation protection",
+                         "status":  "partial",
+                         "effectiveness":  57
+                     },
+                     {
+                         "id":  "patch-sla-server",
+                         "name":  "Server patch SLA",
+                         "status":  "weak",
+                         "effectiveness":  43
+                     },
+                     {
+                         "id":  "database-hardening",
+                         "name":  "Database hardening baseline",
+                         "status":  "partial",
+                         "effectiveness":  55
+                     },
+                     {
+                         "id":  "patch-sla-web",
+                         "name":  "Web tier patch SLA",
+                         "status":  "partial",
+                         "effectiveness":  58
+                     },
+                     {
+                         "id":  "waf-edge",
+                         "name":  "Web application firewall",
+                         "status":  "partial",
+                         "effectiveness":  61
+                     }
+                 ],
+    "scenarios":  [
+                      {
+                          "id":  "vpn-zero-day-finance",
+                          "name":  "Internet-facing VPN zero-day threatening payroll operations",
+                          "category":  "CVE / exposure",
+                          "service_id":  "payroll-processing",
+                          "primary_asset_id":  "vpn-gateway-01",
+                          "asset_ids":  [
+                                            "vpn-gateway-01",
+                                            "payroll-api-cluster"
+                                        ],
+                          "identity_ids":  [
+                                               "admin-rpatel"
+                                           ],
+                          "technical_signal":  "Multiple internet scans identified a vulnerable VPN gateway exposed to the public internet. The software version matches a high-severity remote code execution CVE with active exploitation reported by industry sources.",
+                          "executive_trigger":  "A remotely exploitable edge vulnerability on the corporate VPN gateway",
+                          "signal_factors":  {
+                                                 "exploitability":  5,
+                                                 "threat_activity":  5,
+                                                 "evidence_quality":  5,
+                                                 "context_completeness":  5
+                                             },
+                          "recommended_actions":  [
+                                                      "Patch or isolate the VPN gateway within 24 hours.",
+                                                      "Force credential reset for privileged remote access accounts.",
+                                                      "Increase executive monitoring cadence until exposure is removed."
+                                                  ]
+                      },
+                      {
+                          "id":  "edr-identity-lateral",
+                          "name":  "Privileged identity compromise with lateral movement into customer support",
+                          "category":  "EDR / identity",
+                          "service_id":  "customer-support-platform",
+                          "primary_asset_id":  "admin-workstation-44",
+                          "asset_ids":  [
+                                            "admin-workstation-44",
+                                            "support-crm-prod"
+                                        ],
+                          "identity_ids":  [
+                                               "admin-rpatel"
+                                           ],
+                          "technical_signal":  "EDR and identity telemetry show suspicious PowerShell activity on an administrator workstation followed by impossible travel and unusual token reuse against customer support systems.",
+                          "executive_trigger":  "A likely compromise of a privileged administrator identity",
+                          "signal_factors":  {
+                                                 "exploitability":  4,
+                                                 "threat_activity":  4,
+                                                 "evidence_quality":  4,
+                                                 "context_completeness":  4
+                                             },
+                          "recommended_actions":  [
+                                                      "Disable the compromised accounts and revoke active sessions immediately.",
+                                                      "Contain lateral movement paths into support infrastructure.",
+                                                      "Brief senior leadership on potential customer-impacting delays."
+                                                  ]
+                      },
+                      {
+                          "id":  "cloud-storage-regulated-data",
+                          "name":  "Cloud misconfiguration exposing regulated customer records",
+                          "category":  "Cloud / data exposure",
+                          "service_id":  "customer-onboarding-analytics",
+                          "primary_asset_id":  "analytics-bucket-public",
+                          "asset_ids":  [
+                                            "analytics-bucket-public"
+                                        ],
+                          "identity_ids":  [
+                                               "svc-onboarding-analytics"
+                                           ],
+                          "technical_signal":  "A routine cloud posture scan identified a public storage bucket tied to an analytics workflow. The bucket contains customer onboarding exports and has permissive anonymous read access.",
+                          "executive_trigger":  "A cloud storage misconfiguration exposing regulated customer data",
+                          "signal_factors":  {
+                                                 "exploitability":  4,
+                                                 "threat_activity":  3,
+                                                 "evidence_quality":  5,
+                                                 "context_completeness":  5
+                                             },
+                          "recommended_actions":  [
+                                                      "Remove public access and rotate any exposed credentials.",
+                                                      "Launch legal and privacy impact assessment within 24 hours.",
+                                                      "Prepare an executive update on customer notification obligations."
+                                                  ]
+                      },
+                      {
+                          "id":  "supplier-ransomware-chain",
+                          "name":  "Supplier connectivity compromise disrupting fulfillment operations",
+                          "category":  "Third-party / operations",
+                          "service_id":  "supplier-fulfillment-hub",
+                          "primary_asset_id":  "supplier-vpn-hub",
+                          "asset_ids":  [
+                                            "supplier-vpn-hub",
+                                            "warehouse-scheduler"
+                                        ],
+                          "identity_ids":  [
+                                               "partner-edi-sync"
+                                           ],
+                          "technical_signal":  "Threat monitoring and partner-side notifications indicate ransomware activity against a supplier account connected through the B2B VPN hub, with unusual file synchronization behavior observed in the warehouse scheduler environment.",
+                          "executive_trigger":  "A third-party compromise moving into the supplier connectivity path",
+                          "signal_factors":  {
+                                                 "exploitability":  4,
+                                                 "threat_activity":  5,
+                                                 "evidence_quality":  4,
+                                                 "context_completeness":  4
+                                             },
+                          "recommended_actions":  [
+                                                      "Suspend partner synchronization channels until integrity is confirmed.",
+                                                      "Move warehouse operations to contingency workflows for the next business cycle.",
+                                                      "Issue an executive operations update tied to order fulfillment risk."
+                                                  ]
+                      },
+                      {
+                          "id":  "deepfake-payment-diversion",
+                          "name":  "Deepfake executive impersonation targeting urgent payment approval",
+                          "category":  "Deepfake / social engineering",
+                          "service_id":  "payroll-processing",
+                          "primary_asset_id":  "finance-collab-suite",
+                          "asset_ids":  [
+                                            "finance-collab-suite"
+                                        ],
+                          "identity_ids":  [
+                                               "cfo-aalharbi",
+                                               "finance-analyst-noor"
+                                           ],
+                          "technical_signal":  "Finance staff received an urgent voice note and follow-up collaboration message that convincingly impersonated the CFO and requested a confidential vendor payment reroute before quarter close. Message metadata, timing anomalies, and callback mismatch indicators suggest AI-generated voice spoofing and social engineering.",
+                          "executive_trigger":  "A likely deepfake impersonation of the CFO aimed at manipulating treasury approvals",
+                          "signal_factors":  {
+                                                 "exploitability":  4,
+                                                 "threat_activity":  4,
+                                                 "evidence_quality":  4,
+                                                 "context_completeness":  4
+                                             },
+                          "recommended_actions":  [
+                                                      "Freeze the requested payment workflow until executive identity is revalidated through a second channel.",
+                                                      "Notify finance leadership and treasury operations of the impersonation attempt immediately.",
+                                                      "Accelerate rollout of mandatory out-of-band approval checks for high-value payment changes."
+                                                  ]
+                      },
+                      {
+                          "id":  "privileged-admin-mfa-gap",
+                          "name":  "Weak administrator authentication exposing remote access path",
+                          "category":  "Identity / control weakness",
+                          "service_id":  "payroll-processing",
+                          "primary_asset_id":  "vpn-auth-service",
+                          "asset_ids":  [
+                                            "vpn-auth-service"
+                                        ],
+                          "identity_ids":  [
+                                               "admin-rpatel"
+                                           ],
+                          "library_visible":  false,
+                          "technical_signal":  "A control review identified privileged administrator accounts without enforced MFA on the remote access authentication service, increasing the chance of credential compromise against a business-critical entry point.",
+                          "executive_trigger":  "A privileged authentication control gap on the remote access platform",
+                          "signal_factors":  {
+                                                 "exploitability":  4,
+                                                 "threat_activity":  3,
+                                                 "evidence_quality":  4,
+                                                 "context_completeness":  4
+                                             },
+                          "recommended_actions":  [
+                                                      "Enforce MFA for all privileged remote access accounts immediately.",
+                                                      "Review existing administrator sessions and reset exposed credentials.",
+                                                      "Validate high-risk remote access paths until the control gap is closed."
+                                                  ]
+                      },
+                      {
+                          "id":  "finance-sql-server-rce",
+                          "name":  "SQL Server remote code execution threatening finance data operations",
+                          "category":  "CVE / database",
+                          "service_id":  "finance-data-platform",
+                          "primary_asset_id":  "finance-db-sql-01",
+                          "asset_ids":  [
+                                            "finance-db-sql-01"
+                                        ],
+                          "identity_ids":  [
+                                               "admin-rpatel"
+                                           ],
+                          "library_visible":  false,
+                          "technical_signal":  "A critical SQL Server vulnerability with remote code execution characteristics is present on a finance database server that supports reporting and transaction integrity workflows.",
+                          "executive_trigger":  "A critical database vulnerability affecting the finance data platform",
+                          "signal_factors":  {
+                                                 "exploitability":  5,
+                                                 "threat_activity":  4,
+                                                 "evidence_quality":  5,
+                                                 "context_completeness":  4
+                                             },
+                          "recommended_actions":  [
+                                                      "Patch or isolate the affected SQL Server instance on an emergency timeline.",
+                                                      "Restrict privileged administrative paths to the finance database tier.",
+                                                      "Assess exposure of finance reporting and transaction integrity processes."
+                                                  ]
+                      },
+                      {
+                          "id":  "customer-portal-outdated-web",
+                          "name":  "Outdated internet-facing web server increasing customer portal attack surface",
+                          "category":  "Web / application exposure",
+                          "service_id":  "customer-portal-experience",
+                          "primary_asset_id":  "customer-portal-web-01",
+                          "asset_ids":  [
+                                            "customer-portal-web-01"
+                                        ],
+                          "identity_ids":  [
+
+                                           ],
+                          "library_visible":  false,
+                          "technical_signal":  "A customer-facing web server is running an outdated software version with known vulnerabilities, expanding the attack surface for the public portal.",
+                          "executive_trigger":  "An outdated internet-facing web server supporting the customer portal",
+                          "signal_factors":  {
+                                                 "exploitability":  3,
+                                                 "threat_activity":  3,
+                                                 "evidence_quality":  4,
+                                                 "context_completeness":  4
+                                             },
+                          "recommended_actions":  [
+                                                      "Upgrade the affected web server to a supported version on the next urgent maintenance window.",
+                                                      "Review WAF coverage and internet-exposed application routes.",
+                                                      "Increase monitoring for web exploitation attempts until the version gap is removed."
+                                                  ]
+                      }
+                  ]
 }

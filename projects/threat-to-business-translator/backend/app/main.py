@@ -1,5 +1,8 @@
+from io import BytesIO
+
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from pypdf import PdfReader
 
 from .models import TranslationResponse
 from .services.data_loader import list_scenario_cards
@@ -33,6 +36,18 @@ def _profile_from_inputs(
         "regulatory_sensitivity": regulatory_sensitivity,
         "crown_jewel_dependency": crown_jewel_dependency,
     }
+
+
+def _extract_file_text(file_bytes: bytes, file_name: str | None) -> str:
+    name = (file_name or "").lower()
+    if name.endswith(".pdf"):
+        reader = PdfReader(BytesIO(file_bytes))
+        pages: list[str] = []
+        for page in reader.pages:
+            pages.append(page.extract_text() or "")
+        return "\n".join(part.strip() for part in pages if part.strip())
+
+    return file_bytes.decode("utf-8", errors="ignore")
 
 
 @app.get("/health")
@@ -89,7 +104,7 @@ async def analyze(
     file_name = None
     if source_file is not None:
         file_name = source_file.filename
-        file_text = (await source_file.read()).decode("utf-8", errors="ignore")
+        file_text = _extract_file_text(await source_file.read(), file_name)
 
     combined_text = "\n\n".join(part for part in [raw_text.strip(), file_text.strip()] if part)
     if not combined_text:

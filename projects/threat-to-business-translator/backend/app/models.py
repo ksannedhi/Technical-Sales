@@ -53,6 +53,28 @@ class OrganizationProfile(BaseModel):
     crown_jewel_dependency: int = Field(ge=1, le=5)
 
 
+class FindingSummary(BaseModel):
+    finding_id: str
+    title: str
+    severity: Literal["critical", "high", "medium", "low"]
+    scenario_name: str
+    mapped_business_service: str
+    affected_asset: str
+    overall_risk: Literal["low", "moderate", "high", "critical"]
+    likely_loss_usd: int
+    headline: str
+    recommended_actions: list[str]
+
+
+class ReportRollup(BaseModel):
+    total_findings: int
+    severity_counts: dict[str, int]
+    highest_severity: Literal["critical", "high", "medium", "low"]
+    top_business_services: list[str]
+    top_actions: list[str]
+    summary: str
+
+
 class TranslationResponse(BaseModel):
     scenario_id: str
     scenario_name: str
@@ -65,3 +87,6 @@ class TranslationResponse(BaseModel):
     risk_assessment: RiskAssessment
     risk_reduction_if_fixed: RiskReduction
     leadership_output: LeadershipOutput
+    analysis_type: Literal["scenario", "ad_hoc", "scan_report"] = "scenario"
+    report_rollup: ReportRollup | None = None
+    finding_summaries: list[FindingSummary] = []
