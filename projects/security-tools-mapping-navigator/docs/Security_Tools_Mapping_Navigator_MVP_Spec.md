@@ -1,6 +1,6 @@
-﻿# Security Tools Mapping Navigator - Project Specification (MVP)
+# Security Tools Mapping Navigator - Project Specification
 
-Version: 0.3.0  
+Version: 0.3.0
 Date: 2026-03-25
 
 ## 1. Executive Summary
@@ -23,7 +23,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 - Build a phased roadmap that improves both control posture and architecture outcomes
 
 ## 3. Scope Definition
-### In Scope (MVP)
+### In Scope
 - Tool/control mapping ingestion via CSV
 - Framework-aware analysis (`NIST`, `CIS`, `BOTH`)
 - Deterministic gap and redundancy analysis
@@ -33,7 +33,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 - Project result persistence in SQLite
 - GUI-based review and exports
 
-### Out of Scope (MVP)
+### Out of Scope
 - Live connector ingestion from customer APIs
 - Full CMDB/asset topology modeling
 - Automated infra change execution
@@ -116,7 +116,7 @@ Full schema:
 Reference template:
 - `data/tools_controls_mapping_template.csv`
 
-## 10. Analysis Logic (MVP)
+## 10. Analysis Logic
 ### Coverage Classification
 For each framework control objective:
 - `covered` if 2+ matching tool/control mappings
@@ -221,7 +221,7 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 5. Multi-project comparison dashboards
 6. Architecture impact scoring tied to roadmap actions
 
-## 17. Acceptance Criteria (MVP)
+## 17. Acceptance Criteria
 - Upload valid CSV and receive analysis without errors
 - Framework selection changes returned control set
 - Gaps, redundancies, roadmap, and diagrams all populate
