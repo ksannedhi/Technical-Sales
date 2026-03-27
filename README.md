@@ -66,7 +66,7 @@ See project docs:
 ### Multi-Vendor Decision Copilot
 - Path: `projects/multi-vendor-decision-copilot`
 - Purpose: customer-facing cybersecurity copilot for vendor lookup, product lookup, named comparisons, category recommendations, and honest insufficient-data responses.
-- Current strengths: lookup, comparison, category recommendation, vendor-level fallback where product data is missing.
+- Current strengths: conversational lookup, named comparison, weighted category recommendation, vendor-level fallback where product data is missing, and transparent constraint/exclusion handling.
 - Quick launch (Windows PowerShell):
 
 ```text
