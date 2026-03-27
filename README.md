@@ -48,7 +48,7 @@ See project docs:
 - `projects/live-soc-twin-field-sku/runbooks/demo-quickstart.md`
 - `projects/live-soc-twin-field-sku/runbooks/executive-10min-script-and-faq.md`
 
-### Security Tools Mapping Navigator (MVP)
+### Security Tools Mapping Navigator
 - Path: `projects/security-tools-mapping-navigator`
 - Purpose: GUI app to map security tools to controls, identify control gaps and redundancies, and generate a migration roadmap.
 - Framework modes: `NIST`, `CIS`, `BOTH`

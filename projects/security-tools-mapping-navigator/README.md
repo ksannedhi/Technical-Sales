@@ -1,6 +1,6 @@
-﻿# Security Tools Mapping Navigator (MVP)
+# Security Tools Mapping Navigator
 
-GUI-first proprietary MVP that ingests a security tools-controls mapping CSV and generates:
+GUI-first proprietary application that ingests a security tools-controls mapping CSV and generates:
 
 - Current tool-control map
 - Target tool-control map
@@ -14,7 +14,7 @@ GUI-first proprietary MVP that ingests a security tools-controls mapping CSV and
 - `CIS` (CIS Controls v8 aligned controls)
 - `BOTH` (dual mapping)
 
-## Scope (Current MVP)
+## Current Scope
 
 - Focuses on security tools and control mappings only
 - Does not require full asset inventory
@@ -92,7 +92,7 @@ Open [http://localhost:5173](http://localhost:5173).
 
 ## Notes
 
-- MVP accepts CSV only.
+- The current release accepts CSV only.
 - `framework_alignment` can be blank; the selected framework mode will be used as the default.
 - Matching is enriched with vendor and product aliases to reduce brittle free-text misses.
 - The generated current-state map groups tools by control domain for a more defensible view.
