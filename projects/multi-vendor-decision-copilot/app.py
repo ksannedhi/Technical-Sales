@@ -13,16 +13,33 @@ if str(SRC) not in sys.path:
 from mvdc import DecisionEngine
 
 st.set_page_config(page_title="Multi-Vendor Decision Copilot", page_icon="shield", layout="wide")
-engine = DecisionEngine(ROOT / "data")
+
+
+@st.cache_resource
+def get_engine() -> DecisionEngine:
+    return DecisionEngine(ROOT / "data")
+
+
+@st.cache_resource
+def get_shared_history() -> list[dict[str, object]]:
+    return []
+
+
+engine = get_engine()
+history_store = get_shared_history()
 
 
 def render_constraints(constraints: dict[str, object]) -> None:
     active = {key: value for key, value in constraints.items() if value}
-    if not active:
-        st.write("No explicit hard constraints were detected.")
-        return
     for key, value in active.items():
+        if isinstance(value, list):
+            value = ", ".join(str(item) for item in value)
         st.write(f"**{key.replace('_', ' ').title()}:** {value}")
+
+
+def render_assumptions(items: list[str]) -> None:
+    for item in items:
+        st.write(f"- {item}")
 
 
 def render_insufficient(result: dict[str, object]) -> None:
@@ -60,6 +77,13 @@ def render_lookup(result: dict[str, object]) -> None:
     st.subheader("Vendor Profile")
     st.markdown(f"**{profile['vendor']}**")
     st.caption(f"Confidence: {result['confidence']}")
+    capability_summary = result.get("capability_summary")
+    if capability_summary:
+        st.subheader("Requested Capability Check")
+        for item in capability_summary.get("assessments", []):
+            st.write(f"**{item['category']}:** {item['message']}")
+            if item.get("products"):
+                st.write(f"Known products: {', '.join(item['products'])}")
     st.write(f"**Categories:** {', '.join(profile.get('categories', [])) or 'Not specified'}")
     st.write(f"**Regions:** {', '.join(profile.get('regions', [])) or 'Not specified'}")
     st.write(f"**Deployment Models:** {', '.join(profile.get('deployment_models', [])) or 'Not specified'}")
@@ -126,9 +150,6 @@ def render_stack(result: dict[str, object]) -> None:
 
 def render_exclusions(result: dict[str, object]) -> None:
     excluded = result.get("excluded_products", [])
-    if not excluded:
-        st.write("No products were excluded by the detected hard constraints.")
-        return
     for item in excluded[:8]:
         st.markdown(f"**{item['product_name']}** ({item['vendor']})")
         for reason in item["reasons"]:
@@ -136,39 +157,89 @@ def render_exclusions(result: dict[str, object]) -> None:
 
 
 def render_transparency(result: dict[str, object]) -> None:
-    left, right = st.columns(2)
-    with left:
+    constraints = {key: value for key, value in result.get("constraints", {}).items() if value}
+    assumptions = result.get("assumptions", [])
+    data_gaps = result.get("data_gaps", [])
+    excluded = result.get("excluded_products", [])
+
+    show_constraints = bool(constraints)
+    show_assumptions = bool(assumptions)
+
+    if show_constraints and show_assumptions:
+        left, right = st.columns(2)
+        with left:
+            st.markdown("**Detected Constraints**")
+            render_constraints(constraints)
+        with right:
+            st.markdown("**Assumptions**")
+            render_assumptions(assumptions)
+    elif show_constraints:
         st.markdown("**Detected Constraints**")
-        render_constraints(result.get("constraints", {}))
-    with right:
+        render_constraints(constraints)
+    elif show_assumptions:
         st.markdown("**Assumptions**")
-        for item in result.get("assumptions", []):
+        render_assumptions(assumptions)
+
+    if data_gaps:
+        st.markdown("**Data Gaps**")
+        for item in data_gaps:
             st.write(f"- {item}")
-    st.markdown("**Data Gaps**")
-    for item in result.get("data_gaps", []):
-        st.write(f"- {item}")
-    with st.expander("Excluded Products"):
-        render_exclusions(result)
+
+    if excluded:
+        with st.expander("Excluded Products"):
+            render_exclusions(result)
+
+
+def render_history_item(item: dict[str, object], index: int) -> None:
+    result = item["result"]
+    title = f"{index}. {item['query']}"
+    with st.expander(title):
+        st.caption(f"Mode: {result['mode']} | Confidence: {result.get('confidence', 'unknown')}")
+        if result["mode"] == "lookup":
+            profile = result["vendor_profile"]
+            st.write(f"Vendor: {profile['vendor']}")
+            st.write(f"Categories: {', '.join(profile.get('categories', [])) or 'Not specified'}")
+        elif result["mode"] == "comparison":
+            top = result["top_recommendation"]
+            st.write(f"Top comparison result: {top['product_name']} from {top['vendor']}")
+        elif result["mode"] == "single_category":
+            top = result["top_recommendation"]
+            st.write(f"Best fit: {top['product_name']} from {top['vendor']}")
+        elif result["mode"] == "vendor_category":
+            top = result["top_recommendation"]
+            st.write(f"Vendor-level signal: {top['vendor']} for {top['category']}")
+        else:
+            st.write(result["reason"])
+        with st.expander("Raw Result", expanded=False):
+            st.json(result)
 
 
 st.title("Multi-Vendor Decision Copilot")
 st.caption("Transparent cybersecurity solution recommendations based on your constraints, required capabilities, and compliance needs.")
 st.markdown("### Describe your cybersecurity need, constraints, and compliance requirements")
+if "pending_prompt" in st.session_state:
+    st.session_state["prompt"] = st.session_state.pop("pending_prompt")
+    st.session_state["auto_analyze"] = True
+
 query = st.text_area(
     "Prompt",
-    value=st.session_state.get("example_prompt", ""),
+    key="prompt",
     height=120,
     placeholder="Example: Compare SIEM vendors for a bank with FedRAMP, on-prem deployment, and ServiceNow integration.",
     label_visibility="collapsed",
 )
 run = st.button("Analyze", type="primary", use_container_width=True)
-example_cols = st.columns(len(engine.get_examples()))
-for col, sample in zip(example_cols, engine.get_examples()):
+examples = engine.get_examples()
+example_cols = st.columns(len(examples))
+for col, sample in zip(example_cols, examples):
     if col.button(sample, use_container_width=True):
-        st.session_state["example_prompt"] = sample
+        st.session_state["pending_prompt"] = sample
         st.rerun()
-if run and query.strip():
+should_run = run or st.session_state.pop("auto_analyze", False)
+if should_run and query.strip():
     result = engine.analyze(query.strip())
+    history_store.append({"query": query.strip(), "result": result})
+    del history_store[:-10]
     st.markdown("---")
     if result["mode"] == "insufficient_data":
         render_insufficient(result)
@@ -185,5 +256,17 @@ if run and query.strip():
     render_transparency(result)
     with st.expander("Raw Engine Output"):
         st.json(result)
-elif run:
+elif should_run:
     st.warning("Enter a customer query to analyze.")
+
+if history_store:
+    st.markdown("---")
+    history_left, history_right = st.columns([4, 1])
+    with history_left:
+        st.subheader("Session History")
+    with history_right:
+        if st.button("Clear History", use_container_width=True):
+            history_store.clear()
+            st.rerun()
+    for index, item in enumerate(reversed(history_store), start=1):
+        render_history_item(item, index)
