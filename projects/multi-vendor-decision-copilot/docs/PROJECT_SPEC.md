@@ -48,6 +48,7 @@ Examples:
 Expected behavior:
 - return vendor or product profile
 - include categories, known products, deployment models, regions, and known features if available
+- when a vendor-specific capability question names a supported category, include a category support summary based on product and vendor metadata
 
 ### 4.2 Comparison
 Used when the user compares named products or vendors.
@@ -120,6 +121,7 @@ Fields:
 - `lookup_type` as `vendor` or `product`
 - `vendor`
 - `vendor_profile`
+- `capability_summary`
 - `assumptions`
 - `data_gaps`
 - `confidence`
@@ -220,7 +222,8 @@ Current local files in `data/`:
 - `categories.json`
 - `problem_to_tool_mapping.json`
 - `vendor_feature_matrix.json`
-- `exclusion_rules.json`
+- `scoring_weights.json`
+- `hard_exclusions.json`
 
 ### 8.1 Data Reality
 Current strengths:
@@ -250,7 +253,9 @@ The UI should include:
 - prompt area
 - analyze button above prompt suggestions
 - example prompts below the analyze button
+- one-click sample prompts that trigger analysis immediately
 - adaptive rendering based on response mode
+- session history for the current running app session
 - transparency section for assumptions, gaps, exclusions, and constraints when available
 
 Rendering by mode:
@@ -262,16 +267,7 @@ Rendering by mode:
 
 ## 11. Testing Requirements
 
-Regression tests must cover real prompt patterns, including:
-- `Tell me about Varonis`
-- `You know Cortex?`
-- `What Varonis can do?`
-- `What about data security?`
-- `What about SASE?`
-- `Compare QRadar SIEM against Splunk Enterprise Security`
-- `Compare FortiSIEM against QRadar SIEM`
-- `Recommend OT security solutions for a manufacturing plant`
-- `Recommend IGA tools for access reviews and joiner mover leaver workflows`
+The project should include automated tests for intent resolution, lookup behavior, named comparison safety, recommendation routing, and insufficient-data fallbacks.
 
 ## 12. Recommended Next Steps
 
@@ -299,11 +295,11 @@ Move toward:
 
 ## 13. Current Implementation Location
 
-Project path:
-- `C:\Users\ksann\Downloads\multi-vendor-decision-copilot`
+Project root:
+- `.`
 
 Key files:
 - `app.py`
-- `src\mvdc\engine.py`
-- `tests\test_engine.py`
-- `data\*.json`
+- `src/mvdc/engine.py`
+- `tests/test_engine.py`
+- `data/*.json`

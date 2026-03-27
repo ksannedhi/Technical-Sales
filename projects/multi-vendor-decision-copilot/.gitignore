@@ -1,2 +1,4 @@
 __pycache__/
 *.py[cod]
+.session_history.json
+tests_artifacts/

@@ -6,12 +6,14 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 
 - Maps customer problems to supported cybersecurity tool categories
 - Supports vendor lookup, product lookup, named comparison, product recommendations, and vendor-level category recommendations
+- Recognizes supported categories even when only vendor metadata exists, such as `SASE` and `Firewall`
+- Handles vendor capability questions such as `Can Varonis provide DSPM?` with a category-aware lookup summary
 - Falls back to honest `insufficient_data` responses when the dataset cannot support a reliable answer
 - Uses transparent assumptions, confidence labels, and data-gap messaging
 
 ## Documentation
 
-- Product and behavior spec: [docs/PROJECT_SPEC.md](C:\Users\ksann\Downloads\multi-vendor-decision-copilot\docs\PROJECT_SPEC.md)
+- Product and behavior spec: [docs/PROJECT_SPEC.md](docs/PROJECT_SPEC.md)
 
 ## Supported Intents
 
@@ -27,25 +29,24 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 - `products.json` is the main product recommendation dataset
 - `vendors.json` supports vendor lookup and vendor-level category fallback
 - `vendor_feature_matrix.json` enriches selected categories with feature summaries
+- `scoring_weights.json` controls the weighted scoring model
+- `hard_exclusions.json` controls which hard-filtering rules are active
 - Product and category coverage are still uneven, so outputs should be treated as advisory
+
+## UI Notes
+
+- Clicking a sample prompt runs analysis immediately without requiring a second click on `Analyze`
+- Session history is shared across tabs for the current running app process and clears when the app restarts
 
 ## Run
 
 ```powershell
-cd "C:\Users\ksann\Downloads\multi-vendor-decision-copilot"
 python -m streamlit run app.py
 ```
 
 ## Verify
 
 ```powershell
-cd "C:\Users\ksann\Downloads\multi-vendor-decision-copilot"
 $env:PYTHONPATH="src"
 python -m unittest discover -s tests
 ```
-
-## Current Status
-
-- Regression coverage exists for the prompt patterns that previously caused failures
-- The prototype is stable enough for iterative dataset improvements
-- The main remaining limitation is data depth, not the core intent-routing logic
