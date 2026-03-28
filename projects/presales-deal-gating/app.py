@@ -301,7 +301,7 @@ def render_page(state: dict[str, object]) -> str:
     ul {{ padding-left: 20px; }}
     .notice {{ margin-bottom: 14px; padding: 12px 14px; background: #efe2cf; border-radius: 12px; }}
     .history-list {{ list-style: none; padding-left: 0; margin: 0; display: grid; gap: 12px; }}
-    .history-item {{ border: 1px solid #e4d7c8; border-radius: 12px; background: #f9f5ee; overflow: hidden; position: relative; }}
+    .history-item {{ border: 1px solid #e4d7c8; border-radius: 12px; background: #f9f5ee; overflow: visible; position: relative; }}
     .history-item.active {{ border-color: #8a4b16; background: #f3ebe0; box-shadow: inset 0 0 0 1px rgba(138,75,22,0.12); }}
     .history-link {{ display: block; color: #1f2933; text-decoration: none; padding: 12px 48px 12px 12px; cursor: pointer; }}
     .history-link:hover {{ background: rgba(138, 75, 22, 0.06); }}
