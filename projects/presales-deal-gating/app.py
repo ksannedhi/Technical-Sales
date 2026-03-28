@@ -279,6 +279,10 @@ def render_page(state: dict[str, object]) -> str:
     .download-link:hover {{ opacity: 0.92; }}
     .new-deal-link {{ display: inline-block; color: #8a4b16; font-weight: 700; text-decoration: none; margin: 4px 0 12px; }}
     .new-deal-link:hover {{ text-decoration: underline; }}
+    .package-upload {{ margin-top: 20px; padding: 16px; border: 1px solid #c9893f; border-radius: 14px; background: linear-gradient(135deg, #fff3dd 0%, #f7e6c6 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55); }}
+    .package-upload label {{ margin-top: 0; color: #6d3d0d; }}
+    .package-kicker {{ display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(138, 75, 22, 0.12); color: #6d3d0d; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }}
+    .package-upload .hint {{ margin: 0 0 12px; color: #6d5c48; }}
   </style>
 </head>
 <body>
@@ -320,8 +324,12 @@ def render_page(state: dict[str, object]) -> str:
             <label>Optional supporting upload</label>
             <input name="supporting_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
 
-            <label>Deal package ZIP</label>
-            <input name="deal_zip" type="file" accept=".zip">
+            <div class="package-upload">
+              <div class="package-kicker">Fastest Path</div>
+              <label>Upload one deal package ZIP</label>
+              <p class="hint">Use this when you already have the deal artifacts together. One ZIP can replace the individual uploads for requirements, architecture, proposal, and supporting notes.</p>
+              <input name="deal_zip" type="file" accept=".zip">
+            </div>
 
             <div class="actions">
               <button id="review-button" type="submit">Run Gate Review</button>
