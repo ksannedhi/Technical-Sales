@@ -32,6 +32,7 @@ PDF_SUPPORT_NOTE = ".pdf is supported for text-based PDFs only; scanned or image
 engine = PresalesGateEngine(ROOT / "data")
 SESSION_REVIEWS: list[dict[str, object]] = []
 FLASH_MESSAGES: dict[str, list[str]] = {}
+NEXT_REVIEW_ID = 1
 
 
 def application(environ, start_response):
@@ -542,7 +543,9 @@ def make_unique_deal_name(requested_name: str) -> str:
 
 
 def remember_session_review(deal_name: str, artifacts: dict[str, str], result: dict[str, object]) -> str:
-    review_id = str(len(SESSION_REVIEWS) + 1)
+    global NEXT_REVIEW_ID
+    review_id = str(NEXT_REVIEW_ID)
+    NEXT_REVIEW_ID += 1
     SESSION_REVIEWS.insert(0, {
         "id": review_id,
         "deal_name": deal_name,
