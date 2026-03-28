@@ -31,6 +31,7 @@ PDF_SUPPORT_NOTE = ".pdf is supported for text-based PDFs only; scanned or image
 
 engine = PresalesGateEngine(ROOT / "data")
 SESSION_REVIEWS: list[dict[str, object]] = []
+FLASH_MESSAGES: dict[str, list[str]] = {}
 
 
 def application(environ, start_response):
@@ -38,12 +39,28 @@ def application(environ, start_response):
     query = urllib.parse.parse_qs(environ.get("QUERY_STRING", ""))
     if method == "POST":
         form = parse_multipart(environ)
-        body = render_page(build_page_state(query, form))
-        start_response("200 OK", [("Content-Type", "text/html; charset=utf-8")])
+        state = build_page_state(query, form)
+        review_id = state.get("selected_review_id", "")
+        if review_id:
+            if state.get("messages"):
+                FLASH_MESSAGES[review_id] = list(state["messages"])
+            start_response("303 See Other", [
+                ("Location", f"/?review={urllib.parse.quote(str(review_id))}"),
+                ("Cache-Control", "no-store"),
+            ])
+            return [b""]
+        body = render_page(state)
+        start_response("200 OK", [
+            ("Content-Type", "text/html; charset=utf-8"),
+            ("Cache-Control", "no-store"),
+        ])
         return [body.encode("utf-8")]
 
     body = render_page(build_page_state(query, None))
-    start_response("200 OK", [("Content-Type", "text/html; charset=utf-8")])
+    start_response("200 OK", [
+        ("Content-Type", "text/html; charset=utf-8"),
+        ("Cache-Control", "no-store"),
+    ])
     return [body.encode("utf-8")]
 
 
@@ -65,6 +82,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     if review_id:
         saved = get_session_review(review_id)
         if saved:
+            messages = consume_flash_messages(review_id)
             return {
                 "selected_review_id": review_id,
                 "active_deal_name": saved["deal_name"],
@@ -73,7 +91,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "architecture": saved["artifacts"]["architecture"],
                 "proposal": saved["artifacts"]["proposal"],
                 "supporting_context": saved["artifacts"]["supporting_context"],
-                "messages": [f"Loaded review from this session: {saved['deal_name']}"],
+                "messages": messages,
                 "result": saved["result"],
             }
 
@@ -503,6 +521,10 @@ def get_session_review(review_id: str) -> dict[str, object] | None:
         if item["id"] == review_id:
             return item
     return None
+
+
+def consume_flash_messages(review_id: str) -> list[str]:
+    return FLASH_MESSAGES.pop(review_id, [])
 
 
 def rename_session_review(review_id: str, new_name: str) -> dict[str, object] | None:
