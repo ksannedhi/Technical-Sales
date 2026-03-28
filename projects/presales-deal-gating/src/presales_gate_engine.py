@@ -40,6 +40,60 @@ KEYWORDS = {
     "timeline": ["week", "weeks", "timeline", "phase", "phases"],
 }
 
+SOLUTION_FAMILY_KEYWORDS = {
+    "siem_log_mgmt": [
+        "siem", "log management", "log analytics", "soc", "splunk", "qradar", "sentinel", "elastic", "event volume", "eps",
+    ],
+    "firewall_network": [
+        "firewall", "fortigate", "palo alto", "checkpoint", "vpn", "nat", "segmentation", "internet edge", "perimeter",
+    ],
+    "email_security": [
+        "email security", "secure email", "phishing", "m365", "office 365", "exchange", "mail flow", "email gateway", "mimecast", "proofpoint",
+    ],
+    "endpoint_xdr": [
+        "endpoint", "edr", "xdr", "workstation", "server protection", "device control", "crowdstrike", "defender", "sentinelone",
+    ],
+    "iam_pam": [
+        "iam", "pam", "identity governance", "sso", "mfa", "privileged", "entra id", "okta", "active directory", "ad",
+    ],
+    "sase_proxy": [
+        "sase", "sse", "proxy", "secure web gateway", "swg", "ztna", "casb", "remote users", "branch traffic",
+    ],
+}
+
+SOLUTION_FAMILY_QUESTIONS = {
+    "siem_log_mgmt": [
+        "Which log sources, daily volume, and peak EPS should be used as the authoritative SIEM sizing baseline?",
+        "What hot, warm, and cold retention split is required for the logging platform?",
+        "Which SOC use cases, content packs, or correlation priorities must be live in phase one?",
+    ],
+    "firewall_network": [
+        "What is the required firewall topology across internet edge, internal segmentation, VPN, and branch connectivity?",
+        "Are HA pairs, failover behavior, and maintenance windows defined for the firewall deployment?",
+        "Which NAT, routing, and east-west segmentation requirements must the design preserve?",
+    ],
+    "email_security": [
+        "Is the target email environment M365, Google Workspace, or on-prem Exchange, and what mail flow mode is required?",
+        "Which email security capabilities are in scope: anti-phishing, sandboxing, DMARC, continuity, encryption, or awareness?",
+        "Are journaling, impersonation protection, and user remediation workflows required in the first phase?",
+    ],
+    "endpoint_xdr": [
+        "How many endpoints and servers are in scope, and what operating systems or legacy agents must be supported?",
+        "Which endpoint controls are required: prevention, EDR/XDR, device control, isolation, or vulnerability management?",
+        "What is the expected rollout model for pilots, coexistence, and agent replacement on existing devices?",
+    ],
+    "iam_pam": [
+        "Which identity sources, directories, and HR systems are authoritative for IAM or PAM onboarding?",
+        "Which authentication flows are required: SSO, MFA, privileged access, lifecycle automation, or federation?",
+        "Are break-glass access, admin workflows, and compliance reporting requirements explicitly defined?",
+    ],
+    "sase_proxy": [
+        "Which users, branches, and applications must traverse the SASE or proxy service on day one?",
+        "What traffic steering model is required across remote users, branch offices, VPN replacement, and private app access?",
+        "Which controls are mandatory in scope: SWG, CASB, ZTNA, DLP, RBI, or tenant restrictions?",
+    ],
+}
+
 POSITIVE_SIGNALS = [
     ("Quantified sizing is present", "requirements", "log_volume"),
     ("Retention requirement is defined", "requirements", "retention"),
@@ -197,6 +251,7 @@ class PresalesGateEngine:
         normalized = {key: normalize_text(artifacts.get(key, "")) for key in SECTION_NAMES}
         supporting_context = normalize_text(artifacts.get("supporting_context", ""))
         missing_artifacts = [section for section, text in normalized.items() if not text.strip()]
+        detected_solution_families = self._detect_solution_families(normalized, supporting_context)
 
         findings: list[dict[str, str]] = []
         strengths: list[str] = []
@@ -206,6 +261,7 @@ class PresalesGateEngine:
         architecture_score = self._architecture_gate(normalized, supporting_context, findings, strengths, clarifying_questions)
         proposal_score = self._proposal_gate(normalized, supporting_context, findings, strengths, clarifying_questions)
         self._cross_document_checks(normalized, supporting_context, findings, clarifying_questions)
+        self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions)
 
         for missing in missing_artifacts:
             findings.append({
@@ -241,6 +297,33 @@ class PresalesGateEngine:
         )
         self.history.save(deal_name, result)
         return result
+
+    def _detect_solution_families(self, artifacts: dict[str, str], supporting_context: str) -> list[str]:
+        combined = " ".join([artifacts.get(section, "") for section in SECTION_NAMES] + [supporting_context])
+        family_scores: list[tuple[int, str]] = []
+        for family, keywords in SOLUTION_FAMILY_KEYWORDS.items():
+            score = sum(1 for keyword in keywords if keyword in combined)
+            if score > 0:
+                family_scores.append((score, family))
+        family_scores.sort(reverse=True)
+        return [family for score, family in family_scores if score >= 2][:2]
+
+    def _solution_family_questions(
+        self,
+        solution_families: list[str],
+        artifacts: dict[str, str],
+        supporting_context: str,
+        questions: list[str],
+    ) -> None:
+        combined = " ".join([artifacts.get(section, "") for section in SECTION_NAMES] + [supporting_context])
+        for family in solution_families:
+            family_questions = SOLUTION_FAMILY_QUESTIONS.get(family, [])
+            if not family_questions:
+                continue
+            if family == "siem_log_mgmt" and not has_any(combined, KEYWORDS["log_volume"]):
+                questions.extend(family_questions[:2])
+                continue
+            questions.extend(family_questions[:2])
 
     def _requirements_gate(
         self,

@@ -71,6 +71,19 @@ class GateEngineTests(unittest.TestCase):
         self.assertIn("graph LR", artifacts["architecture"])
         self.assertIn("Log sources list incomplete", artifacts["supporting_context"])
 
+    def test_solution_family_questions_become_more_specific(self) -> None:
+        result = self.engine.analyze(
+            "firewall renewal",
+            {
+                "requirements": "Customer needs firewall renewal for internet edge and VPN access across branches.",
+                "architecture": "Firewall HA pair is proposed at the perimeter with branch connectivity.",
+                "proposal": "Phased firewall migration plan with deliverables and timeline.",
+                "supporting_context": "",
+            },
+        )
+        joined_questions = " ".join(result.clarifying_questions).lower()
+        self.assertIn("firewall topology", joined_questions)
+
 
 if __name__ == "__main__":
     unittest.main()
