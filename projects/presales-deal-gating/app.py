@@ -87,11 +87,11 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             return {
                 "selected_review_id": review_id,
                 "active_deal_name": saved["deal_name"],
-                "deal_name": saved["deal_name"],
-                "requirements": saved["artifacts"]["requirements"],
-                "architecture": saved["artifacts"]["architecture"],
-                "proposal": saved["artifacts"]["proposal"],
-                "supporting_context": saved["artifacts"]["supporting_context"],
+                "deal_name": "",
+                "requirements": "",
+                "architecture": "",
+                "proposal": "",
+                "supporting_context": "",
                 "messages": messages,
                 "result": saved["result"],
             }
@@ -133,11 +133,11 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             return {
                 "selected_review_id": rename_review_id,
                 "active_deal_name": renamed["deal_name"],
-                "deal_name": renamed["deal_name"],
-                "requirements": renamed["artifacts"]["requirements"],
-                "architecture": renamed["artifacts"]["architecture"],
-                "proposal": renamed["artifacts"]["proposal"],
-                "supporting_context": renamed["artifacts"]["supporting_context"],
+                "deal_name": "",
+                "requirements": "",
+                "architecture": "",
+                "proposal": "",
+                "supporting_context": "",
                 "messages": [f"Renamed session review to '{renamed['deal_name']}'."],
                 "result": renamed["result"],
             }
