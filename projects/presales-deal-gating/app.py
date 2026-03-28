@@ -109,6 +109,21 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     if not form:
         return state
 
+    delete_review_id = (form.get("delete_review_id") or "").strip()
+    if delete_review_id:
+        delete_session_review(delete_review_id)
+        return {
+            "selected_review_id": "",
+            "active_deal_name": "",
+            "deal_name": "",
+            "requirements": "",
+            "architecture": "",
+            "proposal": "",
+            "supporting_context": "",
+            "messages": ["Deal removed from this session."],
+            "result": None,
+        }
+
     rename_review_id = (form.get("rename_review_id") or "").strip()
     if rename_review_id:
         new_name = (form.get("rename_deal_name") or "").strip()
@@ -127,7 +142,15 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             }
         return state
 
-    requested_deal_name = (form.get("deal_name") or state["deal_name"]).strip() or "Untitled deal"
+    requested_deal_name = (form.get("deal_name") or state["deal_name"]).strip()
+    if not requested_deal_name:
+        state["messages"].append("Enter a deal name before running the review.")
+        state["requirements"] = (form.get("requirements") or "").strip()
+        state["architecture"] = (form.get("architecture") or "").strip()
+        state["proposal"] = (form.get("proposal") or "").strip()
+        state["supporting_context"] = (form.get("supporting_context") or "").strip()
+        return state
+
     deal_name = make_unique_deal_name(requested_deal_name)
     state["deal_name"] = deal_name
     state["active_deal_name"] = deal_name
@@ -320,7 +343,7 @@ def render_page(state: dict[str, object]) -> str:
           {"".join(f"<div class='notice'>{escape(message)}</div>" for message in state.get("messages", [])) if state.get("messages") else ""}
           <form id="review-form" method="post" action="/" enctype="multipart/form-data">
             <label for="deal_name">Deal name</label>
-            <input id="deal_name" name="deal_name" type="text" placeholder="Enter a deal name" value="{escape(state['deal_name'])}">
+            <input id="deal_name" name="deal_name" type="text" placeholder="Enter a deal name" value="{escape(state['deal_name'])}" required>
 
             <label for="requirements">Requirements / Discovery Notes</label>
             <textarea id="requirements" name="requirements">{escape(state['requirements'])}</textarea>
@@ -376,6 +399,9 @@ def render_page(state: dict[str, object]) -> str:
       <input type="hidden" name="rename_review_id" id="rename_review_id">
       <input type="hidden" name="rename_deal_name" id="rename_deal_name">
     </form>
+    <form id="delete-session-form" method="post" action="/" enctype="multipart/form-data" style="display:none;">
+      <input type="hidden" name="delete_review_id" id="delete_review_id">
+    </form>
   </div>
 <script>
   const reviewForm = document.getElementById("review-form");
@@ -416,6 +442,17 @@ def render_page(state: dict[str, object]) -> str:
       document.getElementById("rename_review_id").value = reviewId;
       document.getElementById("rename_deal_name").value = newName;
       document.getElementById("rename-session-form").submit();
+    }});
+  }});
+  document.querySelectorAll("[data-delete-review]").forEach((button) => {{
+    button.addEventListener("click", (event) => {{
+      event.preventDefault();
+      const reviewId = button.getAttribute("data-delete-review");
+      const dealName = button.getAttribute("data-deal-name") || "this deal";
+      const shouldDelete = window.confirm(`Delete "${{dealName}}" from this session?`);
+      if (!shouldDelete) return;
+      document.getElementById("delete_review_id").value = reviewId;
+      document.getElementById("delete-session-form").submit();
     }});
   }});
   document.addEventListener("click", () => {{
@@ -538,6 +575,13 @@ def rename_session_review(review_id: str, new_name: str) -> dict[str, object] | 
     return None
 
 
+def delete_session_review(review_id: str) -> None:
+    for index, item in enumerate(SESSION_REVIEWS):
+        if item["id"] == review_id:
+            del SESSION_REVIEWS[index]
+            return
+
+
 def render_session_history(selected_review_id: str) -> str:
     if not SESSION_REVIEWS:
         return "<p class='hint'>No reviews in this session yet.</p>"
@@ -552,6 +596,7 @@ def render_session_history(selected_review_id: str) -> str:
             f"<button type='button' class='history-menu-button' data-menu-button='{escape(menu_id)}' aria-label='Deal options' title='Deal options'>&#8942;</button>"
             f"<div class='history-menu' id='{escape(menu_id)}'>"
             f"<button type='button' data-rename-review='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>Rename</button>"
+            f"<button type='button' data-delete-review='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>Delete</button>"
             f"</div>"
             f"</div>"
             f"<a class='history-link' href='/?review={escape(item['id'])}' data-review-id='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>"
