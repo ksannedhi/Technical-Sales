@@ -227,6 +227,7 @@ def render_page(state: dict[str, object]) -> str:
         strengths = "".join(f"<li>{escape(item)}</li>" for item in result["strengths"]) or "<li>No standout strengths detected yet.</li>"
         questions = "".join(f"<li>{escape(item)}</li>" for item in result["clarifying_questions"]) or "<li>No follow-up questions needed.</li>"
         findings_download_href = build_findings_download_href(active_deal_name, result)
+        raw_payload = escape(json.dumps(result, indent=2))
         result_html = f"""
         <section class="panel">
           <div class="result-header">
@@ -243,7 +244,7 @@ def render_page(state: dict[str, object]) -> str:
           <div class="two-col">
             <div>
               <h3>Findings</h3>
-              <ul>{findings}</ul>
+              {findings}
             </div>
             <div>
               <h3>Strengths</h3>
@@ -266,7 +267,7 @@ def render_page(state: dict[str, object]) -> str:
           </div>
           <details>
             <summary>Raw payload</summary>
-            <pre>{escape(json.dumps(result, indent=2))}</pre>
+            <pre>{raw_payload}</pre>
           </details>
         </section>
         """
