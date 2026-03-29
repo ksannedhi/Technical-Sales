@@ -218,6 +218,7 @@ def parse_multipart(environ: dict[str, str]) -> dict[str, object]:
 def render_page(state: dict[str, object]) -> str:
     result = state.get("result")
     session_history = render_session_history(state.get("selected_review_id", ""))
+    selected_review_summary = ""
 
     result_html = ""
     if result:
@@ -227,6 +228,23 @@ def render_page(state: dict[str, object]) -> str:
         strengths = "".join(f"<li>{escape(item)}</li>" for item in result["strengths"]) or "<li>No standout strengths detected yet.</li>"
         questions = "".join(f"<li>{escape(item)}</li>" for item in result["clarifying_questions"]) or "<li>No follow-up questions needed.</li>"
         findings_download_href = build_findings_download_href(active_deal_name, result)
+        selected_review_summary = f"""
+        <section class="panel selected-review-summary" id="selected-review-summary">
+          <div class="selected-review-header">
+            <div>
+              <div class="selected-review-label">Selected Deal</div>
+              <h2>{escape(active_deal_name)}</h2>
+            </div>
+            <div class="selected-review-status">{overall_icon} {escape(result['overall_status'])}</div>
+          </div>
+          <div class="selected-review-metrics">
+            <div class="mini-metric"><span>Overall</span><strong>{result['overall_score']}/100</strong></div>
+            <div class="mini-metric"><span>Requirements</span><strong>{result['gate_scores']['Requirements']}</strong></div>
+            <div class="mini-metric"><span>Architecture</span><strong>{result['gate_scores']['Architecture']}</strong></div>
+            <div class="mini-metric"><span>Proposal</span><strong>{result['gate_scores']['Proposal']}</strong></div>
+          </div>
+        </section>
+        """
         raw_payload = escape(json.dumps(result, indent=2))
         result_html = f"""
         <section class="panel">
@@ -319,6 +337,14 @@ def render_page(state: dict[str, object]) -> str:
     .download-link:hover {{ opacity: 0.92; }}
     .new-deal-link {{ display: inline-block; color: #8a4b16; font-weight: 700; text-decoration: none; margin: 4px 0 12px; }}
     .new-deal-link:hover {{ text-decoration: underline; }}
+    .selected-review-summary {{ border-color: #c9893f; background: linear-gradient(135deg, #fff8eb 0%, #f6ead4 100%); }}
+    .selected-review-header {{ display: flex; justify-content: space-between; align-items: center; gap: 16px; }}
+    .selected-review-label {{ color: #6d5c48; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }}
+    .selected-review-status {{ white-space: nowrap; font-weight: 700; color: #6d3d0d; }}
+    .selected-review-metrics {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }}
+    .mini-metric {{ background: rgba(255,255,255,0.65); border-radius: 12px; padding: 12px; }}
+    .mini-metric span {{ display: block; color: #6d5c48; font-size: 0.85rem; }}
+    .mini-metric strong {{ display: block; font-size: 1.2rem; }}
     .package-upload {{ margin-top: 20px; padding: 16px; border: 1px solid #c9893f; border-radius: 14px; background: linear-gradient(135deg, #fff3dd 0%, #f7e6c6 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55); }}
     .package-upload label {{ margin-top: 0; color: #6d3d0d; }}
     .package-kicker {{ display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(138, 75, 22, 0.12); color: #6d3d0d; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }}
@@ -338,7 +364,9 @@ def render_page(state: dict[str, object]) -> str:
         </section>
       </aside>
       <div class="main-grid">
-        <section class="panel">
+        <div>
+          {selected_review_summary}
+          <section class="panel">
           {"".join(f"<div class='notice'>{escape(message)}</div>" for message in state.get("messages", [])) if state.get("messages") else ""}
           <form id="review-form" method="post" action="/" enctype="multipart/form-data">
             <label for="deal_name">Deal name</label>
@@ -375,7 +403,8 @@ def render_page(state: dict[str, object]) -> str:
               <button id="review-button" type="submit">Run Gate Review</button>
             </div>
           </form>
-        </section>
+          </section>
+        </div>
         <div>
           <section class="panel">
             <h2>Format Support</h2>
@@ -457,6 +486,10 @@ def render_page(state: dict[str, object]) -> str:
   document.addEventListener("click", () => {{
     document.querySelectorAll(".history-menu").forEach((menu) => menu.classList.remove("open"));
   }});
+  const selectedSummary = document.getElementById("selected-review-summary");
+  if (selectedSummary && window.location.search.includes("review=")) {{
+    selectedSummary.scrollIntoView({{ behavior: "smooth", block: "start" }});
+  }}
 </script>
 </body>
 </html>"""
