@@ -253,6 +253,7 @@ def render_page(state: dict[str, object]) -> str:
             <div class="mini-metric"><span>Architecture</span><strong>{result['gate_scores']['Architecture']}</strong></div>
             <div class="mini-metric"><span>Proposal</span><strong>{result['gate_scores']['Proposal']}</strong></div>
           </div>
+          <p class="selected-review-note">Scroll down for more details.</p>
         </section>
         """
         raw_payload = escape(json.dumps(result, indent=2))
@@ -355,6 +356,7 @@ def render_page(state: dict[str, object]) -> str:
     .mini-metric {{ background: rgba(255,255,255,0.65); border-radius: 12px; padding: 12px; }}
     .mini-metric span {{ display: block; color: #6d5c48; font-size: 0.85rem; }}
     .mini-metric strong {{ display: block; font-size: 1.2rem; }}
+    .selected-review-note {{ margin: 12px 0 0; color: #6d5c48; font-size: 0.92rem; }}
     .package-upload {{ margin-top: 20px; padding: 16px; border: 1px solid #c9893f; border-radius: 14px; background: linear-gradient(135deg, #fff3dd 0%, #f7e6c6 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55); }}
     .package-upload label {{ margin-top: 0; color: #6d3d0d; }}
     .package-kicker {{ display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(138, 75, 22, 0.12); color: #6d3d0d; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }}
