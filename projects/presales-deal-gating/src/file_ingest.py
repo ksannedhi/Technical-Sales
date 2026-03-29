@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import io
 import logging
 import re
@@ -15,8 +16,9 @@ SUPPORTED_TEXT_EXTENSIONS = {".txt", ".md"}
 SUPPORTED_EXTENSIONS = {".txt", ".md", ".docx", ".pptx", ".pdf", ".zip"}
 NS = {"a": "http://schemas.openxmlformats.org/drawingml/2006/main"}
 MAX_PDF_BYTES = 4_000_000
-MAX_PDF_PAGES = 25
-PDF_TIMEOUT_SECONDS = 8
+MAX_PDF_PAGES = 15
+PDF_TIMEOUT_SECONDS = 4
+EXTRACTION_CACHE: dict[str, str] = {}
 
 
 def extract_text_from_path(path: str | Path) -> str:
@@ -68,15 +70,22 @@ def load_artifacts_from_zip_data(data: bytes) -> dict[str, str]:
 
 def extract_text_from_bytes(name: str, data: bytes) -> str:
     suffix = Path(name).suffix.lower()
+    cache_key = build_cache_key(name, data)
+    cached = EXTRACTION_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
     if suffix in SUPPORTED_TEXT_EXTENSIONS:
-        return data.decode("utf-8", errors="ignore")
-    if suffix == ".docx":
-        return extract_docx(data)
-    if suffix == ".pptx":
-        return extract_pptx(data)
-    if suffix == ".pdf":
-        return extract_pdf(io.BytesIO(data), suffix)
-    return ""
+        text = data.decode("utf-8", errors="ignore")
+    elif suffix == ".docx":
+        text = extract_docx(data)
+    elif suffix == ".pptx":
+        text = extract_pptx(data)
+    elif suffix == ".pdf":
+        text = extract_pdf(io.BytesIO(data), suffix)
+    else:
+        text = ""
+    EXTRACTION_CACHE[cache_key] = text
+    return text
 
 
 def extract_docx(data: bytes) -> str:
@@ -194,3 +203,8 @@ def blank_artifacts() -> dict[str, str]:
         "proposal": "",
         "supporting_context": "",
     }
+
+
+def build_cache_key(name: str, data: bytes) -> str:
+    digest = hashlib.sha1(data).hexdigest()
+    return f"{Path(name).suffix.lower()}:{len(data)}:{digest}"
