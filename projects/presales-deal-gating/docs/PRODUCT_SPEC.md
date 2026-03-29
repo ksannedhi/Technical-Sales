@@ -7,6 +7,7 @@ Presales Deal Gating is a laptop-runnable local web app for reviewing presales o
 The app is designed to help a user:
 
 - upload or paste presales artifacts
+- point the app at local files or folders already present on the laptop
 - assess whether the deal is ready for downstream submission or internal progression
 - identify missing inputs, weak assumptions, contradictions, and delivery risks
 - preserve reviews in a session-level left-side deal history
@@ -62,6 +63,8 @@ The user can:
 - paste supporting notes or diagrams
 - upload files into each artifact area
 - upload a deal ZIP package
+- paste local file paths for each artifact area
+- paste a local folder path or local ZIP path for the whole deal package
 
 After the review runs:
 
@@ -73,10 +76,11 @@ After the review runs:
 
 The result area should display:
 
+- a compact `Selected Deal` summary near the top of the main area
 - `Overall Readiness for <Deal Name>: <Status>`
 - visual readiness indicator
 - gate scores
-- findings
+- grouped findings
 - strengths
 - clarifying questions
 - explanation for how to interpret the scores
@@ -123,7 +127,7 @@ The app can return:
 Checks include:
 
 - scope clarity
-- sizing cues such as ingestion or log volume
+- sizing cues such as ingestion or log volume where relevant to the solution family
 - retention definition
 - identity and integration dependencies
 - compliance cues
@@ -172,6 +176,12 @@ The app currently supports:
 - `.pdf`
 - `.zip`
 
+The app also supports:
+
+- local file paths for individual artifacts
+- local folder paths for deal-package ingestion
+- local ZIP paths for deal-package ingestion
+
 ### PDF Caveat
 
 PDF support is best-effort:
@@ -191,6 +201,16 @@ ZIP packages may contain supported files. The app routes extracted content into:
 - proposal
 - supporting context
 
+### Local Path Behavior
+
+For laptop-hosted files, the app can read artifacts directly from local paths instead of uploading them through the browser.
+
+This is recommended when:
+
+- files are already stored on the local machine
+- files are in Box-synced folders
+- large PDFs or DOCX files make browser upload feel slow
+
 ## Session Behavior
 
 ### Deal Creation
@@ -208,6 +228,10 @@ If the user reuses an existing deal name, the app should auto-rename the new rev
 The user can rename a session deal through the 3-dots menu on a deal card.
 
 Blank rename attempts should be ignored.
+
+### Deleting
+
+The user can delete a session deal through the 3-dots menu on a deal card.
 
 ## Output Download
 
@@ -247,11 +271,11 @@ The current implementation is:
 - Browser refresh or stale server instances can make UI changes appear inconsistent until the local app is restarted.
 - Session history is scoped to the current running process.
 - PDF ingestion is intentionally bounded for speed and reliability on a laptop.
+- Browser upload can still feel slower than local-path ingestion for large locally available files.
 
 ## Next Recommended Improvements
 
 - replace browser prompt rename with an in-page modal
-- add explicit delete/clear actions for deal history
 - add richer PDF/DOCX structure extraction
 - improve PPT and diagram semantics
 - surface parsing confidence more explicitly in the result

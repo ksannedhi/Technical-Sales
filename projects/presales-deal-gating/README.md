@@ -4,11 +4,11 @@ Local web app for reviewing presales deal readiness across requirements, archite
 
 ## What It Does
 
-- Accepts pasted text and uploaded deal artifacts
+- Accepts pasted text, uploaded files, and local file or folder paths
 - Reviews deal readiness across `Requirements`, `Architecture`, and `Proposal`
 - Flags missing inputs, contradictions, weak assumptions, and delivery risks
 - Keeps a session-level `Deal History`
-- Lets users rename deals from the history menu
+- Lets users rename or delete deals from the history menu
 - Exports findings as a downloadable text summary
 
 ## Supported Inputs
@@ -25,6 +25,14 @@ Notes:
 - `.pdf` support is best-effort for text-based PDFs
 - scanned or image-heavy PDFs are not fully supported
 - when available, `.docx` is preferred over `.pdf`
+- for large local or Box-synced files, pasting a local path is usually faster than browser upload
+
+## Recommended Workflow
+
+- Enter a deal name first
+- For large files already on this laptop, paste local file paths instead of uploading through the browser
+- Use a local folder or local `.zip` path when the deal artifacts already live together
+- Review the `Selected Deal` summary first, then scroll down for the detailed findings and questions
 
 ## Run
 
@@ -53,8 +61,10 @@ The app opens locally at:
 
 - Running a review saves a new deal into `Deal History`
 - Reusing an existing deal name auto-renames the new one
-- Selecting a deal from history reloads its saved review
+- Selecting a deal from history shows a selected-deal summary and auto-scrolls to the active review
 - Clicking `+ New Deal` clears the current workspace
+- Detailed findings are grouped by area instead of mixed into one flat list
+- Clarifying questions can become solution-family aware for areas like firewall, SIEM, email security, IAM, and WAF/load balancer deals
 
 ## Current Scope
 
