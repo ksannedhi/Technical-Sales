@@ -223,10 +223,7 @@ def render_page(state: dict[str, object]) -> str:
     if result:
         active_deal_name = state.get("active_deal_name", "") or "Untitled deal"
         overall_icon = readiness_icon(result["overall_score"])
-        findings = "".join(
-            f"<li><strong>[{escape(item['severity'].upper())}] {escape(item['gate'])}</strong>: {escape(item['message'])}</li>"
-            for item in result["findings"]
-        ) or "<li>No material findings.</li>"
+        findings = render_findings_groups(result["findings"])
         strengths = "".join(f"<li>{escape(item)}</li>" for item in result["strengths"]) or "<li>No standout strengths detected yet.</li>"
         questions = "".join(f"<li>{escape(item)}</li>" for item in result["clarifying_questions"]) or "<li>No follow-up questions needed.</li>"
         findings_download_href = build_findings_download_href(active_deal_name, result)
@@ -499,6 +496,26 @@ def readiness_icon(score: int) -> str:
     if score >= 60:
         return "\U0001F7E1"
     return "\U0001F534"
+
+
+def render_findings_groups(findings: list[dict[str, str]]) -> str:
+    if not findings:
+        return "<p>No material findings.</p>"
+    grouped: dict[str, list[dict[str, str]]] = {}
+    for item in findings:
+        grouped.setdefault(item["gate"], []).append(item)
+    ordered_gates = ["Document Presence", "Requirements", "Architecture", "Proposal", "Cross-check"]
+    sections: list[str] = []
+    for gate in ordered_gates:
+        gate_findings = grouped.get(gate, [])
+        if not gate_findings:
+            continue
+        items = "".join(
+            f"<li><strong>[{escape(item['severity'].upper())}]</strong> {escape(item['message'])}</li>"
+            for item in gate_findings
+        )
+        sections.append(f"<h4>{escape(gate)}</h4><ul>{items}</ul>")
+    return "".join(sections)
 
 
 def build_findings_download_href(deal_name: str, result: dict[str, object]) -> str:
