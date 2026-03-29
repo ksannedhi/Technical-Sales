@@ -17,7 +17,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from file_ingest import extract_text_from_bytes, load_artifacts_from_zip_data
+from file_ingest import extract_text_from_bytes, extract_text_from_path, load_artifacts_from_folder, load_artifacts_from_zip, load_artifacts_from_zip_data
 from presales_gate_engine import PresalesGateEngine
 
 
@@ -37,8 +37,12 @@ def application(environ, start_response):
     method = environ.get("REQUEST_METHOD", "GET").upper()
     query = urllib.parse.parse_qs(environ.get("QUERY_STRING", ""))
     if method == "POST":
+        request_started = time.time()
         form = parse_multipart(environ)
+        print(f"[timing] parse_multipart_ms={round((time.time() - request_started) * 1000, 2)}")
+        state_started = time.time()
         state = build_page_state(query, form)
+        print(f"[timing] build_page_state_ms={round((time.time() - state_started) * 1000, 2)}")
         review_id = state.get("selected_review_id", "")
         if review_id:
             if state.get("messages"):
@@ -69,10 +73,15 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             "selected_review_id": "",
             "active_deal_name": "",
             "deal_name": "",
+            "deal_package_path": "",
             "requirements": "",
+            "requirements_path": "",
             "architecture": "",
+            "architecture_path": "",
             "proposal": "",
+            "proposal_path": "",
             "supporting_context": "",
+            "supporting_path": "",
             "messages": [],
             "result": None,
         }
@@ -86,10 +95,15 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "selected_review_id": review_id,
                 "active_deal_name": saved["deal_name"],
                 "deal_name": "",
+                "deal_package_path": "",
                 "requirements": "",
+                "requirements_path": "",
                 "architecture": "",
+                "architecture_path": "",
                 "proposal": "",
+                "proposal_path": "",
                 "supporting_context": "",
+                "supporting_path": "",
                 "messages": messages,
                 "result": saved["result"],
             }
@@ -98,10 +112,15 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         "selected_review_id": "",
         "active_deal_name": "",
         "deal_name": "",
+        "deal_package_path": "",
         "requirements": "",
+        "requirements_path": "",
         "architecture": "",
+        "architecture_path": "",
         "proposal": "",
+        "proposal_path": "",
         "supporting_context": "",
+        "supporting_path": "",
         "messages": [],
         "result": None,
     }
@@ -115,10 +134,15 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             "selected_review_id": "",
             "active_deal_name": "",
             "deal_name": "",
+            "deal_package_path": "",
             "requirements": "",
+            "requirements_path": "",
             "architecture": "",
+            "architecture_path": "",
             "proposal": "",
+            "proposal_path": "",
             "supporting_context": "",
+            "supporting_path": "",
             "messages": ["Deal removed from this session."],
             "result": None,
         }
@@ -132,10 +156,15 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "selected_review_id": rename_review_id,
                 "active_deal_name": renamed["deal_name"],
                 "deal_name": "",
+                "deal_package_path": "",
                 "requirements": "",
+                "requirements_path": "",
                 "architecture": "",
+                "architecture_path": "",
                 "proposal": "",
+                "proposal_path": "",
                 "supporting_context": "",
+                "supporting_path": "",
                 "messages": [f"Renamed session review to '{renamed['deal_name']}'."],
                 "result": renamed["result"],
             }
@@ -144,10 +173,15 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     requested_deal_name = (form.get("deal_name") or state["deal_name"]).strip()
     if not requested_deal_name:
         state["messages"].append("Enter a deal name before running the review.")
+        state["deal_package_path"] = (form.get("deal_package_path") or "").strip()
         state["requirements"] = (form.get("requirements") or "").strip()
+        state["requirements_path"] = (form.get("requirements_path") or "").strip()
         state["architecture"] = (form.get("architecture") or "").strip()
+        state["architecture_path"] = (form.get("architecture_path") or "").strip()
         state["proposal"] = (form.get("proposal") or "").strip()
+        state["proposal_path"] = (form.get("proposal_path") or "").strip()
         state["supporting_context"] = (form.get("supporting_context") or "").strip()
+        state["supporting_path"] = (form.get("supporting_path") or "").strip()
         return state
 
     deal_name = make_unique_deal_name(requested_deal_name)
@@ -162,6 +196,28 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         "proposal": (form.get("proposal") or state["proposal"]).strip(),
         "supporting_context": (form.get("supporting_context") or state["supporting_context"]).strip(),
     }
+    state["deal_package_path"] = (form.get("deal_package_path") or "").strip()
+    state["requirements_path"] = (form.get("requirements_path") or "").strip()
+    state["architecture_path"] = (form.get("architecture_path") or "").strip()
+    state["proposal_path"] = (form.get("proposal_path") or "").strip()
+    state["supporting_path"] = (form.get("supporting_path") or "").strip()
+
+    package_path = state["deal_package_path"]
+    if package_path:
+        loaded = load_artifacts_from_local_package_path(package_path, state["messages"])
+        for key, value in loaded.items():
+            artifacts[key] = merge_text(value, artifacts.get(key, ""))
+
+    for key, target in [
+        ("requirements_path", "requirements"),
+        ("architecture_path", "architecture"),
+        ("proposal_path", "proposal"),
+        ("supporting_path", "supporting_context"),
+    ]:
+        local_path = state[key]
+        if local_path:
+            text = load_text_from_local_path(local_path, state["messages"])
+            artifacts[target] = merge_text(text, artifacts.get(target, ""))
 
     deal_zip = form.get("deal_zip")
     if isinstance(deal_zip, dict) and deal_zip.get("filename"):
@@ -173,7 +229,9 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     for key in ["requirements_file", "architecture_file", "proposal_file", "supporting_file"]:
         upload = form.get(key)
         if isinstance(upload, dict) and upload.get("filename"):
+            extraction_started = time.time()
             text = extract_text_from_bytes(upload["filename"], upload["content"])
+            print(f"[timing] extract_{key}_ms={round((time.time() - extraction_started) * 1000, 2)} file={upload['filename']}")
             target = key.replace("_file", "")
             if target == "supporting":
                 target = "supporting_context"
@@ -183,19 +241,28 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 state["messages"].append(warning)
 
     state.update(artifacts)
+    analyze_started = time.time()
     state["result"] = engine.analyze(deal_name=deal_name, artifacts=artifacts).to_dict()
+    print(f"[timing] engine_analyze_ms={round((time.time() - analyze_started) * 1000, 2)}")
     state["selected_review_id"] = remember_session_review(deal_name, artifacts, state["result"])
     state["deal_name"] = ""
+    state["deal_package_path"] = ""
     state["requirements"] = ""
+    state["requirements_path"] = ""
     state["architecture"] = ""
+    state["architecture_path"] = ""
     state["proposal"] = ""
+    state["proposal_path"] = ""
     state["supporting_context"] = ""
+    state["supporting_path"] = ""
     return state
 
 
 def parse_multipart(environ: dict[str, str]) -> dict[str, object]:
+    read_started = time.time()
     content_length = int(environ.get("CONTENT_LENGTH") or "0")
     body = environ["wsgi.input"].read(content_length)
+    print(f"[timing] request_body_read_ms={round((time.time() - read_started) * 1000, 2)} bytes={len(body)}")
     content_type = environ.get("CONTENT_TYPE", "")
     boundary = extract_boundary(content_type)
     if not boundary:
@@ -361,6 +428,9 @@ def render_page(state: dict[str, object]) -> str:
     .package-upload label {{ margin-top: 0; color: #6d3d0d; }}
     .package-kicker {{ display: inline-block; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(138, 75, 22, 0.12); color: #6d3d0d; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }}
     .package-upload .hint {{ margin: 0 0 12px; color: #6d5c48; }}
+    .local-path-box {{ margin: 14px 0 0; padding: 14px; border: 1px dashed #c9893f; border-radius: 12px; background: rgba(255,255,255,0.5); }}
+    .local-path-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
+    .local-path-box input[type="text"] {{ margin-bottom: 8px; }}
   </style>
 </head>
 <body>
@@ -388,27 +458,36 @@ def render_page(state: dict[str, object]) -> str:
             <textarea id="requirements" name="requirements">{escape(state['requirements'])}</textarea>
             <label>Optional requirements upload</label>
             <input name="requirements_file" type="file" accept=".txt,.md,.docx,.pdf">
+            <input name="requirements_path" type="text" placeholder="Or paste a local requirements file path" value="{escape(state['requirements_path'])}">
 
             <label for="architecture">Architecture Notes</label>
             <textarea id="architecture" name="architecture">{escape(state['architecture'])}</textarea>
             <label>Optional architecture upload</label>
             <input name="architecture_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
+            <input name="architecture_path" type="text" placeholder="Or paste a local architecture file path" value="{escape(state['architecture_path'])}">
 
             <label for="proposal">Proposal / SOW Summary</label>
             <textarea id="proposal" name="proposal">{escape(state['proposal'])}</textarea>
             <label>Optional proposal upload</label>
             <input name="proposal_file" type="file" accept=".txt,.md,.docx,.pdf">
+            <input name="proposal_path" type="text" placeholder="Or paste a local proposal file path" value="{escape(state['proposal_path'])}">
 
             <label for="supporting_context">Supporting Notes / Diagrams</label>
             <textarea id="supporting_context" name="supporting_context">{escape(state['supporting_context'])}</textarea>
             <label>Optional supporting upload</label>
             <input name="supporting_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
+            <input name="supporting_path" type="text" placeholder="Or paste a local supporting file path" value="{escape(state['supporting_path'])}">
 
             <div class="package-upload">
-              <div class="package-kicker">Fastest Path</div>
+              <div class="package-kicker">Fastest Path On This Laptop</div>
               <label>Upload one deal package ZIP</label>
               <p class="hint">Use this when you already have the deal artifacts together. One ZIP can replace the individual uploads for requirements, architecture, proposal, and supporting notes.</p>
               <input name="deal_zip" type="file" accept=".zip">
+              <div class="local-path-box">
+                <label for="deal_package_path">Or paste a local folder or ZIP path</label>
+                <p class="hint">This avoids slow browser uploads for large files stored locally or in Box-synced folders.</p>
+                <input id="deal_package_path" name="deal_package_path" type="text" placeholder="C:\\Path\\To\\Deal Folder or Deal.zip" value="{escape(state['deal_package_path'])}">
+              </div>
             </div>
 
             <div class="actions">
@@ -616,6 +695,45 @@ def build_findings_download_href(deal_name: str, result: dict[str, object]) -> s
         lines.append("- No follow-up questions needed.")
     payload = "\n".join(lines)
     return "data:text/plain;charset=utf-8," + urllib.parse.quote(payload)
+
+
+def load_text_from_local_path(path_text: str, messages: list[str]) -> str:
+    try:
+        file_path = Path(path_text.strip().strip('"'))
+    except Exception:
+        messages.append(f"Could not read local path: {path_text}")
+        return ""
+    if not file_path.exists() or not file_path.is_file():
+        messages.append(f"Local file path was not found: {file_path}")
+        return ""
+    try:
+        return extract_text_from_path(file_path)
+    except Exception:
+        messages.append(f"Could not extract text from local file: {file_path.name}")
+        return ""
+
+
+def load_artifacts_from_local_package_path(path_text: str, messages: list[str]) -> dict[str, str]:
+    empty = {"requirements": "", "architecture": "", "proposal": "", "supporting_context": ""}
+    try:
+        package_path = Path(path_text.strip().strip('"'))
+    except Exception:
+        messages.append(f"Could not read local package path: {path_text}")
+        return empty
+    if not package_path.exists():
+        messages.append(f"Local package path was not found: {package_path}")
+        return empty
+    try:
+        if package_path.is_dir():
+            messages.append(f"Loaded local deal folder: {package_path.name}")
+            return load_artifacts_from_folder(package_path)
+        if package_path.suffix.lower() == ".zip":
+            messages.append(f"Loaded local deal ZIP: {package_path.name}")
+            return load_artifacts_from_zip(package_path)
+        messages.append("Local package path must be a folder or .zip file.")
+    except Exception:
+        messages.append(f"Could not load local package path: {package_path.name}")
+    return empty
 
 
 def make_unique_deal_name(requested_name: str) -> str:
