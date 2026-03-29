@@ -9,8 +9,6 @@ import threading
 import time
 import urllib.parse
 import webbrowser
-from email.parser import BytesParser
-from email.policy import default
 from pathlib import Path
 from wsgiref.simple_server import make_server
 
@@ -199,15 +197,27 @@ def parse_multipart(environ: dict[str, str]) -> dict[str, object]:
     content_length = int(environ.get("CONTENT_LENGTH") or "0")
     body = environ["wsgi.input"].read(content_length)
     content_type = environ.get("CONTENT_TYPE", "")
-    raw = f"Content-Type: {content_type}\r\nMIME-Version: 1.0\r\n\r\n".encode("utf-8") + body
-    message = BytesParser(policy=default).parsebytes(raw)
+    boundary = extract_boundary(content_type)
+    if not boundary:
+        return {}
     values: dict[str, object] = {}
-    for part in message.iter_parts():
-        name = part.get_param("name", header="content-disposition")
+    delimiter = b"--" + boundary
+    for chunk in body.split(delimiter):
+        part = chunk.strip()
+        if not part or part == b"--":
+            continue
+        if part.endswith(b"--"):
+            part = part[:-2].rstrip()
+        if b"\r\n\r\n" not in part:
+            continue
+        header_block, payload = part.split(b"\r\n\r\n", 1)
+        payload = payload.rstrip(b"\r\n")
+        headers = parse_part_headers(header_block)
+        disposition = headers.get("content-disposition", "")
+        name = extract_disposition_value(disposition, "name")
         if not name:
             continue
-        filename = part.get_filename()
-        payload = part.get_payload(decode=True) or b""
+        filename = extract_disposition_value(disposition, "filename")
         if filename:
             values[name] = {"filename": filename, "content": payload}
         else:
@@ -550,6 +560,32 @@ def render_findings_groups(findings: list[dict[str, str]]) -> str:
         )
         sections.append(f"<h4>{escape(gate)}</h4><ul>{items}</ul>")
     return "".join(sections)
+
+
+def extract_boundary(content_type: str) -> bytes:
+    marker = "boundary="
+    if marker not in content_type:
+        return b""
+    boundary = content_type.split(marker, 1)[1].strip().strip('"')
+    return boundary.encode("utf-8")
+
+
+def parse_part_headers(header_block: bytes) -> dict[str, str]:
+    headers: dict[str, str] = {}
+    for line in header_block.decode("utf-8", errors="ignore").split("\r\n"):
+        if ":" not in line:
+            continue
+        name, value = line.split(":", 1)
+        headers[name.strip().lower()] = value.strip()
+    return headers
+
+
+def extract_disposition_value(disposition: str, key: str) -> str:
+    token = f'{key}="'
+    if token not in disposition:
+        return ""
+    tail = disposition.split(token, 1)[1]
+    return tail.split('"', 1)[0]
 
 
 def build_findings_download_href(deal_name: str, result: dict[str, object]) -> str:
