@@ -84,6 +84,21 @@ class GateEngineTests(unittest.TestCase):
         joined_questions = " ".join(result.clarifying_questions).lower()
         self.assertIn("firewall topology", joined_questions)
 
+    def test_app_delivery_deal_does_not_require_log_volume(self) -> None:
+        result = self.engine.analyze(
+            "crown prince",
+            {
+                "requirements": "RFP covers load balancer Barracuda license, Palo Alto firewall license, WAF F5 license, and FortiGate firewall license renewal.",
+                "architecture": "",
+                "proposal": "Technical proposal for load balancer, firewall, and WAF renewal with phased delivery and assumptions.",
+                "supporting_context": "",
+            },
+        )
+        requirement_messages = " ".join(
+            item["message"] for item in result.findings if item["gate"] == "Requirements"
+        ).lower()
+        self.assertNotIn("log volume", requirement_messages)
+
 
 if __name__ == "__main__":
     unittest.main()

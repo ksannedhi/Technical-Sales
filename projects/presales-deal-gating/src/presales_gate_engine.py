@@ -59,6 +59,9 @@ SOLUTION_FAMILY_KEYWORDS = {
     "sase_proxy": [
         "sase", "sse", "proxy", "secure web gateway", "swg", "ztna", "casb", "remote users", "branch traffic",
     ],
+    "app_delivery_security": [
+        "load balancer", "load balancer license", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy", "virtual server",
+    ],
 }
 
 SOLUTION_FAMILY_QUESTIONS = {
@@ -91,6 +94,11 @@ SOLUTION_FAMILY_QUESTIONS = {
         "Which users, branches, and applications must traverse the SASE or proxy service on day one?",
         "What traffic steering model is required across remote users, branch offices, VPN replacement, and private app access?",
         "Which controls are mandatory in scope: SWG, CASB, ZTNA, DLP, RBI, or tenant restrictions?",
+    ],
+    "app_delivery_security": [
+        "What application delivery topology is required across load balancers, WAF instances, virtual servers, and protected applications?",
+        "Are HA pairs, failover behavior, SSL offload, and certificate responsibilities defined for the load balancer or WAF design?",
+        "Which applications, public services, and environments must be front-ended or protected in phase one?",
     ],
 }
 
@@ -257,7 +265,14 @@ class PresalesGateEngine:
         strengths: list[str] = []
         clarifying_questions: list[str] = []
 
-        requirements_score = self._requirements_gate(normalized["requirements"], supporting_context, findings, strengths, clarifying_questions)
+        requirements_score = self._requirements_gate(
+            normalized["requirements"],
+            supporting_context,
+            detected_solution_families,
+            findings,
+            strengths,
+            clarifying_questions,
+        )
         architecture_score = self._architecture_gate(normalized, supporting_context, findings, strengths, clarifying_questions)
         proposal_score = self._proposal_gate(normalized, supporting_context, findings, strengths, clarifying_questions)
         self._cross_document_checks(normalized, supporting_context, findings, clarifying_questions)
@@ -329,6 +344,7 @@ class PresalesGateEngine:
         self,
         requirements: str,
         supporting_context: str,
+        solution_families: list[str],
         findings: list[dict[str, str]],
         strengths: list[str],
         questions: list[str],
@@ -338,17 +354,19 @@ class PresalesGateEngine:
             questions.append("Can you provide a requirements or discovery summary before gating the deal?")
             return score
 
-        if has_any(requirements, KEYWORDS["log_volume"]):
-            score += 8
-        else:
-            findings.append(make_finding("Requirements", "medium", "Sizing input is missing or unclear, especially log volume or ingestion rate.", "log volume"))
-            questions.append("What is the expected daily ingestion or event volume?")
+        observability_sensitive = "siem_log_mgmt" in solution_families
+        if observability_sensitive:
+            if has_any(requirements, KEYWORDS["log_volume"]):
+                score += 8
+            else:
+                findings.append(make_finding("Requirements", "medium", "Sizing input is missing or unclear, especially log volume or ingestion rate.", "log volume"))
+                questions.append("What is the expected daily ingestion or event volume?")
 
-        if has_any(requirements, KEYWORDS["retention"]):
-            score += 6
-        else:
-            findings.append(make_finding("Requirements", "medium", "Retention requirement is not clearly stated.", "retention"))
-            questions.append("What retention period is required?")
+            if has_any(requirements, KEYWORDS["retention"]):
+                score += 6
+            else:
+                findings.append(make_finding("Requirements", "medium", "Retention requirement is not clearly stated.", "retention"))
+                questions.append("What retention period is required?")
 
         if has_any(requirements, KEYWORDS["identity"]):
             score += 5
@@ -585,5 +603,6 @@ def dedupe_findings(findings: list[dict[str, str]]) -> list[dict[str, str]]:
         if key not in seen:
             output.append(finding)
             seen.add(key)
+    gate_rank = {"Document Presence": 0, "Requirements": 1, "Architecture": 2, "Proposal": 3, "Cross-check": 4}
     severity_rank = {"high": 0, "medium": 1, "low": 2}
-    return sorted(output, key=lambda item: (severity_rank.get(item["severity"], 3), item["gate"], item["message"]))
+    return sorted(output, key=lambda item: (gate_rank.get(item["gate"], 9), severity_rank.get(item["severity"], 3), item["message"]))
