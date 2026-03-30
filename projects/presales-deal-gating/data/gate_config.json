@@ -1,0 +1,85 @@
+{
+  "weights": {
+    "Requirements": 0.35,
+    "Architecture": 0.4,
+    "Proposal": 0.25
+  },
+  "score_thresholds": {
+    "gate_pass": 80,
+    "gate_review": 60,
+    "overall_pass": 82,
+    "overall_pass_with_risk": 62,
+    "overall_rework": 45
+  },
+  "requirements": {
+    "baseline": 68,
+    "missing_baseline": 15,
+    "log_volume_bonus": 6,
+    "retention_bonus": 5,
+    "identity_bonus": 5,
+    "compliance_bonus": 4,
+    "vague_penalty": 10,
+    "unclear_penalty": 6,
+    "scope_penalty": 8
+  },
+  "architecture": {
+    "baseline": 68,
+    "missing_baseline": 10,
+    "ha_bonus": 8,
+    "dr_bonus": 8,
+    "air_gap_conflict_penalty": 30,
+    "latency_penalty": 10,
+    "identity_penalty": 8,
+    "cloud_penalty": 6,
+    "single_node_penalty": 10,
+    "api_penalty": 6
+  },
+  "proposal": {
+    "baseline": 70,
+    "missing_baseline": 12,
+    "timeline_bonus": 6,
+    "business_bonus": 4,
+    "generic_penalty": 12,
+    "assumption_penalty": 6,
+    "conflict_bonus": 3,
+    "conflict_penalty": 8,
+    "latency_penalty": 6,
+    "deliverables_penalty": 8
+  },
+  "vague_language": {
+    "terms": [
+      "improve visibility",
+      "generic",
+      "some endpoints",
+      "standard deployment",
+      "improve security"
+    ],
+    "minimum_words": 40,
+    "minimum_detail_signals": 3,
+    "structure_terms": [
+      "scope",
+      "requirements",
+      "deliverables",
+      "timeline",
+      "integrations",
+      "architecture"
+    ],
+    "detail_terms": [
+      "tb/day",
+      "gb/day",
+      "retention",
+      "ad",
+      "entra",
+      "identity",
+      "integration",
+      "vpn",
+      "waf",
+      "firewall",
+      "load balancer",
+      "ha",
+      "dr",
+      "phase",
+      "sla"
+    ]
+  }
+}

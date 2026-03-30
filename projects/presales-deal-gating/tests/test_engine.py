@@ -8,7 +8,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from file_ingest import extract_text_from_path, load_artifacts_from_zip
+from file_ingest import EXTRACTION_CACHE, MAX_CACHE_ENTRIES, cache_put, extract_text_from_path, load_artifacts_from_zip
 from presales_gate_engine import PresalesGateEngine
 
 
@@ -98,6 +98,32 @@ class GateEngineTests(unittest.TestCase):
             item["message"] for item in result.findings if item["gate"] == "Requirements"
         ).lower()
         self.assertNotIn("log volume", requirement_messages)
+
+    def test_detailed_requirements_are_not_flagged_as_vague_for_single_phrase(self) -> None:
+        result = self.engine.analyze(
+            "detailed siem",
+            {
+                "requirements": (
+                    "The customer wants to improve visibility across SOC operations. "
+                    "Requirements include 2 TB/day ingestion, 365 day retention, Entra ID integration, "
+                    "AD enrichment, phased onboarding for 12 log sources, architecture review, and delivery scope "
+                    "across primary and DR sites with named integrations and timeline expectations."
+                ),
+                "architecture": "HA cluster across two sites with DR failover and identity integration.",
+                "proposal": "Phased plan with deliverables, timeline, and executive summary.",
+                "supporting_context": "",
+            },
+        )
+        requirement_messages = " ".join(
+            item["message"] for item in result.findings if item["gate"] == "Requirements"
+        ).lower()
+        self.assertNotIn("too vague", requirement_messages)
+
+    def test_extraction_cache_is_bounded(self) -> None:
+        EXTRACTION_CACHE.clear()
+        for index in range(MAX_CACHE_ENTRIES + 5):
+            cache_put(f"key-{index}", f"value-{index}")
+        self.assertLessEqual(len(EXTRACTION_CACHE), MAX_CACHE_ENTRIES)
 
 
 if __name__ == "__main__":
