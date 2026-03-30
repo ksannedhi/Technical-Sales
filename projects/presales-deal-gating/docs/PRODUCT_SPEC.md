@@ -265,6 +265,7 @@ The current implementation is:
 - browser-based UI
 - local in-memory session history
 - SQLite-backed analysis persistence in backend logic
+- JSON-backed gate configuration for scoring weights, thresholds, and heuristic tuning
 
 ## Known Constraints
 
