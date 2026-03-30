@@ -52,6 +52,8 @@ The app opens locally at:
   Gating engine and scoring logic
 - `src/file_ingest.py`
   File ingestion and extraction helpers
+- `data/gate_config.json`
+  Tunable scoring weights, thresholds, and heuristic settings
 - `docs/PRODUCT_SPEC.md`
   Product and behavior spec
 - `tests/test_engine.py`
