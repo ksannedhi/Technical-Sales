@@ -40,6 +40,108 @@ KEYWORDS = {
     "timeline": ["week", "weeks", "timeline", "phase", "phases"],
 }
 
+DEFAULT_GATE_CONFIG = {
+    "weights": {
+        "Requirements": 0.35,
+        "Architecture": 0.40,
+        "Proposal": 0.25,
+    },
+    "score_thresholds": {
+        "gate_pass": 80,
+        "gate_review": 60,
+        "overall_pass": 82,
+        "overall_pass_with_risk": 62,
+        "overall_rework": 45,
+    },
+    "requirements": {
+        "baseline": 68,
+        "missing_baseline": 15,
+        "log_volume_bonus": 6,
+        "retention_bonus": 5,
+        "identity_bonus": 5,
+        "compliance_bonus": 4,
+        "vague_penalty": 10,
+        "unclear_penalty": 6,
+        "scope_penalty": 8,
+    },
+    "architecture": {
+        "baseline": 68,
+        "missing_baseline": 10,
+        "ha_bonus": 8,
+        "dr_bonus": 8,
+        "air_gap_conflict_penalty": 30,
+        "latency_penalty": 10,
+        "identity_penalty": 8,
+        "cloud_penalty": 6,
+        "single_node_penalty": 10,
+        "api_penalty": 6,
+    },
+    "proposal": {
+        "baseline": 70,
+        "missing_baseline": 12,
+        "timeline_bonus": 6,
+        "business_bonus": 4,
+        "generic_penalty": 12,
+        "assumption_penalty": 6,
+        "conflict_bonus": 3,
+        "conflict_penalty": 8,
+        "latency_penalty": 6,
+        "deliverables_penalty": 8,
+    },
+    "vague_language": {
+        "terms": [
+            "improve visibility",
+            "generic",
+            "some endpoints",
+            "standard deployment",
+            "improve security",
+        ],
+        "minimum_words": 40,
+        "minimum_detail_signals": 3,
+        "structure_terms": [
+            "scope",
+            "requirements",
+            "deliverables",
+            "timeline",
+            "integrations",
+            "architecture",
+        ],
+        "detail_terms": [
+            "tb/day",
+            "gb/day",
+            "retention",
+            "ad",
+            "entra",
+            "identity",
+            "integration",
+            "vpn",
+            "waf",
+            "firewall",
+            "load balancer",
+            "ha",
+            "dr",
+            "phase",
+            "sla",
+        ],
+    },
+}
+
+GENERAL_SCOPE_TERMS = [
+    "scope",
+    "endpoint",
+    "server",
+    "user",
+    "soc",
+    "network",
+    "aws",
+    "azure",
+    "gcp",
+    "dc",
+    "branch",
+    "application",
+    "environment",
+]
+
 SOLUTION_FAMILY_KEYWORDS = {
     "siem_log_mgmt": [
         "siem", "log management", "log analytics", "soc", "splunk", "qradar", "sentinel", "elastic", "event volume", "eps",
@@ -246,6 +348,7 @@ class HistoryStore:
 class PresalesGateEngine:
     def __init__(self, data_dir: Path) -> None:
         self.data_dir = data_dir
+        self.config = load_gate_config(data_dir / "gate_config.json")
         self.seed_dataset = SeedDataset([data_dir / "seed_dataset", data_dir / "messy_seed_dataset"])
         self.history = HistoryStore(data_dir / "analyses.db")
 
@@ -292,8 +395,13 @@ class PresalesGateEngine:
             "Proposal": clamp_score(proposal_score - (10 if "proposal" in missing_artifacts else 0)),
         }
         gate_statuses = {gate: status_from_score(score) for gate, score in gate_scores.items()}
-        overall_score = round((gate_scores["Requirements"] * 0.35) + (gate_scores["Architecture"] * 0.4) + (gate_scores["Proposal"] * 0.25))
-        overall_status = overall_status_from_findings(overall_score, findings)
+        weights = self.config["weights"]
+        overall_score = round(
+            (gate_scores["Requirements"] * weights["Requirements"])
+            + (gate_scores["Architecture"] * weights["Architecture"])
+            + (gate_scores["Proposal"] * weights["Proposal"])
+        )
+        overall_status = overall_status_from_findings(overall_score, findings, self.config)
 
         dedup_questions = dedupe(clarifying_questions)[:6]
         dedup_strengths = dedupe(strengths)[:6]
@@ -349,7 +457,8 @@ class PresalesGateEngine:
         strengths: list[str],
         questions: list[str],
     ) -> int:
-        score = 70 if requirements else 15
+        gate_config = self.config["requirements"]
+        score = gate_config["baseline"] if requirements else gate_config["missing_baseline"]
         if not requirements:
             questions.append("Can you provide a requirements or discovery summary before gating the deal?")
             return score
@@ -357,38 +466,38 @@ class PresalesGateEngine:
         observability_sensitive = "siem_log_mgmt" in solution_families
         if observability_sensitive:
             if has_any(requirements, KEYWORDS["log_volume"]):
-                score += 8
+                score += gate_config["log_volume_bonus"]
             else:
                 findings.append(make_finding("Requirements", "medium", "Sizing input is missing or unclear, especially log volume or ingestion rate.", "log volume"))
                 questions.append("What is the expected daily ingestion or event volume?")
 
             if has_any(requirements, KEYWORDS["retention"]):
-                score += 6
+                score += gate_config["retention_bonus"]
             else:
                 findings.append(make_finding("Requirements", "medium", "Retention requirement is not clearly stated.", "retention"))
                 questions.append("What retention period is required?")
 
         if has_any(requirements, KEYWORDS["identity"]):
-            score += 5
+            score += gate_config["identity_bonus"]
         else:
             findings.append(make_finding("Requirements", "medium", "Identity or core integration dependencies are not clearly defined.", "identity"))
             questions.append("Which identity systems and core integrations must be supported?")
 
         if has_any(requirements, KEYWORDS["compliance"]):
-            score += 5
+            score += gate_config["compliance_bonus"]
         elif "government" in requirements or "bank" in requirements:
             findings.append(make_finding("Requirements", "medium", "Compliance driver is implied but not made explicit.", "compliance"))
 
-        if vague_language(requirements):
-            score -= 18
+        if vague_language(requirements, self.config):
+            score -= gate_config["vague_penalty"]
             findings.append(make_finding("Requirements", "high", "Requirements are too vague for a reliable design review.", "vague"))
 
         if any(token in requirements or token in supporting_context for token in ["tbd", "not confirmed", "unclear", "incomplete"]):
-            score -= 10
+            score -= gate_config["unclear_penalty"]
             findings.append(make_finding("Requirements", "medium", "Critical discovery inputs are still uncertain or incomplete.", "unclear"))
 
-        if not any(token in requirements for token in ["scope", "endpoint", "server", "user", "soc", "network", "aws", "azure", "dc"]):
-            score -= 12
+        if not any(token in requirements for token in self._scope_terms(solution_families)):
+            score -= gate_config["scope_penalty"]
             findings.append(make_finding("Requirements", "medium", "Scope boundaries are weak or missing.", "scope"))
             questions.append("What assets, users, and environments are in scope?")
 
@@ -408,44 +517,45 @@ class PresalesGateEngine:
     ) -> int:
         architecture = artifacts["architecture"]
         requirements = artifacts["requirements"]
-        score = 68 if architecture else 10
+        gate_config = self.config["architecture"]
+        score = gate_config["baseline"] if architecture else gate_config["missing_baseline"]
         if not architecture:
             questions.append("Can you provide architecture notes or a text description of the design?")
             return score
 
         if has_any(architecture, KEYWORDS["ha"]):
-            score += 8
+            score += gate_config["ha_bonus"]
         else:
             findings.append(make_finding("Architecture", "high", "High availability design is missing or unclear.", "ha"))
             questions.append("How is high availability handled across collectors, nodes, or sites?")
 
         if has_any(architecture, KEYWORDS["dr"]) or has_any(architecture, KEYWORDS["failover"]):
-            score += 8
+            score += gate_config["dr_bonus"]
         else:
             findings.append(make_finding("Architecture", "medium", "DR or failover design is not defined.", "dr"))
 
         if has_any(requirements, KEYWORDS["air_gap"]) and has_any(architecture, KEYWORDS["cloud"]):
-            score -= 35
+            score -= gate_config["air_gap_conflict_penalty"]
             findings.append(make_finding("Architecture", "high", "Architecture conflicts with an air-gapped or no-cloud requirement.", "air-gapped"))
 
         if has_any(requirements, KEYWORDS["latency"]) and not has_any(architecture, KEYWORDS["latency"]):
-            score -= 14
+            score -= gate_config["latency_penalty"]
             findings.append(make_finding("Architecture", "medium", "Low-latency requirement is present but latency handling is not described.", "latency"))
 
         if has_any(requirements, KEYWORDS["identity"]) and not has_any(architecture, KEYWORDS["identity"]):
-            score -= 12
+            score -= gate_config["identity_penalty"]
             findings.append(make_finding("Architecture", "medium", "Required identity or core integrations are not reflected in the design.", "identity"))
 
         if has_any(requirements, KEYWORDS["cloud"]) and not has_any(architecture, KEYWORDS["cloud"]):
-            score -= 8
+            score -= gate_config["cloud_penalty"]
             findings.append(make_finding("Architecture", "medium", "Cloud ingestion path or cloud controls are not clearly addressed.", "cloud"))
 
         if "single node" in architecture:
-            score -= 12
+            score -= gate_config["single_node_penalty"]
             findings.append(make_finding("Architecture", "medium", "Single-node architecture creates resilience risk for production use.", "single node"))
 
         if any(token in architecture or token in supporting_context for token in ["unclear", "not confirmed", "api access not confirmed"]):
-            score -= 8
+            score -= gate_config["api_penalty"]
             findings.append(make_finding("Architecture", "medium", "Architecture depends on unresolved integration or API assumptions.", "api"))
 
         for message, section, tag in POSITIVE_SIGNALS:
@@ -465,41 +575,42 @@ class PresalesGateEngine:
         proposal = artifacts["proposal"]
         requirements = artifacts["requirements"]
         architecture = artifacts["architecture"]
-        score = 70 if proposal else 12
+        gate_config = self.config["proposal"]
+        score = gate_config["baseline"] if proposal else gate_config["missing_baseline"]
         if not proposal:
             questions.append("Can you provide proposal or SOW text before customer-ready gating?")
             return score
 
         if has_any(proposal, KEYWORDS["timeline"]):
-            score += 6
+            score += gate_config["timeline_bonus"]
         else:
             findings.append(make_finding("Proposal", "medium", "Timeline or phased delivery plan is missing.", "timeline"))
 
         if has_any(proposal, KEYWORDS["business_outcome"]):
-            score += 4
+            score += gate_config["business_bonus"]
         else:
             findings.append(make_finding("Proposal", "low", "Proposal focuses on solution delivery but not business value.", "business"))
 
         if "generic" in proposal:
-            score -= 20
+            score -= gate_config["generic_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal content appears generic and not tailored to the deal.", "generic"))
 
         if any(token in proposal or supporting_context for token in ["assumed", "tbd", "check policy"]):
-            score -= 8
+            score -= gate_config["assumption_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal relies on unresolved assumptions that should be surfaced before customer submission.", "assumption"))
 
         if has_any(requirements, KEYWORDS["air_gap"]) and "conflict" in proposal:
-            score += 3
+            score += gate_config["conflict_bonus"]
         elif has_any(requirements, KEYWORDS["air_gap"]) and has_any(architecture, KEYWORDS["cloud"]):
-            score -= 10
+            score -= gate_config["conflict_penalty"]
             findings.append(make_finding("Proposal", "high", "Proposal does not address a major requirement-architecture conflict.", "conflict"))
 
         if has_any(requirements, KEYWORDS["latency"]) and not has_any(proposal, KEYWORDS["latency"]):
-            score -= 8
+            score -= gate_config["latency_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal does not mention SLA or latency commitments for a latency-sensitive deal.", "sla"))
 
         if not any(token in proposal for token in ["deliverables", "scope", "bom", "plan", "phases", "dashboard", "playbook", "summary"]):
-            score -= 10
+            score -= gate_config["deliverables_penalty"]
             findings.append(make_finding("Proposal", "medium", "Scope or explicit deliverables are not clearly stated.", "deliverables"))
 
         for message, section, tag in POSITIVE_SIGNALS:
@@ -537,6 +648,14 @@ class PresalesGateEngine:
         if "log sources list incomplete" in supporting_context:
             findings.append(make_finding("Cross-check", "medium", "Supporting notes indicate source inventory is incomplete, which weakens sizing and scope confidence.", "sources"))
 
+    def _scope_terms(self, solution_families: list[str]) -> list[str]:
+        terms = list(GENERAL_SCOPE_TERMS)
+        for family in solution_families:
+            for token in SOLUTION_FAMILY_KEYWORDS.get(family, []):
+                if " " in token or len(token) > 3:
+                    terms.append(token)
+        return dedupe(terms)
+
 
 def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
@@ -546,10 +665,23 @@ def has_any(text: str, keywords: list[str]) -> bool:
     return any(keyword in text for keyword in keywords)
 
 
-def vague_language(text: str) -> bool:
-    vague_terms = ["improve visibility", "generic", "some endpoints", "standard deployment", "improve security"]
-    bullet_count = text.count("-")
-    return any(term in text for term in vague_terms) or len(text.split()) < 12 or bullet_count < 2
+def vague_language(text: str, config: dict[str, object]) -> bool:
+    settings = config["vague_language"]
+    vague_terms = settings["terms"]
+    minimum_words = settings["minimum_words"]
+    minimum_detail_signals = settings["minimum_detail_signals"]
+    structure_terms = settings["structure_terms"]
+    detail_terms = settings["detail_terms"]
+    word_count = len(text.split())
+    structure_hits = sum(1 for term in structure_terms if term in text)
+    detail_hits = sum(1 for term in detail_terms if term in text)
+    has_digit = bool(re.search(r"\d", text))
+    has_vague_term = any(term in text for term in vague_terms)
+    if word_count < minimum_words and detail_hits < minimum_detail_signals and structure_hits < 2 and not has_digit:
+        return True
+    if has_vague_term and detail_hits < minimum_detail_signals and structure_hits < 2:
+        return True
+    return structure_hits == 0 and detail_hits == 0 and not has_digit
 
 
 def make_finding(gate: str, severity: str, message: str, tag: str) -> dict[str, str]:
@@ -565,22 +697,24 @@ def clamp_score(value: int) -> int:
     return max(0, min(100, value))
 
 
-def status_from_score(score: int) -> str:
-    if score >= 80:
+def status_from_score(score: int, config: dict[str, object] = DEFAULT_GATE_CONFIG) -> str:
+    thresholds = config["score_thresholds"]
+    if score >= thresholds["gate_pass"]:
         return "PASS"
-    if score >= 60:
+    if score >= thresholds["gate_review"]:
         return "REVIEW"
     return "ATTENTION REQUIRED"
 
 
-def overall_status_from_findings(score: int, findings: list[dict[str, str]]) -> str:
+def overall_status_from_findings(score: int, findings: list[dict[str, str]], config: dict[str, object] = DEFAULT_GATE_CONFIG) -> str:
+    thresholds = config["score_thresholds"]
     if any(finding["severity"] == "high" and "conflict" in finding["message"].lower() for finding in findings):
         return "ATTENTION REQUIRED"
-    if score >= 82:
+    if score >= thresholds["overall_pass"]:
         return "PASS"
-    if score >= 62:
+    if score >= thresholds["overall_pass_with_risk"]:
         return "PASS WITH RISK"
-    if score >= 45:
+    if score >= thresholds["overall_rework"]:
         return "REWORK"
     return "ATTENTION REQUIRED"
 
@@ -606,3 +740,23 @@ def dedupe_findings(findings: list[dict[str, str]]) -> list[dict[str, str]]:
     gate_rank = {"Document Presence": 0, "Requirements": 1, "Architecture": 2, "Proposal": 3, "Cross-check": 4}
     severity_rank = {"high": 0, "medium": 1, "low": 2}
     return sorted(output, key=lambda item: (gate_rank.get(item["gate"], 9), severity_rank.get(item["severity"], 3), item["message"]))
+
+
+def load_gate_config(path: Path) -> dict[str, object]:
+    config = json.loads(json.dumps(DEFAULT_GATE_CONFIG))
+    if not path.exists():
+        return config
+    try:
+        user_config = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return config
+    merge_config(config, user_config)
+    return config
+
+
+def merge_config(base: dict[str, object], overrides: dict[str, object]) -> None:
+    for key, value in overrides.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            merge_config(base[key], value)
+        else:
+            base[key] = value

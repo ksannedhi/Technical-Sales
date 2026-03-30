@@ -3,11 +3,13 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import io
+import json
 import logging
 import re
 import subprocess
 import sys
 import zipfile
+from collections import OrderedDict
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -18,7 +20,8 @@ NS = {"a": "http://schemas.openxmlformats.org/drawingml/2006/main"}
 MAX_PDF_BYTES = 4_000_000
 MAX_PDF_PAGES = 15
 PDF_TIMEOUT_SECONDS = 4
-EXTRACTION_CACHE: dict[str, str] = {}
+MAX_CACHE_ENTRIES = 64
+EXTRACTION_CACHE: OrderedDict[str, str] = OrderedDict()
 
 
 def extract_text_from_path(path: str | Path) -> str:
@@ -71,7 +74,7 @@ def load_artifacts_from_zip_data(data: bytes) -> dict[str, str]:
 def extract_text_from_bytes(name: str, data: bytes) -> str:
     suffix = Path(name).suffix.lower()
     cache_key = build_cache_key(name, data)
-    cached = EXTRACTION_CACHE.get(cache_key)
+    cached = cache_get(cache_key)
     if cached is not None:
         return cached
     if suffix in SUPPORTED_TEXT_EXTENSIONS:
@@ -84,7 +87,7 @@ def extract_text_from_bytes(name: str, data: bytes) -> str:
         text = extract_pdf(io.BytesIO(data), suffix)
     else:
         text = ""
-    EXTRACTION_CACHE[cache_key] = text
+    cache_put(cache_key, text)
     return text
 
 
@@ -131,6 +134,8 @@ def extract_pdf_bytes(payload: bytes, suffix_hint: str = ".pdf") -> str:
         return "[PDF too large for fast local review]"
     try:
         return _extract_pdf_via_subprocess(payload)
+    except ModuleNotFoundError:
+        return "[PDF parsing unavailable: install pypdf]"
     except subprocess.TimeoutExpired:
         return "[PDF parsing timed out for local review]"
     except Exception:
@@ -138,33 +143,8 @@ def extract_pdf_bytes(payload: bytes, suffix_hint: str = ".pdf") -> str:
 
 
 def _extract_pdf_via_subprocess(payload: bytes) -> str:
-    wheel = Path(__file__).resolve().parents[2] / "wheelhouse" / "pypdf-6.9.1-py3-none-any.whl"
-    script = f"""
-import contextlib, io, logging, sys
-sys.path.insert(0, r"{wheel}")
-from pypdf import PdfReader
-data = sys.stdin.buffer.read()
-stderr_buffer = io.StringIO()
-stdout_buffer = io.StringIO()
-pypdf_logger = logging.getLogger("pypdf")
-previous_level = pypdf_logger.level
-pypdf_logger.setLevel(logging.ERROR)
-try:
-    with contextlib.redirect_stderr(stderr_buffer), contextlib.redirect_stdout(stdout_buffer):
-        reader = PdfReader(io.BytesIO(data))
-        pages = []
-        limit = {MAX_PDF_PAGES}
-        for index, page in enumerate(reader.pages):
-            if index >= limit:
-                break
-            pages.append(page.extract_text() or "")
-        text = "\\n\\n".join(pages).strip()
-        if len(reader.pages) > limit:
-            text += f"\\n\\n[Only the first {{limit}} pages were reviewed for speed]"
-        sys.stdout.write(text)
-finally:
-    pypdf_logger.setLevel(previous_level)
-"""
+    wheel_candidates = discover_pypdf_candidates()
+    script = build_pdf_subprocess_script(wheel_candidates)
     completed = subprocess.run(
         [sys.executable, "-c", script],
         input=payload,
@@ -172,6 +152,9 @@ finally:
         timeout=PDF_TIMEOUT_SECONDS,
         check=False,
     )
+    stderr_text = completed.stderr.decode("utf-8", errors="ignore")
+    if completed.returncode == 2 and "PDF_DEPENDENCY_MISSING" in stderr_text:
+        raise ModuleNotFoundError("pypdf")
     if completed.returncode != 0:
         raise RuntimeError("pdf subprocess failed")
     return completed.stdout.decode("utf-8", errors="ignore")
@@ -208,3 +191,73 @@ def blank_artifacts() -> dict[str, str]:
 def build_cache_key(name: str, data: bytes) -> str:
     digest = hashlib.sha1(data).hexdigest()
     return f"{Path(name).suffix.lower()}:{len(data)}:{digest}"
+
+
+def cache_get(key: str) -> str | None:
+    cached = EXTRACTION_CACHE.get(key)
+    if cached is not None:
+        EXTRACTION_CACHE.move_to_end(key)
+    return cached
+
+
+def cache_put(key: str, value: str) -> None:
+    EXTRACTION_CACHE[key] = value
+    EXTRACTION_CACHE.move_to_end(key)
+    while len(EXTRACTION_CACHE) > MAX_CACHE_ENTRIES:
+        EXTRACTION_CACHE.popitem(last=False)
+
+
+def discover_pypdf_candidates() -> list[str]:
+    candidates: list[str] = []
+    for parent in Path(__file__).resolve().parents:
+        wheelhouse = parent / "wheelhouse"
+        if wheelhouse.exists():
+            for wheel in sorted(wheelhouse.glob("pypdf-*.whl")):
+                candidates.append(str(wheel))
+    return candidates
+
+
+def build_pdf_subprocess_script(wheel_candidates: list[str]) -> str:
+    candidates_literal = json.dumps(wheel_candidates)
+    return f"""
+import contextlib, importlib.util, io, json, logging, os, sys
+
+def ensure_pypdf():
+    if importlib.util.find_spec("pypdf") is not None:
+        return
+    for candidate in json.loads({candidates_literal!r}):
+        if os.path.exists(candidate):
+            sys.path.insert(0, candidate)
+            if importlib.util.find_spec("pypdf") is not None:
+                return
+    raise ModuleNotFoundError("pypdf")
+
+try:
+    ensure_pypdf()
+    from pypdf import PdfReader
+except ModuleNotFoundError:
+    sys.stderr.write("PDF_DEPENDENCY_MISSING")
+    sys.exit(2)
+
+data = sys.stdin.buffer.read()
+stderr_buffer = io.StringIO()
+stdout_buffer = io.StringIO()
+pypdf_logger = logging.getLogger("pypdf")
+previous_level = pypdf_logger.level
+pypdf_logger.setLevel(logging.ERROR)
+try:
+    with contextlib.redirect_stderr(stderr_buffer), contextlib.redirect_stdout(stdout_buffer):
+        reader = PdfReader(io.BytesIO(data))
+        pages = []
+        limit = {MAX_PDF_PAGES}
+        for index, page in enumerate(reader.pages):
+            if index >= limit:
+                break
+            pages.append(page.extract_text() or "")
+        text = "\\n\\n".join(pages).strip()
+        if len(reader.pages) > limit:
+            text += "\\n\\n[Only the first {{}} pages were reviewed for speed]".format(limit)
+        sys.stdout.write(text)
+finally:
+    pypdf_logger.setLevel(previous_level)
+"""

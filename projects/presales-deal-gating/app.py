@@ -431,6 +431,12 @@ def render_page(state: dict[str, object]) -> str:
     .local-path-box {{ margin: 14px 0 0; padding: 14px; border: 1px dashed #c9893f; border-radius: 12px; background: rgba(255,255,255,0.5); }}
     .local-path-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
     .local-path-box input[type="text"] {{ margin-bottom: 8px; }}
+    .modal-backdrop {{ position: fixed; inset: 0; background: rgba(24, 32, 40, 0.45); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 20; }}
+    .modal-backdrop.open {{ display: flex; }}
+    .modal-card {{ width: min(460px, 100%); background: #fffdf8; border: 1px solid #d8cfc2; border-radius: 16px; box-shadow: 0 18px 40px rgba(24, 32, 40, 0.18); padding: 18px; }}
+    .modal-card h3 {{ margin-bottom: 8px; }}
+    .modal-actions {{ display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }}
+    .ghost-button {{ background: transparent; color: #6d5c48; border: 1px solid #d8cfc2; }}
   </style>
 </head>
 <body>
@@ -514,13 +520,24 @@ def render_page(state: dict[str, object]) -> str:
       </div>
     </div>
     {result_html}
-    <form id="rename-session-form" method="post" action="/" enctype="multipart/form-data" style="display:none;">
-      <input type="hidden" name="rename_review_id" id="rename_review_id">
-      <input type="hidden" name="rename_deal_name" id="rename_deal_name">
-    </form>
     <form id="delete-session-form" method="post" action="/" enctype="multipart/form-data" style="display:none;">
       <input type="hidden" name="delete_review_id" id="delete_review_id">
     </form>
+    <div class="modal-backdrop" id="rename-modal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rename-modal-title">
+        <h3 id="rename-modal-title">Rename deal</h3>
+        <p class="hint">Update the name shown in Deal History for this session.</p>
+        <form id="rename-session-form" method="post" action="/" enctype="multipart/form-data">
+          <input type="hidden" name="rename_review_id" id="rename_review_id">
+          <label for="rename_deal_name">Deal name</label>
+          <input type="text" name="rename_deal_name" id="rename_deal_name" required>
+          <div class="modal-actions">
+            <button type="button" class="ghost-button" id="rename-cancel-button">Cancel</button>
+            <button type="submit">Save name</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 <script>
   const reviewForm = document.getElementById("review-form");
@@ -551,16 +568,32 @@ def render_page(state: dict[str, object]) -> str:
       }});
     }});
   }});
+  const renameModal = document.getElementById("rename-modal");
+  const renameReviewIdInput = document.getElementById("rename_review_id");
+  const renameDealNameInput = document.getElementById("rename_deal_name");
+  const renameCancelButton = document.getElementById("rename-cancel-button");
+  const closeRenameModal = () => {{
+    if (!renameModal) return;
+    renameModal.classList.remove("open");
+    renameModal.setAttribute("aria-hidden", "true");
+  }};
+  const openRenameModal = (reviewId, dealName) => {{
+    if (!renameModal || !renameReviewIdInput || !renameDealNameInput) return;
+    renameReviewIdInput.value = reviewId;
+    renameDealNameInput.value = dealName || "";
+    renameModal.classList.add("open");
+    renameModal.setAttribute("aria-hidden", "false");
+    window.setTimeout(() => {{
+      renameDealNameInput.focus();
+      renameDealNameInput.select();
+    }}, 0);
+  }};
   document.querySelectorAll("[data-rename-review]").forEach((button) => {{
     button.addEventListener("click", (event) => {{
       event.preventDefault();
       const reviewId = button.getAttribute("data-rename-review");
       const currentName = button.getAttribute("data-deal-name") || "";
-      const newName = window.prompt("Rename deal", currentName);
-      if (newName === null) return;
-      document.getElementById("rename_review_id").value = reviewId;
-      document.getElementById("rename_deal_name").value = newName;
-      document.getElementById("rename-session-form").submit();
+      openRenameModal(reviewId, currentName);
     }});
   }});
   document.querySelectorAll("[data-delete-review]").forEach((button) => {{
@@ -576,6 +609,21 @@ def render_page(state: dict[str, object]) -> str:
   }});
   document.addEventListener("click", () => {{
     document.querySelectorAll(".history-menu").forEach((menu) => menu.classList.remove("open"));
+  }});
+  if (renameCancelButton) {{
+    renameCancelButton.addEventListener("click", () => closeRenameModal());
+  }}
+  if (renameModal) {{
+    renameModal.addEventListener("click", (event) => {{
+      if (event.target === renameModal) {{
+        closeRenameModal();
+      }}
+    }});
+  }}
+  document.addEventListener("keydown", (event) => {{
+    if (event.key === "Escape") {{
+      closeRenameModal();
+    }}
   }});
   const selectedSummary = document.getElementById("selected-review-summary");
   if (selectedSummary && window.location.search.includes("review=")) {{
