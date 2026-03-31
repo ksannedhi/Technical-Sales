@@ -276,7 +276,6 @@ The current implementation is:
 
 ## Next Recommended Improvements
 
-- replace browser prompt rename with an in-page modal
 - add richer PDF/DOCX structure extraction
 - improve PPT and diagram semantics
 - surface parsing confidence more explicitly in the result
