@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+node_modules/
+dist/
+.env
+.env.*
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+
+projects/presales-deal-gating/data/analyses.db
