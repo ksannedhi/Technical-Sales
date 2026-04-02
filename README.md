@@ -92,6 +92,20 @@ See project docs:
 - `projects/threat-to-business-translator/README.md`
 - `projects/threat-to-business-translator/docs/SPECS.md`
 
+### Phishing Analyzer
+- Path: `projects/phishing-analyzer`
+- Purpose: demo-first AI-assisted phishing email analyzer for CISO and presales conversations, with balanced technical findings, MITRE ATT&CK context, NCA ECC mapping, and polished PDF reporting.
+- Current strengths: hybrid rules + OpenAI analysis, deterministic override when model output drifts from the evidence, scenario-specific recommendations, mockup-aligned ECC table, and one-click Windows launch.
+- One-click launch (Windows):
+
+```text
+cd projects/phishing-analyzer && Launch Phishing Analyzer.cmd
+```
+
+See project docs:
+- `projects/phishing-analyzer/README.md`
+- `projects/phishing-analyzer/docs/PROJECT_SPEC.md`
+
 ### Presales Deal Gating
 - Path: `projects/presales-deal-gating`
 - Purpose: local web app for reviewing presales deal readiness across requirements, architecture, proposal, and supporting notes.
