@@ -120,6 +120,20 @@ See project docs:
 - `projects/presales-deal-gating/README.md`
 - `projects/presales-deal-gating/docs/PRODUCT_SPEC.md`
 
+### Network Security Diagrammer
+- Path: `projects/network-security-diagrammer`
+- Purpose: local app for turning rough network and security prompts into clean, editable Excalidraw diagrams.
+- Current strengths: pattern-first architecture modeling, follow-up editing, vendor-neutral defaults, prompt-history tracking, and deterministic local layout/routing.
+- One-click launch (Windows):
+
+```text
+cd projects/network-security-diagrammer && Launch Network Security Diagrammer.cmd
+```
+
+See project docs:
+- `projects/network-security-diagrammer/README.md`
+- `projects/network-security-diagrammer/docs/product-spec.md`
+
 ## Notes
 - Inline contextual figures are sourced from vendor documentation first.
 - Gold proposal is used primarily for proposal structure, tone, and submission packaging.
