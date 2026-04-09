@@ -32,6 +32,10 @@ After install, invoke:
 Use $autonomous-presales-engineer on "<RFP path>" with vendor docs "<vendor docs path or folder>" with gold "<gold proposal path>" output to "<output folder>"
 ```
 
+## Skill Notes
+- Inline contextual figures are sourced from vendor documentation first.
+- Gold proposal is used primarily for proposal structure, tone, and submission packaging.
+
 ## Demo Projects
 
 ### Live SOC Twin (v1)
@@ -133,7 +137,3 @@ cd projects/network-security-diagrammer && Launch Network Security Diagrammer.cm
 See project docs:
 - `projects/network-security-diagrammer/README.md`
 - `projects/network-security-diagrammer/docs/product-spec.md`
-
-## Notes
-- Inline contextual figures are sourced from vendor documentation first.
-- Gold proposal is used primarily for proposal structure, tone, and submission packaging.
