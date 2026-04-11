@@ -137,3 +137,17 @@ cd projects/network-security-diagrammer && Launch Network Security Diagrammer.cm
 See project docs:
 - `projects/network-security-diagrammer/README.md`
 - `projects/network-security-diagrammer/docs/product-spec.md`
+
+### Threat Intel Briefing Builder
+- Path: `projects/threat-briefing`
+- Purpose: daily AI-powered threat intelligence briefing tool for enterprise security teams in the GCC region, pulling live OSINT from AlienVault OTX, CISA KEV, and MalwareBazaar and synthesising it into a structured briefing via the Claude API.
+- Current strengths: three live OSINT feed integrations, GCC-tuned AI synthesis, React dashboard with threat level, top threats, CVE highlights and recommendations, Puppeteer PDF export, daily auto-scheduling at 06:00 GST, and persistent briefing cache with startup catch-up.
+- One-click launch (Windows):
+
+```text
+cd projects/threat-briefing && Launch Threat Briefing.cmd
+```
+
+See project docs:
+- `projects/threat-briefing/README.md`
+- `projects/threat-briefing/docs/PROJECT_SPEC.md`
