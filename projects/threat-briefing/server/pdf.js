@@ -18,7 +18,8 @@ export async function generatePDF(briefing) {
       printBackground: true,
       margin: { top: '18mm', bottom: '18mm', left: '16mm', right: '16mm' }
     });
-    return pdf;
+    // Puppeteer v22+ returns Uint8Array — convert to Buffer for Express res.send()
+    return Buffer.from(pdf);
   } finally {
     await browser.close();
   }

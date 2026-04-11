@@ -202,3 +202,96 @@ body {
   .two-col    { grid-template-columns: 1fr; }
   .stats-row  { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Dark mode toggle button */
+.btn-icon {
+  font-size: 14px; padding: 6px 10px;
+  border: 1px solid #d5d5d5; border-radius: 8px;
+  background: #fff; cursor: pointer;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.btn-icon:hover { background: #f0f0f0; }
+
+/* ── Dark mode ────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  background: #111;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .shell { background: #111; }
+
+/* Topbar */
+[data-theme="dark"] .topbar    { border-bottom-color: #2a2a2a; }
+[data-theme="dark"] .brand-meta { color: #666; }
+
+/* Buttons */
+[data-theme="dark"] .btn       { background: #222; color: #ccc; border-color: #3a3a3a; }
+[data-theme="dark"] .btn:hover { background: #2e2e2e; }
+[data-theme="dark"] .btn-primary       { background: #e0e0e0; color: #111; border-color: #e0e0e0; }
+[data-theme="dark"] .btn-primary:hover { background: #ccc; }
+[data-theme="dark"] .btn-icon          { background: #222; border-color: #3a3a3a; }
+[data-theme="dark"] .btn-icon:hover    { background: #2e2e2e; }
+
+/* Threat banner */
+[data-theme="dark"] .threat-banner.critical { background: #2a1010; border-color: #5a1a1a; }
+[data-theme="dark"] .threat-banner.high     { background: #2a1a0a; border-color: #5a3010; }
+[data-theme="dark"] .threat-banner.medium   { background: #2a2208; border-color: #5a4810; }
+[data-theme="dark"] .threat-banner.low      { background: #0a2018; border-color: #105a30; }
+[data-theme="dark"] .banner-text p:last-child { color: #bbb; }
+
+/* Stat cards */
+[data-theme="dark"] .stat-card  { background: #1e1e1e; border-color: #2a2a2a; }
+[data-theme="dark"] .stat-label { color: #666; }
+[data-theme="dark"] .stat-sub   { color: #555; }
+
+/* Cards */
+[data-theme="dark"] .card         { background: #1e1e1e; border-color: #2a2a2a; }
+[data-theme="dark"] .card-heading { color: #666; }
+
+/* Executive summary */
+[data-theme="dark"] .exec-text { color: #aaa; }
+
+/* Threat rows */
+[data-theme="dark"] .threat-row  { border-bottom-color: #252525; }
+[data-theme="dark"] .threat-desc { color: #999; }
+[data-theme="dark"] .threat-impact { color: #777; }
+
+/* Tags */
+[data-theme="dark"] .tag-critical   { background: #2a1010; color: #e07070; }
+[data-theme="dark"] .tag-high       { background: #2a1808; color: #d08060; }
+[data-theme="dark"] .tag-medium     { background: #2a2208; color: #c09040; }
+[data-theme="dark"] .tag-low        { background: #0a2010; color: #60b070; }
+[data-theme="dark"] .tag-tactic     { background: #0a1a2a; color: #6090d0; }
+[data-theme="dark"] .tag-sector     { background: #0a1e18; color: #50a080; }
+[data-theme="dark"] .tag-gcc        { background: #18162a; color: #9080d0; }
+[data-theme="dark"] .tag-ransomware { background: #2a1010; color: #e07070; }
+
+/* IOCs */
+[data-theme="dark"] .ioc { background: #252525; color: #aaa; border-color: #333; }
+
+/* CISA KEV rows */
+[data-theme="dark"] .kev-row     { border-bottom-color: #252525; }
+[data-theme="dark"] .kev-id      { color: #6090d0; }
+[data-theme="dark"] .kev-deadline { color: #666; }
+
+/* Pills */
+[data-theme="dark"] .pill-soc    { background: #0a1a2a; color: #6090d0; }
+[data-theme="dark"] .pill-it     { background: #0a1e18; color: #50a080; }
+[data-theme="dark"] .pill-mgmt   { background: #18162a; color: #9080d0; }
+[data-theme="dark"] .pill-imm    { background: #2a1010; color: #e07070; }
+[data-theme="dark"] .pill-24h    { background: #2a2208; color: #c09040; }
+[data-theme="dark"] .pill-1week  { background: #0a2010; color: #60b070; }
+
+/* Recommendations */
+[data-theme="dark"] .rec-row  { border-bottom-color: #252525; }
+[data-theme="dark"] .rec-text { color: #aaa; }
+
+/* Feed footer */
+[data-theme="dark"] .feed-footer    { border-top-color: #252525; }
+[data-theme="dark"] .feed-dot-item  { color: #666; }
+
+/* Loading / error */
+[data-theme="dark"] .state-center { color: #666; }
+[data-theme="dark"] .spinner      { border-color: #2a2a2a; border-top-color: #e0e0e0; }
+[data-theme="dark"] .error-msg    { color: #e07070; }

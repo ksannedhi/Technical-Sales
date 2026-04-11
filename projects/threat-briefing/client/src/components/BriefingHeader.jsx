@@ -1,4 +1,4 @@
-export default function BriefingHeader({ briefing, generating, onGenerate, onRefresh }) {
+export default function BriefingHeader({ briefing, generating, onGenerate, onRefresh, darkMode, onToggleDark }) {
   const dateStr = briefing
     ? new Date(briefing.briefingDate || Date.now()).toLocaleString('en-GB', {
         day: '2-digit', month: 'short', year: 'numeric',
@@ -14,6 +14,9 @@ export default function BriefingHeader({ briefing, generating, onGenerate, onRef
         <span className="brand-meta">{dateStr}</span>
       </div>
       <div className="topbar-actions">
+        <button className="btn btn-icon" onClick={onToggleDark} title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+          {darkMode ? '☀️' : '🌙'}
+        </button>
         <button className="btn" onClick={onRefresh}>Refresh</button>
         <button className="btn btn-primary" onClick={onGenerate} disabled={generating}>
           {generating ? 'Generating…' : 'Generate now'}

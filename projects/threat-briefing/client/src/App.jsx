@@ -13,6 +13,17 @@ export default function App() {
   const [loading,    setLoading]    = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error,      setError]      = useState(null);
+  const [darkMode,   setDarkMode]   = useState(
+    () => localStorage.getItem('darkMode') === 'true'
+  );
+
+  // Apply / remove dark attribute on body whenever darkMode changes
+  useEffect(() => {
+    document.body.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+    localStorage.setItem('darkMode', darkMode);
+  }, [darkMode]);
+
+  const toggleDark = useCallback(() => setDarkMode(d => !d), []);
 
   const fetchLatest = useCallback(async () => {
     setLoading(true);
@@ -60,6 +71,8 @@ export default function App() {
         generating={generating}
         onGenerate={generate}
         onRefresh={fetchLatest}
+        darkMode={darkMode}
+        onToggleDark={toggleDark}
       />
 
       {error && <p className="error-msg">{error}</p>}
