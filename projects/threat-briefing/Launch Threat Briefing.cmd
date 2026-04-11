@@ -37,7 +37,7 @@ if not exist "%ROOT%.env" (
 )
 
 REM -- Open backend in a new window --
-start "Threat Briefing - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%'; npm.cmd run dev --workspace=server"
+start "Threat Briefing - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%'; node --watch --env-file=.env server/index.js"
 
 timeout /t 3 /nobreak >nul
 

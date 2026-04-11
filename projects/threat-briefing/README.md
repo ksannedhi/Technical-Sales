@@ -10,6 +10,7 @@ AI-powered daily threat intelligence briefing tool for enterprise security teams
 - Displays the briefing in a React dashboard with threat level, top threats, CVE highlights, and recommendations
 - Exports a polished PDF report via Puppeteer
 - Runs automatically every day at 06:00 GST via node-cron
+- Persists briefings to disk and auto-generates on startup if the saved briefing is stale or missing
 
 ## Documentation
 
@@ -33,7 +34,7 @@ AI-powered daily threat intelligence briefing tool for enterprise security teams
 5. This opens separate backend and frontend windows
 6. Open the dashboard at:
    - `http://localhost:5173`
-7. Click **Generate now** to run the pipeline on demand
+7. On first launch the pipeline runs automatically — no need to click Generate now
 
 Alternative terminal flow:
 
@@ -52,9 +53,20 @@ npm run dev
 | `http://localhost:3001/api/briefing/export` | PDF export (POST) |
 | `http://localhost:3001/api/health` | Health check |
 
-## Scheduling
+## Scheduling and Startup Behaviour
 
 The daily pipeline runs automatically at **06:00 GST (03:00 UTC)**. No manual action is needed once the server is running.
+
+On every startup the server checks `server/briefing.json`:
+
+| Condition | Behaviour |
+|-----------|-----------|
+| No file exists | Pipeline runs immediately |
+| File exists, age < 24h | Loaded into cache and served instantly |
+| File exists, age ≥ 24h | Catch-up pipeline runs immediately |
+| Catch-up pipeline fails | Stale briefing served as fallback |
+
+This means the server is always ready to serve a briefing immediately after restart, even if it was down for multiple days.
 
 ## Data Sources
 
@@ -77,3 +89,4 @@ Click **Export PDF report** in the dashboard to generate and download a formatte
 | `ANTHROPIC_API_KEY` | Yes | From [console.anthropic.com](https://console.anthropic.com) |
 | `OTX_API_KEY` | No | From [otx.alienvault.com](https://otx.alienvault.com) |
 | `PORT` | No | Server port, defaults to `3001` |
+| `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |

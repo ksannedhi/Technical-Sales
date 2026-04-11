@@ -86,12 +86,24 @@ async function runPipeline() {
     throw new Error(`Claude API error ${response.status}: ${err}`);
   }
 
-  const data  = await response.json();
-  const raw   = data.content[0]?.text || '';
-  const match = raw.match(/<result>([\s\S]*?)<\/result>/);
-  if (!match) throw new Error('Claude did not return a <result> block');
+  const data = await response.json();
+  const raw  = data.content[0]?.text || '';
 
-  cachedBriefing = JSON.parse(match[1]);
+  // Accept <result>...</result> tags, ```json ... ``` fences, or bare JSON
+  let jsonStr =
+    (raw.match(/<result>([\s\S]*?)<\/result>/)  || [])[1] ||
+    (raw.match(/```(?:json)?\s*([\s\S]*?)```/)  || [])[1] ||
+    raw.trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (e) {
+    console.error('[Pipeline] Failed to parse Claude response:', raw.slice(0, 500));
+    throw new Error(`Claude response was not valid JSON: ${e.message}`);
+  }
+
+  cachedBriefing = parsed;
   saveBriefing(cachedBriefing);
   console.log('[Pipeline] Briefing cached and persisted to disk.');
   return cachedBriefing;

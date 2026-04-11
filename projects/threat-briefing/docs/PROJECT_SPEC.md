@@ -23,7 +23,6 @@ The system must:
 
 The system must not:
 
-- store briefings persistently between restarts (in-memory cache only in V1)
 - require OTX to function — the feed is optional and skips gracefully if no key is present
 - fabricate data — when feeds return nothing, the model produces a realistic low-activity briefing rather than inventing threats
 
@@ -143,7 +142,8 @@ Responsibilities:
 
 - fetch and normalise OSINT feeds
 - call the Claude API and parse the structured response
-- cache the latest briefing in memory
+- persist the briefing to `server/briefing.json` after every successful run
+- load and serve the persisted briefing on startup, running a catch-up pipeline if it is stale
 - serve the briefing via REST endpoints
 - generate PDF exports on demand
 - schedule the daily pipeline at 03:00 UTC (06:00 GST)
@@ -172,7 +172,7 @@ The project uses npm workspaces with a root `package.json` orchestrating the `se
 | POST | `/api/briefing/generate` | Trigger on-demand pipeline and return briefing |
 | GET | `/api/briefing/latest` | Return cached briefing, 404 if none |
 | POST | `/api/briefing/export` | Accept briefing JSON, return PDF binary |
-| GET | `/api/health` | Health check with `hasBriefing` flag |
+| GET | `/api/health` | Health check with `hasBriefing` flag and `briefingAge` |
 
 ## 9. PDF Export
 
@@ -190,13 +190,26 @@ The template includes:
 
 The Chromium binary is reused from the local Puppeteer cache rather than downloaded fresh.
 
-## 10. Scheduling
+## 10. Scheduling and Startup Behaviour
 
 The daily pipeline runs automatically at 06:00 GST, which is 03:00 UTC.
 
 Cron expression: `0 3 * * *`
 
 The scheduler calls the same `runPipeline()` function used by the on-demand endpoint. No separate scheduler logic is required.
+
+### Persistent Cache
+
+After every successful pipeline run the briefing is written to `server/briefing.json`. On server startup the following logic runs:
+
+| Condition | Behaviour |
+|-----------|-----------|
+| No `briefing.json` exists | Pipeline runs immediately on startup |
+| File exists, age < 24h | Loaded into memory and served instantly — no API call |
+| File exists, age ≥ 24h | Catch-up pipeline runs immediately on startup |
+| Catch-up pipeline fails | Stale briefing loaded as fallback — warning logged |
+
+This ensures the server always has a briefing ready to serve immediately after restart, regardless of how long it was offline. `briefing.json` is excluded from git via `.gitignore`.
 
 ## 11. Environment Variables
 
@@ -244,7 +257,7 @@ npm run dev
 
 Not included in V1:
 
-- persistent briefing storage or history
+- briefing history and date-range navigation (only the latest briefing is persisted)
 - user accounts or authentication
 - email delivery of briefings
 - Slack or Teams integration
@@ -266,9 +279,9 @@ Feed fetching and Claude API calls both have 15-second timeouts. Total pipeline 
 
 The model prompt explicitly instructs Claude to produce a realistic low-activity briefing rather than refusing when feed data is sparse. This keeps the demo usable even on days with minimal OSINT activity.
 
-### In-Memory Cache
+### Briefing Cache
 
-The briefing cache does not survive a server restart. This is acceptable for V1. A Redis layer would be the natural next step for production.
+The briefing is persisted to `server/briefing.json` on disk after every successful run. On restart, a fresh briefing is served immediately from disk if it is less than 24 hours old, or a catch-up pipeline is triggered automatically if it is stale. A Redis layer would be the natural next step for production multi-instance deployments.
 
 ### Puppeteer on Windows
 
@@ -317,8 +330,11 @@ The project currently includes:
 - working backend with three live OSINT feed integrations
 - normalisation layer with GCC-targeted stats
 - Claude API integration with structured JSON output and `<result>` tag parsing
-- in-memory briefing cache
-- on-demand and scheduled pipeline triggers
+- disk-persisted briefing cache (`server/briefing.json`) surviving server restarts
+- automatic startup catch-up pipeline when saved briefing is older than 24 hours
+- stale briefing fallback if catch-up pipeline fails on startup
+- `briefingAge` exposed on `/api/health` endpoint
+- on-demand and scheduled pipeline triggers (daily at 06:00 GST)
 - React dashboard with all eight UI components
 - Puppeteer PDF export using cached Chromium
-- Windows single-click launcher
+- Windows single-click launcher (`Launch Threat Briefing.cmd`)
