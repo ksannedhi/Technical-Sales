@@ -22,7 +22,7 @@ from presales_gate_engine import PresalesGateEngine
 
 
 HOST = "127.0.0.1"
-PORT = 8010
+PORT = int(os.environ.get("PORT", 8020))
 SUPPORTED_STANDARD_FORMATS = [".txt", ".md", ".docx", ".pptx", ".pdf", ".zip"]
 UNSUPPORTED_STANDARD_FORMATS = [".xlsx", ".xls", ".csv", ".json", ".doc", ".ppt", ".rtf", ".html"]
 PDF_SUPPORT_NOTE = ".pdf is supported for text-based PDFs only; scanned or image-heavy PDFs are not fully supported yet."

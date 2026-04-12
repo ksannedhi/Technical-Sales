@@ -42,7 +42,7 @@ start.cmd
 
 The app opens locally at:
 
-`http://127.0.0.1:8010`
+`http://127.0.0.1:8020`
 
 ## Project Structure
 
