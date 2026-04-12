@@ -20,7 +20,7 @@ const BRIEFING_PATH = path.join(__dirname, 'briefing.json');
 const STALE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const app  = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3003;
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));

@@ -5,8 +5,8 @@ import analyzeRouter from './routes/analyze.js';
 import reportRouter from './routes/report.js';
 
 const app = express();
-const port = process.env.PORT || 3001;
-const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+const port = process.env.PORT || 3002;
+const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5175';
 
 app.use(cors({ origin: clientOrigin }));
 app.use(express.json({ limit: '5mb' }));

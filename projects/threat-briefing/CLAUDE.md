@@ -12,7 +12,7 @@ The `--env-file` flag is required — running via `npm run dev --workspace=serve
 
 **Start the frontend (Vite dev server):**
 ```bash
-cd client && npm run dev  # http://localhost:5173
+cd client && npm run dev  # http://localhost:5177
 ```
 
 **Start both together (preferred):**
@@ -30,12 +30,12 @@ Always use `PUPPETEER_SKIP_DOWNLOAD=true` — Chromium is already cached at:
 
 **Trigger a briefing manually (requires server running):**
 ```bash
-curl -X POST http://localhost:3001/api/briefing/generate
+curl -X POST http://localhost:3003/api/briefing/generate
 ```
 
 **Check health and briefing age:**
 ```bash
-curl http://localhost:3001/api/health
+curl http://localhost:3003/api/health
 ```
 
 ## Architecture
@@ -91,7 +91,7 @@ On every server start, `server/index.js` runs this logic before accepting reques
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Claude API key from console.anthropic.com |
 | `OTX_API_KEY` | No | AlienVault OTX — skipped gracefully if absent |
-| `PORT` | No | Server port, defaults to `3001` |
+| `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if cache is moved |
 
 ## Dark mode
