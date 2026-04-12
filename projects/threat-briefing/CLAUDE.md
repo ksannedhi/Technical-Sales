@@ -25,8 +25,8 @@ Or double-click `Launch Threat Briefing.cmd` on Windows.
 ```bash
 PUPPETEER_SKIP_DOWNLOAD=true npm install
 ```
-Always use `PUPPETEER_SKIP_DOWNLOAD=true` — Chromium is already cached at:
-`PUPPETEER_CHROME_PATH`
+Always use `PUPPETEER_SKIP_DOWNLOAD=true` if Chromium is already cached locally.
+If Puppeteer can't find Chrome automatically, set `PUPPETEER_EXECUTABLE_PATH` in `.env` to point to your local Chrome executable.
 
 **Trigger a briefing manually (requires server running):**
 ```bash
