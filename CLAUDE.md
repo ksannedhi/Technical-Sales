@@ -30,13 +30,13 @@ cmd.exe /c "robocopy \"C:\Users\ksann\Downloads\<standalone>\" \"C:\Users\ksann\
 | `live-soc-twin-field-sku`         | `live-soc-twin-field-sku`              | 3001         | 5173          |
 | `network-security-diagrammer`     | `network-security-diagrammer`          | 8787         | 5174          |
 | `phishing-analyzer`               | `phishing-analyzer`                    | 3002         | 5175          |
-| `security-tools-mapping-navigator`| `security-architecture-auto-mapper`    | 8010         | 5176          |
+| `security-tools-mapping-navigator`| `security-tools-mapping-navigator`     | 8010         | 5176          |
 | `threat-briefing`                 | `threat-briefing`                      | 3003         | 5177          |
 | `threat-to-business-translator`   | `Threat-to-Business Translator`        | 8000         | 5178          |
 | `presales-deal-gating`            | `presales-deal-gating`                 | 8020         | —             |
 | `multi-vendor-decision-copilot`   | `multi-vendor-decision-copilot`        | 8501         | —             |
 
-Note: `security-architecture-auto-mapper` (standalone) maps to `security-tools-mapping-navigator` (repo). `Threat-to-Business Translator` has spaces in the standalone folder name.
+Note: `Threat-to-Business Translator` has spaces in the standalone folder name — all other standalones match their repo folder names exactly.
 
 ## Dev server launch config
 
