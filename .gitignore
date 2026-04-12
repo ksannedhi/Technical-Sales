@@ -11,3 +11,6 @@ coverage/
 Thumbs.db
 
 projects/presales-deal-gating/data/analyses.db
+
+# Local Claude Code tooling — contains machine-specific absolute paths
+.claude/
