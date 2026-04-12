@@ -32,11 +32,11 @@ cmd.exe /c "robocopy \"C:\Users\ksann\Downloads\<standalone>\" \"C:\Users\ksann\
 | `phishing-analyzer`               | `phishing-analyzer`                    | 3002         | 5175          |
 | `security-tools-mapping-navigator`| `security-tools-mapping-navigator`     | 8010         | 5176          |
 | `threat-briefing`                 | `threat-briefing`                      | 3003         | 5177          |
-| `threat-to-business-translator`   | `Threat-to-Business Translator`        | 8000         | 5178          |
+| `threat-to-business-translator`   | `threat-to-business-translator`        | 8000         | 5178          |
 | `presales-deal-gating`            | `presales-deal-gating`                 | 8020         | —             |
 | `multi-vendor-decision-copilot`   | `multi-vendor-decision-copilot`        | 8501         | —             |
 
-Note: `Threat-to-Business Translator` has spaces in the standalone folder name — all other standalones match their repo folder names exactly.
+All standalone folder names now match their `projects/` counterparts exactly.
 
 ## Dev server launch config
 
