@@ -191,5 +191,5 @@ app.get('/api/health', (req, res) => res.json({
 
 app.listen(PORT, () => {
   console.log(`[Server] Running on http://localhost:${PORT}`);
-  console.log('[Server] Daily cron scheduled for 06:00 Kuwait Time (Asia/Kuwait)');
+  console.log('[Server] Daily cron scheduled for 06:00 AST (Asia/Kuwait)');
 });
