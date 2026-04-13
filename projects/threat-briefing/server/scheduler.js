@@ -4,7 +4,7 @@ import cron from 'node-cron';
 let _runner = null;
 export function registerRunner(fn) { _runner = fn; }
 
-// 06:00 GST = 03:00 UTC
+// 06:00 Kuwait Time (AST, UTC+3) = 03:00 UTC
 cron.schedule('0 3 * * *', async () => {
   if (!_runner) return;
   console.log('[Scheduler] Running daily threat briefing pipeline…');

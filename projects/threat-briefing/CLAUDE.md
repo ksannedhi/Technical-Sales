@@ -63,7 +63,7 @@ server/briefing.json             Persisted briefing cache (excluded from git)
         ↓
 server/pdf.js                    Puppeteer HTML-to-PDF using cached Chromium
 server/reportTemplate.js         Inline HTML template for PDF
-server/scheduler.js              node-cron — fires daily at 03:00 UTC (06:00 GST)
+server/scheduler.js              node-cron — fires daily at 06:00 Kuwait Time (03:00 UTC)
 ```
 
 ## Startup behaviour
