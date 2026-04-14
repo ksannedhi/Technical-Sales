@@ -75,7 +75,7 @@ async function runPipeline() {
     },
     body: JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 4000,
+      max_tokens: 8000,
       system:     SYSTEM_PROMPT,
       messages:   [{ role: 'user', content: buildUserPrompt(normalisedData) }]
     })
@@ -89,11 +89,17 @@ async function runPipeline() {
   const data = await response.json();
   const raw  = data.content[0]?.text || '';
 
-  // Accept <result>...</result> tags, ```json ... ``` fences, or bare JSON
+  // Accept <result>...</result> tags, ```json ... ``` fences, or bare JSON.
+  // Also handle truncated responses where </result> was cut off by max_tokens.
   let jsonStr =
     (raw.match(/<result>([\s\S]*?)<\/result>/)  || [])[1] ||
     (raw.match(/```(?:json)?\s*([\s\S]*?)```/)  || [])[1] ||
+    (raw.includes('<result>') ? raw.slice(raw.indexOf('<result>') + 8) : null) ||
     raw.trim();
+
+  if (raw.includes('<result>') && !raw.includes('</result>')) {
+    console.warn('[Pipeline] Response appears truncated (no </result> closing tag) — consider raising max_tokens.');
+  }
 
   let parsed;
   try {
