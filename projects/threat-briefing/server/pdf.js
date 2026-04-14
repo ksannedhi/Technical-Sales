@@ -1,9 +1,8 @@
 import puppeteer from 'puppeteer';
 import { buildReportHTML } from './reportTemplate.js';
 
-// Reuse the Chromium already cached on this machine
-const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH ||
-  'C:\\Users\\ksann\\.cache\\puppeteer\\chrome\\win64-146.0.7680.153\\chrome-win64\\chrome.exe';
+// Use PUPPETEER_EXECUTABLE_PATH env var if set, otherwise let Puppeteer auto-detect
+const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
 
 export async function generatePDF(briefing) {
   const browser = await puppeteer.launch({
