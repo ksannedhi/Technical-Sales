@@ -122,15 +122,15 @@ registerRunner(runPipeline);
       cachedBriefing = saved;
       console.log(`[Startup] Loaded briefing from disk (${ageHours}h old) — still fresh.`);
     } else {
-      console.log(`[Startup] Briefing on disk is ${ageHours}h old — running catch-up pipeline…`);
+      // Serve the stale briefing immediately so the UI isn't blank while catching up
+      cachedBriefing = saved;
+      console.log(`[Startup] Briefing on disk is ${ageHours}h old — serving stale while catching up…`);
       try {
         await runPipeline();
         console.log('[Startup] Catch-up briefing generated successfully.');
       } catch (e) {
         console.error('[Startup] Catch-up pipeline failed:', e.message);
-        // Fall back to the stale briefing rather than serving nothing
-        cachedBriefing = saved;
-        console.warn('[Startup] Serving stale briefing as fallback until next successful run.');
+        console.warn('[Startup] Continuing to serve stale briefing until next successful run.');
       }
     }
   } else {
