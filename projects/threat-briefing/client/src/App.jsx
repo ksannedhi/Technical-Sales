@@ -30,7 +30,7 @@ export default function App() {
     setError(null);
     try {
       const res  = await fetch('/api/briefing/latest');
-      if (!res.ok) throw new Error('No briefing available yet. Click "Generate now" to create one.');
+      if (!res.ok) throw new Error('No briefing available yet. Click "Generate latest" to create one.');
       const data = await res.json();
       setBriefing(data);
     } catch (e) {
@@ -98,7 +98,7 @@ export default function App() {
         <div className="state-center">
           <p>No briefing found. Generate one to get started.</p>
           <button className="btn btn-primary" onClick={generate} disabled={generating}>
-            {generating ? 'Generating…' : 'Generate now'}
+            {generating ? 'Generating…' : 'Generate latest'}
           </button>
         </div>
       )}

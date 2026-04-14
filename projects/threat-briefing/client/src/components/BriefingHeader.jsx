@@ -19,7 +19,7 @@ export default function BriefingHeader({ briefing, generating, onGenerate, onRef
         </button>
         <button className="btn" onClick={onRefresh}>Refresh</button>
         <button className="btn btn-primary" onClick={onGenerate} disabled={generating}>
-          {generating ? 'Generating…' : 'Generate now'}
+          {generating ? 'Generating…' : 'Generate latest'}
         </button>
       </div>
     </div>

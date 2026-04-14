@@ -11,7 +11,7 @@ export default function ExportButton({ briefing }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ briefing })
       });
-      if (!res.ok) throw new Error('Export failed');
+      if (!res.ok) throw new Error('Export failed — check server logs.');
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
@@ -20,7 +20,10 @@ export default function ExportButton({ briefing }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      alert(e.message);
+      const msg = e instanceof TypeError
+        ? 'Export failed — backend is not reachable. Make sure the server is running on port 3003.'
+        : e.message;
+      alert(msg);
     } finally {
       setExporting(false);
     }
