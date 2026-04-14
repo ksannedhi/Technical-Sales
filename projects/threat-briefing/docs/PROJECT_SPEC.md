@@ -18,7 +18,7 @@ The system must:
 - produce a structured JSON briefing via the Claude API with consistent, predictable fields
 - display the briefing in a clean React dashboard without requiring a login or account
 - export the briefing as a polished PDF report via Puppeteer
-- run automatically every day at 06:00 GST via node-cron
+- run automatically every day at 06:00 AST via node-cron
 - allow on-demand generation at any time from the dashboard
 
 The system must not:
@@ -146,7 +146,7 @@ Responsibilities:
 - load and serve the persisted briefing on startup, running a catch-up pipeline if it is stale
 - serve the briefing via REST endpoints
 - generate PDF exports on demand
-- schedule the daily pipeline at 03:00 UTC (06:00 GST)
+- schedule the daily pipeline at 06:00 AST (system clock)
 
 ### 7.2 Frontend
 
@@ -192,9 +192,9 @@ The Chromium binary is reused from the local Puppeteer cache rather than downloa
 
 ## 10. Scheduling and Startup Behaviour
 
-The daily pipeline runs automatically at 06:00 GST, which is 03:00 UTC.
+The daily pipeline runs automatically at 06:00 AST using the system clock. The node-cron timezone option is not used — it produces `Invalid Date` on Windows and silently prevents the cron from firing.
 
-Cron expression: `0 3 * * *`
+Cron expression: `0 6 * * *` (matches system clock, host is AST)
 
 The scheduler calls the same `runPipeline()` function used by the on-demand endpoint. No separate scheduler logic is required.
 
@@ -206,8 +206,8 @@ After every successful pipeline run the briefing is written to `server/briefing.
 |-----------|-----------|
 | No `briefing.json` exists | Pipeline runs immediately on startup |
 | File exists, age < 24h | Loaded into memory and served instantly — no API call |
-| File exists, age ≥ 24h | Catch-up pipeline runs immediately on startup |
-| Catch-up pipeline fails | Stale briefing loaded as fallback — warning logged |
+| File exists, age ≥ 24h | Stale briefing served immediately; catch-up pipeline runs in background |
+| Catch-up pipeline fails | Stale briefing continues to be served — warning logged |
 
 This ensures the server always has a briefing ready to serve immediately after restart, regardless of how long it was offline. `briefing.json` is excluded from git via `.gitignore`.
 
@@ -217,14 +217,14 @@ This ensures the server always has a briefing ready to serve immediately after r
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Claude API key from console.anthropic.com |
 | `OTX_API_KEY` | No | AlienVault OTX API key — skipped gracefully if absent |
-| `PORT` | No | Server port, defaults to `3001` |
+| `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |
 
 ## 12. UI Components
 
 | Component | Responsibility |
 |-----------|---------------|
-| `BriefingHeader` | Top bar with brand name, briefing timestamp, Refresh and Generate Now buttons |
+| `BriefingHeader` | Top bar with brand name, briefing timestamp, Refresh and Generate Latest buttons |
 | `ThreatBanner` | Coloured banner showing threat level badge and executive summary |
 | `StatsRow` | Four stat cards: OTX pulses, CISA KEV added, malware samples, GCC high-priority signals |
 | `ExecutiveSummary` | Executive and analyst summary text with active malware family tags |
@@ -236,8 +236,8 @@ This ensures the server always has a briefing ready to serve immediately after r
 ## 13. Model and Cost Strategy
 
 - Model: `claude-haiku-4-5-20251001`
-- Max tokens: 4000
-- Cost rationale: Haiku is the most cost-effective Claude model for structured JSON synthesis tasks at this scale. The normalised payload is compact and the schema is well-defined, making the task well within Haiku's capability.
+- Max tokens: 8000
+- Cost rationale: Haiku is the most cost-effective Claude model for structured JSON synthesis tasks at this scale. The normalised payload is compact and the schema is well-defined, making the task well within Haiku's capability. Max tokens was raised from 4000 to 8000 to prevent truncation on high-signal days (e.g. 13+ OTX pulses).
 
 ## 14. Startup Experience
 
@@ -275,9 +275,17 @@ OTX, CISA, and MalwareBazaar are all public or lightly authenticated APIs. Any o
 
 Feed fetching and Claude API calls both have 15-second timeouts. Total pipeline time is typically 10–25 seconds depending on feed response times and Claude latency.
 
-### Empty Feed Days
+### Empty Feed Days and 0 Counters
 
 The model prompt explicitly instructs Claude to produce a realistic low-activity briefing rather than refusing when feed data is sparse. This keeps the demo usable even on days with minimal OSINT activity.
+
+Feed stat counters showing 0 have several legitimate causes:
+
+- **OTX: 0** — no subscribed pulses were modified in the last 24 hours (genuine quiet period), or OTX rate-limited a second request made too soon after a previous one
+- **CISA KEV: 0** — CISA does not add new KEVs every day; 0 is correct on quiet days
+- **MalwareBazaar: 0** — the Abuse.ch API returned an error (e.g. HTTP 401 if auth requirements changed); check backend logs for `[Abuse.ch] Feed error`
+
+All feed stat counters are set server-side from the actual feed array lengths after the Claude response is parsed, so they always reflect raw feed reality regardless of what Claude reported.
 
 ### Briefing Cache
 
@@ -285,7 +293,7 @@ The briefing is persisted to `server/briefing.json` on disk after every successf
 
 ### Puppeteer on Windows
 
-Puppeteer requires a Chromium binary. The launcher and `pdf.js` are configured to reuse the locally cached binary rather than downloading a new one. If the cache is moved or deleted, Puppeteer will fail with a clear error pointing to the binary path.
+Puppeteer requires a Chromium binary. `pdf.js` uses `PUPPETEER_EXECUTABLE_PATH` from the environment if set, otherwise falls back to Puppeteer's auto-detection. If Chrome cannot be found, set `PUPPETEER_EXECUTABLE_PATH` in `.env` to the full path of your Chrome installation (e.g. `C:\Program Files\Google\Chrome\Application\chrome.exe`).
 
 ## 17. Key Project Files
 
@@ -332,9 +340,12 @@ The project currently includes:
 - Claude API integration with structured JSON output and `<result>` tag parsing
 - disk-persisted briefing cache (`server/briefing.json`) surviving server restarts
 - automatic startup catch-up pipeline when saved briefing is older than 24 hours
-- stale briefing fallback if catch-up pipeline fails on startup
+- stale briefing served immediately during startup catch-up (no blank UI)
+- stale briefing fallback if catch-up pipeline fails
 - `briefingAge` exposed on `/api/health` endpoint
-- on-demand and scheduled pipeline triggers (daily at 06:00 GST)
+- on-demand and scheduled pipeline triggers (daily at 06:00 AST via system clock)
 - React dashboard with all eight UI components
-- Puppeteer PDF export using cached Chromium
+- Puppeteer PDF export using env-var-configurable Chrome path
 - Windows single-click launcher (`Launch Threat Briefing.cmd`)
+- ground-truth feed stat counters set server-side after Claude response is parsed
+- hardened JSON parser handles truncated Claude responses (missing `</result>` tag)
