@@ -63,7 +63,7 @@ server/briefing.json             Persisted briefing cache (excluded from git)
         ↓
 server/pdf.js                    Puppeteer HTML-to-PDF using cached Chromium
 server/reportTemplate.js         Inline HTML template for PDF
-server/scheduler.js              node-cron — fires daily at 06:00 Kuwait Time (03:00 UTC)
+server/scheduler.js              node-cron — fires daily at 06:00 AST (system clock)
 ```
 
 ## Startup behaviour
@@ -120,6 +120,19 @@ Dark mode preference is stored in `localStorage` (`darkMode: true/false`) and ap
 - `client/src/components/CisaKEV.jsx`
 - `client/src/components/Recommendations.jsx`
 - `client/src/components/ExportButton.jsx`
+
+## Known issues and limitations
+
+| Issue | Cause | Status |
+|-------|-------|--------|
+| Feed stats show 0 after a second manual generate in quick succession | OTX rate-limits repeated API calls on the same key; returns empty result silently instead of an HTTP error | Known — wait ~15 min between manual generates |
+| Abuse.ch returning HTTP 401 | MalwareBazaar API auth requirements changed | Known — feed silently returns 0; check Abuse.ch API docs if Bazaar data is needed |
+| All feed counts show 0 on a quiet day | OTX and CISA KEV filter to the last 24 hours; if no new pulses or KEVs were published, 0 is correct | Expected behaviour — not a bug |
+| CISA KEV always 0 | CISA does not add new KEVs every day; some days are genuinely empty | Expected behaviour |
+| Generation fails with JSON parse error on large OTX feeds | Claude response exceeded `max_tokens` and was truncated before the closing `</result>` tag | Mitigated — `max_tokens` raised to 8000 and parser hardened to handle missing closing tag; may recur if feeds grow very large |
+| Cron did not fire with `{ timezone }` option | node-cron v3 timezone option uses `Intl.DateTimeFormat.format()` then feeds the result to `new Date()`, which returns `Invalid Date` on Windows, silently preventing all matches | Fixed — timezone option removed; cron uses system clock (AST) directly |
+| PDF export ECONNRESET | Puppeteer failed to launch Chrome (stale hardcoded executable path in `pdf.js`) | Fixed — removed hardcoded path; now uses `PUPPETEER_EXECUTABLE_PATH` env var or Puppeteer auto-detection |
+| Blank UI during startup catch-up pipeline | `cachedBriefing` was null while the pipeline ran; frontend had nothing to show | Fixed — stale briefing is now served immediately while catch-up runs in background |
 
 ## Non-goals
 
