@@ -65,6 +65,7 @@ low      : Informational, no active exploitation evidence
     "cisaKEVAdded": number,
     "malwareSamplesAnalysed": number
   }
+  (feedStats will be overridden server-side with exact feed array lengths — include plausible values as placeholders only)
 }
 
 Rules:

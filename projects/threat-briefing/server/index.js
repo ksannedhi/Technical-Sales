@@ -103,6 +103,14 @@ async function runPipeline() {
     throw new Error(`Claude response was not valid JSON: ${e.message}`);
   }
 
+  // Override feedStats with ground-truth counts from the actual feed arrays
+  // so the UI always reflects reality regardless of what Claude counted
+  parsed.feedStats = {
+    otxPulsesProcessed:    otx.length,
+    cisaKEVAdded:          cisa.length,
+    malwareSamplesAnalysed: abusech.length
+  };
+
   cachedBriefing = parsed;
   saveBriefing(cachedBriefing);
   console.log('[Pipeline] Briefing cached and persisted to disk.');
