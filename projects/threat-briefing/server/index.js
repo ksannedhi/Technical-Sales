@@ -19,6 +19,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BRIEFING_PATH = path.join(__dirname, 'briefing.json');
 const STALE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+// ── Pre-flight checks ─────────────────────────────────────────────────────────
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error('[Startup] ANTHROPIC_API_KEY is not set. Add it to .env and restart.');
+  process.exit(1);
+}
+
 const app  = express();
 const PORT = process.env.PORT || 3003;
 
@@ -73,6 +79,7 @@ async function runPipeline() {
       'x-api-key':         process.env.ANTHROPIC_API_KEY,
       'anthropic-version': '2023-06-01'
     },
+    signal: AbortSignal.timeout(60_000),
     body: JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
       max_tokens: 8000,

@@ -47,7 +47,7 @@ npm run dev
 
 | Endpoint | Description |
 |----------|-------------|
-| `http://localhost:5173` | React dashboard |
+| `http://localhost:5177` | React dashboard |
 | `http://localhost:3003/api/briefing/latest` | Cached briefing JSON |
 | `http://localhost:3003/api/briefing/generate` | Trigger on-demand generation (POST) |
 | `http://localhost:3003/api/briefing/export` | PDF export (POST) |
@@ -105,3 +105,4 @@ A briefing with all-zero counters is still valid. Claude generates a low-activit
 | `OTX_API_KEY` | No | From [otx.alienvault.com](https://otx.alienvault.com) |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |
+| `TZ` | No | Set to `Asia/Kuwait` (pre-filled in `.env.example`) — pins process clock so the daily cron fires at 06:00 AST on any host timezone |

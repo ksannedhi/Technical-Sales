@@ -7,6 +7,9 @@ export default function Recommendations({ briefing }) {
   return (
     <div className="card">
       <div className="card-heading">Recommended actions</div>
+      {recs.length === 0 && (
+        <p style={{ fontSize: '12px', color: '#aaa' }}>No recommendations available.</p>
+      )}
       {recs.map((r, i) => (
         <div key={i} className="rec-row">
           <div className="rec-text">{r.action}</div>

@@ -192,9 +192,11 @@ The Chromium binary is reused from the local Puppeteer cache rather than downloa
 
 ## 10. Scheduling and Startup Behaviour
 
-The daily pipeline runs automatically at 06:00 AST using the system clock. The node-cron timezone option is not used — it produces `Invalid Date` on Windows and silently prevents the cron from firing.
+The daily pipeline runs automatically at 06:00 AST. The node-cron `{ timezone }` option is not used — it produces `Invalid Date` on Windows and silently prevents the cron from firing.
 
-Cron expression: `0 6 * * *` (matches system clock, host is AST)
+Instead, `TZ=Asia/Kuwait` is set in `.env`. Node.js reads `TZ` before executing any code, pinning the process clock to Kuwait time so `'0 6 * * *'` fires at 06:00 AST on any host regardless of system locale. This makes the scheduler portable across machines in any timezone.
+
+Cron expression: `0 6 * * *` (process clock pinned to AST via `TZ=Asia/Kuwait`)
 
 The scheduler calls the same `runPipeline()` function used by the on-demand endpoint. No separate scheduler logic is required.
 
@@ -215,10 +217,11 @@ This ensures the server always has a briefing ready to serve immediately after r
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | Claude API key from console.anthropic.com |
+| `ANTHROPIC_API_KEY` | Yes | Claude API key from console.anthropic.com — server exits immediately if not set |
 | `OTX_API_KEY` | No | AlienVault OTX API key — skipped gracefully if absent |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |
+| `TZ` | No | Set to `Asia/Kuwait` (included in `.env.example`) — pins process clock for portable cron scheduling |
 
 ## 12. UI Components
 
@@ -273,7 +276,7 @@ OTX, CISA, and MalwareBazaar are all public or lightly authenticated APIs. Any o
 
 ### API Latency
 
-Feed fetching and Claude API calls both have 15-second timeouts. Total pipeline time is typically 10–25 seconds depending on feed response times and Claude latency.
+Feed fetching has a 15-second timeout per feed. The Claude API call has a 60-second timeout. Total pipeline time is typically 10–25 seconds depending on feed response times and Claude latency.
 
 ### Empty Feed Days and 0 Counters
 
@@ -343,9 +346,14 @@ The project currently includes:
 - stale briefing served immediately during startup catch-up (no blank UI)
 - stale briefing fallback if catch-up pipeline fails
 - `briefingAge` exposed on `/api/health` endpoint
-- on-demand and scheduled pipeline triggers (daily at 06:00 AST via system clock)
+- on-demand and scheduled pipeline triggers (daily at 06:00 AST via `TZ=Asia/Kuwait` + system cron)
 - React dashboard with all eight UI components
 - Puppeteer PDF export using env-var-configurable Chrome path
 - Windows single-click launcher (`Launch Threat Briefing.cmd`)
 - ground-truth feed stat counters set server-side after Claude response is parsed
 - hardened JSON parser handles truncated Claude responses (missing `</result>` tag)
+- `ANTHROPIC_API_KEY` validated at startup — server exits immediately with a clear message if not set
+- 60-second timeout on Claude API fetch — pipeline cannot hang indefinitely
+- HTML escaping on all Claude-generated fields in the PDF template
+- `Recommendations` component shows empty state message when no recommendations are returned
+- cron scheduling portable across host timezones via `TZ` environment variable

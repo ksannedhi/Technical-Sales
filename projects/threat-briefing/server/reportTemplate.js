@@ -1,3 +1,10 @@
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  }[c]));
+}
+
 const SEV_COLOR = {
   critical: '#e24b4a',
   high:     '#d85a30',
@@ -15,28 +22,28 @@ export function buildReportHTML(r) {
   const topThreatsRows = (r.topThreats || []).map(t => `
     <tr>
       <td>${t.rank}</td>
-      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:${SEV_COLOR[t.severity]}20;color:${SEV_COLOR[t.severity]}">${t.severity}</span></td>
-      <td style="font-weight:500">${t.title}</td>
-      <td style="font-size:11px;color:#555">${(t.iocs||[]).slice(0,2).join(', ') || '—'}</td>
-      <td><span style="display:inline-block;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:500;background:#eeedfe;color:#3c3489">${t.gccRelevance}</span></td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:${SEV_COLOR[t.severity]}20;color:${SEV_COLOR[t.severity]}">${esc(t.severity)}</span></td>
+      <td style="font-weight:500">${esc(t.title)}</td>
+      <td style="font-size:11px;color:#555">${(t.iocs||[]).slice(0,2).map(esc).join(', ') || '—'}</td>
+      <td><span style="display:inline-block;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:500;background:#eeedfe;color:#3c3489">${esc(t.gccRelevance)}</span></td>
     </tr>
   `).join('');
 
   const kevRows = (r.cisaKEVHighlights || []).map(k => `
     <tr>
-      <td style="font-family:monospace;font-size:11px;color:#185fa5;font-weight:600">${k.cveId}</td>
-      <td>${k.product} ${k.ransomwareLinked ? '<span style="display:inline-block;padding:1px 6px;border-radius:20px;font-size:9px;font-weight:600;background:#fcebeb;color:#a32d2d;margin-left:4px">Ransomware</span>' : ''}</td>
-      <td>${k.patchDeadline || 'TBD'}</td>
-      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:${PRIORITY_COLOR[k.priority] || '#888'}20;color:${PRIORITY_COLOR[k.priority] || '#888'}">${k.priority}</span></td>
+      <td style="font-family:monospace;font-size:11px;color:#185fa5;font-weight:600">${esc(k.cveId)}</td>
+      <td>${esc(k.product)} ${k.ransomwareLinked ? '<span style="display:inline-block;padding:1px 6px;border-radius:20px;font-size:9px;font-weight:600;background:#fcebeb;color:#a32d2d;margin-left:4px">Ransomware</span>' : ''}</td>
+      <td>${esc(k.patchDeadline) || 'TBD'}</td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:${PRIORITY_COLOR[k.priority] || '#888'}20;color:${PRIORITY_COLOR[k.priority] || '#888'}">${esc(k.priority)}</span></td>
     </tr>
   `).join('');
 
   const recRows = (r.recommendations || []).map((rec, i) => `
     <tr>
       <td style="color:#888">${i + 1}</td>
-      <td>${rec.action}</td>
-      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#e6f1fb;color:#185fa5">${rec.owner}</span></td>
-      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#fcebeb;color:#a32d2d">${rec.timeframe}</span></td>
+      <td>${esc(rec.action)}</td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#e6f1fb;color:#185fa5">${esc(rec.owner)}</span></td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:#fcebeb;color:#a32d2d">${esc(rec.timeframe)}</span></td>
     </tr>
   `).join('');
 
@@ -99,14 +106,14 @@ export function buildReportHTML(r) {
       <span class="badge-v">${r.threatLevel || '—'}</span>
     </div>
     <div class="banner-text">
-      <h2>Regional threat level: ${(r.threatLevel || '').toUpperCase()}</h2>
-      <p>${r.executiveSummary || ''}</p>
+      <h2>Regional threat level: ${esc((r.threatLevel || '').toUpperCase())}</h2>
+      <p>${esc(r.executiveSummary)}</p>
     </div>
   </div>
 
   <div class="section">
     <div class="sec-title">Analyst summary</div>
-    <div class="box">${r.analystSummary || ''}</div>
+    <div class="box">${esc(r.analystSummary)}</div>
   </div>
 
   <div class="section">

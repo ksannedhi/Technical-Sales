@@ -80,10 +80,12 @@ On every server start, `server/index.js` runs this logic before accepting reques
 ## Key design decisions
 
 - **`--env-file` over dotenv workspace** — npm workspace scripts `cd` into the package dir before running Node, so `dotenv` cannot resolve the root `.env`. Always run the server from the project root with `--env-file=.env`.
+- **`TZ=Asia/Kuwait` in .env** — node-cron's `{ timezone }` option produces `Invalid Date` on Windows. Instead, `TZ` pins the Node.js process clock to Kuwait time so `'0 6 * * *'` fires at 06:00 AST on any host regardless of system locale. Node.js reads `TZ` before executing code, so `--env-file` delivers it in time.
 - **Flexible response parsing** — Claude sometimes returns JSON in `<result>` tags, sometimes in ` ```json ``` ` fences. The parser handles both.
 - **Puppeteer reuses cached Chromium** — `pdf.js` points to the existing cache. `page.pdf()` returns `Uint8Array` in Puppeteer v22+, always wrap with `Buffer.from()` before `res.send()`.
 - **Two-audience design** — `executiveSummary` is plain English for CISOs/board; `analystSummary` is technical with IOCs/CVEs for SOC teams.
 - **GCC regional focus** — the system prompt prioritises Kuwait, Saudi Arabia, UAE, Bahrain, Qatar, Oman and threat actors APT33, APT34, OilRig, Lazarus, Turla.
+- **HTML escaping in PDF template** — `reportTemplate.js` uses `esc()` on all Claude-generated text fields before interpolating into HTML, preventing special characters (`&`, `<`, `>`) from breaking the PDF layout.
 
 ## Environment variables
 
@@ -93,6 +95,7 @@ On every server start, `server/index.js` runs this logic before accepting reques
 | `OTX_API_KEY` | No | AlienVault OTX — skipped gracefully if absent |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if cache is moved |
+| `TZ` | No | Set to `Asia/Kuwait` to pin process clock to AST — makes `'0 6 * * *'` fire at 06:00 AST on any host timezone |
 
 ## Dark mode
 
@@ -130,7 +133,7 @@ Dark mode preference is stored in `localStorage` (`darkMode: true/false`) and ap
 | All feed counts show 0 on a quiet day | OTX and CISA KEV filter to the last 24 hours; if no new pulses or KEVs were published, 0 is correct | Expected behaviour — not a bug |
 | CISA KEV always 0 | CISA does not add new KEVs every day; some days are genuinely empty | Expected behaviour |
 | Generation fails with JSON parse error on large OTX feeds | Claude response exceeded `max_tokens` and was truncated before the closing `</result>` tag | Mitigated — `max_tokens` raised to 8000 and parser hardened to handle missing closing tag; may recur if feeds grow very large |
-| Cron did not fire with `{ timezone }` option | node-cron v3 timezone option uses `Intl.DateTimeFormat.format()` then feeds the result to `new Date()`, which returns `Invalid Date` on Windows, silently preventing all matches | Fixed — timezone option removed; cron uses system clock (AST) directly |
+| Cron did not fire with `{ timezone }` option | node-cron v3 timezone option uses `Intl.DateTimeFormat.format()` then feeds the result to `new Date()`, which returns `Invalid Date` on Windows, silently preventing all matches | Fixed — timezone option removed; `TZ=Asia/Kuwait` in `.env` pins process clock so cron fires at 06:00 AST on any host |
 | PDF export ECONNRESET | Puppeteer failed to launch Chrome (stale hardcoded executable path in `pdf.js`) | Fixed — removed hardcoded path; now uses `PUPPETEER_EXECUTABLE_PATH` env var or Puppeteer auto-detection |
 | Blank UI during startup catch-up pipeline | `cachedBriefing` was null while the pipeline ran; frontend had nothing to show | Fixed — stale briefing is now served immediately while catch-up runs in background |
 
