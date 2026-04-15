@@ -1,0 +1,1826 @@
+{
+  "version": "1.1",
+  "description": "Cross-framework domain taxonomy for GCC regulatory harmonisation — includes Qatar NIAS V2.1 (NCSA, May 2023)",
+  "domains": [
+    {
+      "domainId": "governance-strategy",
+      "domainLabel": "Cybersecurity governance and strategy",
+      "description": "Board-level oversight, cybersecurity strategy, management structure, and regulatory alignment",
+      "controls": {
+        "NCA-ECC": [
+          "1-1-1",
+          "1-1-2",
+          "1-1-3",
+          "1-2-1",
+          "1-2-2",
+          "1-2-3"
+        ],
+        "SAMA-CSF": [
+          "3.1.1",
+          "3.1.2",
+          "3.1.4"
+        ],
+        "CBK": [
+          "GRC-Governance"
+        ],
+        "ISO-27001": [
+          "5.1",
+          "5.2",
+          "5.4"
+        ],
+        "NIST-CSF": [
+          "GV.OC",
+          "GV.RM",
+          "GV.RR"
+        ],
+        "UAE-NIAF": [
+          "Ch3-EntityContext"
+        ],
+        "PCI-DSS": [],
+        "IEC-62443": [],
+        "SOC2": [
+          "CC1.1",
+          "CC1.2",
+          "CC1.3"
+        ],
+        "PDPL-UAE": [
+          "Art.7-Controller obligations",
+          "Art.10-DPO appointment",
+          "Art.11-DPO roles"
+        ],
+        "PDPL-QAT": [
+          "Art.8-Controller obligations",
+          "Art.11-Controller procedures"
+        ],
+        "QATAR-NIAS": [
+          "IG1-Appoint Security Manager",
+          "IG2-Allocate budget",
+          "IG3-Security Manager reporting line",
+          "IG4-Documented executive support",
+          "IG5-Delegation authority",
+          "IG6-Security responsibilities defined",
+          "IG7-Security Manager competency requirements",
+          "IG8-Security Manager operational responsibilities",
+          "IG9-Security Manager strategic responsibilities",
+          "IG10-Security Manager familiarity with operating procedures"
+        ]
+      }
+    },
+    {
+      "domainId": "risk-management",
+      "domainLabel": "Cybersecurity risk management",
+      "description": "Risk identification, assessment, treatment, and ongoing monitoring processes",
+      "controls": {
+        "NCA-ECC": [
+          "1-5-1",
+          "1-5-2",
+          "1-5-3",
+          "1-5-4"
+        ],
+        "SAMA-CSF": [
+          "3.2.1"
+        ],
+        "CBK": [
+          "GRC-RiskManagement"
+        ],
+        "ISO-27001": [
+          "5.7",
+          "6.1",
+          "6.2",
+          "8.2",
+          "8.3"
+        ],
+        "NIST-CSF": [
+          "GV.RM-01",
+          "GV.RM-02",
+          "ID.RA"
+        ],
+        "UAE-NIAF": [
+          "3.1-RiskAssessment"
+        ],
+        "PCI-DSS": [
+          "12.3"
+        ],
+        "IEC-62443": [
+          "SR-1",
+          "IACS-RiskAssessment"
+        ],
+        "SOC2": [
+          "CC3.1",
+          "CC3.2",
+          "CC3.3",
+          "CC3.4"
+        ],
+        "PDPL-UAE": [
+          "Art.21-Data protection impact assessment",
+          "Art.20-Personal data security"
+        ],
+        "PDPL-QAT": [
+          "Art.8-3-Administrative precautions",
+          "Art.13-Protection precautions"
+        ],
+        "QATAR-NIAS": [
+          "RM1-Define risk assessment process",
+          "RM2-Risk treatment plan",
+          "RM3-Senior management vetting for High assets",
+          "RM4-Periodic control effectiveness monitoring",
+          "RM5-Risk assessment integrated with business process and regulatory changes"
+        ]
+      }
+    },
+    {
+      "domainId": "policy-compliance",
+      "domainLabel": "Policies, procedures, and compliance",
+      "description": "Documentation of cybersecurity policies, regulatory compliance monitoring, and audit",
+      "controls": {
+        "NCA-ECC": [
+          "1-3-1",
+          "1-3-2",
+          "1-3-3",
+          "1-3-4",
+          "1-7-1",
+          "1-7-2",
+          "1-8-1",
+          "1-8-2"
+        ],
+        "SAMA-CSF": [
+          "3.1.3",
+          "3.2.2",
+          "3.2.3",
+          "3.2.4",
+          "3.2.5"
+        ],
+        "CBK": [
+          "GRC-Compliance"
+        ],
+        "ISO-27001": [
+          "5.1",
+          "5.31",
+          "5.36"
+        ],
+        "NIST-CSF": [
+          "GV.PO",
+          "GV.OV"
+        ],
+        "UAE-NIAF": [
+          "Ch6-Governance",
+          "Ch5-Standards"
+        ],
+        "PCI-DSS": [
+          "12.1",
+          "12.2"
+        ],
+        "IEC-62443": [
+          "CSMS-Policy"
+        ],
+        "SOC2": [
+          "CC1.4",
+          "CC2.1",
+          "CC2.2",
+          "CC2.3"
+        ],
+        "PDPL-UAE": [
+          "Art.7-Controller obligations",
+          "Art.8-Processor obligations",
+          "Art.5-Processing controls"
+        ],
+        "PDPL-QAT": [
+          "Art.8-Controller obligations",
+          "Art.11-7-Compliance audits"
+        ],
+        "QATAR-NIAS": [
+          "DC1-Produce organisation security policy",
+          "DC2-System security plans for critical systems",
+          "DC3-Align security standards with policies",
+          "DC4-Classify ICT security documentation C3/RESTRICTED minimum",
+          "DC5-Periodic documentation review",
+          "AC1-Governance and security improvement programme",
+          "AC2-Comply with government laws and regulations",
+          "AC3-Annual audit by NCSA-accredited auditor",
+          "AC4-Annual information system audit",
+          "AC5-Audit scope approved by NCSA",
+          "AC6-Recertification on significant changes",
+          "AC7-Fix non-conformance in defined timeline",
+          "AC8-Exemptions approved by NCSA"
+        ]
+      }
+    },
+    {
+      "domainId": "roles-responsibilities",
+      "domainLabel": "Roles, responsibilities, and human resources",
+      "description": "Cybersecurity roles definition, staffing, background checks, and offboarding",
+      "controls": {
+        "NCA-ECC": [
+          "1-4-1",
+          "1-4-2",
+          "1-9-1",
+          "1-9-2",
+          "1-9-3"
+        ],
+        "SAMA-CSF": [
+          "3.1.4",
+          "3.3.1"
+        ],
+        "CBK": [
+          "TO-HumanResourceSecurity"
+        ],
+        "ISO-27001": [
+          "5.2",
+          "5.3",
+          "6.1",
+          "6.2",
+          "6.3",
+          "6.4",
+          "6.5"
+        ],
+        "NIST-CSF": [
+          "GV.RR-01",
+          "GV.RR-02",
+          "PR.AT"
+        ],
+        "UAE-NIAF": [
+          "3.2.3-PersonnelSecurity"
+        ],
+        "PCI-DSS": [
+          "12.6"
+        ],
+        "IEC-62443": [
+          "HR-Security"
+        ],
+        "SOC2": [
+          "CC1.1",
+          "CC1.4"
+        ],
+        "PDPL-UAE": [
+          "Art.10-DPO appointment mandatory cases",
+          "Art.11-DPO roles and powers",
+          "Art.12-Controller/Processor duties to DPO"
+        ],
+        "PDPL-QAT": [
+          "Art.11-2-Identifying responsible processors",
+          "Art.11-3-Training processors"
+        ],
+        "QATAR-NIAS": [
+          "PS1-HR processes aligned with security",
+          "PS2-HR security requirements documented",
+          "PS3-Personnel information handled per privacy law",
+          "PS4-Security responsibilities in job descriptions",
+          "PS5-Pre-employment screening",
+          "PS6-Staff security obligations agreement",
+          "PS7-Controls against unauthorised disclosure",
+          "PS8-Least privilege access",
+          "PS9-Separation of duties four-eyes principle",
+          "PS10-Disciplinary process",
+          "PS11-Visitor management",
+          "PS12-Offboarding change request process"
+        ]
+      }
+    },
+    {
+      "domainId": "awareness-training",
+      "domainLabel": "Security awareness and training",
+      "description": "Cybersecurity awareness programs, role-based training, and phishing simulation",
+      "controls": {
+        "NCA-ECC": [
+          "1-10-1",
+          "1-10-2",
+          "1-10-3",
+          "1-10-4",
+          "1-10-5"
+        ],
+        "SAMA-CSF": [
+          "3.1.6",
+          "3.1.7"
+        ],
+        "CBK": [
+          "TO-SecurityAwarenessTraining"
+        ],
+        "ISO-27001": [
+          "6.3",
+          "7.2",
+          "7.3"
+        ],
+        "NIST-CSF": [
+          "PR.AT-01",
+          "PR.AT-02"
+        ],
+        "UAE-NIAF": [
+          "Ch4-InformationSharing"
+        ],
+        "PCI-DSS": [
+          "12.6"
+        ],
+        "IEC-62443": [
+          "SR-2.1"
+        ],
+        "SOC2": [
+          "CC1.4",
+          "CC2.2"
+        ],
+        "PDPL-UAE": [
+          "Art.12-b-DPO resource support"
+        ],
+        "PDPL-QAT": [
+          "Art.11-3-Training and raising awareness of processors"
+        ],
+        "QATAR-NIAS": [
+          "SA1-Security awareness programme with budget",
+          "SA2-Baseline training content including NIA requirements",
+          "SA3-All employees and contractors receive training",
+          "SA4-Social engineering recognition training",
+          "SA5-Regular content review reflecting new threats",
+          "SA6-New employee induction security training",
+          "SA7-Training effectiveness assessment",
+          "SA8-Indirect media channels for awareness"
+        ]
+      }
+    },
+    {
+      "domainId": "asset-management",
+      "domainLabel": "Asset management and classification",
+      "description": "IT asset inventory, ownership, classification, labelling, and lifecycle management",
+      "controls": {
+        "NCA-ECC": [
+          "2-1-1",
+          "2-1-2",
+          "2-1-3",
+          "2-1-4",
+          "2-1-5",
+          "2-1-6"
+        ],
+        "SAMA-CSF": [
+          "3.3.3"
+        ],
+        "CBK": [
+          "TO-AssetManagementClassification"
+        ],
+        "ISO-27001": [
+          "5.9",
+          "5.10",
+          "5.11",
+          "5.12",
+          "5.13"
+        ],
+        "NIST-CSF": [
+          "ID.AM-01",
+          "ID.AM-02",
+          "ID.AM-03",
+          "ID.AM-04",
+          "ID.AM-05"
+        ],
+        "UAE-NIAF": [
+          "3.1.1-AssetInventory"
+        ],
+        "PCI-DSS": [
+          "12.3"
+        ],
+        "IEC-62443": [
+          "IACS-AssetInventory"
+        ],
+        "SOC2": [
+          "CC6.1"
+        ],
+        "PDPL-UAE": [
+          "Art.7-4-Maintain personal data record",
+          "Art.8-7-Processor record of processing activities",
+          "Art.5-3-Data minimisation"
+        ],
+        "PDPL-QAT": [
+          "Art.10-Data accuracy and relevance",
+          "Art.11-5-Internal data management systems"
+        ],
+        "QATAR-NIAS": [
+          "DL1-Serve as labelling authority",
+          "DL2-Rate assets per IAP-NAT-DCLS C1-C4",
+          "DL3-Default label Internal unless public or higher classification",
+          "DL4-Data labelling supports need-to-know",
+          "DL5-Data labelling education for staff and contractors",
+          "MS1-Hardware classification at or above information classification",
+          "MS2-Non-volatile media classified to highest classification",
+          "MS3-Volatile media classification with power",
+          "MS4-Media reclassification triggers",
+          "MS7-Visual classification marking on all media"
+        ]
+      }
+    },
+    {
+      "domainId": "identity-access",
+      "domainLabel": "Identity and access management",
+      "description": "User provisioning, authentication, MFA, privileged access, and access reviews",
+      "controls": {
+        "NCA-ECC": [
+          "2-2-1",
+          "2-2-2",
+          "2-2-3",
+          "2-2-4"
+        ],
+        "SAMA-CSF": [
+          "3.3.5"
+        ],
+        "CBK": [
+          "TO-AccessControlManagement"
+        ],
+        "ISO-27001": [
+          "5.15",
+          "5.16",
+          "5.17",
+          "5.18",
+          "8.2",
+          "8.3",
+          "8.4",
+          "8.5"
+        ],
+        "NIST-CSF": [
+          "PR.AA-01",
+          "PR.AA-02",
+          "PR.AA-03",
+          "PR.AA-04",
+          "PR.AA-05",
+          "PR.AA-06"
+        ],
+        "UAE-NIAF": [
+          "3.2.1-LogicalSecurity"
+        ],
+        "PCI-DSS": [
+          "7",
+          "8"
+        ],
+        "IEC-62443": [
+          "SR-1.1",
+          "SR-1.2",
+          "SR-1.3",
+          "SR-1.5",
+          "SR-2.1"
+        ],
+        "SOC2": [
+          "CC6.1",
+          "CC6.2",
+          "CC6.3"
+        ],
+        "PDPL-UAE": [
+          "Art.5-6-Secure storage and access controls",
+          "Art.20-1-Technical/organisational measures",
+          "Art.7-4-Access authorisation records"
+        ],
+        "PDPL-QAT": [
+          "Art.11-6-Technologies for individual access rights",
+          "Art.13-Protection against illegal access"
+        ],
+        "QATAR-NIAS": [
+          "AM1-Least privilege and need-to-know",
+          "AM2-Access controlled via system controls and audit trails",
+          "AM3-Access rights matrix model",
+          "AM4-Access updated on role or status change",
+          "AM5-Additional access requires Security Manager approval",
+          "AM6-Unauthorised circumvention treated as security incident",
+          "AM7-Audit logs enabled for compliance monitoring",
+          "AM8-Logical access technically controlled NAC",
+          "AM9-Secure access records maintained",
+          "AM10-Logon banner displayed",
+          "AM11-Centralised authentication repositories protected",
+          "AM12-Identification and authentication policies",
+          "AM14-All users uniquely identifiable and authenticated",
+          "AM15-Non-employees require Security Manager approval",
+          "AM19-Password policy minimum 12 characters or 7 with complexity",
+          "AM20-Passwords changed at least every 90 days",
+          "AM21-Password change once per day limit",
+          "AM22-Password reuse prevention within 8 changes",
+          "AM23-Screen lock after 15 minutes inactivity",
+          "AM24-Account suspension after failed logon attempts",
+          "AM26-Inactive accounts suspended after 3 months",
+          "AM27-Accounts audited every 6 months for C2+ systems",
+          "AM31-Privileged accounts documented and minimised",
+          "AM32-Administrators have individual accounts",
+          "AM36-Two-factor authentication for C3+ remote access",
+          "AM40-No access from public computers"
+        ]
+      }
+    },
+    {
+      "domainId": "network-security",
+      "domainLabel": "Network security and segmentation",
+      "description": "Network architecture, firewalls, segmentation, remote access, and wireless security",
+      "controls": {
+        "NCA-ECC": [
+          "2-5-1",
+          "2-5-2",
+          "2-5-3",
+          "2-5-4",
+          "2-5-5",
+          "2-5-6"
+        ],
+        "SAMA-CSF": [
+          "3.3.4",
+          "3.3.8"
+        ],
+        "CBK": [
+          "TO-InfrastructureSecurity"
+        ],
+        "ISO-27001": [
+          "8.20",
+          "8.21",
+          "8.22"
+        ],
+        "NIST-CSF": [
+          "PR.IR-01",
+          "PR.IR-02",
+          "PR.IR-03",
+          "PR.IR-04"
+        ],
+        "UAE-NIAF": [
+          "3.2.1-LogicalSecurity"
+        ],
+        "PCI-DSS": [
+          "1",
+          "4"
+        ],
+        "IEC-62443": [
+          "SR-5.1",
+          "SR-5.2",
+          "SR-5.3",
+          "ZoneSeparation"
+        ],
+        "SOC2": [
+          "CC6.6",
+          "CC6.7"
+        ],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": [
+          "NS1-No public disclosure of internal network config",
+          "NS4-High-level and logical network diagrams maintained",
+          "NS5-Networks designed to limit unauthorised access including switches firewalls IPSEC IPS/IDS",
+          "NS6-Dedicated management networks and secure channels",
+          "NS7-VLANs for IP telephony separation",
+          "NS8-Administrative access from highest classified VLAN only",
+          "NS9-Vendor switch hardening guidelines implemented",
+          "NS10-No trunking/port mirroring across differing VLAN classifications",
+          "NS25-Internet gateway deny-all unless specifically enabled",
+          "NS27-Network traffic monitoring capability",
+          "NS33-WLAN with authentication and encryption",
+          "NS34-WPA2/EAP-TLS strong wireless protocols no WEP",
+          "NS35-Wireless device inventory",
+          "NS36-Regular rouge AP scanning",
+          "NS39-Default SSID and SNMP community strings changed",
+          "NS41-Firewall between AP and organisation network",
+          "NS45-Clock synchronisation UTC or local standard",
+          "NS48-VPN two-factor auth for C3+ data",
+          "NS50-No split tunnelling unless controls in place",
+          "NS53-Voice and data separated physically or by VLAN",
+          "NS55-SRTP for VoIP security",
+          "NS64-IPv6 risk assessment conducted"
+        ]
+      }
+    },
+    {
+      "domainId": "email-security",
+      "domainLabel": "Email security and anti-phishing",
+      "description": "Email authentication (SPF/DKIM/DMARC), anti-phishing, anti-malware, and secure mail gateways",
+      "controls": {
+        "NCA-ECC": [
+          "2-4-1",
+          "2-4-2",
+          "2-4-3",
+          "2-4-4",
+          "2-4-5",
+          "2-4-6"
+        ],
+        "SAMA-CSF": [
+          "3.3.4",
+          "3.3.8"
+        ],
+        "CBK": [
+          "TO-EmailSecurity"
+        ],
+        "ISO-27001": [
+          "8.23"
+        ],
+        "NIST-CSF": [
+          "PR.IR-01",
+          "DE.CM-01"
+        ],
+        "UAE-NIAF": [
+          "3.2.1-LogicalSecurity"
+        ],
+        "PCI-DSS": [
+          "5.4"
+        ],
+        "IEC-62443": [],
+        "SOC2": [
+          "CC6.7",
+          "CC6.8"
+        ],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": [
+          "NS28-Email servers hardened as bastion servers",
+          "NS29-TLS with SMTP mail server",
+          "NS30-SPF RFC4408 implemented",
+          "NS31-Internal distribution lists secured from external access",
+          "NS32-Email gateways scan incoming and outgoing",
+          "IE10-Email disclaimer on all outgoing email",
+          "SU8-Public webmail not permitted from organisation systems",
+          "SU10-C2+ emails not auto-forwarded outside organisation"
+        ]
+      }
+    },
+    {
+      "domainId": "endpoint-mobile",
+      "domainLabel": "Endpoint and mobile device security",
+      "description": "Endpoint protection, EDR, mobile device management, BYOD, and removable media",
+      "controls": {
+        "NCA-ECC": [
+          "2-6-1",
+          "2-6-2",
+          "2-6-3",
+          "2-6-4"
+        ],
+        "SAMA-CSF": [
+          "3.3.10"
+        ],
+        "CBK": [
+          "TO-PortableDeviceSecurity"
+        ],
+        "ISO-27001": [
+          "8.1",
+          "8.7",
+          "8.12",
+          "8.17",
+          "8.19"
+        ],
+        "NIST-CSF": [
+          "PR.PS-01",
+          "PR.PS-02",
+          "PR.PS-03",
+          "PR.PS-04",
+          "PR.PS-05",
+          "PR.PS-06"
+        ],
+        "UAE-NIAF": [
+          "3.2.1-LogicalSecurity"
+        ],
+        "PCI-DSS": [
+          "5",
+          "12.3"
+        ],
+        "IEC-62443": [
+          "SR-3.1",
+          "SR-3.2"
+        ],
+        "SOC2": [
+          "CC6.8"
+        ],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": [
+          "OS1-Mobile device usage policies",
+          "OS5-Laptops and MDs encrypt information and are password protected",
+          "OS6-MDs/laptops under direct supervision or secured when not in use",
+          "OS7-Non-organisation MDs managed and accredited same as organisation devices",
+          "OS9-Loss or theft reported immediately",
+          "OS10-Emergency destruction/locking/remote wipe plan",
+          "SS13-Workstations use hardened standard operating environment",
+          "SS14-Potential vulnerabilities reduced by removing shares patching disabling unused IO"
+        ]
+      }
+    },
+    {
+      "domainId": "data-protection",
+      "domainLabel": "Data protection and privacy",
+      "description": "Data classification, encryption at rest and in transit, DLP, data retention, and PDPL compliance",
+      "controls": {
+        "NCA-ECC": [
+          "2-7-1",
+          "2-7-2",
+          "2-7-3",
+          "2-7-4",
+          "2-8-1",
+          "2-8-2",
+          "2-8-3"
+        ],
+        "SAMA-CSF": [
+          "3.3.9"
+        ],
+        "CBK": [
+          "TO-DataPrivacySecurity",
+          "TO-Cryptography"
+        ],
+        "ISO-27001": [
+          "5.12",
+          "5.13",
+          "5.14",
+          "5.33",
+          "5.34",
+          "8.24",
+          "8.25"
+        ],
+        "NIST-CSF": [
+          "PR.DS-01",
+          "PR.DS-02",
+          "PR.DS-10",
+          "PR.DS-11"
+        ],
+        "UAE-NIAF": [
+          "3.2.1-LogicalSecurity"
+        ],
+        "PCI-DSS": [
+          "3",
+          "4"
+        ],
+        "IEC-62443": [
+          "SR-4.1",
+          "SR-4.2",
+          "DataIntegrity"
+        ],
+        "SOC2": [
+          "C1.1",
+          "C1.2",
+          "PI1.1",
+          "PI1.2"
+        ],
+        "PDPL-UAE": [
+          "Art.5-Processing controls",
+          "Art.5-6-Security measures",
+          "Art.5-7-Retention limits",
+          "Art.20-Personal data security",
+          "Art.20-1a-Encryption and pseudonymisation",
+          "Art.21-DPIA",
+          "Art.22-Cross-border transfer with adequate protection",
+          "Art.23-Cross-border transfer without adequate protection"
+        ],
+        "PDPL-QAT": [
+          "Art.10-Data accuracy completeness retention",
+          "Art.13-Protection precautions",
+          "Art.14-Breach notification to individual and competent dept",
+          "Art.15-Cross-border data flow controls",
+          "Art.16-Special category data processing permission"
+        ],
+        "QATAR-NIAS": [
+          "CY3-C3 assets encrypted at rest and in transit",
+          "CY5-TLS SFTP SSH S/MIME protocols for C3 data in transit",
+          "CY6-Passwords always encrypted/hashed",
+          "CY7-HSMs certified to FIPS 140-2 Level 2 minimum",
+          "CY9-Key management lifecycle processes defined",
+          "CY12-Digital certificates from Qatar-licensed CSP",
+          "DR1-Retention periods documented per policy regulatory and legal requirements",
+          "DR2-Retained data maintains CIA",
+          "DR3-Personal data not retained beyond necessity",
+          "DR5-Archived data retains classification markings",
+          "MS9-Media sanitisation procedures documented and tested",
+          "MS12-Non-volatile magnetic media sanitised by overwriting or degaussing",
+          "MS14-Flash memory sanitised by double overwrite",
+          "MS18-Media destruction by degaussing breaking or incineration"
+        ]
+      }
+    },
+    {
+      "domainId": "application-security",
+      "domainLabel": "Application and web security",
+      "description": "Secure SDLC, web application firewalls, API security, code review, and software supply chain",
+      "controls": {
+        "NCA-ECC": [
+          "2-15-1",
+          "2-15-2",
+          "2-15-3",
+          "2-15-4"
+        ],
+        "SAMA-CSF": [
+          "3.3.6"
+        ],
+        "CBK": [
+          "TO-SecureSoftwareLifecycleManagement"
+        ],
+        "ISO-27001": [
+          "8.25",
+          "8.26",
+          "8.27",
+          "8.28",
+          "8.29",
+          "8.30",
+          "8.31"
+        ],
+        "NIST-CSF": [
+          "PR.PS-03",
+          "PR.PS-04",
+          "PR.PS-05",
+          "PR.PS-06"
+        ],
+        "UAE-NIAF": [
+          "3.2.1-LogicalSecurity"
+        ],
+        "PCI-DSS": [
+          "6"
+        ],
+        "IEC-62443": [
+          "SR-3.1",
+          "SR-3.2",
+          "SR-3.4"
+        ],
+        "SOC2": [
+          "CC7.1",
+          "CC8.1"
+        ],
+        "PDPL-UAE": [
+          "Art.7-2-Privacy by design",
+          "Art.8-2-Technical measures at design stage",
+          "Art.5-Processing controls"
+        ],
+        "PDPL-QAT": [
+          "Art.8-2-Controls in designing/developing products and systems"
+        ],
+        "QATAR-NIAS": [
+          "SS1-Security in all SDLC phases",
+          "SS2-All applications classified per IAP-NAT-DCLS",
+          "SS4-Dedicated test and development infrastructure separate from production",
+          "SS5-Applications available for production only after security assurance",
+          "SS6-Secure programming practices including least privilege input validation",
+          "SS7-Independent software vulnerability review before production",
+          "SS10-Source code escrow for critical commercial applications",
+          "SS22-Web server active content reviewed OWASP guidelines",
+          "SS24-Personal data protected in storage and transit",
+          "SS25-SSL certificates from Qatar-licensed CSP for critical websites",
+          "SS26-Web application firewall for MEDIUM+ risk applications",
+          "SS27-Database information associated with appropriate classification",
+          "SS29-Database files protected bypassing normal access controls",
+          "SS31-Unprivileged users cannot see metadata they cannot access",
+          "SS32-Sensitive database data masked for C3+"
+        ]
+      }
+    },
+    {
+      "domainId": "vulnerability-management",
+      "domainLabel": "Vulnerability and patch management",
+      "description": "Vulnerability scanning, patch management cadence, penetration testing, and remediation tracking",
+      "controls": {
+        "NCA-ECC": [
+          "2-10-1",
+          "2-10-2",
+          "2-10-3",
+          "2-10-4",
+          "2-11-1",
+          "2-11-2",
+          "2-11-3"
+        ],
+        "SAMA-CSF": [
+          "3.3.17"
+        ],
+        "CBK": [
+          "TO-VulnerabilityManagement"
+        ],
+        "ISO-27001": [
+          "8.8",
+          "8.9"
+        ],
+        "NIST-CSF": [
+          "ID.RA-01",
+          "ID.RA-02",
+          "ID.RA-05",
+          "DE.CM-08"
+        ],
+        "UAE-NIAF": [
+          "3.1.3-VulnerabilityAssessment"
+        ],
+        "PCI-DSS": [
+          "11"
+        ],
+        "IEC-62443": [
+          "SR-3.2",
+          "IACS-VulnerabilityMgmt"
+        ],
+        "SOC2": [
+          "CC7.1",
+          "CC4.1",
+          "CC4.2"
+        ],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": [
+          "PR5-Security evaluation on dedicated configuration",
+          "PR9-Product patching follows change management",
+          "SS7-Software vulnerability review before production",
+          "SS14b-Ensure patching is up to date",
+          "IM9-Annual Security Assurance Plan including penetration testing"
+        ]
+      }
+    },
+    {
+      "domainId": "logging-monitoring",
+      "domainLabel": "Logging, monitoring, and SIEM",
+      "description": "Security event logging, SIEM, SOC operations, alerting thresholds, and log retention",
+      "controls": {
+        "NCA-ECC": [
+          "2-12-1",
+          "2-12-2",
+          "2-12-3",
+          "2-12-4",
+          "2-12-5"
+        ],
+        "SAMA-CSF": [
+          "3.3.14"
+        ],
+        "CBK": [
+          "TO-LoggingMonitoringSecurityIncidentManagement"
+        ],
+        "ISO-27001": [
+          "8.15",
+          "8.16",
+          "8.17"
+        ],
+        "NIST-CSF": [
+          "DE.AE",
+          "DE.CM-01",
+          "DE.CM-02",
+          "DE.CM-03",
+          "DE.CM-06",
+          "DE.CM-09"
+        ],
+        "UAE-NIAF": [
+          "3.3.1-SituationalAwareness"
+        ],
+        "PCI-DSS": [
+          "10"
+        ],
+        "IEC-62443": [
+          "SR-6.1",
+          "SR-6.2"
+        ],
+        "SOC2": [
+          "CC4.1",
+          "CC7.2",
+          "CC7.3"
+        ],
+        "PDPL-UAE": [
+          "Art.7-4-Personal data record",
+          "Art.8-7-Processor processing record",
+          "Art.11-c-Periodic examination and risk assessment"
+        ],
+        "PDPL-QAT": [
+          "Art.11-5-Internal systems for data management and breach reporting",
+          "Art.11-7-Compliance audits and reviews",
+          "Art.11-8-Monitoring processor compliance"
+        ],
+        "QATAR-NIAS": [
+          "SM1-Technical controls for logging and continuous monitoring",
+          "SM2-Monitoring practices established per infrastructure criticality 24/7 for C3/I3/A3",
+          "SM4-Logging enabled on all C2+ infrastructure",
+          "SM5-Security logs classified C3",
+          "SM7-Logs retained minimum 120 days",
+          "SM8-Audit logging records date time authentication activity unique identifiers",
+          "SM9-Exceptions reported per incident handling policy",
+          "VL8-Virtualisation environment logs monitored with other IT infrastructure"
+        ]
+      }
+    },
+    {
+      "domainId": "incident-response",
+      "domainLabel": "Incident response and threat management",
+      "description": "Incident detection, response plans, escalation, forensics, and threat intelligence integration",
+      "controls": {
+        "NCA-ECC": [
+          "2-13-1",
+          "2-13-2",
+          "2-13-3",
+          "2-13-4",
+          "2-13-5",
+          "2-13-6"
+        ],
+        "SAMA-CSF": [
+          "3.3.15",
+          "3.3.16"
+        ],
+        "CBK": [
+          "TO-LoggingMonitoringSecurityIncidentManagement",
+          "GRC-CyberCrisisManagement"
+        ],
+        "ISO-27001": [
+          "5.24",
+          "5.25",
+          "5.26",
+          "5.27",
+          "5.28",
+          "5.29"
+        ],
+        "NIST-CSF": [
+          "DE.AE-04",
+          "DE.AE-05",
+          "RS.MA",
+          "RS.AN",
+          "RS.CO",
+          "RS.MI",
+          "RS.IM"
+        ],
+        "UAE-NIAF": [
+          "3.3-IncidentManagement"
+        ],
+        "PCI-DSS": [
+          "12.10"
+        ],
+        "IEC-62443": [
+          "SR-6.1",
+          "IACS-IncidentResponse"
+        ],
+        "SOC2": [
+          "CC7.3",
+          "CC7.4",
+          "CC7.5"
+        ],
+        "PDPL-UAE": [
+          "Art.9-1-Breach notification to Bureau",
+          "Art.9-2-Breach notification to data subject",
+          "Art.9-3-Processor notifies Controller",
+          "Art.9-4-Bureau verification and penalties"
+        ],
+        "PDPL-QAT": [
+          "Art.13-Processor notifies Controller of breach",
+          "Art.14-Controller notifies individual and competent dept of breach"
+        ],
+        "QATAR-NIAS": [
+          "IM1-Appoint Incident Management owner and point of contact",
+          "IM2-Incident response capability based on risk assessment",
+          "IM3-Procedures to detect evaluate and respond to incidents",
+          "IM4-Procedures to report manage and recover from incidents",
+          "IM5-Staff awareness to report incidents",
+          "IM6-Categorise and prioritise incidents",
+          "IM7-Coordinate with NCSA incident repository",
+          "IM8-Report Critical incidents to NCSA within 2 hours",
+          "IM9-Annual Security Assurance Plan"
+        ]
+      }
+    },
+    {
+      "domainId": "business-continuity",
+      "domainLabel": "Business continuity and resilience",
+      "description": "BCM, disaster recovery, RTO/RPO targets, backup management, and cyber crisis management",
+      "controls": {
+        "NCA-ECC": [
+          "3-1-1",
+          "3-1-2",
+          "3-1-3",
+          "3-1-4",
+          "3-1-5",
+          "2-9-1",
+          "2-9-2",
+          "2-9-3"
+        ],
+        "SAMA-CSF": [
+          "3.3.4"
+        ],
+        "CBK": [
+          "TO-BusinessContinuityDisasterRecovery",
+          "GRC-CyberCrisisManagement"
+        ],
+        "ISO-27001": [
+          "5.29",
+          "5.30",
+          "8.13",
+          "8.14"
+        ],
+        "NIST-CSF": [
+          "RC.RP",
+          "RC.CO"
+        ],
+        "UAE-NIAF": [
+          "3.4-BusinessContinuity",
+          "Ch4-NationalContinuity"
+        ],
+        "PCI-DSS": [
+          "12.10"
+        ],
+        "IEC-62443": [
+          "SR-7.1",
+          "SR-7.2",
+          "IACS-BCM"
+        ],
+        "SOC2": [
+          "A1.2",
+          "A1.3",
+          "CC9.1"
+        ],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": [
+          "BC1-Appoint Business Continuity Programme owner",
+          "BC2-BC Plan with RTO and RPO per process",
+          "BC3-BC Plan covers disaster scenarios",
+          "BC4-BC Plan maintained and current",
+          "BC5-BC Plan stored in fireproof safe with off-site copy",
+          "BC6-Alternate disaster recovery sites identified Hot/Warm/Cold",
+          "BC7-Outsourcing contracts include strong BC controls",
+          "BC8-BC Plan tested annually",
+          "BC9-Employee awareness of BC plan"
+        ]
+      }
+    },
+    {
+      "domainId": "physical-security",
+      "domainLabel": "Physical and environmental security",
+      "description": "Physical access controls, data centre security, CCTV, environmental monitoring, and clean desk",
+      "controls": {
+        "NCA-ECC": [
+          "2-14-1",
+          "2-14-2",
+          "2-14-3",
+          "2-14-4"
+        ],
+        "SAMA-CSF": [
+          "3.3.2"
+        ],
+        "CBK": [
+          "TO-PhysicalEnvironmentalSecurity"
+        ],
+        "ISO-27001": [
+          "7.1",
+          "7.2",
+          "7.3",
+          "7.4",
+          "7.5",
+          "7.6",
+          "7.7",
+          "7.8",
+          "7.9",
+          "7.10",
+          "7.11",
+          "7.12",
+          "7.13",
+          "7.14"
+        ],
+        "NIST-CSF": [
+          "PR.IR-01"
+        ],
+        "UAE-NIAF": [
+          "3.2.2-PhysicalSecurity"
+        ],
+        "PCI-DSS": [
+          "9"
+        ],
+        "IEC-62443": [
+          "SR-Physical"
+        ],
+        "SOC2": [
+          "CC6.4"
+        ],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": [
+          "PH2-Risk-based physical space zoning Minimal Baseline Medium High",
+          "PH3-Zone-appropriate physical controls per Appendix A",
+          "PH4-Clean desk and clean screen policy",
+          "PH5-Server/Data rooms meet medium protection minimum",
+          "PH6-Cabling for C1-C3 physically separate from nationally classified cabling",
+          "PH7-Site security plan and SOPs for each secure area",
+          "AppA-Minimal perimeter walls alarmed fire doors locks",
+          "AppA-Baseline manned reception electronic locks audit trail forced-entry resistance",
+          "AppA-Medium/High biometric metal detectors X-ray armoured conduit"
+        ]
+      }
+    },
+    {
+      "domainId": "third-party",
+      "domainLabel": "Third-party and supply chain security",
+      "description": "Vendor risk assessment, supplier contracts, outsourcing security, and supply chain monitoring",
+      "controls": {
+        "NCA-ECC": [
+          "4-1-1",
+          "4-1-2",
+          "4-1-3",
+          "4-1-4",
+          "4-1-5"
+        ],
+        "SAMA-CSF": [
+          "3.4.1",
+          "3.4.2"
+        ],
+        "CBK": [
+          "TPS-ThirdPartyOutsourcing"
+        ],
+        "ISO-27001": [
+          "5.19",
+          "5.20",
+          "5.21",
+          "5.22",
+          "5.23"
+        ],
+        "NIST-CSF": [
+          "GV.SC",
+          "ID.SC"
+        ],
+        "UAE-NIAF": [
+          "Ch5-Standards"
+        ],
+        "PCI-DSS": [
+          "12.8",
+          "12.9"
+        ],
+        "IEC-62443": [
+          "SR-SupplyChain"
+        ],
+        "SOC2": [
+          "CC9.2"
+        ],
+        "PDPL-UAE": [
+          "Art.7-5-Processor selection with sufficient guarantees",
+          "Art.8-Processor general obligations",
+          "Art.8-10-Multi-processor written agreement",
+          "Art.22-Cross-border transfer adequacy",
+          "Art.23-Cross-border transfer without adequacy"
+        ],
+        "PDPL-QAT": [
+          "Art.12-Controller obligations when disclosing/transferring to processor",
+          "Art.15-Cross-border data flow",
+          "Art.11-8-Verifying processor compliance"
+        ],
+        "QATAR-NIAS": [
+          "TM1-Outsourced areas remain accountability of organisation",
+          "TM2-Acknowledge and document outsourcing risks",
+          "TM3-NIAS controls included in third-party service agreements including sub-contractors",
+          "TM4-Third party contractually required to report security posture and incidents",
+          "TM5-Continuous monitoring and periodic audits of third-party services",
+          "IE3-Confidentiality agreements prior to information exchange NDA template provided",
+          "PR3-Vendor screening including location ownership financial status references",
+          "PR5-Security evaluation on dedicated evaluation configuration",
+          "PR8-Products from vendors committed to ongoing assurance maintenance"
+        ]
+      }
+    },
+    {
+      "domainId": "cloud-security",
+      "domainLabel": "Cloud and hosting security",
+      "description": "Cloud security architecture, shared responsibility, CSPM, data residency, and SaaS/IaaS controls",
+      "controls": {
+        "NCA-ECC": [
+          "4-2-1",
+          "4-2-2",
+          "4-2-3",
+          "4-2-4",
+          "4-2-5"
+        ],
+        "SAMA-CSF": [
+          "3.4.3"
+        ],
+        "CBK": [
+          "TPS-CloudSecurity"
+        ],
+        "ISO-27001": [
+          "5.23",
+          "8.9"
+        ],
+        "NIST-CSF": [
+          "ID.AM-08",
+          "PR.IR-03"
+        ],
+        "UAE-NIAF": [
+          "Ch5-Standards"
+        ],
+        "PCI-DSS": [
+          "12.3"
+        ],
+        "IEC-62443": [],
+        "SOC2": [
+          "CC6.1",
+          "CC6.7",
+          "CC7.1"
+        ],
+        "PDPL-UAE": [
+          "Art.22-Cross-border transfer with adequate protection",
+          "Art.23-1a-Contract-based transfer to countries without data protection law",
+          "Art.7-5-Processor with sufficient guarantees"
+        ],
+        "PDPL-QAT": [
+          "Art.15-Cross-border data flow controls",
+          "Art.12-Data transfer to processor"
+        ],
+        "QATAR-NIAS": [
+          "VL1-Evaluate virtualisation risks in legal/regulatory context",
+          "VL2-Harden hypervisor administrative layer and VMs per best practices",
+          "VL3-Least privilege and separation of duties for virtual environment management",
+          "VL4-Adequate physical security for virtualisation environment",
+          "VL5-Third party security technology for layered controls",
+          "VL6-Segregate VMs by data classification",
+          "VL7-Change management encompasses virtual technology environment",
+          "TM3-Cloud service provider agreements include NIAS controls",
+          "CY3-Data classified C3 encrypted at rest and in transit regardless of hosting"
+        ]
+      }
+    },
+    {
+      "domainId": "ot-ics",
+      "domainLabel": "OT/ICS and operational technology security",
+      "description": "Industrial control system security, SCADA protection, OT network segmentation, and safety systems",
+      "controls": {
+        "NCA-ECC": [
+          "2-5-4",
+          "2-5-5"
+        ],
+        "SAMA-CSF": [],
+        "CBK": [],
+        "ISO-27001": [
+          "8.20",
+          "8.21"
+        ],
+        "NIST-CSF": [
+          "PR.IR-04",
+          "ID.AM-03"
+        ],
+        "UAE-NIAF": [],
+        "PCI-DSS": [],
+        "IEC-62443": [
+          "SR-1.1",
+          "SR-2.1",
+          "SR-3.1",
+          "SR-3.2",
+          "SR-4.1",
+          "SR-5.1",
+          "SR-5.2",
+          "SR-6.1",
+          "SR-7.1",
+          "ZoneSeparation",
+          "CSMS-Policy",
+          "IACS-RiskAssessment"
+        ],
+        "SOC2": [],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": [
+          "NS5d-IPSEC/IPv6 for network security",
+          "NS5i-IPS/IDS to detect and prevent malicious activity",
+          "GS1-Networks protected from other networks by gateways",
+          "GS6-DMZs used to separate externally accessible systems"
+        ]
+      }
+    },
+    {
+      "domainId": "payment-systems",
+      "domainLabel": "Payment systems and transaction security",
+      "description": "PCI DSS controls, payment card data protection, transaction monitoring, and ATM/POS security",
+      "controls": {
+        "NCA-ECC": [],
+        "SAMA-CSF": [
+          "3.3.12",
+          "3.3.13"
+        ],
+        "CBK": [
+          "PEPS-CommonControls",
+          "PEPS-TransactionMonitoring",
+          "PEPS-OnlineBanking",
+          "PEPS-MobileBanking",
+          "PEPS-ATM"
+        ],
+        "ISO-27001": [
+          "5.14",
+          "8.24"
+        ],
+        "NIST-CSF": [
+          "PR.DS-01",
+          "PR.DS-02"
+        ],
+        "UAE-NIAF": [],
+        "PCI-DSS": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12"
+        ],
+        "IEC-62443": [],
+        "SOC2": [
+          "PI1.1",
+          "PI1.2",
+          "PI1.3",
+          "PI1.4",
+          "PI1.5"
+        ],
+        "PDPL-UAE": [],
+        "PDPL-QAT": [],
+        "QATAR-NIAS": []
+      }
+    },
+    {
+      "domainId": "change-management",
+      "domainLabel": "Change and configuration management",
+      "description": "Change control processes, configuration baselines, release management, and hardening standards",
+      "controls": {
+        "NCA-ECC": [
+          "2-3-1",
+          "2-3-2",
+          "2-3-3"
+        ],
+        "SAMA-CSF": [
+          "3.3.7"
+        ],
+        "CBK": [
+          "TO-ChangeReleaseManagement"
+        ],
+        "ISO-27001": [
+          "8.9",
+          "8.10",
+          "8.32"
+        ],
+        "NIST-CSF": [
+          "PR.PS-01",
+          "PR.PS-02",
+          "PR.PS-03"
+        ],
+        "UAE-NIAF": [
+          "3.2.1-LogicalSecurity"
+        ],
+        "PCI-DSS": [
+          "6.5"
+        ],
+        "IEC-62443": [
+          "SR-SecurityManagement",
+          "CSMS-ChangeManagement"
+        ],
+        "SOC2": [
+          "CC8.1"
+        ],
+        "PDPL-UAE": [
+          "Art.8-2-Technical measures at design stage and during processing",
+          "Art.11-1-Reviewing privacy protection before new processing"
+        ],
+        "PDPL-QAT": [
+          "Art.11-1-Reviewing privacy protection before new processing operations"
+        ],
+        "QATAR-NIAS": [
+          "CM1-Documented change management process Planned Major Maintenance Emergency categories",
+          "CM2-Cross-functional Change Management Committee with security and risk representation",
+          "CM3-All changes documented and approved through Change Management Committee",
+          "CM4-Security re-certification assessment on changes impacting ICT security",
+          "CM5-Associated documentation updated post-change",
+          "CM6-Emergency changes require verbal approval from Committee Head and post-emergency standard documentation",
+          "VL7-Change management process encompasses virtual technology environment"
+        ]
+      }
+    },
+    {
+      "domainId": "privacy-rights-management",
+      "domainLabel": "Privacy rights and consent management",
+      "description": "Data subject rights (access, correction, erasure, portability, restriction), consent management, lawful basis for processing, and direct marketing controls",
+      "controls": {
+        "NCA-ECC": [],
+        "SAMA-CSF": [],
+        "CBK": [],
+        "ISO-27001": [
+          "5.34"
+        ],
+        "NIST-CSF": [
+          "GV.PO-02"
+        ],
+        "UAE-NIAF": [],
+        "PCI-DSS": [],
+        "IEC-62443": [],
+        "SOC2": [
+          "P3.1",
+          "P4.1",
+          "P5.1",
+          "P6.1",
+          "P7.1",
+          "P8.1"
+        ],
+        "PDPL-UAE": [
+          "Art.6-Consent terms",
+          "Art.4-Processing without consent cases",
+          "Art.13-Right to information",
+          "Art.14-Right to data portability",
+          "Art.15-Right to correction/erasure",
+          "Art.16-Right to restrict processing",
+          "Art.17-Right to stop processing",
+          "Art.18-Right re automated processing/profiling"
+        ],
+        "PDPL-QAT": [
+          "Art.3-Individual rights",
+          "Art.4-Consent requirement",
+          "Art.5-Right to withdraw consent and object",
+          "Art.6-Right to access and review",
+          "Art.10-Data minimisation and accuracy",
+          "Art.22-Direct marketing consent requirement"
+        ],
+        "QATAR-NIAS": []
+      }
+    }
+  ],
+  "frameworks": {
+    "NCA-ECC": {
+      "name": "NCA Essential Cybersecurity Controls",
+      "version": "ECC-2:2024",
+      "jurisdiction": [
+        "Saudi Arabia"
+      ],
+      "mandatory": true,
+      "confidenceLevel": "high"
+    },
+    "SAMA-CSF": {
+      "name": "SAMA Cybersecurity Framework",
+      "version": "1.0 (2017)",
+      "jurisdiction": [
+        "Saudi Arabia"
+      ],
+      "sector": [
+        "Financial services"
+      ],
+      "mandatory": true,
+      "confidenceLevel": "high"
+    },
+    "CBK": {
+      "name": "CBK Cybersecurity Framework for Kuwaiti Banking Sector",
+      "version": "1.0 (2020)",
+      "jurisdiction": [
+        "Kuwait"
+      ],
+      "sector": [
+        "Banking"
+      ],
+      "mandatory": true,
+      "confidenceLevel": "high"
+    },
+    "ISO-27001": {
+      "name": "ISO/IEC 27001:2022",
+      "version": "2022",
+      "jurisdiction": [
+        "International"
+      ],
+      "mandatory": false,
+      "confidenceLevel": "high"
+    },
+    "NIST-CSF": {
+      "name": "NIST Cybersecurity Framework",
+      "version": "2.0 (2024)",
+      "jurisdiction": [
+        "International"
+      ],
+      "mandatory": false,
+      "confidenceLevel": "high"
+    },
+    "UAE-NIAF": {
+      "name": "UAE National Information Assurance Framework",
+      "version": "1.0",
+      "jurisdiction": [
+        "UAE"
+      ],
+      "mandatory": true,
+      "confidenceLevel": "medium"
+    },
+    "PCI-DSS": {
+      "name": "PCI Data Security Standard",
+      "version": "4.0.1 (2024)",
+      "jurisdiction": [
+        "International"
+      ],
+      "sector": [
+        "Payment card"
+      ],
+      "mandatory": false,
+      "confidenceLevel": "high"
+    },
+    "IEC-62443": {
+      "name": "IEC 62443 – Industrial Cybersecurity",
+      "version": "2-1:2024",
+      "jurisdiction": [
+        "International"
+      ],
+      "sector": [
+        "OT/ICS"
+      ],
+      "mandatory": false,
+      "confidenceLevel": "medium"
+    },
+    "SOC2": {
+      "name": "SOC 2 Trust Services Criteria",
+      "version": "2017 + 2022 updates",
+      "jurisdiction": [
+        "International"
+      ],
+      "sector": [
+        "Technology/SaaS"
+      ],
+      "mandatory": false,
+      "confidenceLevel": "medium"
+    },
+    "PDPL-UAE": {
+      "name": "UAE Federal Decree-Law No. 45 of 2021 on Personal Data Protection",
+      "version": "2021 (enforcement from 2 Jan 2022)",
+      "jurisdiction": [
+        "UAE"
+      ],
+      "mandatory": true,
+      "sector": [
+        "All sectors handling personal data of UAE residents"
+      ],
+      "enforcer": "UAE Data Bureau (established under Federal Decree-Law No. 44 of 2021)",
+      "confidenceLevel": "high",
+      "notes": "Excludes government entities, security/judicial authorities, health data with separate legislation, banking/credit data with separate legislation, and free zone companies with their own data protection regimes (e.g. DIFC, ADGM)"
+    },
+    "PDPL-QAT": {
+      "name": "Qatar Law No. 13 of 2016 on Protecting Personal Data Privacy",
+      "version": "2016",
+      "jurisdiction": [
+        "Qatar"
+      ],
+      "mandatory": true,
+      "sector": [
+        "All sectors handling personal data electronically"
+      ],
+      "enforcer": "Ministry of Transport and Communications (Competent Department)",
+      "confidenceLevel": "high",
+      "notes": "Applies to electronically processed personal data. Excludes personal/family use and official statistical data. Penalties up to 5M QAR for breaches of security controls. Favours cross-border data flow unless it causes serious damage to personal data or individual privacy."
+    },
+    "QATAR-NIAS": {
+      "name": "Qatar National Information Assurance Standard",
+      "version": "V2.1 (May 2023)",
+      "jurisdiction": [
+        "Qatar"
+      ],
+      "mandatory": true,
+      "sector": [
+        "All organisations operating within the State of Qatar"
+      ],
+      "enforcer": "National Cyber Security Agency (NCSA), Qatar",
+      "legalBasis": "Amiri Decree No. 1 of 2021 establishing NCSA",
+      "confidenceLevel": "high",
+      "notes": "Applies to all Qatar organisations and their information assets including outsourced and subcontracted activities. Baseline controls marked * are mandatory for assets rated I1/A1/C1 or above. Additional controls required for higher classification tiers based on risk assessment."
+    }
+  },
+  "sectorFrameworkMap": {
+    "Banking & financial services": {
+      "Kuwait": [
+        "CBK",
+        "NCA-ECC",
+        "ISO-27001",
+        "PCI-DSS"
+      ],
+      "Saudi Arabia": [
+        "SAMA-CSF",
+        "NCA-ECC",
+        "ISO-27001",
+        "PCI-DSS"
+      ],
+      "UAE": [
+        "UAE-NIAF",
+        "ISO-27001",
+        "PCI-DSS",
+        "PDPL-UAE"
+      ],
+      "Qatar": [
+        "ISO-27001",
+        "PCI-DSS",
+        "PDPL-QAT"
+      ],
+      "Default": [
+        "ISO-27001",
+        "PCI-DSS",
+        "NIST-CSF",
+        "PDPL-UAE"
+      ]
+    },
+    "Oil & gas": {
+      "Saudi Arabia": [
+        "NCA-ECC",
+        "IEC-62443",
+        "ISO-27001"
+      ],
+      "UAE": [
+        "UAE-NIAF",
+        "IEC-62443",
+        "ISO-27001",
+        "PDPL-UAE"
+      ],
+      "Kuwait": [
+        "IEC-62443",
+        "ISO-27001"
+      ],
+      "Default": [
+        "IEC-62443",
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-UAE"
+      ],
+      "Qatar": [
+        "IEC-62443",
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-QAT"
+      ]
+    },
+    "Government": {
+      "Saudi Arabia": [
+        "NCA-ECC",
+        "ISO-27001"
+      ],
+      "UAE": [
+        "UAE-NIAF",
+        "ISO-27001",
+        "PDPL-UAE"
+      ],
+      "Kuwait": [
+        "ISO-27001",
+        "NIST-CSF"
+      ],
+      "Default": [
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-UAE"
+      ],
+      "Qatar": [
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-QAT"
+      ]
+    },
+    "Healthcare": {
+      "Saudi Arabia": [
+        "NCA-ECC",
+        "ISO-27001"
+      ],
+      "UAE": [
+        "UAE-NIAF",
+        "ISO-27001",
+        "PDPL-UAE"
+      ],
+      "Default": [
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-UAE"
+      ],
+      "Qatar": [
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-QAT"
+      ]
+    },
+    "Telecoms": {
+      "Saudi Arabia": [
+        "NCA-ECC",
+        "ISO-27001"
+      ],
+      "UAE": [
+        "UAE-NIAF",
+        "ISO-27001",
+        "PDPL-UAE"
+      ],
+      "Default": [
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-UAE"
+      ],
+      "Qatar": [
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-QAT"
+      ]
+    },
+    "Retail / e-commerce": {
+      "Default": [
+        "PCI-DSS",
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-UAE"
+      ],
+      "Qatar": [
+        "PCI-DSS",
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-QAT"
+      ]
+    },
+    "Technology / SaaS": {
+      "Default": [
+        "SOC2",
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-UAE"
+      ],
+      "Qatar": [
+        "SOC2",
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-QAT"
+      ]
+    }
+  },
+  "pdplTriggers": {
+    "description": "PDPL frameworks are triggered by data handling, not just geography. Include PDPL-UAE when processing personal data of UAE residents regardless of where the organisation is located. Include PDPL-QAT when processing personal data of Qatar residents.",
+    "PDPL-UAE": {
+      "trigger": "Processing personal data of any natural person who is a UAE resident, or operating as a Controller/Processor located in UAE",
+      "exemptions": [
+        "UAE government entities",
+        "Security and judicial authorities",
+        "Personal health data with separate legislation",
+        "Banking and credit data with separate legislation",
+        "DIFC and ADGM free zone companies with own data protection regimes"
+      ]
+    },
+    "PDPL-QAT": {
+      "trigger": "Electronically processing personal data of Qatar residents",
+      "exemptions": [
+        "Personal or family use",
+        "Official statistical data processing"
+      ]
+    }
+  }
+}

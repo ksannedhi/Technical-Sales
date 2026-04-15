@@ -1,0 +1,13 @@
+{
+  "name": "harmoniser",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": ["server", "client"],
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "start": "npm run start --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
