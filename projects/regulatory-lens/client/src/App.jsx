@@ -13,6 +13,7 @@ const STEPS = ['intake', 'frameworks', 'harmonising', 'matrix', 'posture', 'road
 export default function App() {
   const [activeTab, setActiveTab] = useState('harmoniser'); // 'harmoniser' | 'change-tracker'
   const [step,      setStep]      = useState('intake');
+  const [error,     setError]     = useState(null);
 
   // Shared state across steps
   const [intakeProfile,        setIntakeProfile]        = useState(null);
@@ -24,8 +25,25 @@ export default function App() {
   const [postureMap,           setPostureMap]           = useState({});
   const [roadmap,              setRoadmap]              = useState(null);
 
+  // ── Reset all state to intake ───────────────────────────────────────────────
+  function handleReset() {
+    setStep('intake');
+    setError(null);
+    setIntakeProfile(null);
+    setRecommendedFrameworks([]);
+    setSelectedFrameworks([]);
+    setFrameworkWeights({});
+    setHarmonisationResults([]);
+    setProgress({ completed: 0, total: 0, label: '' });
+    setPostureMap({});
+    setRoadmap(null);
+    // Clear server-side harmonisation cache so next run starts fresh
+    fetch('/api/cache/clear', { method: 'POST' }).catch(() => {});
+  }
+
   // ── Intake submit ───────────────────────────────────────────────────────────
   async function handleIntakeSubmit(profile) {
+    setError(null);
     setIntakeProfile(profile);
     try {
       const res  = await fetch('/api/intake', {
@@ -35,28 +53,28 @@ export default function App() {
       });
       const data = await res.json();
       setRecommendedFrameworks(data.recommendedFrameworks || []);
-
-      // Pre-select and pre-weight recommended frameworks
       const preSelected = (data.recommendedFrameworks || []).map(f => f.frameworkId);
       const preWeights  = {};
       (data.recommendedFrameworks || []).forEach(f => { preWeights[f.frameworkId] = f.weight; });
       setSelectedFrameworks(preSelected);
       setFrameworkWeights(preWeights);
     } catch (e) {
-      console.error(e);
+      setError('Could not retrieve framework recommendations. Check your API key and try again.');
+      return;
     }
     setStep('frameworks');
   }
 
   // ── Start harmonisation via SSE ─────────────────────────────────────────────
   async function handleStartHarmonisation(selected, weights) {
+    setError(null);
     setSelectedFrameworks(selected);
     setFrameworkWeights(weights);
     setStep('harmonising');
     setProgress({ completed: 0, total: 23, label: 'Starting…' });
 
-    const qs  = `frameworks=${selected.join(',')}`;
-    const es  = new EventSource(`/api/harmonise/stream?${qs}`);
+    const qs = `frameworks=${selected.join(',')}`;
+    const es = new EventSource(`/api/harmonise/stream?${qs}`);
 
     es.onmessage = (e) => {
       const msg = JSON.parse(e.data);
@@ -68,15 +86,20 @@ export default function App() {
         setStep('matrix');
       } else if (msg.type === 'error') {
         es.close();
-        alert('Harmonisation failed: ' + msg.message);
+        setError('Harmonisation failed: ' + msg.message);
         setStep('frameworks');
       }
     };
-    es.onerror = () => { es.close(); setStep('frameworks'); };
+    es.onerror = () => {
+      es.close();
+      setError('Connection to the analysis server was lost. Please try again.');
+      setStep('frameworks');
+    };
   }
 
   // ── Posture submit → generate roadmap ──────────────────────────────────────
   async function handlePostureSubmit(posture) {
+    setError(null);
     setPostureMap(posture);
     try {
       const res = await fetch('/api/roadmap', {
@@ -88,9 +111,12 @@ export default function App() {
       setRoadmap(data);
       setStep('roadmap');
     } catch (e) {
-      alert('Roadmap generation failed: ' + e.message);
+      setError('Roadmap generation failed: ' + e.message + '. Your posture ratings are saved — try again.');
     }
   }
+
+  const inHarmoniser = activeTab === 'harmoniser';
+  const showReset    = inHarmoniser && step !== 'intake' && step !== 'harmonising';
 
   return (
     <div className="shell">
@@ -99,26 +125,66 @@ export default function App() {
           <div className="brand-mark" />
           <span className="brand-name">Cross-Framework Harmoniser</span>
         </div>
-        <div className="tab-row">
-          <button className={`tab ${activeTab==='harmoniser'?'tab-active':''}`} onClick={()=>setActiveTab('harmoniser')}>Harmoniser</button>
-          <button className={`tab ${activeTab==='change-tracker'?'tab-active':''}`} onClick={()=>setActiveTab('change-tracker')}>Change Tracker</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {showReset && (
+            <button
+              onClick={handleReset}
+              style={{ fontSize: '11px', color: '#64748B', background: 'none', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '5px 12px', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              ↺ New analysis
+            </button>
+          )}
+          <div className="tab-row">
+            <button className={`tab ${activeTab==='harmoniser'?'tab-active':''}`} onClick={()=>setActiveTab('harmoniser')}>Harmoniser</button>
+            <button className={`tab ${activeTab==='change-tracker'?'tab-active':''}`} onClick={()=>setActiveTab('change-tracker')}>Change Tracker</button>
+          </div>
         </div>
       </div>
 
-      {activeTab === 'harmoniser' && (
+      {/* ── Inline error banner ─────────────────────────────────────────────── */}
+      {error && (
+        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', color: '#991B1B', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>⚠ {error}</span>
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#991B1B', cursor: 'pointer', fontSize: '14px', lineHeight: 1, padding: '0 4px' }}>✕</button>
+        </div>
+      )}
+
+      {inHarmoniser && (
         <>
           {step === 'intake'      && <IntakeForm onSubmit={handleIntakeSubmit} />}
           {step === 'frameworks'  && <FrameworkSelector recommended={recommendedFrameworks} initialSelected={selectedFrameworks} initialWeights={frameworkWeights} onStart={handleStartHarmonisation} />}
           {step === 'harmonising' && <ProgressBar progress={progress} total={23} />}
-          {step === 'matrix'      && <><CoverageMatrix results={harmonisationResults} selectedFrameworks={selectedFrameworks} /><div style={{textAlign:'right',marginTop:'12px'}}><button className="btn btn-primary" onClick={()=>setStep('posture')}>Rate your posture →</button></div></>}
-          {step === 'posture'     && <PostureAssessment results={harmonisationResults} onSubmit={handlePostureSubmit} />}
-          {step === 'roadmap'     && <><Roadmap roadmap={roadmap} /><ExportPanel harmonisationResults={harmonisationResults} roadmap={roadmap} selectedFrameworks={selectedFrameworks} frameworkWeights={frameworkWeights} /></>}
+
+          {step === 'matrix' && (
+            <>
+              <CoverageMatrix results={harmonisationResults} selectedFrameworks={selectedFrameworks} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+                <button className="btn" onClick={() => setStep('frameworks')}>← Back to frameworks</button>
+                <button className="btn btn-primary" onClick={() => setStep('posture')}>Rate your posture →</button>
+              </div>
+            </>
+          )}
+
+          {step === 'posture' && (
+            <>
+              <PostureAssessment results={harmonisationResults} onSubmit={handlePostureSubmit} onBack={() => setStep('matrix')} />
+            </>
+          )}
+
+          {step === 'roadmap' && (
+            <>
+              <Roadmap roadmap={roadmap} onBack={() => setStep('posture')} />
+              <ExportPanel harmonisationResults={harmonisationResults} roadmap={roadmap} selectedFrameworks={selectedFrameworks} frameworkWeights={frameworkWeights} />
+            </>
+          )}
         </>
       )}
 
-      {activeTab === 'change-tracker' && <ChangeTracker onGoToHarmoniser={() => { setActiveTab('harmoniser'); setStep('frameworks'); }} />}
+      {activeTab === 'change-tracker' && (
+        <ChangeTracker onGoToHarmoniser={() => { setActiveTab('harmoniser'); setStep('frameworks'); }} />
+      )}
 
-      {['matrix','posture','roadmap'].includes(step) && activeTab === 'harmoniser' && (
+      {['matrix','posture','roadmap'].includes(step) && inHarmoniser && (
         <div className="disclaimer-bar">
           AI-assisted analysis for presales purposes only. Verify all regulatory obligations with qualified legal counsel before relying on these outputs.
         </div>

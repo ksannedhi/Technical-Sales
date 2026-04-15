@@ -6,7 +6,7 @@ const POSTURE_OPTS = [
   { value: 'not-implemented',label: 'Not implemented',       color: '#E24B4A' },
 ];
 
-export default function PostureAssessment({ results, onSubmit }) {
+export default function PostureAssessment({ results, onSubmit, onBack }) {
   const [posture, setPosture] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -52,10 +52,13 @@ export default function PostureAssessment({ results, onSubmit }) {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-        <span style={{ fontSize: '12px', color: ratedCount === results.length ? '#3B6D11' : '#888' }}>
-          {ratedCount} of {results.length} domains rated
-          {ratedCount < results.length && ` — rate all ${results.length} to continue`}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button className="btn" onClick={onBack}>← Back to matrix</button>
+          <span style={{ fontSize: '12px', color: ratedCount === results.length ? '#3B6D11' : '#888' }}>
+            {ratedCount} of {results.length} domains rated
+            {ratedCount < results.length && ` — rate all ${results.length} to continue`}
+          </span>
+        </div>
         <button className="btn btn-primary" onClick={handleSubmit} disabled={loading || ratedCount < results.length}>
           {loading ? 'Generating roadmap…' : 'Generate implementation roadmap →'}
         </button>

@@ -12,7 +12,7 @@ const EFFORT_STYLE = {
   'very-high':{ bg: '#FCEBEB', color: '#A32D2D' },
 };
 
-export default function Roadmap({ roadmap }) {
+export default function Roadmap({ roadmap, onBack }) {
   if (!roadmap) return null;
   const items = roadmap.roadmapItems || [];
 
@@ -20,6 +20,10 @@ export default function Roadmap({ roadmap }) {
     <div className="card">
       <div className="step-label">Step 5 of 5 — Implementation roadmap</div>
       <h2 className="step-title">Weighted implementation roadmap</h2>
+
+      <div style={{ marginBottom: '12px' }}>
+        <button className="btn" onClick={onBack}>← Back to posture</button>
+      </div>
 
       {roadmap.executiveSummary && (
         <div className="disclaimer-box" style={{ marginBottom: '20px' }}>

@@ -43,7 +43,7 @@ server/
   excel.js          ExcelJS matrix export
   pdf.js            Puppeteer PDF export
   reportTemplate.js HTML template for PDF
-  taxonomy.json     23 domain × 11 framework control mapping — do not regenerate
+  taxonomy.json     23 domain × 12 framework control mapping — do not regenerate
 client/src/
   App.jsx                    top-level state machine (intake → frameworks → harmonising → matrix → posture → roadmap)
   components/IntakeForm.jsx
@@ -74,7 +74,7 @@ npm run dev --workspace client   # frontend on :5179
 Launch Cross-Framework Harmoniser.cmd
 ```
 
-Health check: `GET http://localhost:3004/api/health` → `{ status: "ok", domains: 23, frameworks: 11 }`
+Health check: `GET http://localhost:3004/api/health` → `{ status: "ok", domains: 23, frameworks: 12 }`
 
 ---
 
@@ -102,7 +102,7 @@ Health check: `GET http://localhost:3004/api/health` → `{ status: "ok", domain
 
 - **Harmonisation cache**: `harmonise.js` caches results in a module-level `Map` keyed by `domainId + sorted framework list`. Adding/removing one framework only recomputes affected domains.
 - **Custom frameworks**: stored in-memory in `customFrameworkStore` — lost on server restart (intentional for demo).
-- **taxonomy.json**: pre-built from actual framework documents. Do not regenerate. Contains 23 domains × 11 frameworks (NCA-ECC, SAMA-CSF, CBK, ISO-27001, NIST-CSF, UAE-NIAF, PCI-DSS, IEC-62443, SOC2, PDPL-UAE, PDPL-QAT).
+- **taxonomy.json**: pre-built from actual framework documents. Do not regenerate. Contains 23 domains × 12 frameworks (NCA-ECC, SAMA-CSF, CBK, ISO-27001, NIST-CSF, UAE-NIAF, PCI-DSS, IEC-62443, SOC2, PDPL-UAE, PDPL-QAT, QATAR-NIAS).
 - **dotenv**: `import 'dotenv/config'` in `server/index.js` reads `.env` from `process.cwd()`. The launcher runs node from the project root so `.env` is found correctly. Do not run the server from inside `server/` directly.
 - **pdf-parse ESM**: must import as `pdf-parse/lib/pdf-parse.js`, not `pdf-parse`.
 - **Puppeteer PDF**: landscape A4. If Chromium auto-download fails, set `executablePath` in `server/pdf.js` to point at the system Chrome installation.

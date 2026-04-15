@@ -44,7 +44,7 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
 
   return (
     <div className="card">
-      <div className="step-label">Exports</div>
+      <div className="step-label">Step 5 of 5 — Exports</div>
       <h2 className="step-title">Download reports</h2>
       <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '16px', lineHeight: 1.6 }}>
         Choose the format that fits your audience. Both reports reflect the same analysis session.

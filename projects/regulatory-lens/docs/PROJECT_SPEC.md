@@ -138,7 +138,13 @@ Results are streamed to the frontend via Server-Sent Events as each domain compl
 
 ### 5.4 Coverage Matrix
 
-Displays a grid of 23 domains × N frameworks. Each cell shows Full (green) / Partial (amber) / Not-addressed (grey). Cells are clickable to expand the full domain harmonisation detail.
+Displays a grid of 23 domains × N frameworks. Each cell shows Full (green) / Partial (amber) / Not-addressed (grey). Clicking any row expands an inline detail panel showing:
+
+- **What frameworks collectively require** — the harmonised summary across all selected frameworks
+- **Most demanding framework** — badge showing the framework with the most prescriptive requirement
+- **Implementation guidance** — what to implement to satisfy the most demanding standard
+- **Typical technologies** — 3–5 technology chips relevant to that domain
+- **Key requirement by framework** — one-line requirement for each framework with Full or Partial coverage
 
 ### 5.5 Posture Assessment
 
@@ -380,6 +386,11 @@ All harmonisation results, custom frameworks, and the roadmap are held in server
 
 The project currently includes:
 
+- working intake form with geography, sector, stock exchange listing, CNI characteristic detection, and geography-aware CNI tooltip
+- clickable domain expansion in coverage matrix surfacing harmonised summary, implementation guidance, typical technologies, most demanding framework, and per-framework key requirements
+- inline error banners replacing alert() for intake, harmonisation, and roadmap failures
+- back navigation at every step (frameworks → matrix → posture → roadmap)
+- "New analysis" reset button in topbar clearing all state and the server-side cache
 - working intake form with geography, sector, stock exchange listing, and CNI characteristic detection
 - Claude-powered framework recommendation with GCC-tuned rules for all 12 built-in frameworks
 - parallel domain harmonisation via SSE stream with concurrency limiter
