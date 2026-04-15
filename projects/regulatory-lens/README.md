@@ -6,7 +6,7 @@ GCC cybersecurity compliance tool that maps an organisation profile to applicabl
 
 - Takes an organisation profile (geography, sector, data types, characteristics) and recommends applicable GCC regulatory frameworks with weight and rationale
 - Runs parallel Claude analysis across 23 control domains against up to 12 built-in frameworks simultaneously
-- Displays a unified coverage matrix showing Full / Partial / Not-addressed per domain per framework
+- Displays a unified coverage matrix showing Full / Partial / Not-addressed per domain per framework — click any row to expand implementation guidance, typical technologies, and per-framework key requirements
 - Captures current implementation posture (not implemented / partial / full) per domain before generating the roadmap
 - Produces a prioritised implementation roadmap with weighted scores, recommended actions, and quick wins
 - Exports the full analysis to Excel (coverage matrix) and PDF (Puppeteer-rendered report)
@@ -74,10 +74,12 @@ GET http://localhost:3004/api/health
 | 1 | Intake Form | Enter organisation profile — geography, sector, employee count, data types, characteristics |
 | 2 | Framework Selector | Review AI-recommended frameworks with weights; adjust manually; optionally upload a custom framework PDF |
 | 3 | Harmonisation | Parallel Claude analysis across 23 domains — live progress bar with per-domain status |
-| 4 | Coverage Matrix | Colour-coded matrix — Full (green) / Partial (amber) / Not-addressed (grey) per domain and framework |
+| 4 | Coverage Matrix | Colour-coded matrix — Full (green) / Partial (amber) / Not-addressed (grey) per domain and framework. Click any row to expand harmonised summary, implementation guidance, typical technologies, and per-framework key requirements |
 | 5 | Posture Assessment | Rate current implementation status for all 23 domains before proceeding |
 | 6 | Roadmap | Weighted implementation roadmap with priority, gap analysis, recommended actions, and quick wins |
 | 7 | Export | Download Excel matrix or full PDF report |
+
+Each step has a back button to return to the previous screen. A **New analysis** button in the topbar resets all state and the server-side cache from step 2 onward.
 
 The Change Tracker tab is independent of the Harmoniser workflow and can be used at any time.
 
