@@ -25,15 +25,51 @@ export function buildReportHTML(harmonisationResults, roadmap, selectedFramework
     `<th style="font-size:9px;padding:5px 4px;text-align:center;white-space:nowrap">${esc(f.replace('-', ' '))}</th>`
   ).join('');
 
-  const roadmapRows = (roadmap?.roadmapItems || []).slice(0, 10).map((item, i) => {
-    const priorityColor = { immediate: '#E24B4A', 'short-term': '#D85A30', 'medium-term': '#BA7517', planned: '#3B6D11' }[item.priority] || '#888';
+  const roadmapBlocks = (roadmap?.roadmapItems || []).map((item, i) => {
+    const priorityColor  = { immediate: '#A32D2D', 'short-term': '#993C1D', 'medium-term': '#633806', planned: '#27500A' }[item.priority] || '#555';
+    const priorityBg     = { immediate: '#FCEBEB', 'short-term': '#FAECE7', 'medium-term': '#FAEEDA', planned: '#EAF3DE' }[item.priority] || '#F5F5F5';
+    const effortKey      = (item.estimatedEffort || '').toLowerCase().replace(/\s+/g, '-');
+    const effortColor    = { low: '#27500A', medium: '#633806', high: '#993C1D', 'very-high': '#A32D2D' }[effortKey] || '#555';
+    const effortBg       = { low: '#EAF3DE', medium: '#FAEEDA', high: '#FAECE7', 'very-high': '#FCEBEB' }[effortKey] || '#F5F5F5';
+    const actions        = (item.recommendedActions || []).slice(0, 5);
+    const wins           = (item.quickWins || []).slice(0, 2);
+    const gaps           = item.mandatoryFrameworkGaps || [];
+
+    const gapPills = gaps.map(g =>
+      `<span style="background:#FCEBEB;color:#A32D2D;font-size:9px;font-weight:600;padding:1px 6px;border-radius:10px;margin-right:3px">${esc(g)}</span>`
+    ).join('');
+
+    const actionLines = actions.map(a =>
+      `<div style="font-size:10px;color:#334155;padding:2px 0 2px 8px;border-left:2px solid #E2E8F0;margin-top:2px;line-height:1.4">${esc(a)}</div>`
+    ).join('');
+
+    const winLines = wins.map(w =>
+      `<div style="font-size:10px;color:#166534;margin-top:2px">• ${esc(w)}</div>`
+    ).join('');
+
     return `
-      <tr style="border-bottom:0.5px solid #f0f0f0">
-        <td style="padding:7px 8px;font-size:11px;color:#888">${item.rank || i+1}</td>
-        <td style="padding:7px 8px;font-size:11px;font-weight:500">${esc(item.domainLabel)}</td>
-        <td style="padding:7px 8px"><span style="background:${priorityColor}20;color:${priorityColor};padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600">${esc(item.priority)}</span></td>
-        <td style="padding:7px 8px;font-size:11px;color:#555">${esc((item.recommendedActions||[])[0] || '')}</td>
-      </tr>`;
+      <div style="padding:10px 0;border-bottom:0.5px solid #F0F0F0;display:flex;gap:10px;align-items:flex-start">
+        <div style="font-size:11px;font-weight:700;color:#CBD5E1;min-width:20px;text-align:center;padding-top:1px">${item.rank || i+1}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px">
+            <span style="font-size:11px;font-weight:600;color:#0F172A">${esc(item.domainLabel)}</span>
+            <span style="background:${priorityBg};color:${priorityColor};font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px">${esc(item.priority || '')}</span>
+            ${item.estimatedEffort ? `<span style="background:${effortBg};color:${effortColor};font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px">Effort: ${esc(item.estimatedEffort)}</span>` : ''}
+            ${item.weightedScore != null ? `<span style="margin-left:auto;font-size:9px;color:#94A3B8;font-weight:600">Score ${item.weightedScore}</span>` : ''}
+          </div>
+          ${gaps.length > 0 ? `<div style="margin-bottom:5px"><span style="font-size:9px;font-weight:700;color:#A32D2D;margin-right:4px">Mandatory gaps:</span>${gapPills}</div>` : ''}
+          ${actions.length > 0 ? `
+            <div style="margin-bottom:5px">
+              <div style="font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Recommended actions</div>
+              ${actionLines}
+            </div>` : ''}
+          ${wins.length > 0 ? `
+            <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:5px;padding:5px 8px">
+              <div style="font-size:9px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">⚡ Quick wins (≤ 2 weeks)</div>
+              ${winLines}
+            </div>` : ''}
+        </div>
+      </div>`;
   }).join('');
 
   return `<!DOCTYPE html>
@@ -90,13 +126,11 @@ export function buildReportHTML(harmonisationResults, roadmap, selectedFramework
     </table>
   </div>
 
-  ${roadmapRows ? `
+  ${roadmapBlocks ? `
   <div class="section">
-    <div class="sec-title">Top implementation priorities</div>
-    <table>
-      <tr><th>#</th><th>Domain</th><th>Priority</th><th>First action</th></tr>
-      ${roadmapRows}
-    </table>
+    <div class="sec-title">Implementation roadmap — all ${(roadmap?.roadmapItems||[]).length} domains</div>
+    ${roadmap?.criticalGaps != null ? `<div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:8px">⚠ ${roadmap.criticalGaps} critical gaps &nbsp;·&nbsp; <span style="color:#888;font-weight:400">${roadmap.totalGaps} total gaps identified</span></div>` : ''}
+    ${roadmapBlocks}
   </div>` : ''}
 
   <div class="footer">
