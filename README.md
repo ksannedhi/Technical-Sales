@@ -151,3 +151,17 @@ cd projects/threat-briefing && Launch Threat Briefing.cmd
 See project docs:
 - `projects/threat-briefing/README.md`
 - `projects/threat-briefing/docs/PROJECT_SPEC.md`
+
+### Cross-Framework Regulatory Harmoniser
+- Path: `projects/regulatory-lens`
+- Purpose: GCC cybersecurity compliance tool that maps an organisation profile to applicable regulatory frameworks, runs parallel Claude analysis across 23 control domains, and produces a unified coverage matrix and weighted implementation roadmap.
+- Current strengths: 12 built-in GCC frameworks (NCA-ECC, SAMA-CSF, CBK, ISO-27001, NIST-CSF, UAE-NIAF, PCI-DSS, IEC-62443, SOC2, PDPL-UAE, PDPL-QAT, Qatar NIAS V2.1), parallel SSE-streamed domain analysis with concurrency limiter, posture-gated roadmap generation, Excel and PDF export, custom framework PDF ingestion, and Change Tracker for assessing regulatory version updates.
+- One-click launch (Windows):
+
+```text
+cd projects/regulatory-lens && "Launch Cross-Framework Harmoniser.cmd"
+```
+
+See project docs:
+- `projects/regulatory-lens/README.md`
+- `projects/regulatory-lens/docs/PROJECT_SPEC.md`
