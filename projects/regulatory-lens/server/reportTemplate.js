@@ -25,9 +25,14 @@ export function buildReportHTML(harmonisationResults, roadmap, selectedFramework
     `<th style="font-size:9px;padding:5px 4px;text-align:center;white-space:nowrap">${esc(f.replace('-', ' '))}</th>`
   ).join('');
 
-  const roadmapBlocks = (roadmap?.roadmapItems || []).map((item, i) => {
-    const priorityColor  = { immediate: '#A32D2D', 'short-term': '#993C1D', 'medium-term': '#633806', planned: '#27500A' }[item.priority] || '#555';
-    const priorityBg     = { immediate: '#FCEBEB', 'short-term': '#FAECE7', 'medium-term': '#FAEEDA', planned: '#EAF3DE' }[item.priority] || '#F5F5F5';
+  const allItems     = roadmap?.roadmapItems || [];
+  const highPriority = allItems.filter(item => item.priority === 'immediate' || item.priority === 'short-term');
+  const remaining    = allItems.filter(item => item.priority !== 'immediate' && item.priority !== 'short-term');
+
+  // Full-detail blocks for immediate + short-term only
+  const roadmapBlocks = highPriority.map((item, i) => {
+    const priorityColor  = { immediate: '#A32D2D', 'short-term': '#993C1D' }[item.priority] || '#555';
+    const priorityBg     = { immediate: '#FCEBEB', 'short-term': '#FAECE7' }[item.priority] || '#F5F5F5';
     const effortKey      = (item.estimatedEffort || '').toLowerCase().replace(/\s+/g, '-');
     const effortColor    = { low: '#27500A', medium: '#633806', high: '#993C1D', 'very-high': '#A32D2D' }[effortKey] || '#555';
     const effortBg       = { low: '#EAF3DE', medium: '#FAEEDA', high: '#FAECE7', 'very-high': '#FCEBEB' }[effortKey] || '#F5F5F5';
@@ -70,6 +75,21 @@ export function buildReportHTML(harmonisationResults, roadmap, selectedFramework
             </div>` : ''}
         </div>
       </div>`;
+  }).join('');
+
+  // Compact summary table for medium-term + planned
+  const remainingRows = remaining.map((item, i) => {
+    const priorityColor = { 'medium-term': '#633806', planned: '#27500A' }[item.priority] || '#555';
+    const priorityBg    = { 'medium-term': '#FAEEDA', planned: '#EAF3DE' }[item.priority] || '#F5F5F5';
+    const gaps          = (item.mandatoryFrameworkGaps || []).join(', ');
+    return `<tr style="border-bottom:0.5px solid #F0F0F0">
+      <td style="padding:5px 6px;font-size:10px;color:#94A3B8;text-align:center">${item.rank || ''}</td>
+      <td style="padding:5px 6px;font-size:10px;font-weight:500">${esc(item.domainLabel)}</td>
+      <td style="padding:5px 6px"><span style="background:${priorityBg};color:${priorityColor};font-size:9px;font-weight:600;padding:1px 6px;border-radius:10px">${esc(item.priority || '')}</span></td>
+      <td style="padding:5px 6px;font-size:10px;color:#555">${esc(item.estimatedEffort || '—')}</td>
+      <td style="padding:5px 6px;font-size:9px;color:#A32D2D">${esc(gaps)}</td>
+      <td style="padding:5px 6px;font-size:10px;color:#475569">${esc((item.recommendedActions || [])[0] || '')}</td>
+    </tr>`;
   }).join('');
 
   return `<!DOCTYPE html>
@@ -126,11 +146,21 @@ export function buildReportHTML(harmonisationResults, roadmap, selectedFramework
     </table>
   </div>
 
-  ${roadmapBlocks ? `
+  ${allItems.length > 0 ? `
   <div class="section">
-    <div class="sec-title">Implementation roadmap — all ${(roadmap?.roadmapItems||[]).length} domains</div>
+    <div class="sec-title">Implementation roadmap — ${allItems.length} domains</div>
     ${roadmap?.criticalGaps != null ? `<div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:8px">⚠ ${roadmap.criticalGaps} critical gaps &nbsp;·&nbsp; <span style="color:#888;font-weight:400">${roadmap.totalGaps} total gaps identified</span></div>` : ''}
-    ${roadmapBlocks}
+
+    ${highPriority.length > 0 ? `
+    <div style="font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immediate &amp; Short-term — full detail</div>
+    ${roadmapBlocks}` : ''}
+
+    ${remaining.length > 0 ? `
+    <div style="font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px">Medium-term &amp; Planned — summary</div>
+    <table>
+      <tr><th>#</th><th>Domain</th><th>Priority</th><th>Effort</th><th>Mandatory gaps</th><th>First action</th></tr>
+      ${remainingRows}
+    </table>` : ''}
   </div>` : ''}
 
   <div class="footer">
