@@ -33,27 +33,50 @@ function parseClaudeJSON(text) {
   throw new Error('No parseable JSON found in Claude response');
 }
 
+// Retryable HTTP status codes — transient Anthropic-side errors
+const RETRYABLE_STATUSES = new Set([500, 529]);
+const MAX_RETRIES = 3;
+const RETRY_BASE_MS = 2000; // 2s, 4s, 8s
+
 async function callClaude(system, userMessage, maxTokens = 1500) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: CLAUDE_MODEL,
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: 'user', content: userMessage }]
-    })
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Claude API ${res.status}: ${err}`);
+  let lastError;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: CLAUDE_MODEL,
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: 'user', content: userMessage }]
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data.content[0]?.text || '';
+    }
+
+    const errText = await res.text();
+
+    if (RETRYABLE_STATUSES.has(res.status) && attempt < MAX_RETRIES) {
+      const delay = RETRY_BASE_MS * Math.pow(2, attempt - 1);
+      console.warn(`[Claude] ${res.status} on attempt ${attempt}/${MAX_RETRIES} — retrying in ${delay}ms`);
+      await new Promise(r => setTimeout(r, delay));
+      lastError = new Error(`Claude API ${res.status}: ${errText}`);
+      continue;
+    }
+
+    // Non-retryable (400, 401, 404, 429) or final attempt — throw immediately
+    throw new Error(`Claude API ${res.status}: ${errText}`);
   }
-  const data = await res.json();
-  return data.content[0]?.text || '';
+
+  throw lastError;
 }
 
 // ── Domain result cache — keyed by (domainId + sorted framework list) ───────
