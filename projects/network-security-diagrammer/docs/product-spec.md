@@ -168,6 +168,30 @@ The app should produce diagrams that are:
 Areas that still benefit from continued tuning:
 
 - more benchmark-driven pattern refinement
-- denser-pattern layout polish
-- better handling for prompts that do not fit the current pattern library cleanly
-- stronger summary wording for edge cases
+- stronger summaries and titles for edge cases
+- further visual polish for dense or highly connected diagrams
+- broader pattern coverage for niche or mixed-domain prompts
+
+## Recommended Next Enhancements
+
+The highest-value enhancements from the current state are:
+
+- pattern confidence visibility for debugging and tuning
+  - store whether a diagram came from the deterministic path or model fallback
+  - record the selected pattern and fallback reason for troubleshooting
+- clearer clarification mode for low-confidence prompts
+  - ask targeted follow-up questions when multiple architectures are equally plausible
+  - use assumptions only when the missing detail is minor enough to infer safely
+- richer model fallback policy
+  - keep deterministic generation for strong pattern matches
+  - use structured model-generated architecture JSON for generic or low-confidence cases
+  - continue validating all model output through `architectureSchema`
+- prompt-family benchmarks
+  - maintain a small golden set of sample prompts and expected topologies
+  - use the set to tune pattern scoring, layout, and wording changes
+- smarter connection management
+  - suppress low-value secondary arrows in crowded diagrams
+  - prioritize the main access, protection, or data path visually
+- stronger follow-up edit semantics
+  - improve targeted replacement for labels, colors, and small topology edits
+  - preserve user-intended changes without introducing unrelated rewrites

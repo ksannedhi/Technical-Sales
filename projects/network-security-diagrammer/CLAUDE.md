@@ -35,7 +35,7 @@ A **local-first network security diagrammer** that converts natural language pro
 
 ```
 frontend/src/           React SPA — prompt input, Excalidraw canvas, follow-up chat
-        ↕ REST (fetch via Vite proxy)
+        ↕ REST (fetch via Vite proxy → /api)
 backend/src/index.ts    Express server — route registration
         ↓
 backend/src/routes/
@@ -52,7 +52,7 @@ shared/                 Types and schemas shared between backend and frontend
 
 - **TypeScript throughout** — backend uses `tsx watch` for hot-reload during dev; `tsc` for production builds.
 - **Pattern-first inference** — base topology (star, mesh, hybrid, DMZ) is determined locally without AI, making the tool usable offline.
-- **OpenAI optional** — if `OPENAI_API_KEY` is absent, the `/api/analyze` route falls back to regex-based pattern matching. The `/api/generate` and `/api/followup` routes require the key.
+- **OpenAI optional** — if `OPENAI_API_KEY` is absent, `/api/analyze` falls back to regex-based pattern matching. `/api/generate` and `/api/followup` require the key.
 - **Excalidraw output** — generates native Excalidraw JSON that can be pasted directly into excalidraw.com or the desktop app.
 - **Monorepo with workspaces** — `backend`, `frontend`, and `shared` are npm workspaces under the root `package.json`.
 

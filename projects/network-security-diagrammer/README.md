@@ -7,7 +7,8 @@ Local app for turning rough network and security prompts into clean, editable Ex
 The app is designed to:
 
 - infer architectural intent from messy prompts
-- choose a pattern-first architecture model instead of a generic fallback when possible
+- choose a pattern-first architecture model for known prompt families
+- use a structured model fallback for low-confidence or generic cases
 - keep diagrams simple, conceptual, and presentation-friendly
 - preserve explicit entities named in the prompt
 - let follow-up prompts refine the current architecture
@@ -18,11 +19,11 @@ The current pipeline is:
 
 1. analyze the prompt
 2. classify it into a supported pattern family
-3. build a deterministic architecture model
+3. build a deterministic architecture model for strong matches, or use a validated model fallback for weak/generic cases
 4. lay out the diagram locally
 5. render the scene in Excalidraw
 
-OpenAI assists with prompt analysis and follow-up editing when an API key is available. The base topology and layout are generated locally by the app.
+OpenAI assists with prompt analysis, follow-up editing, and structured fallback generation when an API key is available. Layout and rendering remain local to the app.
 
 ## Run
 
@@ -63,6 +64,15 @@ Notes:
 - ambiguous prompts require confirmation before generation
 - bad prompts offer a secure alternative
 - Excalidraw handles export through its own menu
+
+## Current Focus
+
+The main areas still being refined are:
+
+- benchmark-driven tuning for more prompt families
+- stronger summaries and titles for edge cases
+- visual polish for dense or highly connected diagrams
+- broader coverage for niche or mixed-domain prompts
 
 ## Documentation
 

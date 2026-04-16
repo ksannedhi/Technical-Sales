@@ -5,6 +5,8 @@ import type {
   ArchitectureZone,
 } from "../../../shared/types/architecture.js";
 import type { PromptAnalysis } from "../../../shared/types/analysis.js";
+import { architectureSchema } from "../schemas/architectureSchema.js";
+import { getOpenAIClient, getOpenAIModel } from "./openai.js";
 import { classifyPromptPattern } from "./patternLibrary.js";
 
 function slug(value: string) {
@@ -31,6 +33,186 @@ function createConnection(
   style: ArchitectureConnection["style"] = "solid",
 ): ArchitectureConnection {
   return { id: `${from}-${to}`, from, to, label, style };
+}
+
+function uniqueSlug(value: string, used: Set<string>, fallbackPrefix: string) {
+  const base = slug(value) || fallbackPrefix;
+  let candidate = base;
+  let suffix = 2;
+
+  while (used.has(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  used.add(candidate);
+  return candidate;
+}
+
+function normalizeGeneratedArchitecture(architecture: ArchitectureModel) {
+  const usedZoneIds = new Set<string>();
+  const zones = architecture.zones.map((zone, index) => ({
+    ...zone,
+    id: uniqueSlug(zone.id || zone.label || `zone-${index + 1}`, usedZoneIds, `zone-${index + 1}`),
+  }));
+
+  if (zones.length === 0) {
+    return null;
+  }
+
+  const zoneIdByNormalizedKey = new Map<string, string>();
+  zones.forEach((zone) => {
+    zoneIdByNormalizedKey.set(slug(zone.id), zone.id);
+    zoneIdByNormalizedKey.set(slug(zone.label), zone.id);
+  });
+
+  const resolveZoneId = (value: string) =>
+    zoneIdByNormalizedKey.get(slug(value)) ?? zones[0]!.id;
+
+  const usedComponentIds = new Set<string>();
+  const components = architecture.components.map((component, index) => ({
+    ...component,
+    id: uniqueSlug(component.id || component.label || `component-${index + 1}`, usedComponentIds, `component-${index + 1}`),
+    zoneId: resolveZoneId(component.zoneId),
+  }));
+
+  if (components.length === 0) {
+    return null;
+  }
+
+  const componentIdByNormalizedKey = new Map<string, string>();
+  components.forEach((component) => {
+    componentIdByNormalizedKey.set(slug(component.id), component.id);
+    componentIdByNormalizedKey.set(slug(component.label), component.id);
+  });
+
+  const resolveComponentId = (value: string) => componentIdByNormalizedKey.get(slug(value));
+
+  const connectionIds = new Set<string>();
+  const connections = architecture.connections
+    .map((connection) => {
+      const from = resolveComponentId(connection.from);
+      const to = resolveComponentId(connection.to);
+
+      if (!from || !to || from === to) {
+        return null;
+      }
+
+      const connectionBase = `${from}-${to}`;
+      const id = uniqueSlug(connection.id || connectionBase, connectionIds, connectionBase);
+
+      const normalizedConnection: ArchitectureConnection = {
+        ...connection,
+        id,
+        from,
+        to,
+        style: connection.style ?? "solid",
+      };
+
+      return normalizedConnection;
+    })
+    .filter((connection): connection is ArchitectureConnection => Boolean(connection));
+
+  if (connections.length === 0) {
+    return null;
+  }
+
+  return {
+    ...architecture,
+    zones,
+    components,
+    connections,
+  } satisfies ArchitectureModel;
+}
+
+async function generateArchitectureWithModel(
+  prompt: string,
+  analysis: PromptAnalysis,
+  classification: ReturnType<typeof classifyPromptPattern>,
+) {
+  const client = getOpenAIClient();
+
+  if (!client) {
+    return null;
+  }
+
+  try {
+    const response = await client.chat.completions.create({
+      model: getOpenAIModel(),
+      temperature: 0.2,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: [
+            "You generate a network and security architecture model for diagram rendering.",
+            "Return only JSON.",
+            "Keep the output conceptual, simple, and vendor-neutral unless the prompt explicitly names a vendor, provider, or product.",
+            "Preserve explicit entities from the prompt such as AWS, Exchange, WAF, MFA, SSO, VPN, DMZ, or SIEM when present.",
+            "Avoid generic zone-heavy diagrams unless the prompt truly calls for them.",
+            "Target 2 to 4 zones, 6 to 12 components, and at most 15 connections.",
+            "Use these zone types only: external, dmz, security-zone, internal, cloud, branch, data-center.",
+            "Use these component types only: user, network, security-control, identity, application, data, monitoring, integration.",
+            "Use connection styles only: solid or dashed.",
+            "Provide stable ids as lowercase slugs.",
+          ].join(" "),
+        },
+        {
+          role: "user",
+          content: JSON.stringify({
+            prompt,
+            normalizedPrompt: analysis.normalizedPrompt,
+            assumptions: analysis.assumptions,
+            selectedPattern: classification.pattern,
+            outputFormat: {
+              title: "string",
+              summary: "string",
+              assumptions: ["string"],
+              appliedChanges: [],
+              zones: [{ id: "string", label: "string", type: "external|dmz|security-zone|internal|cloud|branch|data-center" }],
+              components: [
+                {
+                  id: "string",
+                  label: "string",
+                  type: "user|network|security-control|identity|application|data|monitoring|integration",
+                  zoneId: "string",
+                  importance: "normal|critical",
+                },
+              ],
+              connections: [{ id: "string", from: "string", to: "string", label: "string", style: "solid|dashed" }],
+            },
+          }),
+        },
+      ],
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      return null;
+    }
+
+    const parsed = architectureSchema.parse(JSON.parse(content));
+    const normalized = normalizeGeneratedArchitecture({
+      ...parsed,
+      assumptions: analysis.assumptions,
+      appliedChanges: [],
+    });
+
+    if (!normalized) {
+      return null;
+    }
+
+    return refreshArchitectureText(normalized, { prompt, classification });
+  } catch {
+    return null;
+  }
+}
+
+function shouldUseModelFallback(
+  analysis: PromptAnalysis,
+  classification: ReturnType<typeof classifyPromptPattern>,
+) {
+  return classification.pattern === "generic-secure-architecture" || classification.confidence < 0.8 || analysis.confidence < 0.75;
 }
 
 function deriveSummary(architecture: ArchitectureModel) {
@@ -471,8 +653,11 @@ function rewireAroundComponent(architecture: ArchitectureModel, componentId: str
   architecture.connections = remaining;
 }
 
-function buildScenarioArchitecture(prompt: string, analysis: PromptAnalysis): ArchitectureModel {
-  const classification = classifyPromptPattern(analysis.normalizedPrompt);
+function buildScenarioArchitecture(
+  prompt: string,
+  analysis: PromptAnalysis,
+  classification = classifyPromptPattern(analysis.normalizedPrompt),
+): ArchitectureModel {
 
   if (classification.pattern === "partner-api-security") {
     return refreshArchitectureText({
@@ -683,8 +868,8 @@ function buildScenarioArchitecture(prompt: string, analysis: PromptAnalysis): Ar
       ],
       components: [
         createComponent("Remote User", "user", "home"),
-        createComponent("User Device", "network", "home"),
         createComponent("Endpoint Access Client", "security-control", "home", "critical"),
+        createComponent("User Device", "network", "home"),
         createComponent("Local Gateway", "network", "home"),
         createComponent("Encrypted Tunnel", "security-control", "internet", "critical"),
         createComponent("Perimeter Firewall", "security-control", "internal", "critical"),
@@ -694,8 +879,8 @@ function buildScenarioArchitecture(prompt: string, analysis: PromptAnalysis): Ar
         createComponent("Identity Service", "identity", "internal"),
       ],
       connections: [
+        createConnection("remote-user", "endpoint-access-client"),
         createConnection("remote-user", "user-device"),
-        createConnection("user-device", "endpoint-access-client"),
         createConnection("endpoint-access-client", "local-gateway"),
         createConnection("local-gateway", "encrypted-tunnel", "Protected Access"),
         createConnection("encrypted-tunnel", "perimeter-firewall"),
@@ -1113,7 +1298,16 @@ export async function generateArchitecture(
   prompt: string,
   analysis: PromptAnalysis,
 ): Promise<ArchitectureModel> {
-  return buildScenarioArchitecture(prompt, analysis);
+  const classification = classifyPromptPattern(analysis.normalizedPrompt);
+
+  if (shouldUseModelFallback(analysis, classification)) {
+    const modelGenerated = await generateArchitectureWithModel(prompt, analysis, classification);
+    if (modelGenerated) {
+      return modelGenerated;
+    }
+  }
+
+  return buildScenarioArchitecture(prompt, analysis, classification);
 }
 
 export function applyFollowupInstruction(
