@@ -1,0 +1,7 @@
+{
+  "name": "autonomous-presales-engineer",
+  "description": "Build reusable presales bid drafts from customer RFPs, current-opportunity vendor documentation, and prior gold proposals. Produces SoW, HLD, and Technical Proposal in Markdown and DOCX with inline figures.",
+  "author": {
+    "name": "Kalyan Sannedhi"
+  }
+}
