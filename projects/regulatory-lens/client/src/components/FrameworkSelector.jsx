@@ -75,7 +75,7 @@ const ALL_FRAMEWORKS = [
 
 const WEIGHT_OPTS = ['mandatory', 'contractual', 'voluntary'];
 
-export default function FrameworkSelector({ recommended, initialSelected, initialWeights, onStart }) {
+export default function FrameworkSelector({ recommended, initialSelected, initialWeights, onStart, onBack }) {
   const [selected,    setSelected]    = useState(initialSelected || []);
   const [weights,     setWeights]     = useState(initialWeights  || {});
   const [customFWs,   setCustomFWs]   = useState([]);
@@ -274,14 +274,16 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
         )}
       </div>
 
-      <button
-        className="btn btn-primary"
-        disabled={selected.length < 2}
-        onClick={() => onStart(selected, weights)}
-        style={{ marginTop: '16px' }}
-      >
-        Start harmonisation ({selected.length} frameworks) →
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>
+        <button className="btn" onClick={onBack}>← Back to intake</button>
+        <button
+          className="btn btn-primary"
+          disabled={selected.length < 2}
+          onClick={() => onStart(selected, weights)}
+        >
+          Start harmonisation ({selected.length} frameworks) →
+        </button>
+      </div>
     </div>
   );
 }

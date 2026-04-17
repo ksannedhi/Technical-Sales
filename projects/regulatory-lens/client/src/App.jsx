@@ -152,7 +152,7 @@ export default function App() {
       {inHarmoniser && (
         <>
           {step === 'intake'      && <IntakeForm onSubmit={handleIntakeSubmit} />}
-          {step === 'frameworks'  && <FrameworkSelector recommended={recommendedFrameworks} initialSelected={selectedFrameworks} initialWeights={frameworkWeights} onStart={handleStartHarmonisation} />}
+          {step === 'frameworks'  && <FrameworkSelector recommended={recommendedFrameworks} initialSelected={selectedFrameworks} initialWeights={frameworkWeights} onStart={handleStartHarmonisation} onBack={() => setStep('intake')} />}
           {step === 'harmonising' && <ProgressBar progress={progress} total={23} />}
 
           {step === 'matrix' && (
