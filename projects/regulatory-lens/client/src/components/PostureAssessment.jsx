@@ -6,8 +6,8 @@ const POSTURE_OPTS = [
   { value: 'not-implemented',label: 'Not implemented',       color: '#E24B4A' },
 ];
 
-export default function PostureAssessment({ results, onSubmit, onBack }) {
-  const [posture, setPosture] = useState({});
+export default function PostureAssessment({ results, onSubmit, onBack, initialPosture }) {
+  const [posture, setPosture] = useState(initialPosture || {});
   const [loading, setLoading] = useState(false);
 
   function setDomainPosture(domainId, value) {

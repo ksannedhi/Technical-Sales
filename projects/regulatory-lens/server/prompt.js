@@ -31,25 +31,52 @@ Rules:
 - Only recommend frameworks that genuinely apply to the described organisation
 - Weight "mandatory" only for frameworks with legal or regulatory enforcement in the described jurisdiction
 - Always include ISO-27001 as contractual or voluntary baseline unless contradicted by the profile
-- For Kuwait banking and financial services sector only: CBK is mandatory. CBK does NOT apply to Kuwait government entities, CNI operators, telecoms, or any non-financial sector — do not recommend CBK outside of banking & financial services regardless of geography.
-- For Saudi entities: NCA-ECC is mandatory. For Saudi banking: SAMA-CSF is also mandatory.
-- For Qatar entities: QATAR-NIAS is mandatory for ALL organisations operating within the State of Qatar, enforced by the National Cyber Security Agency (NCSA) under Amiri Decree No. 1 of 2021. This includes private sector, government, and all entities handling Qatar information assets or outsourced/subcontracted activities. For non-Qatar organisations with Qatar operations or a significant Qatar customer base: QATAR-NIAS is contractual. Omit if no plausible Qatar nexus.
-- For Kuwait government entities and CNI operators: Kuwait has no mandatory national cybersecurity framework in this taxonomy. Recommend ISO-27001 as contractual baseline, IEC-62443 as contractual if OT/ICS systems are present, and NIST-CSF as voluntary. Do not recommend NCA-ECC (Saudi-specific) or CBK (financial sector only).
+
+JURISDICTION SCOPING — apply these rules strictly before recommending any framework:
+
+NCA-ECC (Saudi Arabia):
+  • mandatory — geography is Saudi Arabia
+  • contractual — geography is Multiple AND the organisation has stated Saudi operations or a Saudi subsidiary
+  • OMIT entirely — geography is UAE, Kuwait, Qatar, Bahrain, or Oman. Do not recommend NCA-ECC for non-Saudi organisations even if "Multiple" is selected without clear Saudi operations.
+
+SAMA-CSF (Saudi Arabia · Banking):
+  • mandatory — geography is Saudi Arabia AND sector is Banking & financial services
+  • OMIT entirely — geography is not Saudi Arabia. SAMA has no jurisdiction outside Saudi Arabia. Do not recommend for UAE, Kuwait, Qatar, Bahrain, or Oman banking entities.
+
+CBK (Kuwait · Banking):
+  • mandatory — geography is Kuwait AND sector is Banking & financial services
+  • OMIT entirely — geography is not Kuwait, or sector is not banking. CBK does NOT apply to Kuwait government, CNI operators, telecoms, or any non-financial sector.
+
+UAE-NIAF (UAE):
+  • mandatory — geography is UAE AND (sector is CNI-related OR "CNI operator" is selected)
+  • contractual — geography is UAE, non-CNI sector
+  • OMIT — geography is not UAE
+
+QATAR-NIAS (Qatar):
+  • mandatory — geography is Qatar (all organisations operating within Qatar)
+  • contractual — geography is Multiple and the organisation has stated Qatar operations or a Qatar subsidiary
+  • OMIT — geography is UAE, Saudi Arabia, Kuwait, Bahrain, or Oman with no stated Qatar nexus
+
+CBK/SAMA/NCA-ECC cross-border rule: a UAE-headquartered bank is NOT subject to Saudi or Kuwait regulators. A Saudi-headquartered bank is NOT subject to UAE or Kuwait regulators. Only the framework of the organisation's primary jurisdiction is mandatory; foreign-jurisdiction frameworks require an explicit subsidiary/branch nexus.
+
+PDPL-UAE (UAE Federal Decree-Law No. 45 of 2021):
+  • mandatory — geography is UAE
+  • contractual — geography is another GCC country and organisation plausibly has UAE customers or a UAE branch (e.g. a pan-GCC retail bank or e-commerce platform selecting "Personal data of GCC residents")
+  • OMIT — no plausible UAE nexus
+  Exempt: UAE government entities, security/judicial authorities, DIFC/ADGM free zone companies.
+
+PDPL-QAT (Qatar Law No. 13 of 2016):
+  • mandatory — geography is Qatar
+  • contractual — geography is Multiple AND organisation explicitly operates in Qatar (e.g. a multinational telecoms operator, pan-GCC retail bank with Qatar branch)
+  • OMIT — geography is UAE, Saudi Arabia, Kuwait, Bahrain, or Oman without a stated Qatar branch or Qatar customer base. A UAE central bank, UAE government entity, or single-country operator has no Qatar data protection nexus.
+  Exempt: personal/family use and official statistical data processing.
+
+- Do NOT set both PDPL-UAE and PDPL-QAT to "mandatory" simply because "Personal data of GCC residents" was selected. Geography and operating model determine jurisdiction — selecting GCC personal data only triggers consideration, not automatic recommendation.
 - For organisations handling payment cards: PCI-DSS is mandatory regardless of geography
-- For OT/ICS environments: IEC-62443 is highly relevant
+- For CNI operators with OT/ICS systems: IEC-62443 is contractual
 - For SaaS/technology companies serving US/international clients: SOC2 is contractual
-- PDPL-UAE (UAE Federal Decree-Law No. 45 of 2021): calibrate weight by geography and operations:
-    • mandatory — primary geography is UAE, or organisation is a Controller/Processor residing in the UAE
-    • contractual — primary geography is another GCC country but organisation plausibly has UAE customers or a UAE branch (e.g. a pan-GCC bank or retailer selecting "Personal data of GCC residents")
-    • omit — no plausible UAE nexus
-    Exempt: UAE government entities, security/judicial authorities, DIFC/ADGM free zone companies with their own data protection regimes.
-- PDPL-QAT (Qatar Law No. 13 of 2016): calibrate weight by geography and operations:
-    • mandatory — primary geography is Qatar
-    • contractual — primary geography is another GCC country and organisation plausibly processes Qatar resident data (e.g. a pan-GCC bank or telecoms operator with Qatar presence)
-    • omit — no plausible Qatar nexus
-    Exempt: personal/family use and official statistical data processing.
-- Do NOT set both PDPL-UAE and PDPL-QAT to "mandatory" simply because "Personal data of GCC residents" was selected. Use geography and sector to calibrate. A Kuwait-headquartered bank should receive both PDPLs as "contractual" at most, not "mandatory", unless it explicitly operates in those jurisdictions.
-- If stockExchangeListed is true: upgrade SOC2 to "contractual" (investor and auditor due diligence demands it regardless of geography). Also upgrade any already-applicable governance-heavy framework (NCA-ECC, CBK, UAE-NIAF, SAMA-CSF) by one weight tier if it would otherwise be "voluntary" — listed entities face stricter board-level accountability.
+- For Kuwait government entities and CNI operators (non-banking): no mandatory national framework in this taxonomy. Recommend ISO-27001 as contractual baseline, IEC-62443 as contractual if OT/ICS present, NIST-CSF as voluntary.
+- If stockExchangeListed is true: upgrade SOC2 to "contractual". Also upgrade any already-applicable governance-heavy framework (NCA-ECC, CBK, UAE-NIAF, SAMA-CSF) by one weight tier if it would otherwise be "voluntary".
 `;
 
 export function buildIntakePrompt(profile) {

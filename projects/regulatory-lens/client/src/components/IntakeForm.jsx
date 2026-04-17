@@ -4,11 +4,11 @@ const GEOS     = ['Saudi Arabia','Kuwait','UAE','Qatar','Bahrain','Oman','Multip
 const SECTORS  = ['Banking & financial services','Oil & gas','Government','Healthcare','Telecoms','Retail / e-commerce','Technology / SaaS','Other'];
 const DATA     = ['Personal data of GCC residents','Payment card data','CNI operator (central bank, utility, telecoms, government)'];
 
-export default function IntakeForm({ onSubmit }) {
-  const [geo,      setGeo]      = useState('');
-  const [sector,   setSector]   = useState('');
-  const [dataTypes,setDataTypes]= useState([]);
-  const [listed,   setListed]   = useState(false);
+export default function IntakeForm({ onSubmit, initialProfile }) {
+  const [geo,      setGeo]      = useState(initialProfile?.geography          || '');
+  const [sector,   setSector]   = useState(initialProfile?.sector             || '');
+  const [dataTypes,setDataTypes]= useState(initialProfile?.dataTypes          || []);
+  const [listed,   setListed]   = useState(initialProfile?.stockExchangeListed || false);
   const [loading,  setLoading]  = useState(false);
 
   function toggleData(d) {

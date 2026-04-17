@@ -151,7 +151,7 @@ export default function App() {
 
       {inHarmoniser && (
         <>
-          {step === 'intake'      && <IntakeForm onSubmit={handleIntakeSubmit} />}
+          {step === 'intake'      && <IntakeForm onSubmit={handleIntakeSubmit} initialProfile={intakeProfile} />}
           {step === 'frameworks'  && <FrameworkSelector recommended={recommendedFrameworks} initialSelected={selectedFrameworks} initialWeights={frameworkWeights} onStart={handleStartHarmonisation} onBack={() => setStep('intake')} />}
           {step === 'harmonising' && <ProgressBar progress={progress} total={23} />}
 
@@ -167,7 +167,7 @@ export default function App() {
 
           {step === 'posture' && (
             <>
-              <PostureAssessment results={harmonisationResults} onSubmit={handlePostureSubmit} onBack={() => setStep('matrix')} />
+              <PostureAssessment results={harmonisationResults} onSubmit={handlePostureSubmit} onBack={() => setStep('matrix')} initialPosture={postureMap} />
             </>
           )}
 
