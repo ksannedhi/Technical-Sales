@@ -26,76 +26,73 @@ Each DOCX includes a cover block, table of contents, headers/footers, structured
 
 ---
 
-## Installation
+## Setup (one-time, per machine)
 
+**1. Clone this repo**
 ```bash
-/plugin install presales-skills@local-technical-sales
+git clone https://github.com/ksannedhi/Technical-Sales.git
 ```
 
-> **Note:** This is a local plugin. Before installing, clone this repo and register it as a local marketplace — see [Setup](#setup) below.
+**2. Create the marketplace junction** (PowerShell)
+```powershell
+New-Item -ItemType Junction `
+  -Path "$env:USERPROFILE\.claude\plugins\marketplaces\ksannedhi-Technical-Sales" `
+  -Target "<path-to-cloned-repo>"
+```
 
-### Setup
+**3. Register the marketplace** — add this entry to `~/.claude/plugins/known_marketplaces.json`:
+```json
+"ksannedhi-Technical-Sales": {
+  "source": { "source": "github", "repo": "ksannedhi/Technical-Sales" },
+  "installLocation": "<path-to-userprofile>\\.claude\\plugins\\marketplaces\\ksannedhi-Technical-Sales",
+  "lastUpdated": "2026-01-01T00:00:00.000Z"
+}
+```
 
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/ksannedhi/Technical-Sales.git
-   ```
-
-2. Create the marketplace directory and junction:
-   ```powershell
-   # Windows (PowerShell)
-   New-Item -ItemType Directory -Path "$env:USERPROFILE\.claude\plugins\marketplaces\local-technical-sales\plugins" -Force
-   New-Item -ItemType Junction `
-     -Path "$env:USERPROFILE\.claude\plugins\marketplaces\local-technical-sales\plugins\presales-skills" `
-     -Target "<path-to-cloned-repo>\skills\presales-skills"
-   ```
-
-3. Register the marketplace by adding this entry to `~/.claude/plugins/known_marketplaces.json`:
-   ```json
-   "local-technical-sales": {
-     "source": { "source": "local", "path": "<path-to-cloned-repo>\\skills" },
-     "installLocation": "<path-to-userprofile>\\.claude\\plugins\\marketplaces\\local-technical-sales",
-     "lastUpdated": "2026-01-01T00:00:00.000Z"
-   }
-   ```
-
-4. Install the plugin in Claude Code:
-   ```bash
-   /plugin install presales-skills@local-technical-sales
-   ```
+**4. Install the plugin** — inside any Claude Code session:
+```
+/plugin install presales-skills@ksannedhi-Technical-Sales
+/reload-plugins
+```
 
 ---
 
 ## Usage
 
-Once installed, the skill activates automatically when you describe an RFP or bid drafting task. You can also invoke it explicitly:
-
+**Option 1 — Slash command (short form):**
 ```
 /autonomous-presales-engineer
 ```
 
-### Inputs
+**Option 2 — Slash command (namespaced, discoverable by typing `/pre`):**
+```
+/presales-skills:draft-bid-pack
+```
 
-When invoked, provide:
+Both commands prompt for any missing inputs before drafting. You can also pass all four arguments directly:
+```
+/autonomous-presales-engineer <rfp-path> <vendor-docs-path> <gold-proposal-path> <output-folder>
+```
+
+**Option 3 — Natural language (auto-trigger):**
+> *"Draft a bid pack for Acme Corp. RFP is at `~/bids/rfp.pdf`, vendor docs in `~/bids/vendor/`, gold proposal at `~/bids/gold.docx`, output to `~/bids/output/`."*
+
+### Inputs
 
 | Input | Description |
 |---|---|
 | RFP | PDF or DOCX file path |
-| Vendor documentation | PDF, DOCX, PPT, or images for the current bid |
+| Vendor documentation | PDF, DOCX, PPT, images, or a folder of files |
 | Gold proposal | Reference DOCX for structure and tone |
 | Output folder | Where to write the generated files |
-
-### Example prompt
-
-> Draft a bid pack for the Acme Corp SIEM opportunity. RFP is at `~/bids/acme/rfp.pdf`, vendor docs are in `~/bids/acme/vendor/`, gold proposal is at `~/bids/reference/gold.docx`, output to `~/bids/acme/output/`.
 
 ---
 
 ## How it works
 
-1. Extracts text from all source files (DOCX XML preferred; Word COM fallback for PDFs on Windows)
+1. Detects scanned vs. text-layer PDF and picks the right extraction method
 2. Builds a requirements matrix from the RFP
-3. Consolidates vendor documentation into a single working set
+3. Consolidates vendor documentation into a single working set with source attribution
 4. Drafts SoW, HLD, and Technical Proposal with planned figure locations
 5. Inserts inline contextual images from vendor docs into each deliverable
 6. Runs quality gate checks (requirement traceability, BOQ fidelity, scope clarity, tone)

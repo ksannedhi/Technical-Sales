@@ -6,80 +6,11 @@ Cybersecurity presales resources: a Claude Code skill for bid drafting and 9 sta
 
 ## Skill — autonomous-presales-engineer
 
-Generates first-pass bid packs for cybersecurity opportunities from three inputs:
+- Path: `skills/presales-skills`
+- Purpose: generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a customer RFP, vendor documentation, and a gold proposal.
+- Invoke via `/autonomous-presales-engineer`, `/presales-skills:draft-bid-pack`, or natural language.
 
-| Input | Role |
-|---|---|
-| Customer RFP | Requirements and acceptance criteria |
-| Vendor documentation | Primary technical content and figures |
-| Gold proposal | Structure and tone benchmark |
-
-**Outputs** (Markdown + submission-ready DOCX for each):
-- Statement of Work (SoW)
-- High-Level Design (HLD)
-- Technical Proposal
-
-### Prerequisites
-
-- [Claude Code](https://claude.ai/code) installed and authenticated
-
-### Setup (one-time, per machine)
-
-**1. Clone this repo**
-```bash
-git clone https://github.com/ksannedhi/Technical-Sales.git
-```
-
-**2. Create the marketplace junction** (PowerShell)
-```powershell
-New-Item -ItemType Directory -Force `
-  -Path "$env:USERPROFILE\.claude\plugins\marketplaces\ksannedhi-Technical-Sales\plugins"
-
-New-Item -ItemType Junction `
-  -Path "$env:USERPROFILE\.claude\plugins\marketplaces\ksannedhi-Technical-Sales" `
-  -Target "<path-to-cloned-repo>"
-```
-
-**3. Register the marketplace** — add this entry to `~/.claude/plugins/known_marketplaces.json`:
-```json
-"ksannedhi-Technical-Sales": {
-  "source": { "source": "github", "repo": "ksannedhi/Technical-Sales" },
-  "installLocation": "<path-to-userprofile>\\.claude\\plugins\\marketplaces\\ksannedhi-Technical-Sales",
-  "lastUpdated": "2026-01-01T00:00:00.000Z"
-}
-```
-
-**4. Install the plugin** — inside any Claude Code session:
-```
-/plugin install presales-skills@ksannedhi-Technical-Sales
-/reload-plugins
-```
-
-### Usage
-
-**Option 1 — Slash command (short form):**
-```
-/autonomous-presales-engineer
-```
-
-**Option 2 — Slash command (namespaced, discoverable by typing `/pre`):**
-```
-/presales-skills:draft-bid-pack
-```
-
-Both commands prompt for any missing inputs before drafting. You can also pass all four arguments directly:
-```
-/autonomous-presales-engineer <rfp-path> <vendor-docs-path> <gold-proposal-path> <output-folder>
-```
-
-**Option 3 — Natural language (auto-trigger):**
-> *"Draft a bid pack for Acme Corp. RFP is at `~/bids/rfp.pdf`, vendor docs in `~/bids/vendor/`, gold proposal at `~/bids/gold.docx`, output to `~/bids/output/`."*
-
-### Notes
-- Figures are sourced from vendor documentation first — inserted inline, never in a standalone appendix
-- Gold proposal drives structure and tone only; vendor docs drive technical content
-- Commercial values stay as placeholders unless pricing is provided
-- Always writes from reseller perspective unless instructed otherwise
+See `skills/presales-skills/README.md` for full setup and usage instructions.
 
 ---
 
