@@ -1,6 +1,7 @@
 ---
 name: autonomous-presales-engineer
 description: Build reusable presales bid drafts from customer RFPs, current-opportunity vendor documentation, and prior gold proposals. Use when the user needs SoW, HLD, and Technical Proposal deliverables in Markdown and DOCX, plus requirement extraction, BOQ alignment, inline figure insertion, and reseller-tone packaging for cybersecurity opportunities.
+version: 1.0.0
 ---
 
 # Autonomous Presales Engineer
