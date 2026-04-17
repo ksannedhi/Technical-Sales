@@ -9,7 +9,11 @@
     {
       "name": "presales-skills",
       "description": "Build reusable presales bid drafts from customer RFPs, vendor documentation, and gold proposals. Produces SoW, HLD, and Technical Proposal in Markdown and DOCX.",
-      "source": "./skills/presales-skills",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/ksannedhi/Technical-Sales.git",
+        "subdir": "skills/presales-skills"
+      },
       "category": "productivity"
     }
   ]
