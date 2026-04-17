@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "local-technical-sales",
+  "description": "Presales engineering skills for cybersecurity opportunities",
+  "owner": {
+    "name": "Kalyan Sannedhi"
+  },
+  "plugins": [
+    {
+      "name": "presales-skills",
+      "description": "Build reusable presales bid drafts from customer RFPs, vendor documentation, and gold proposals. Produces SoW, HLD, and Technical Proposal in Markdown and DOCX.",
+      "source": "./skills/presales-skills",
+      "category": "productivity"
+    }
+  ]
+}
