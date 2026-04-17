@@ -84,7 +84,6 @@ The user provides:
 
 - **Geography** — primary country of operations (Saudi Arabia, UAE, Kuwait, Qatar, Bahrain, Oman, Other GCC)
 - **Sector** — banking & financial services, government, healthcare, telecoms, energy/oil & gas, retail, technology, other
-- **Employee count** — range selector
 - **Stock exchange listed** — boolean flag; triggers SOC2 upgrade and governance framework weight bump
 - **Applicable characteristics** — multi-select from:
   - Personal data of GCC residents
