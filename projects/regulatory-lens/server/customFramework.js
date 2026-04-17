@@ -27,6 +27,7 @@ function parseClaudeJSON(text) {
 async function callClaude(system, userMessage, maxTokens = 3000) {
   const res = await fetch(API_URL, {
     method: 'POST',
+    signal: AbortSignal.timeout(60_000),
     headers: {
       'Content-Type':      'application/json',
       'x-api-key':         process.env.ANTHROPIC_API_KEY,
@@ -113,7 +114,8 @@ export async function ingestCustomFramework(pdfBuffer, overrideName) {
   const rawText = parsed.text;
 
   // Truncate to ~12000 chars to stay within token limits while covering most frameworks
-  const truncated = rawText.length > 12000
+  const wasTruncated = rawText.length > 12000;
+  const truncated = wasTruncated
     ? rawText.slice(0, 12000) + '\n\n[Document truncated for analysis — first 12,000 characters processed]'
     : rawText;
 
@@ -157,7 +159,9 @@ export async function ingestCustomFramework(pdfBuffer, overrideName) {
     domainControlMap,
     mandatory:      false,
     confidenceLevel:'custom',
-    uploadedAt:     new Date().toISOString()
+    uploadedAt:     new Date().toISOString(),
+    truncated:      wasTruncated,
+    rawTextLength:  rawText.length
   };
 
   customFrameworkStore[frameworkId] = entry;

@@ -4,7 +4,7 @@
   "private": true,
   "workspaces": ["server", "client"],
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
+    "dev": "concurrently --kill-others-on-fail \"node --watch server/index.js\" \"npm run dev --workspace=client\"",
     "start": "npm run start --workspace=server"
   },
   "devDependencies": {

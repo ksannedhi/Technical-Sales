@@ -22,9 +22,10 @@ function parseClaudeJSON(text) {
   throw new Error('No parseable JSON found in Claude response');
 }
 
-async function callClaude(system, userMessage) {
+async function callClaude(system, userMessage, maxTokens = 4000) {
   const res = await fetch(API_URL, {
     method: 'POST',
+    signal: AbortSignal.timeout(60_000),
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': process.env.ANTHROPIC_API_KEY,
@@ -32,7 +33,7 @@ async function callClaude(system, userMessage) {
     },
     body: JSON.stringify({
       model: CLAUDE_MODEL,
-      max_tokens: 4000,
+      max_tokens: maxTokens,
       system,
       messages: [{ role: 'user', content: userMessage }]
     })

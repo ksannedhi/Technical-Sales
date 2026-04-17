@@ -14,6 +14,11 @@ function ExtractionPreview({ framework }) {
 
   return (
     <div style={{ marginTop: '10px', border: '1px solid #E2E8F0', borderRadius: '6px', overflow: 'hidden' }}>
+      {framework.truncated && (
+        <div style={{ fontSize: '11px', color: '#92400E', background: '#FFFBEB', borderBottom: '1px solid #FDE68A', padding: '5px 12px' }}>
+          ⚠ Document truncated — only the first 12,000 of {framework.rawTextLength?.toLocaleString()} characters were analysed. Controls in later sections may be missing from this extraction.
+        </div>
+      )}
       <button
         onClick={() => setOpen(o => !o)}
         style={{ width: '100%', textAlign: 'left', background: '#F8FAFC', padding: '8px 12px',
@@ -186,6 +191,11 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
                   <div className="fw-jurisdiction">{fw.jurisdiction}</div>
                   {fw.summary      && <div className="fw-rationale">{fw.summary}</div>}
                   {recItem?.rationale && !fw.isCustom && <div className="fw-rationale">{recItem.rationale}</div>}
+                  {fw.isCustom && (
+                    <div style={{ fontSize: '11px', color: '#92400E', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '5px', padding: '4px 8px', marginTop: '6px' }}>
+                      ⚠ Session-only — this framework will be cleared if the server restarts. Re-upload to restore it.
+                    </div>
+                  )}
                   {fw.isCustom && fw.rawData && <ExtractionPreview framework={fw.rawData} />}
                   {isSelected && (
                     <div className="fw-weight">

@@ -44,6 +44,7 @@ async function callClaude(system, userMessage, maxTokens = 1500) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const res = await fetch(API_URL, {
       method: 'POST',
+      signal: AbortSignal.timeout(60_000),
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
