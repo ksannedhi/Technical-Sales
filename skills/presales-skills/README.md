@@ -102,6 +102,5 @@ Both commands prompt for any missing inputs before drafting. You can also pass a
 ## Notes
 
 - Always writes from a **reseller perspective** unless instructed otherwise
-- Commercial values remain as placeholders unless pricing is provided
 - Figures are inserted inline in relevant sections — never grouped in a standalone appendix
 - Gold proposal is used for structure and tone only; vendor docs drive technical content
