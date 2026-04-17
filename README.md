@@ -57,18 +57,22 @@ New-Item -ItemType Junction `
 
 ### Usage
 
-**Explicit slash command:**
+**Option 1 — Slash command (short form):**
 ```
-/draft-bid-pack
-```
-Claude will prompt for any missing inputs, then generate the full bid pack.
-
-You can also pass arguments directly:
-```
-/draft-bid-pack <rfp-path> <vendor-docs-path> <gold-proposal-path> <output-folder>
+/autonomous-presales-engineer
 ```
 
-**Natural language (auto-trigger):**
+**Option 2 — Slash command (namespaced, discoverable by typing `/pre`):**
+```
+/presales-skills:draft-bid-pack
+```
+
+Both commands prompt for any missing inputs before drafting. You can also pass all four arguments directly:
+```
+/autonomous-presales-engineer <rfp-path> <vendor-docs-path> <gold-proposal-path> <output-folder>
+```
+
+**Option 3 — Natural language (auto-trigger):**
 > *"Draft a bid pack for Acme Corp. RFP is at `~/bids/rfp.pdf`, vendor docs in `~/bids/vendor/`, gold proposal at `~/bids/gold.docx`, output to `~/bids/output/`."*
 
 ### Notes
