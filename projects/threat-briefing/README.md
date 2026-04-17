@@ -83,6 +83,8 @@ Briefings are tuned for the GCC region. The model prioritises threats targeting 
 
 Click **Export PDF report** in the dashboard to generate and download a formatted A4 PDF. The report includes the threat level banner, analyst summary, top threats table, CISA KEV highlights, and recommended actions.
 
+If the export fails with a connection error on the first attempt after a server restart, click the button again — it will succeed. This is a one-off Puppeteer cold-start delay: Chrome takes a few extra seconds to launch the first time, which can cause the request to time out. Subsequent exports in the same session are unaffected.
+
 ## Understanding 0 values in the dashboard
 
 The four feed stat counters (OTX pulses, CISA KEV added, Malware samples, GCC relevance) reflect exactly what the feeds returned during the last pipeline run. Seeing 0 in one or more counters is normal and does not indicate a fault.
