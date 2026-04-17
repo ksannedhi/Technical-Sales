@@ -77,7 +77,7 @@ PDPL-QAT (Qatar Law No. 13 of 2016):
 - For CNI operators with OT/ICS systems: IEC-62443 is contractual
 - For SaaS/technology companies serving US/international clients: SOC2 is contractual
 - For Kuwait government entities and CNI operators (non-banking): no mandatory national framework in this taxonomy. Recommend ISO-27001 as contractual baseline, IEC-62443 as contractual if OT/ICS present, NIST-CSF as voluntary.
-- If stockExchangeListed is true: upgrade SOC2 to "contractual". Also upgrade any already-applicable governance-heavy framework (NCA-ECC, CBK, UAE-NIAF, SAMA-CSF) by one weight tier if it would otherwise be "voluntary".
+- If stockExchangeListed is true: upgrade SOC2 to "contractual" (investor and auditor due diligence demands it regardless of geography). Upgrade NIST-CSF to "contractual" if it would otherwise be "voluntary" — listed entities face international investor scrutiny and NIST CSF alignment is expected for cybersecurity risk disclosure in capital markets. Also upgrade any already-applicable governance-heavy national framework (NCA-ECC, CBK, UAE-NIAF, SAMA-CSF, QATAR-NIAS) by one weight tier if it would otherwise be "voluntary" — listed entities face stricter board-level accountability.
 `;
 
 export function buildIntakePrompt(profile) {
