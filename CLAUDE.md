@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with this repository.
 
 ## What this repo is
 
-A collection of 8 local cybersecurity presales tools. Each lives as both:
+A collection of 9 local cybersecurity presales tools. Each lives as both:
 - A **standalone project** under `C:\Users\ksann\Downloads\<project-name>\`
 - A **synced copy** under `projects/<project-name>\` in this repo
 
@@ -35,6 +35,7 @@ cmd.exe /c "robocopy \"C:\Users\ksann\Downloads\<standalone>\" \"C:\Users\ksann\
 | `threat-to-business-translator`   | `threat-to-business-translator`        | 8000         | 5178          |
 | `presales-deal-gating`            | `presales-deal-gating`                 | 8020         | —             |
 | `multi-vendor-decision-copilot`   | `multi-vendor-decision-copilot`        | 8501         | —             |
+| `regulatory-lens`                 | `regulatory-lens`                      | 3004         | 5179          |
 
 All standalone folder names now match their `projects/` counterparts exactly.
 
@@ -54,6 +55,7 @@ Stored locally at `C:\Users\ksann\Downloads\.claude\launch.json` — **not track
 | threat-to-business-translator   | Python / FastAPI     | Vite + React   |
 | presales-deal-gating            | Python / wsgiref     | Server-rendered HTML |
 | multi-vendor-decision-copilot   | Python / Streamlit   | Streamlit      |
+| regulatory-lens                 | Node / Express + Puppeteer | Vite + React |
 
 ## Key conventions
 
