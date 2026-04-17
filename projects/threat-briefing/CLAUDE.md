@@ -134,7 +134,8 @@ Dark mode preference is stored in `localStorage` (`darkMode: true/false`) and ap
 | CISA KEV always 0 | CISA does not add new KEVs every day; some days are genuinely empty | Expected behaviour |
 | Generation fails with JSON parse error on large OTX feeds | Claude response exceeded `max_tokens` and was truncated before the closing `</result>` tag | Mitigated — `max_tokens` raised to 8000 and parser hardened to handle missing closing tag; may recur if feeds grow very large |
 | Cron did not fire with `{ timezone }` option | node-cron v3 timezone option uses `Intl.DateTimeFormat.format()` then feeds the result to `new Date()`, which returns `Invalid Date` on Windows, silently preventing all matches | Fixed — timezone option removed; `TZ=Asia/Kuwait` in `.env` pins process clock so cron fires at 06:00 AST on any host |
-| PDF export ECONNRESET | Puppeteer failed to launch Chrome (stale hardcoded executable path in `pdf.js`) | Fixed — removed hardcoded path; now uses `PUPPETEER_EXECUTABLE_PATH` env var or Puppeteer auto-detection |
+| PDF export ECONNRESET (persistent) | Puppeteer failed to launch Chrome (stale hardcoded executable path in `pdf.js`) | Fixed — removed hardcoded path; now uses `PUPPETEER_EXECUTABLE_PATH` env var or Puppeteer auto-detection |
+| PDF export ECONNRESET (first export after restart) | Puppeteer cold-start latency — Chrome takes several seconds to launch on first use; Vite proxy times out before the PDF comes back | Expected intermittent behaviour — retry once and it succeeds. Not worth fixing for a presales tool; would require a persistent browser instance to eliminate |
 | Blank UI during startup catch-up pipeline | `cachedBriefing` was null while the pipeline ran; frontend had nothing to show | Fixed — stale briefing is now served immediately while catch-up runs in background |
 
 ## Non-goals
