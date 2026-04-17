@@ -93,10 +93,9 @@ Both commands prompt for any missing inputs before drafting. You can also pass a
 1. Detects scanned vs. text-layer PDF and picks the right extraction method
 2. Builds a requirements matrix from the RFP
 3. Consolidates vendor documentation into a single working set with source attribution
-4. Drafts SoW, HLD, and Technical Proposal with planned figure locations
-5. Inserts inline contextual images from vendor docs into each deliverable
-6. Runs quality gate checks (requirement traceability, BOQ fidelity, scope clarity, tone)
-7. Exports Markdown and submission-ready DOCX files
+4. Drafts SoW, HLD, and Technical Proposal with inline contextual figures from vendor docs
+5. Runs quality gate checks (requirement traceability, BOQ fidelity, scope clarity, tone)
+6. Exports Markdown and submission-ready DOCX files
 
 ---
 
