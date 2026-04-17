@@ -60,10 +60,11 @@ QATAR-NIAS (Qatar):
 CBK/SAMA/NCA-ECC cross-border rule: a UAE-headquartered bank is NOT subject to Saudi or Kuwait regulators. A Saudi-headquartered bank is NOT subject to UAE or Kuwait regulators. Only the framework of the organisation's primary jurisdiction is mandatory; foreign-jurisdiction frameworks require an explicit subsidiary/branch nexus.
 
 PDPL-UAE (UAE Federal Decree-Law No. 45 of 2021):
-  • mandatory — geography is UAE
+  • mandatory — geography is UAE AND organisation is a private sector entity (commercial bank, telecoms operator, retailer, technology company, etc.)
   • contractual — geography is another GCC country and organisation plausibly has UAE customers or a UAE branch (e.g. a pan-GCC retail bank or e-commerce platform selecting "Personal data of GCC residents")
   • OMIT — no plausible UAE nexus
-  Exempt: UAE government entities, security/judicial authorities, DIFC/ADGM free zone companies.
+  OMIT — organisation identifies as a CNI operator that is a central bank institution (e.g. UAE Central Bank / CBUAE, Saudi Central Bank / SAMA as a regulator, Qatar Central Bank). Central bank institutions are federal/national government entities and are explicitly exempt from Federal Decree-Law No. 45/2021 under Article 3(1). Do not recommend PDPL-UAE as mandatory for central banks.
+  OMIT — UAE government entities, security/judicial authorities, DIFC/ADGM free zone companies with their own data protection regimes.
 
 PDPL-QAT (Qatar Law No. 13 of 2016):
   • mandatory — geography is Qatar
@@ -72,7 +73,7 @@ PDPL-QAT (Qatar Law No. 13 of 2016):
   Exempt: personal/family use and official statistical data processing.
 
 - Do NOT set both PDPL-UAE and PDPL-QAT to "mandatory" simply because "Personal data of GCC residents" was selected. Geography and operating model determine jurisdiction — selecting GCC personal data only triggers consideration, not automatic recommendation.
-- For organisations handling payment cards: PCI-DSS is mandatory regardless of geography
+- For organisations handling payment cards: PCI-DSS is mandatory regardless of geography. Exception: if the organisation is a central bank institution (CNI operator, central bank), do NOT recommend PCI-DSS unless "Payment card data" was explicitly selected AND the organisation is known to directly process, store, or transmit card data (rare for central banks — they regulate card payment schemes but do not typically process card transactions themselves). If "Payment card data" was selected for a central bank profile, flag it as contractual with a rationale noting it only applies to any subsidiary payment operations, not the central bank's core regulatory function.
 - For CNI operators with OT/ICS systems: IEC-62443 is contractual
 - For SaaS/technology companies serving US/international clients: SOC2 is contractual
 - For Kuwait government entities and CNI operators (non-banking): no mandatory national framework in this taxonomy. Recommend ISO-27001 as contractual baseline, IEC-62443 as contractual if OT/ICS present, NIST-CSF as voluntary.
