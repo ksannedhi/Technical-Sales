@@ -7,6 +7,7 @@ import TopThreats       from './components/TopThreats.jsx';
 import CisaKEV          from './components/CisaKEV.jsx';
 import Recommendations  from './components/Recommendations.jsx';
 import ExportButton     from './components/ExportButton.jsx';
+import FeedWarnings    from './components/FeedWarnings.jsx';
 
 export default function App() {
   const [briefing,   setBriefing]   = useState(null);
@@ -16,6 +17,7 @@ export default function App() {
   const [darkMode,   setDarkMode]   = useState(
     () => localStorage.getItem('darkMode') === 'true'
   );
+  const [warningsDismissed, setWarningsDismissed] = useState(false);
 
   // Apply / remove dark attribute on body whenever darkMode changes
   useEffect(() => {
@@ -33,6 +35,7 @@ export default function App() {
       if (!res.ok) throw new Error('No briefing available yet. Click "Generate latest" to create one.');
       const data = await res.json();
       setBriefing(data);
+      setWarningsDismissed(false);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -48,6 +51,7 @@ export default function App() {
       if (!res.ok) throw new Error('Generation failed — check server logs.');
       const data = await res.json();
       setBriefing(data);
+      setWarningsDismissed(false);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -76,6 +80,13 @@ export default function App() {
       />
 
       {error && <p className="error-msg">{error}</p>}
+
+      {briefing && !warningsDismissed && (
+        <FeedWarnings
+          warnings={briefing.feedWarnings}
+          onDismiss={() => setWarningsDismissed(true)}
+        />
+      )}
 
       {briefing && <>
         <ThreatBanner briefing={briefing} />
