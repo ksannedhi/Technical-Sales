@@ -79,10 +79,10 @@ async function runPipeline() {
       'x-api-key':         process.env.ANTHROPIC_API_KEY,
       'anthropic-version': '2023-06-01'
     },
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(120_000),
     body: JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 8000,
+      max_tokens: 16000,
       system:     SYSTEM_PROMPT,
       messages:   [{ role: 'user', content: buildUserPrompt(normalisedData) }]
     })

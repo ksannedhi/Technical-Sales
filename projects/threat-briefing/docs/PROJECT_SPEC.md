@@ -239,8 +239,8 @@ This ensures the server always has a briefing ready to serve immediately after r
 ## 13. Model and Cost Strategy
 
 - Model: `claude-haiku-4-5-20251001`
-- Max tokens: 8000
-- Cost rationale: Haiku is the most cost-effective Claude model for structured JSON synthesis tasks at this scale. The normalised payload is compact and the schema is well-defined, making the task well within Haiku's capability. Max tokens was raised from 4000 to 8000 to prevent truncation on high-signal days (e.g. 13+ OTX pulses).
+- Max tokens: 16000
+- Cost rationale: Haiku is the most cost-effective Claude model for structured JSON synthesis tasks at this scale. The normalised payload is compact and the schema is well-defined, making the task well within Haiku's capability. Max tokens was raised from 4000 → 8000 → 16000 to prevent truncation on high-signal days (e.g. 16+ OTX pulses with full IOC lists and recommendations).
 
 ## 14. Startup Experience
 
@@ -276,7 +276,7 @@ OTX, CISA, and MalwareBazaar are all public or lightly authenticated APIs. Any o
 
 ### API Latency
 
-Feed fetching has a 15-second timeout per feed. The Claude API call has a 60-second timeout. Total pipeline time is typically 10–25 seconds depending on feed response times and Claude latency.
+Feed fetching has a 15-second timeout per feed. The Claude API call has a 120-second timeout. Total pipeline time is typically 10–30 seconds depending on feed volume and Claude latency; larger responses (16+ OTX pulses, max_tokens 16000) can push toward the upper end.
 
 ### Empty Feed Days and 0 Counters
 
