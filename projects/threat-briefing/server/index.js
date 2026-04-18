@@ -124,17 +124,18 @@ async function runPipeline() {
     malwareSamplesAnalysed: abusech.length
   };
 
-  // Surface feed issues as dismissible warnings in the UI
+  // Surface actionable feed issues as dismissible warnings in the UI.
+  // Abuse.ch HTTP 401 is a persistent external API issue — not actionable by
+  // the user — so it is demoted to the stat card rather than the banner.
   const feedWarnings = [];
   if (!process.env.OTX_API_KEY) {
     feedWarnings.push('OTX feed skipped — OTX_API_KEY is not set in .env. Add your key to include OTX pulse data.');
   } else if (otx.length === 0) {
     feedWarnings.push('OTX returned 0 pulses — this may be a rate limit. Wait ~15 minutes before regenerating.');
   }
-  if (abusech.length === 0) {
-    feedWarnings.push('MalwareBazaar feed returned no data — likely HTTP 401. Check backend logs for [Abuse.ch] Feed error.');
-  }
   parsed.feedWarnings = feedWarnings;
+  // Let the UI know Abuse.ch was unavailable so the stat card can reflect it
+  parsed.abusechUnavailable = abusech.length === 0;
 
   cachedBriefing = parsed;
   saveBriefing(cachedBriefing);

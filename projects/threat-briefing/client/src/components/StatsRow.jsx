@@ -18,7 +18,9 @@ export default function StatsRow({ briefing }) {
       <div className="stat-card">
         <div className="stat-label">Malware samples</div>
         <div className="stat-val">{s.malwareSamplesAnalysed ?? '—'}</div>
-        <div className="stat-sub">MalwareBazaar</div>
+        <div className={`stat-sub${briefing.abusechUnavailable ? ' stat-sub-warn' : ''}`}>
+          {briefing.abusechUnavailable ? 'feed unavailable' : 'MalwareBazaar'}
+        </div>
       </div>
       <div className="stat-card">
         <div className="stat-label">GCC relevance</div>
