@@ -472,12 +472,11 @@ export default function App() {
             >
               Mark Resolved
             </button>
-            <button
-              onClick={() => updateTicketStatus(selectedTicket.id, "open")}
-              disabled={selectedTicket.status !== "resolved"}
-            >
-              Reopen
-            </button>
+            {selectedTicket.status === "resolved" && (
+              <button onClick={() => updateTicketStatus(selectedTicket.id, "open")}>
+                Reopen
+              </button>
+            )}
           </div>
         )}
       </>
