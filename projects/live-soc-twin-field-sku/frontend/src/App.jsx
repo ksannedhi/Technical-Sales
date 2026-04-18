@@ -408,8 +408,8 @@ export default function App() {
     }).length + cisoOrphaned;
     const resolvedCount = tickets.filter((t) => t.status === "resolved").length;
     const affectedServices = new Set(alerts.filter((a) => a.severity === "high" || a.severity === "critical").map((a) => a.business_service)).size;
-    const riskLabel = riskScore >= 60 ? "Critical" : riskScore >= 30 ? "Elevated" : "Normal";
-    const riskColor = riskScore >= 60 ? "#fca5a5" : riskScore >= 30 ? "#fcd34d" : "#86efac";
+    const riskLabel = riskScore >= 15 ? "Critical" : riskScore >= 7 ? "Elevated" : "Normal";
+    const riskColor = riskScore >= 15 ? "#fca5a5" : riskScore >= 7 ? "#fcd34d" : "#86efac";
     return (
       <>
         <h3>Executive Risk Summary</h3>
