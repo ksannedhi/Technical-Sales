@@ -26,14 +26,14 @@ Talk track:
 - Start `Phishing Scenario`.
 - Narrate: phishing link clicked on HR workstation → password spray against domain controller → lateral movement to file server.
 - At ~25 s, auto-ticket fires. Point to the Customer Tickets count incrementing.
-- Show CISO Active Incident card: techniques, impacted assets, linked ticket.
+- Show CISO Active Incident card: techniques, impacted assets (displayed as `Service Name (HOSTNAME)` — e.g. `CRM (APP-CRM-01)`), linked ticket ID.
 - Show Business Risk escalating (colour shift to Elevated or Critical).
 
 Talk track:
 "The moment the threat escalates, we auto-raise a customer ticket — no analyst action required. Your team sees what we're doing and what you need to do in real time."
 
 Talk track:
-"Notice the Business Risk card — it reflects actual impacted services and incident severity, not just alert volume."
+"Notice the Business Risk card — it reflects actual impacted services and incident severity, not just alert volume. The asset names map to your business services, not raw hostnames."
 
 ---
 
@@ -49,11 +49,16 @@ Talk track:
 
 ### 4. Containment and close the loop (1 min)
 
-- Navigate to **Customer Tickets** tab — show ticket with response actions our team is taking and customer action required.
+- Navigate to **Customer Tickets** tab — click the ticket to expand it.
+- Point to the response timeline (chronological list of MDR actions: isolate host, block IP, suspend user account).
+- Point to the **Customer Action** field — the specific next step your team needs to take (e.g. reset credentials, verify MFA).
 - Mark ticket Resolved — return to CISO view and show incident card disappears, Business Risk returns to Normal.
 
 Talk track:
-"Resolving the containment action closes the loop. The risk posture updates immediately — this is what contained looks like from the executive seat."
+"Every MDR action we take is logged with a timestamp and actor. And we tell you exactly what your team needs to do — no ambiguity."
+
+Talk track:
+"Resolving the ticket closes the loop. Risk posture updates immediately — this is what contained looks like from the executive seat."
 
 ---
 
