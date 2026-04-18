@@ -1,122 +1,97 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
 
-**Start the backend:**
+**Start the backend (API + WebSocket server):**
 ```bash
-node api/server.js
+npm run demo:start          # node api/server.js on port 3001
 ```
-Run from the project root. Reads `.env` via `dotenv/config` in server.js.
 
 **Start the frontend (Vite dev server):**
 ```bash
 cd frontend && npm run dev  # http://localhost:5173
 ```
 
-**Install dependencies:**
+**Demo operator scripts (run against a live backend on port 3001):**
 ```bash
-# Backend (root)
-npm install
+npm run demo:health         # verify backend is up
+npm run demo:prep           # seed baseline + pre-warm state
+npm run seed                # inject baseline alert history
+npm run reset               # clear all alerts, incidents, running scenarios
 
-# Frontend
-cd frontend && npm install
+npm run scenario:phishing        # trigger phishing-credential-lateral
+npm run scenario:ransomware      # trigger ransomware-precursor
+npm run scenario:cloud-identity  # trigger cloud-identity-abuse
+npm run scenario:stop            # stop all running scenarios
 ```
 
-**Trigger a scenario manually (requires server running on :3001):**
+**Frontend build:**
 ```bash
-node scripts/trigger-scenario.js phishing-credential-lateral
-node scripts/trigger-scenario.js ransomware-precursor
-node scripts/trigger-scenario.js cloud-identity-abuse
-node scripts/stop-scenarios.js
+cd frontend && npm run build    # outputs to frontend/dist/
 ```
 
-**Health check:**
-```bash
-curl http://localhost:3001/
+**Windows launcher (opens backend + frontend together):**
 ```
-
-**Reset demo state:**
-```bash
-node scripts/reset.js
+Double-click: Launch SOC Twin.cmd
 ```
+Installs dependencies if needed, runs demo:prep (reset + seed + health), then opens backend and frontend in separate windows.
 
 ## Architecture
 
-A **real-time SOC Twin demo** that simulates a live Security Operations Centre environment for pre-sales and field demonstrations. Events stream to the frontend via WebSocket (Socket.io).
+The app is a **laptop-runnable SOC simulation** for presales demos. All state is in-memory; there is no database.
 
 ```
-frontend/src/           React SPA — receives real-time alerts via Socket.io
-        ↕ Socket.io + REST
-api/server.js           Express + Socket.io server — state, scenarios, event emitter
+frontend/src/App.jsx         React SPA (single file, no router)
+        ↕ REST + WebSocket
+api/server.js                Express + Socket.io gateway
         ↓
-engine/scenario-runner.js   Scenario playbook engine
+api/state.js                 Singleton in-memory store (alerts[], incidents[], scenarioRuns Map, playbooks)
         ↓
-api/state.js            In-memory SOC state (alerts, incidents, scenarios)
+engine/scenario-runner.js    Orchestrates timed playbook events, background noise intervals
+engine/event-generator.js    Builds individual alert objects from fixtures + playbook seeds
+engine/correlator.js         Groups alerts into incidents by scenario_id or mitre_tactic:dest_hostname key
         ↓
-api/routes/
-  alerts.js             GET /api/alerts
-  incidents.js          GET /api/incidents
-  scenarios.js          POST /api/scenarios/:id/start, /stop
-  control.js            POST /api/reset, /api/prep
+engine/playbooks/*.json      Three scenario definitions with timed event sequences
+data/*.json                  Fixtures: hosts, users, MITRE TTPs, CVEs, geo sources, traffic profiles
+        ↓
+analyst/triage-agent.js      Calls Anthropic API (ARIA) or falls back to local template
+analyst/provider-adapter.js  Anthropic SDK wrapper with model fallback chain
+analyst/escalation.js        Escalation logic: risk_score >= 8 or asset_criticality == "high"
 ```
 
-**Three audience modes (configurable via DEMO_MODE):**
-- `analyst` — raw alert feed, full IOC data
-- `manager` — grouped incidents, MTTR metrics
-- `ciso` — executive risk summary, business impact
+### Key data flow
 
-## Key design decisions
+1. `api/state.js` is loaded once at startup — it reads all JSON fixtures and all playbooks from `engine/playbooks/` into a singleton object shared by all route handlers.
+2. `scenario-runner.js` schedules `setTimeout` calls per playbook event and a `setInterval` for background noise. Each fires `emitAlert()` → `buildAlert()` → `upsertIncident()` → Socket.io broadcast.
+3. The frontend connects via Socket.io and listens for `alert:new`, `incident:updated`, `operator:reset`, `scenario:*` events. It also polls `GET /api/health` every 10 s.
+4. The ARIA analyst triage runs on demand via `POST /api/analyst/triage` — it calls Anthropic if `ANTHROPIC_API_KEY` is set, otherwise returns a deterministic local fallback.
 
-- **No database** — all state is in-memory (`api/state.js`). `node scripts/reset.js` to clear between demos.
-- **Socket.io for real-time** — avoids polling; frontend receives events instantly as scenarios fire.
-- **Background noise** — `runner.startBackgroundNoise()` emits low-severity alerts continuously to make the dashboard feel live even with no active scenario.
-- **OpenAI optional** — `OPENAI_API_KEY` enriches scenario narratives with AI-generated descriptions. Falls back to static text if absent.
-- **Frontend is standalone** — lives in `frontend/` with its own `package.json` and `node_modules`. Not a workspace.
+### Audience modes
+
+The frontend exposes three views (`?mode=analyst|manager|ciso`) that change the dashboard title, KPI cards, and the last alert table column — all driven from the `VIEW_COPY` / `VIEW_LABEL` constants in `App.jsx`. No backend change is needed to switch modes.
+
+### Playbook format
+
+Each `engine/playbooks/*.json` file must have `id`, `duration_seconds`, and an `events[]` array. Each event needs `delay_seconds`, `severity`, `event_type`, `mitre_tactic`, and `mitre_technique_id`. The scenario runner uses `delay_seconds` divided by `speedMultiplier` to schedule timeouts.
 
 ## Environment variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PORT` | No | `3001` | Backend port |
-| `DEMO_BRAND` | No | `SOC Twin Demo` | Organisation name shown in UI |
-| `DEMO_MODE` | No | `true` | Enables demo-specific UX |
-| `EVENT_RATE_MS` | No | `3200` | Interval between background noise events |
-| `SCENARIO_NOISE_MS` | No | `1200` | Interval between scenario events |
-| `MAX_EVENTS_PER_SECOND` | No | `4` | Rate limiter for event emission |
-| `OPENAI_API_KEY` | No | — | Enriches scenario narratives via GPT |
-| `OPENAI_MODEL` | No | `gpt-4.1-mini` | OpenAI model for narrative generation |
+Copy `.env.example` to `.env`. Key vars:
 
-Copy `.env.example` → `.env` and fill in `OPENAI_API_KEY` if AI narratives are needed.
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `3001` | Backend listen port |
+| `ANTHROPIC_API_KEY` | _(empty)_ | If unset, ARIA uses local fallback |
+| `ANTHROPIC_MODEL` | `claude-3-5-haiku-latest` | Model for triage; has fallback chain |
+| `EVENT_RATE_MS` | `3200` | Background noise interval (ms) |
+| `SCENARIO_NOISE_MS` | `1200` | Noise interval during active scenario |
 
-## Ports
+Frontend uses `VITE_API_URL` and `VITE_WS_URL` (both default to `http://127.0.0.1:3001`).
 
-| Service | Port |
-|---------|------|
-| Backend (Express + Socket.io) | `3001` |
-| Frontend (Vite) | `5173` |
+## Constraints
 
-Frontend has no vite proxy — Socket.io and REST calls go directly to `http://localhost:3001`.
-
-## Key project files
-
-- `api/server.js` — Express + Socket.io server, route registration, background noise startup
-- `api/state.js` — in-memory SOC state (alerts, incidents, active scenarios)
-- `engine/scenario-runner.js` — playbook engine, scenario lifecycle management
-- `api/routes/alerts.js` — alert list endpoint
-- `api/routes/incidents.js` — incident grouping endpoint
-- `api/routes/scenarios.js` — scenario start/stop endpoints
-- `api/routes/control.js` — reset and prep endpoints
-- `api/middleware/errorHandler.js` — centralised error handling
-- `scripts/trigger-scenario.js` — CLI to trigger scenarios manually
-- `scripts/reset.js` — reset all state between demos
-- `scripts/demo-prep.js` — seed initial demo data
-- `frontend/src/` — React SPA with Socket.io client
-
-## Non-goals
-
-- Persistent storage (demo resets are intentional)
-- Multi-user sessions
-- Production alert ingestion (this is simulation only)
-- Authentication
+- Only one scenario can run at a time; `runScenario` throws if another is active.
+- Alert array is capped at 500 entries in memory; the frontend keeps the latest 60.
+- All containment actions are simulated — no real infrastructure calls are made.
