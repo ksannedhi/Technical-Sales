@@ -274,6 +274,18 @@ Switching modes changes the dashboard title, all KPI cards, and the entire main 
 - KPIs: Active Incidents, Threats Contained, Services Affected, Business Risk (colour-coded)
 - Main panel: Active Incident cards showing techniques, impacted assets with business service names (format: `Service Name (HOSTNAME)`), linked ticket ID
 
+**Business Risk calculation**
+
+Derived from active high/critical incidents and open orphaned tickets (tickets whose incident was cleared by reset):
+
+| Score | Label | Colour |
+|---|---|---|
+| 0–6 | Normal | Green |
+| 7–14 | Elevated | Amber |
+| ≥ 15 | Critical | Red |
+
+Weights: critical incident or ticket = 15 pts, high = 7 pts. Resolving a ticket removes it from the score immediately. After reset, open tickets retain their score contribution so Business Risk stays consistent with what the CISO view is displaying.
+
 ### Customer Tickets tab
 
 Available in all modes. Shows:
