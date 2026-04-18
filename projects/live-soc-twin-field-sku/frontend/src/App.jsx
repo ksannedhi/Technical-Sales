@@ -252,8 +252,11 @@ export default function App() {
       const t = tickets.find((tk) => tk.incident_id === i.id);
       return !t || t.status !== "resolved";
     });
-    const criticals = activeHighCrit.filter((i) => i.severity === "critical").length;
-    const highs = activeHighCrit.filter((i) => i.severity === "high").length;
+    const orphaned = tickets.filter((t) => t.status !== "resolved" && !incidents.find((i) => i.id === t.incident_id));
+    const criticals = activeHighCrit.filter((i) => i.severity === "critical").length
+      + orphaned.filter((t) => t.severity === "critical").length;
+    const highs = activeHighCrit.filter((i) => i.severity === "high").length
+      + orphaned.filter((t) => t.severity === "high").length;
     return Math.min(100, criticals * 15 + highs * 7);
   }, [incidents, tickets]);
   const openTicketCount = useMemo(() => tickets.filter((t) => t.status !== "resolved").length, [tickets]);
