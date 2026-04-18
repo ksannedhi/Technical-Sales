@@ -4,6 +4,16 @@ function randomItem(items, fallback) {
   return items && items.length ? items[Math.floor(Math.random() * items.length)] : fallback;
 }
 
+const SEVERITY_BASE   = { critical: 8, high: 6, medium: 4, low: 2 };
+const CRITICALITY_BONUS = { critical: 2, high: 1, medium: 0, low: -1 };
+
+function computeRiskScore(severity, assetCriticality) {
+  const base    = SEVERITY_BASE[severity]        || 2;
+  const bonus   = CRITICALITY_BONUS[assetCriticality] || 0;
+  const variance = Math.floor(Math.random() * 3) - 1; // -1, 0, +1
+  return Math.max(1, Math.min(10, base + bonus + variance));
+}
+
 function mitreName(state, techniqueId) {
   const t = state.mitre.find((m) => m.technique_id === techniqueId);
   return t ? t.technique_name : "Unknown Technique";
@@ -38,7 +48,8 @@ function buildAlert(state, seed) {
     scenario_id: seed.scenario_id || null,
     incident_id: null,
     business_service: host.business_service,
-    asset_criticality: host.criticality
+    asset_criticality: host.criticality,
+    risk_score: computeRiskScore(seed.severity || "low", host.criticality)
   };
 
   return alert;

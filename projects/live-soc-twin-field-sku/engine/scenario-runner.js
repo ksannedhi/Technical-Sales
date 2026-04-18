@@ -2,6 +2,23 @@ const { buildAlert } = require("./event-generator");
 const { upsertIncident } = require("./correlator");
 const { buildTicket, summarizeAlert } = require("../analyst/ticket-factory");
 
+const BACKGROUND_EVENTS = [
+  { severity: "low",    event_type: "Routine Authentication",        mitre_tactic: "Discovery",         mitre_technique_id: "T1087"     },
+  { severity: "low",    event_type: "Service Account Login",         mitre_tactic: "Defense Evasion",   mitre_technique_id: "T1078"     },
+  { severity: "low",    event_type: "File Share Access",             mitre_tactic: "Discovery",         mitre_technique_id: "T1087"     },
+  { severity: "low",    event_type: "Outbound DNS Query",            mitre_tactic: "Discovery",         mitre_technique_id: "T1087"     },
+  { severity: "low",    event_type: "Scheduled Task Execution",      mitre_tactic: "Persistence",       mitre_technique_id: "T1098"     },
+  { severity: "medium", event_type: "Multiple Failed Logins",        mitre_tactic: "Credential Access", mitre_technique_id: "T1110.003" },
+  { severity: "medium", event_type: "Unusual Remote Session",        mitre_tactic: "Lateral Movement",  mitre_technique_id: "T1021.001" },
+  { severity: "medium", event_type: "Account Permission Modified",   mitre_tactic: "Persistence",       mitre_technique_id: "T1098"     },
+  { severity: "medium", event_type: "Suspicious Email Link Clicked", mitre_tactic: "Initial Access",    mitre_technique_id: "T1566.002" },
+  { severity: "high",   event_type: "Credential Dump Attempt",       mitre_tactic: "Credential Access", mitre_technique_id: "T1110.003" },
+];
+
+function randomBackgroundEvent() {
+  return BACKGROUND_EVENTS[Math.floor(Math.random() * BACKGROUND_EVENTS.length)];
+}
+
 const AUTO_TICKET_SEVERITIES = ["critical", "high"];
 
 function emitAlert(state, io, seed) {
@@ -73,12 +90,7 @@ function runScenario(state, io, scenarioId, speedMultiplier = 1) {
   const traffic = state.trafficProfiles.incident_spike || { background_rate_ms: incidentRateMs };
   run.noiseTimer = setInterval(() => {
     if (run.status !== "running") return;
-    emitAlert(state, io, {
-      severity: "low",
-      event_type: "Background Noise Event",
-      mitre_tactic: "Discovery",
-      mitre_technique_id: "T1087"
-    });
+    emitAlert(state, io, randomBackgroundEvent());
   }, Math.max(500, Number(traffic.background_rate_ms || incidentRateMs)));
 
   const endTimer = setTimeout(() => {
@@ -111,12 +123,7 @@ function resumeScenario(state, io, scenarioId) {
   const traffic = state.trafficProfiles.incident_spike || { background_rate_ms: incidentRateMs };
   run.noiseTimer = setInterval(() => {
     if (run.status !== "running") return;
-    emitAlert(state, io, {
-      severity: "low",
-      event_type: "Background Noise Event",
-      mitre_tactic: "Discovery",
-      mitre_technique_id: "T1087"
-    });
+    emitAlert(state, io, randomBackgroundEvent());
   }, Math.max(500, Number(traffic.background_rate_ms || incidentRateMs)));
   io.emit("scenario:resumed", { scenario_id: scenarioId });
   return true;
@@ -127,12 +134,7 @@ function startBackgroundNoise(state, io) {
   const profile = state.trafficProfiles.business_hours || { background_rate_ms: envRate };
   const interval = Math.max(1000, Number(profile.background_rate_ms || envRate));
   return setInterval(() => {
-    emitAlert(state, io, {
-      severity: "low",
-      event_type: "Routine Authentication Event",
-      mitre_tactic: "Discovery",
-      mitre_technique_id: "T1087"
-    });
+    emitAlert(state, io, randomBackgroundEvent());
   }, interval);
 }
 

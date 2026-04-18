@@ -48,6 +48,13 @@ export default function App() {
   const [newTicketBanner, setNewTicketBanner] = useState(null);
   const [ticketCreateState, setTicketCreateState] = useState("idle");
 
+  const riskBand = (score) => {
+    if (score >= 9) return "critical";
+    if (score >= 7) return "high";
+    if (score >= 4) return "medium";
+    return "low";
+  };
+
   const scenarioRunning = (health.running_scenarios || []).length > 0;
   const runningScenarioLabel = (health.running_scenarios || []).join(", ");
 
@@ -372,6 +379,8 @@ export default function App() {
               <th>Severity</th>
               <th>Event</th>
               <th>Host</th>
+              <th>Criticality</th>
+              <th>Risk</th>
               <th>{lastColumnTitle}</th>
             </tr>
           </thead>
@@ -392,6 +401,8 @@ export default function App() {
                 <td><span className={`badge ${a.severity}`}>{a.severity}</span></td>
                 <td>{a.event_type}</td>
                 <td>{a.dest_hostname}</td>
+                <td><span className={`badge ${a.asset_criticality}`}>{a.asset_criticality}</span></td>
+                <td><span className={`risk-score risk-${riskBand(a.risk_score)}`}>{a.risk_score}</span></td>
                 <td>{lastColumnValue(a)}</td>
               </tr>
             ))}
