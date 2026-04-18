@@ -317,10 +317,10 @@ export default function App() {
       return (
         <>
           <h3>Active Incidents</h3>
-          {incidents.length === 0 ? (
-            <p className="info-banner">No active incidents. Trigger a scenario to generate incidents.</p>
-          ) : (
-            incidents.map((inc) => {
+          {(() => {
+            const significant = incidents.filter((i) => i.severity === "high" || i.severity === "critical");
+            if (significant.length === 0) return <p className="info-banner">No high or critical incidents. Monitoring in progress.</p>;
+            return significant.map((inc) => {
               const linkedTicket = tickets.find((t) => t.incident_id === inc.id);
               return (
                 <div key={inc.id} className="incident-card">
@@ -355,7 +355,8 @@ export default function App() {
                   )}
                 </div>
               );
-            })
+            });
+          })()}
           )}
         </>
       );

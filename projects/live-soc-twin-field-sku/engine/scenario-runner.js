@@ -30,21 +30,18 @@ function emitAlert(state, io, seed) {
     state.alerts.length = 500;
   }
 
-  // Only scenario alerts create incidents; background noise stays as raw alerts.
-  const incident = alert.scenario_id ? upsertIncident(state, alert) : null;
+  const incident = upsertIncident(state, alert);
   io.emit("alert:new", alert);
-  if (incident) io.emit("incident:updated", incident);
+  io.emit("incident:updated", incident);
 
   // Auto-ticket: fire on the first high/critical alert in an incident that has no ticket yet.
-  if (incident) {
-    const isHighSeverity = AUTO_TICKET_SEVERITIES.includes(alert.severity);
-    const alreadyTicketed = state.tickets.some((t) => t.incident_id === incident.id);
-    if (isHighSeverity && !alreadyTicketed) {
-      const summary = summarizeAlert(alert, {});
-      const ticket = buildTicket(state, alert, summary, "auto");
-      state.tickets.push(ticket);
-      io.emit("ticket:created", ticket);
-    }
+  const isHighSeverity = AUTO_TICKET_SEVERITIES.includes(alert.severity);
+  const alreadyTicketed = state.tickets.some((t) => t.incident_id === incident.id);
+  if (isHighSeverity && !alreadyTicketed) {
+    const summary = summarizeAlert(alert, {});
+    const ticket = buildTicket(state, alert, summary, "auto");
+    state.tickets.push(ticket);
+    io.emit("ticket:created", ticket);
   }
 
   return alert;
