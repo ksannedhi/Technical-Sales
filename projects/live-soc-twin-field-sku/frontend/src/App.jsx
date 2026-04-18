@@ -46,6 +46,7 @@ export default function App() {
   const [selectionMessage, setSelectionMessage] = useState("");
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [newTicketBanner, setNewTicketBanner] = useState(null);
+  const [ticketCreateState, setTicketCreateState] = useState("idle");
 
   const scenarioRunning = (health.running_scenarios || []).length > 0;
   const runningScenarioLabel = (health.running_scenarios || []).join(", ");
@@ -92,13 +93,10 @@ export default function App() {
     const onReset = () => {
       setAlerts([]);
       setIncidents([]);
-      setTickets([]);
       setSelectedAlertId(null);
       setSelectedAlert(null);
       setAnalysis(null);
       setSelectionMessage("");
-      setSelectedTicketId(null);
-      setNewTicketBanner(null);
       refreshHealth();
     };
 
@@ -160,13 +158,10 @@ export default function App() {
     await fetch(`${API_BASE}/api/reset`, { method: "POST" });
     setAlerts([]);
     setIncidents([]);
-    setTickets([]);
     setSelectedAlertId(null);
     setSelectedAlert(null);
     setAnalysis(null);
     setSelectionMessage("");
-    setSelectedTicketId(null);
-    setNewTicketBanner(null);
     refreshHealth();
   };
 
@@ -209,6 +204,10 @@ export default function App() {
     [criticalCount, highCount, health.incidents]
   );
   const openTicketCount = useMemo(() => tickets.filter((t) => t.status !== "resolved").length, [tickets]);
+  const ticketForAlert = useMemo(
+    () => (selectedAlert ? tickets.find((t) => t.alert_id === selectedAlert.id) : null),
+    [tickets, selectedAlert]
+  );
 
   const analyzeSelectedAlert = async () => {
     if (!selectedAlert) return;
@@ -236,6 +235,24 @@ export default function App() {
       setError("Alert analysis failed.");
       setAnalysisState("idle");
     }
+  };
+
+  const createTicket = async () => {
+    if (!selectedAlert || !analysis) return;
+    try {
+      setTicketCreateState("working");
+      const res = await fetch(`${API_BASE}/api/tickets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alert_id: selectedAlert.id, summary: analysis })
+      });
+      const body = await res.json();
+      if (res.ok) {
+        setTickets((prev) => [body.ticket, ...prev.filter((t) => t.id !== body.ticket.id)]);
+        setNewTicketBanner(body.ticket);
+      }
+    } catch {}
+    setTicketCreateState("idle");
   };
 
   const updateTicketStatus = async (ticketId, status) => {
@@ -402,6 +419,7 @@ export default function App() {
                   <th>Ticket</th>
                   <th>Severity</th>
                   <th>Title</th>
+                  <th>Source</th>
                   <th>Created</th>
                   <th>Status</th>
                 </tr>
@@ -416,6 +434,7 @@ export default function App() {
                     <td><code>{t.id}</code></td>
                     <td><span className={`badge ${t.severity}`}>{t.severity}</span></td>
                     <td>{t.title}</td>
+                    <td><span className={`source-badge source-${t.source || "auto"}`}>{t.source === "analyst" ? "Analyst" : "Auto"}</span></td>
                     <td>{timeFmt.format(new Date(t.created_at))}</td>
                     <td><span className={`status-badge status-${t.status}`}>{t.status.replace("_", " ")}</span></td>
                   </tr>
@@ -587,6 +606,16 @@ export default function App() {
                       ))}
                     </ul>
                     {analysis.note ? <p><strong>Note:</strong> {analysis.note}</p> : null}
+                    <hr style={{ borderColor: "#1f2937", margin: "10px 0" }} />
+                    {ticketForAlert ? (
+                      <p className="info-banner">
+                        Ticket raised: <strong>{ticketForAlert.id}</strong> ({ticketForAlert.status.replace("_", " ")})
+                      </p>
+                    ) : (
+                      <button onClick={createTicket} disabled={ticketCreateState === "working"}>
+                        {ticketCreateState === "working" ? "Creating..." : "Create Ticket"}
+                      </button>
+                    )}
                   </>
                 ) : (
                   <p>Run analysis on a selected alert to see ARIA's triage summary.</p>

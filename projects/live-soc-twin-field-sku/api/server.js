@@ -43,7 +43,7 @@ app.get("/", (_req, res) => {
 
 app.use("/api/alerts", createAlertsRouter(state));
 app.use("/api/analyst", createAnalystRouter(state, io));
-app.use("/api/tickets", createTicketsRouter(state));
+app.use("/api/tickets", createTicketsRouter(state, io));
 app.use("/api/incidents", createIncidentsRouter(state));
 app.use("/api/scenarios", createScenariosRouter(state, io, runner));
 app.use("/api", createControlRouter(state, io, runner));

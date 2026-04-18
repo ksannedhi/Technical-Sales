@@ -1,5 +1,8 @@
 const { buildAlert } = require("./event-generator");
 const { upsertIncident } = require("./correlator");
+const { buildTicket, summarizeAlert } = require("../analyst/ticket-factory");
+
+const AUTO_TICKET_SEVERITIES = ["critical", "high"];
 
 function emitAlert(state, io, seed) {
   const alert = buildAlert(state, seed);
@@ -13,6 +16,18 @@ function emitAlert(state, io, seed) {
   const incident = upsertIncident(state, alert);
   io.emit("alert:new", alert);
   io.emit("incident:updated", incident);
+
+  // Auto-ticket: fire once when a new high/critical incident is first created.
+  const isNewIncident = incident.alert_ids.length === 1;
+  const isHighSeverity = AUTO_TICKET_SEVERITIES.includes(alert.severity);
+  const alreadyTicketed = state.tickets.some((t) => t.incident_id === incident.id);
+  if (isNewIncident && isHighSeverity && !alreadyTicketed) {
+    const summary = summarizeAlert(alert, {});
+    const ticket = buildTicket(state, alert, summary, "auto");
+    state.tickets.push(ticket);
+    io.emit("ticket:created", ticket);
+  }
+
   return alert;
 }
 
