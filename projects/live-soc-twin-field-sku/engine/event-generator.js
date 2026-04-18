@@ -24,7 +24,8 @@ function makeRawLog(eventType, src, dst) {
 }
 
 function buildAlert(state, seed) {
-  const host = randomItem(state.hosts, { hostname: "WS-01", ip: "10.0.20.10", criticality: "medium", business_service: "Endpoint" });
+  const pinned = seed.dest_hostname ? state.hosts.find((h) => h.hostname === seed.dest_hostname) : null;
+  const host = pinned || randomItem(state.hosts, { hostname: "WS-01", ip: "10.0.20.10", criticality: "medium", business_service: "Endpoint" });
   const user = randomItem(state.users, { username: "user1" });
   const geo = randomItem(state.geos, { country: "United States", city: "Ashburn", lat: 39.0438, lon: -77.4874 });
 

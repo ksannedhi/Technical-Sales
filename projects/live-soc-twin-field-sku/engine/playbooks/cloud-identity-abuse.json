@@ -5,8 +5,8 @@
   "target_sector": "Enterprise",
   "threat_actor": "Demo Threat Group",
   "events": [
-    {"delay_seconds": 0, "severity": "medium", "event_type": "Impossible Travel Login", "mitre_tactic": "Defense Evasion", "mitre_technique_id": "T1078"},
-    {"delay_seconds": 30, "severity": "high", "event_type": "Admin Role Assignment", "mitre_tactic": "Persistence", "mitre_technique_id": "T1098"},
-    {"delay_seconds": 70, "severity": "high", "event_type": "Sensitive Data Access Burst", "mitre_tactic": "Collection", "mitre_technique_id": "T1213"}
+    {"delay_seconds": 0,  "severity": "medium", "event_type": "Impossible Travel Login",   "mitre_tactic": "Defense Evasion", "mitre_technique_id": "T1078", "dest_hostname": "APP-CRM-01"},
+    {"delay_seconds": 30, "severity": "high",   "event_type": "Admin Role Assignment",     "mitre_tactic": "Persistence",     "mitre_technique_id": "T1098", "dest_hostname": "APP-CRM-01"},
+    {"delay_seconds": 70, "severity": "high",   "event_type": "Sensitive Data Access Burst","mitre_tactic": "Collection",      "mitre_technique_id": "T1213", "dest_hostname": "APP-CRM-01"}
   ]
 }

@@ -5,8 +5,8 @@
   "target_sector": "Enterprise",
   "threat_actor": "Demo Threat Group",
   "events": [
-    {"delay_seconds": 0, "severity": "medium", "event_type": "Macro Execution Attempt", "mitre_tactic": "Execution", "mitre_technique_id": "T1059.001"},
-    {"delay_seconds": 35, "severity": "high", "event_type": "Privilege Escalation Attempt", "mitre_tactic": "Privilege Escalation", "mitre_technique_id": "T1548"},
-    {"delay_seconds": 80, "severity": "critical", "event_type": "Mass File Encryption Behavior Detected", "mitre_tactic": "Impact", "mitre_technique_id": "T1486"}
+    {"delay_seconds": 0,  "severity": "medium",   "event_type": "Macro Execution Attempt",              "mitre_tactic": "Execution",          "mitre_technique_id": "T1059.001", "dest_hostname": "WS-FIN-22"},
+    {"delay_seconds": 35, "severity": "high",     "event_type": "Privilege Escalation Attempt",         "mitre_tactic": "Privilege Escalation","mitre_technique_id": "T1548",     "dest_hostname": "WS-FIN-22"},
+    {"delay_seconds": 80, "severity": "critical", "event_type": "Mass File Encryption Behavior Detected","mitre_tactic": "Impact",             "mitre_technique_id": "T1486",     "dest_hostname": "FILE-01"}
   ]
 }
