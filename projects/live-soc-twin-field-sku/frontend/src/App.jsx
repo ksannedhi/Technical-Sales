@@ -302,18 +302,33 @@ export default function App() {
                 <div key={inc.id} className="incident-card">
                   <div className="incident-header">
                     <span className={`badge ${inc.severity}`}>{inc.severity}</span>
-                    <strong>{inc.mitre_tactic}</strong>
-                    <span> — {inc.dest_hostname}</span>
+                    <strong>{inc.title}</strong>
                   </div>
                   <div className="incident-meta">
-                    <span>{inc.alert_count} alerts</span>
+                    <span>{inc.alert_ids.length} alerts</span>
                     <span>First seen: {timeFmt.format(new Date(inc.first_seen))}</span>
-                    {linkedTicket && (
-                      <span className="ticket-ref">
-                        {linkedTicket.id} ({linkedTicket.status.replace("_", " ")})
-                      </span>
-                    )}
+                    <span>Last seen: {timeFmt.format(new Date(inc.last_seen))}</span>
                   </div>
+                  {inc.techniques.length > 0 && (
+                    <div className="incident-meta" style={{ marginTop: "4px" }}>
+                      <span>Techniques: {inc.techniques.join(", ")}</span>
+                    </div>
+                  )}
+                  {inc.impacted_assets.length > 0 && (
+                    <div className="incident-meta" style={{ marginTop: "4px" }}>
+                      <span>Assets: {inc.impacted_assets.join(", ")}</span>
+                      {inc.impacted_users.length > 0 && (
+                        <span>Users: {inc.impacted_users.join(", ")}</span>
+                      )}
+                    </div>
+                  )}
+                  {linkedTicket && (
+                    <div className="incident-meta" style={{ marginTop: "4px" }}>
+                      <span className="ticket-ref">
+                        Ticket: {linkedTicket.id} ({linkedTicket.status.replace("_", " ")})
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })
@@ -456,6 +471,12 @@ export default function App() {
               disabled={selectedTicket.status === "resolved"}
             >
               Mark Resolved
+            </button>
+            <button
+              onClick={() => updateTicketStatus(selectedTicket.id, "open")}
+              disabled={selectedTicket.status !== "resolved"}
+            >
+              Reopen
             </button>
           </div>
         )}
