@@ -13,6 +13,7 @@ const { createAnalystRouter } = require("./routes/analyst");
 const { createIncidentsRouter } = require("./routes/incidents");
 const { createScenariosRouter } = require("./routes/scenarios");
 const { createControlRouter } = require("./routes/control");
+const { createTicketsRouter } = require("./routes/tickets");
 
 const LOCALHOST_ORIGINS = [
   "http://localhost:5173",
@@ -41,7 +42,8 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/api/alerts", createAlertsRouter(state));
-app.use("/api/analyst", createAnalystRouter(state));
+app.use("/api/analyst", createAnalystRouter(state, io));
+app.use("/api/tickets", createTicketsRouter(state));
 app.use("/api/incidents", createIncidentsRouter(state));
 app.use("/api/scenarios", createScenariosRouter(state, io, runner));
 app.use("/api", createControlRouter(state, io, runner));

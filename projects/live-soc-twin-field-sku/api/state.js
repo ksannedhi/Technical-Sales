@@ -15,6 +15,7 @@ function readJson(filePath, fallback) {
 const state = {
   alerts: [],
   incidents: [],
+  tickets: [],
   scenarioRuns: new Map(),
   profile: "business_hours",
   hosts: readJson(path.join(dataDir, "fake-hosts.json"), []),

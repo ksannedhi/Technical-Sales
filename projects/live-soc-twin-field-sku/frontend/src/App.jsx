@@ -27,6 +27,8 @@ const VIEW_LABEL = {
 
 export default function App() {
   const [alerts, setAlerts] = useState([]);
+  const [incidents, setIncidents] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [health, setHealth] = useState({ alerts: 0, incidents: 0, running_scenarios: [] });
   const [kpi, setKpi] = useState({ openAlertsSmoothed: 0 });
   const [viewMode, setViewMode] = useState(() => {
@@ -34,6 +36,7 @@ export default function App() {
     const mode = params.get("mode");
     return VALID_MODES.includes(mode) ? mode : "analyst";
   });
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [error, setError] = useState("");
   const [exportState, setExportState] = useState("idle");
   const [selectedAlertId, setSelectedAlertId] = useState(null);
@@ -41,6 +44,9 @@ export default function App() {
   const [analysisState, setAnalysisState] = useState("idle");
   const [analysis, setAnalysis] = useState(null);
   const [selectionMessage, setSelectionMessage] = useState("");
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [newTicketBanner, setNewTicketBanner] = useState(null);
+
   const scenarioRunning = (health.running_scenarios || []).length > 0;
   const runningScenarioLabel = (health.running_scenarios || []).join(", ");
 
@@ -53,6 +59,13 @@ export default function App() {
     }
   };
 
+  const fetchIncidents = async () => {
+    try {
+      const data = await fetch(`${API_BASE}/api/incidents`).then((r) => r.json());
+      setIncidents(Array.isArray(data) ? data : []);
+    } catch {}
+  };
+
   useEffect(() => {
     const socket = io(WS_BASE, {
       autoConnect: true,
@@ -61,36 +74,56 @@ export default function App() {
 
     fetch(`${API_BASE}/api/alerts?limit=60`)
       .then((r) => r.json())
-      .then((data) => {
-        const nextAlerts = data.slice(0, 60);
-        setAlerts(nextAlerts);
-      })
+      .then((data) => setAlerts(data.slice(0, 60)))
       .catch(() => setError("Cannot load initial alerts."));
 
+    fetch(`${API_BASE}/api/tickets`)
+      .then((r) => r.json())
+      .then((data) => setTickets(Array.isArray(data) ? data : []))
+      .catch(() => {});
+
+    fetchIncidents();
     refreshHealth();
 
     const onNewAlert = (alert) => {
       setAlerts((prev) => [alert, ...prev].slice(0, 60));
     };
+
     const onReset = () => {
       setAlerts([]);
+      setIncidents([]);
+      setTickets([]);
       setSelectedAlertId(null);
       setSelectedAlert(null);
       setAnalysis(null);
       setSelectionMessage("");
+      setSelectedTicketId(null);
+      setNewTicketBanner(null);
       refreshHealth();
     };
 
+    const onTicketCreated = (ticket) => {
+      setTickets((prev) => [ticket, ...prev.filter((t) => t.id !== ticket.id)]);
+      setNewTicketBanner(ticket);
+    };
+
+    const onScenarioEvent = () => {
+      refreshHealth();
+      fetchIncidents();
+    };
+
     socket.on("alert:new", onNewAlert);
-    socket.on("scenario:started", refreshHealth);
-    socket.on("scenario:ended", refreshHealth);
+    socket.on("scenario:started", onScenarioEvent);
+    socket.on("scenario:ended", onScenarioEvent);
     socket.on("operator:reset", onReset);
+    socket.on("ticket:created", onTicketCreated);
 
     return () => {
       socket.off("alert:new", onNewAlert);
-      socket.off("scenario:started", refreshHealth);
-      socket.off("scenario:ended", refreshHealth);
+      socket.off("scenario:started", onScenarioEvent);
+      socket.off("scenario:ended", onScenarioEvent);
       socket.off("operator:reset", onReset);
+      socket.off("ticket:created", onTicketCreated);
       socket.disconnect();
     };
   }, []);
@@ -111,11 +144,8 @@ export default function App() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scenario_id: scenarioId })
     });
-
     const body = await res.json();
-    if (!res.ok) {
-      setError(body.error || "Failed to start scenario.");
-    }
+    if (!res.ok) setError(body.error || "Failed to start scenario.");
     refreshHealth();
   };
 
@@ -129,10 +159,14 @@ export default function App() {
     setError("");
     await fetch(`${API_BASE}/api/reset`, { method: "POST" });
     setAlerts([]);
+    setIncidents([]);
+    setTickets([]);
     setSelectedAlertId(null);
     setSelectedAlert(null);
     setAnalysis(null);
     setSelectionMessage("");
+    setSelectedTicketId(null);
+    setNewTicketBanner(null);
     refreshHealth();
   };
 
@@ -174,9 +208,10 @@ export default function App() {
     () => Math.min(100, (criticalCount * 15) + (highCount * 7) + (health.incidents * 3)),
     [criticalCount, highCount, health.incidents]
   );
+  const openTicketCount = useMemo(() => tickets.filter((t) => t.status !== "resolved").length, [tickets]);
+
   const analyzeSelectedAlert = async () => {
     if (!selectedAlert) return;
-
     try {
       setError("");
       setAnalysisState("working");
@@ -193,10 +228,28 @@ export default function App() {
       }
       setAnalysis(body.summary);
       setAnalysisState("done");
+      if (body.ticket) {
+        setTickets((prev) => [body.ticket, ...prev.filter((t) => t.id !== body.ticket.id)]);
+        setNewTicketBanner(body.ticket);
+      }
     } catch {
       setError("Alert analysis failed.");
       setAnalysisState("idle");
     }
+  };
+
+  const updateTicketStatus = async (ticketId, status) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/tickets/${ticketId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        const body = await res.json();
+        setTickets((prev) => prev.map((t) => (t.id === body.ticket.id ? body.ticket : t)));
+      }
+    } catch {}
   };
 
   const renderModeKPIs = () => {
@@ -226,25 +279,194 @@ export default function App() {
 
     return (
       <>
-        <h3>Executive Risk KPIs</h3>
-        <p>Risk Posture Index: {riskScore}/100</p>
-        <p>Impacted Services: {serviceCount}</p>
-        <p>Active Security Incidents: {health.incidents}</p>
-        <p>Business Narrative: Incident growth is {(riskScore >= 60 ? "material" : "contained")}.</p>
+        <h3>Executive Risk Summary</h3>
+        <p>Active Incidents: {health.incidents}</p>
+        <p>Threats Contained: {tickets.length}</p>
+        <p>Open Tickets: {openTicketCount}</p>
+        <p>Business Risk: {riskScore >= 60 ? "Material — escalate to leadership" : "Contained — monitoring in progress"}</p>
       </>
     );
   };
 
-  const lastColumnTitle = viewMode === "analyst" ? "MITRE" : viewMode === "manager" ? "Status" : "Service";
-  const lastColumnValue = (a) => {
-    if (viewMode === "analyst") return a.mitre_technique_id;
-    if (viewMode === "manager") return a.status;
-    return a.business_service;
+  const renderMainPanel = () => {
+    if (viewMode === "ciso") {
+      return (
+        <>
+          <h3>Active Incidents</h3>
+          {incidents.length === 0 ? (
+            <p className="info-banner">No active incidents. Trigger a scenario to generate incidents.</p>
+          ) : (
+            incidents.map((inc) => {
+              const linkedTicket = tickets.find((t) => t.incident_id === inc.id);
+              return (
+                <div key={inc.id} className="incident-card">
+                  <div className="incident-header">
+                    <span className={`badge ${inc.severity}`}>{inc.severity}</span>
+                    <strong>{inc.mitre_tactic}</strong>
+                    <span> — {inc.dest_hostname}</span>
+                  </div>
+                  <div className="incident-meta">
+                    <span>{inc.alert_count} alerts</span>
+                    <span>First seen: {timeFmt.format(new Date(inc.first_seen))}</span>
+                    {linkedTicket && (
+                      <span className="ticket-ref">
+                        {linkedTicket.id} ({linkedTicket.status.replace("_", " ")})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </>
+      );
+    }
+
+    const lastColumnTitle = viewMode === "analyst" ? "MITRE" : "Status";
+    const lastColumnValue = (a) => (viewMode === "analyst" ? a.mitre_technique_id : a.status);
+
+    return (
+      <>
+        <h3>{VIEW_LABEL[viewMode]} — Live Alerts</h3>
+        {viewMode === "analyst" ? (
+          <p className="info-banner">
+            {selectionMessage || "Alerts are selectable. Click any alert row to investigate it."}
+          </p>
+        ) : null}
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Severity</th>
+              <th>Event</th>
+              <th>Host</th>
+              <th>{lastColumnTitle}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {alerts.map((a) => (
+              <tr
+                key={a.id}
+                className={a.id === selectedAlertId ? "selected-row" : ""}
+                onClick={() => {
+                  setSelectedAlertId(a.id);
+                  setSelectedAlert(a);
+                  setAnalysis(null);
+                  setAnalysisState("idle");
+                  setSelectionMessage("Alert selected. Scroll to the bottom to review details and run ARIA analysis.");
+                }}
+              >
+                <td>{timeFmt.format(new Date(a.timestamp))}</td>
+                <td><span className={`badge ${a.severity}`}>{a.severity}</span></td>
+                <td>{a.event_type}</td>
+                <td>{a.dest_hostname}</td>
+                <td>{lastColumnValue(a)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </>
+    );
+  };
+
+  const renderTicketsTab = () => {
+    const selectedTicket = tickets.find((t) => t.id === selectedTicketId);
+    return (
+      <>
+        <div className="card">
+          <h3>Customer Ticket Portal</h3>
+          <p className="info-banner">
+            MDR Operations raises a ticket when an incident is escalated to Tier-2. Update the status manually as your team works through it.
+          </p>
+          {tickets.length === 0 ? (
+            <p>No tickets yet. Run a scenario and use ARIA to analyze a critical alert.</p>
+          ) : (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Severity</th>
+                  <th>Title</th>
+                  <th>Created</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tickets.map((t) => (
+                  <tr
+                    key={t.id}
+                    className={t.id === selectedTicketId ? "selected-row" : ""}
+                    onClick={() => setSelectedTicketId(t.id === selectedTicketId ? null : t.id)}
+                  >
+                    <td><code>{t.id}</code></td>
+                    <td><span className={`badge ${t.severity}`}>{t.severity}</span></td>
+                    <td>{t.title}</td>
+                    <td>{timeFmt.format(new Date(t.created_at))}</td>
+                    <td><span className={`status-badge status-${t.status}`}>{t.status.replace("_", " ")}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {selectedTicket && (
+          <div className="card ticket-detail">
+            <h3>{selectedTicket.id} — {selectedTicket.title}</h3>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
+              <span className={`badge ${selectedTicket.severity}`}>{selectedTicket.severity}</span>
+              <span className={`status-badge status-${selectedTicket.status}`}>{selectedTicket.status.replace("_", " ")}</span>
+              <span style={{ fontSize: "12px", color: "#9ca3af" }}>
+                Created: {timeFmt.format(new Date(selectedTicket.created_at))}
+              </span>
+            </div>
+
+            <h4>Threat Summary</h4>
+            <p>{selectedTicket.threat_summary}</p>
+            <p><strong>MITRE Mapping:</strong> {selectedTicket.mitre_mapping}</p>
+
+            <h4>MDR Response Actions Taken</h4>
+            <table className="table">
+              <thead>
+                <tr><th>Time</th><th>Action</th><th>Actor</th></tr>
+              </thead>
+              <tbody>
+                {selectedTicket.response_actions.map((a, i) => (
+                  <tr key={i}>
+                    <td>{timeFmt.format(new Date(a.ts))}</td>
+                    <td>{a.action}</td>
+                    <td>{a.actor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <h4>Action Required from Your Team</h4>
+            <p className="customer-action">{selectedTicket.customer_action}</p>
+
+            <h4>Update Status</h4>
+            <button
+              onClick={() => updateTicketStatus(selectedTicket.id, "in_progress")}
+              disabled={selectedTicket.status !== "open"}
+            >
+              Mark In Progress
+            </button>
+            <button
+              onClick={() => updateTicketStatus(selectedTicket.id, "resolved")}
+              disabled={selectedTicket.status === "resolved"}
+            >
+              Mark Resolved
+            </button>
+          </div>
+        )}
+      </>
+    );
   };
 
   return (
     <div className="app">
       <h2>SOC Twin Demo</h2>
+
       <div className="card">
         <button disabled={scenarioRunning} onClick={() => runScenario("phishing-credential-lateral")}>Start Phishing Scenario</button>
         <button disabled={scenarioRunning} onClick={() => runScenario("ransomware-precursor")}>Start Ransomware Scenario</button>
@@ -257,109 +479,105 @@ export default function App() {
         {scenarioRunning ? <p className="info-banner">Scenario running: {runningScenarioLabel}. Stop it before starting another.</p> : null}
       </div>
 
+      {newTicketBanner && (
+        <div
+          className="card ticket-notification"
+          onClick={() => {
+            setActiveTab("tickets");
+            setSelectedTicketId(newTicketBanner.id);
+            setNewTicketBanner(null);
+          }}
+        >
+          <p>
+            <strong>MDR Operations raised a ticket:</strong> {newTicketBanner.id} — {newTicketBanner.title}.{" "}
+            <span style={{ color: "#0ea5e9" }}>Click to view in portal.</span>
+          </p>
+        </div>
+      )}
+
       <div className="card">
-        <strong>Audience Mode:</strong>
-        <button className={viewMode === "analyst" ? "active" : ""} onClick={() => setViewMode("analyst")}>Analyst</button>
-        <button className={viewMode === "manager" ? "active" : ""} onClick={() => setViewMode("manager")}>SOC Manager</button>
-        <button className={viewMode === "ciso" ? "active" : ""} onClick={() => setViewMode("ciso")}>CISO</button>
-        <p><strong>{VIEW_LABEL[viewMode]}</strong></p>
-        <p>{VIEW_COPY[viewMode]}</p>
-        {exportState === "done" ? <p className="success">Screenshot exported.</p> : null}
-        {error ? <p className="error">{error}</p> : null}
+        <button className={activeTab === "dashboard" ? "active" : ""} onClick={() => setActiveTab("dashboard")}>
+          SOC Dashboard
+        </button>
+        <button
+          className={activeTab === "tickets" ? "active" : ""}
+          onClick={() => { setActiveTab("tickets"); setNewTicketBanner(null); }}
+        >
+          Customer Tickets{openTicketCount > 0 ? ` (${openTicketCount} open)` : ""}
+        </button>
       </div>
 
-      <div className="grid">
-        <div className="card">
-          <h3>{VIEW_LABEL[viewMode]} - Live Alerts</h3>
+      {activeTab === "dashboard" && (
+        <>
+          <div className="card">
+            <strong>Audience Mode:</strong>
+            <button className={viewMode === "analyst" ? "active" : ""} onClick={() => setViewMode("analyst")}>Analyst</button>
+            <button className={viewMode === "manager" ? "active" : ""} onClick={() => setViewMode("manager")}>SOC Manager</button>
+            <button className={viewMode === "ciso" ? "active" : ""} onClick={() => setViewMode("ciso")}>CISO</button>
+            <p><strong>{VIEW_LABEL[viewMode]}</strong></p>
+            <p>{VIEW_COPY[viewMode]}</p>
+            {exportState === "done" ? <p className="success">Screenshot exported.</p> : null}
+            {error ? <p className="error">{error}</p> : null}
+          </div>
+
+          <div className="grid">
+            <div className="card">
+              {renderMainPanel()}
+            </div>
+            <div className="card">
+              {renderModeKPIs()}
+              <p>Demo Data Only</p>
+            </div>
+          </div>
+
           {viewMode === "analyst" ? (
-            <p className="info-banner">
-              {selectionMessage || "Alerts are selectable. Click any alert row to investigate it."}
-            </p>
+            <div className="grid analyst-grid">
+              <div className="card">
+                <h3>Selected Alert</h3>
+                {selectedAlert ? (
+                  <>
+                    <p><strong>Event:</strong> {selectedAlert.event_type}</p>
+                    <p><strong>Host:</strong> {selectedAlert.dest_hostname}</p>
+                    <p><strong>User:</strong> {selectedAlert.dest_user}</p>
+                    <p><strong>Severity:</strong> {selectedAlert.severity}</p>
+                    <p><strong>ATT&CK:</strong> {selectedAlert.mitre_technique_id} ({selectedAlert.mitre_technique_name})</p>
+                    <button onClick={analyzeSelectedAlert}>
+                      {analysisState === "working" ? "Analyzing..." : "Analyze Selected Alert"}
+                    </button>
+                  </>
+                ) : (
+                  <p>Select an alert from the table to analyze it.</p>
+                )}
+              </div>
+
+              <div className="card">
+                <h3>ARIA (Automated Response & Investigation Assistant) Analysis</h3>
+                {analysis ? (
+                  <>
+                    <p><strong>Provider:</strong> {analysis.provider}</p>
+                    <p><strong>Threat Assessment:</strong> {analysis.threat_assessment}</p>
+                    <p><strong>Context:</strong> {analysis.context_correlation}</p>
+                    <p><strong>MITRE Mapping:</strong> {analysis.mitre_mapping}</p>
+                    <p><strong>Risk Score:</strong> {analysis.risk_score}</p>
+                    <p><strong>Recommended Action:</strong> {analysis.recommended_action}</p>
+                    <p><strong>Next Steps:</strong></p>
+                    <ul className="plain-list">
+                      {analysis.next_steps?.map((step) => (
+                        <li key={step}>{step}</li>
+                      ))}
+                    </ul>
+                    {analysis.note ? <p><strong>Note:</strong> {analysis.note}</p> : null}
+                  </>
+                ) : (
+                  <p>Run analysis on a selected alert to see ARIA's triage summary.</p>
+                )}
+              </div>
+            </div>
           ) : null}
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Severity</th>
-                <th>Event</th>
-                <th>Host</th>
-                <th>{lastColumnTitle}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alerts.map((a) => (
-                <tr
-                  key={a.id}
-                  className={a.id === selectedAlertId ? "selected-row" : ""}
-                  onClick={() => {
-                    setSelectedAlertId(a.id);
-                    setSelectedAlert(a);
-                    setAnalysis(null);
-                    setAnalysisState("idle");
-                    setSelectionMessage("Alert selected. Scroll to the bottom to review details and run ARIA analysis.");
-                  }}
-                >
-                  <td>{timeFmt.format(new Date(a.timestamp))}</td>
-                  <td><span className={`badge ${a.severity}`}>{a.severity}</span></td>
-                  <td>{a.event_type}</td>
-                  <td>{a.dest_hostname}</td>
-                  <td>{lastColumnValue(a)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        </>
+      )}
 
-        <div className="card">
-          {renderModeKPIs()}
-          <p>Demo Data Only</p>
-        </div>
-      </div>
-
-      {viewMode === "analyst" ? (
-        <div className="grid analyst-grid">
-          <div className="card">
-            <h3>Selected Alert</h3>
-            {selectedAlert ? (
-              <>
-                <p><strong>Event:</strong> {selectedAlert.event_type}</p>
-                <p><strong>Host:</strong> {selectedAlert.dest_hostname}</p>
-                <p><strong>User:</strong> {selectedAlert.dest_user}</p>
-                <p><strong>Severity:</strong> {selectedAlert.severity}</p>
-                <p><strong>ATT&CK:</strong> {selectedAlert.mitre_technique_id} ({selectedAlert.mitre_technique_name})</p>
-                <button onClick={analyzeSelectedAlert}>
-                  {analysisState === "working" ? "Analyzing..." : "Analyze Selected Alert"}
-                </button>
-              </>
-            ) : (
-              <p>Select an alert from the table to analyze it.</p>
-            )}
-          </div>
-
-          <div className="card">
-            <h3>ARIA (Automated Response & Investigation Assistant) Analysis</h3>
-            {analysis ? (
-              <>
-                <p><strong>Provider:</strong> {analysis.provider}</p>
-                <p><strong>Threat Assessment:</strong> {analysis.threat_assessment}</p>
-                <p><strong>Context:</strong> {analysis.context_correlation}</p>
-                <p><strong>MITRE Mapping:</strong> {analysis.mitre_mapping}</p>
-                <p><strong>Risk Score:</strong> {analysis.risk_score}</p>
-                <p><strong>Recommended Action:</strong> {analysis.recommended_action}</p>
-                <p><strong>Next Steps:</strong></p>
-                <ul className="plain-list">
-                  {analysis.next_steps?.map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ul>
-                {analysis.note ? <p><strong>Note:</strong> {analysis.note}</p> : null}
-              </>
-            ) : (
-              <p>Run analysis on a selected alert to see ARIA's triage summary.</p>
-            )}
-          </div>
-        </div>
-      ) : null}
+      {activeTab === "tickets" && renderTicketsTab()}
     </div>
   );
 }
