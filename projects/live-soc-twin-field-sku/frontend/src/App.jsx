@@ -246,10 +246,16 @@ export default function App() {
   const highCount = useMemo(() => alerts.filter((a) => a.severity === "high").length, [alerts]);
   const serviceCount = useMemo(() => new Set(alerts.map((a) => a.business_service)).size, [alerts]);
   const privilegedHits = privilegedHitsCount;
-  const riskScore = useMemo(
-    () => Math.min(100, (criticalCount * 15) + (highCount * 7)),
-    [criticalCount, highCount]
-  );
+  const riskScore = useMemo(() => {
+    const activeHighCrit = incidents.filter((i) => {
+      if (i.severity !== "high" && i.severity !== "critical") return false;
+      const t = tickets.find((tk) => tk.incident_id === i.id);
+      return !t || t.status !== "resolved";
+    });
+    const criticals = activeHighCrit.filter((i) => i.severity === "critical").length;
+    const highs = activeHighCrit.filter((i) => i.severity === "high").length;
+    return Math.min(100, criticals * 15 + highs * 7);
+  }, [incidents, tickets]);
   const openTicketCount = useMemo(() => tickets.filter((t) => t.status !== "resolved").length, [tickets]);
   const hostServiceMap = useMemo(() => {
     const map = {};
