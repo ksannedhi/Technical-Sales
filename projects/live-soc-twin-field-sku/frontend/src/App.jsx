@@ -47,6 +47,10 @@ export default function App() {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [newTicketBanner, setNewTicketBanner] = useState(null);
   const [ticketCreateState, setTicketCreateState] = useState("idle");
+  const [privilegedHitsCount, setPrivilegedHitsCount] = useState(0);
+  const [speedMultiplier, setSpeedMultiplier] = useState(1);
+  const [scenarioProgress, setScenarioProgress] = useState({ name: "", step: 0, total: 0 });
+  const [connected, setConnected] = useState(true);
 
   const riskBand = (score) => {
     if (score >= 9) return "critical";
@@ -95,6 +99,10 @@ export default function App() {
 
     const onNewAlert = (alert) => {
       setAlerts((prev) => [alert, ...prev].slice(0, 60));
+      setHealth((prev) => ({ ...prev, alerts: prev.alerts + 1 }));
+      if (String(alert.dest_user || "").startsWith("svc_")) {
+        setPrivilegedHitsCount((prev) => prev + 1);
+      }
     };
 
     const onReset = () => {
@@ -104,6 +112,8 @@ export default function App() {
       setSelectedAlert(null);
       setAnalysis(null);
       setSelectionMessage("");
+      setPrivilegedHitsCount(0);
+      setHealth((prev) => ({ ...prev, alerts: 0, incidents: 0 }));
       refreshHealth();
     };
 
@@ -112,21 +122,51 @@ export default function App() {
       setNewTicketBanner(ticket);
     };
 
-    const onScenarioEvent = () => {
+    socket.on("connect", () => setConnected(true));
+    socket.on("disconnect", () => setConnected(false));
+
+    const onIncidentUpdated = (incident) => {
+      setIncidents((prev) => {
+        const idx = prev.findIndex((i) => i.id === incident.id);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = incident;
+          return next;
+        }
+        return [incident, ...prev];
+      });
+    };
+
+    const onScenarioStarted = (data) => {
+      setScenarioProgress({ name: data.name || data.scenario_id, step: 0, total: data.total_events || 0 });
       refreshHealth();
       fetchIncidents();
     };
 
+    const onScenarioEnded = () => {
+      setScenarioProgress({ name: "", step: 0, total: 0 });
+      refreshHealth();
+      fetchIncidents();
+    };
+
+    const onScenarioEventProgress = (data) => {
+      setScenarioProgress((prev) => ({ ...prev, step: prev.step + 1, lastEvent: data.event_type }));
+    };
+
     socket.on("alert:new", onNewAlert);
-    socket.on("scenario:started", onScenarioEvent);
-    socket.on("scenario:ended", onScenarioEvent);
+    socket.on("incident:updated", onIncidentUpdated);
+    socket.on("scenario:started", onScenarioStarted);
+    socket.on("scenario:ended", onScenarioEnded);
+    socket.on("scenario:event", onScenarioEventProgress);
     socket.on("operator:reset", onReset);
     socket.on("ticket:created", onTicketCreated);
 
     return () => {
       socket.off("alert:new", onNewAlert);
-      socket.off("scenario:started", onScenarioEvent);
-      socket.off("scenario:ended", onScenarioEvent);
+      socket.off("incident:updated", onIncidentUpdated);
+      socket.off("scenario:started", onScenarioStarted);
+      socket.off("scenario:ended", onScenarioEnded);
+      socket.off("scenario:event", onScenarioEventProgress);
       socket.off("operator:reset", onReset);
       socket.off("ticket:created", onTicketCreated);
       socket.disconnect();
@@ -147,7 +187,7 @@ export default function App() {
     const res = await fetch(`${API_BASE}/api/scenarios/trigger`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scenario_id: scenarioId })
+      body: JSON.stringify({ scenario_id: scenarioId, speed_multiplier: speedMultiplier })
     });
     const body = await res.json();
     if (!res.ok) setError(body.error || "Failed to start scenario.");
@@ -205,12 +245,24 @@ export default function App() {
   const criticalCount = useMemo(() => alerts.filter((a) => a.severity === "critical").length, [alerts]);
   const highCount = useMemo(() => alerts.filter((a) => a.severity === "high").length, [alerts]);
   const serviceCount = useMemo(() => new Set(alerts.map((a) => a.business_service)).size, [alerts]);
-  const privilegedHits = useMemo(() => alerts.filter((a) => String(a.dest_user || "").startsWith("svc_")).length, [alerts]);
+  const privilegedHits = privilegedHitsCount;
   const riskScore = useMemo(
     () => Math.min(100, (criticalCount * 15) + (highCount * 7) + (health.incidents * 3)),
     [criticalCount, highCount, health.incidents]
   );
   const openTicketCount = useMemo(() => tickets.filter((t) => t.status !== "resolved").length, [tickets]);
+  const hostServiceMap = useMemo(() => {
+    const map = {};
+    alerts.forEach((a) => { if (a.dest_hostname && a.business_service) map[a.dest_hostname] = a.business_service; });
+    return map;
+  }, [alerts]);
+
+  const ageLabel = (isoString) => {
+    const mins = Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.floor(mins / 60)}h ${mins % 60}m ago`;
+  };
   const ticketForAlert = useMemo(
     () => (selectedAlert ? tickets.find((t) => t.alert_id === selectedAlert.id) : null),
     [tickets, selectedAlert]
@@ -281,83 +333,232 @@ export default function App() {
       return (
         <>
           <h3>Analyst KPIs</h3>
-          <p>Open Alerts: {health.alerts}</p>
-          <p>Open Alerts (Smoothed): {kpi.openAlertsSmoothed}</p>
-          <p>Critical Alerts: {criticalCount}</p>
-          <p>Privileged Account Hits: {privilegedHits}</p>
+          <div className="kpi-grid">
+            <div className="kpi-card">
+              <div className="kpi-value">{health.alerts}</div>
+              <div className="kpi-label">Alerts in Queue</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-value">{criticalCount}</div>
+              <div className="kpi-label">Critical</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-value">{highCount}</div>
+              <div className="kpi-label">High</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-value">{privilegedHits}</div>
+              <div className="kpi-label">Privileged Account Hits</div>
+            </div>
+          </div>
         </>
       );
     }
 
     if (viewMode === "manager") {
+      const resolvedTickets = tickets.filter((t) => t.status === "resolved").length;
+      const inProgressTickets = tickets.filter((t) => t.status === "in_progress").length;
+      const openTickets = tickets.filter((t) => t.status === "open").length;
+      const orphanedTickets = tickets.filter((t) => t.status !== "resolved" && !incidents.find((i) => i.id === t.incident_id));
+      const activeIncidentTickets = incidents.filter((i) => {
+        const t = tickets.find((tk) => tk.incident_id === i.id);
+        const hasActiveTicket = t && t.status !== "resolved";
+        const isHighOrCritical = i.severity === "high" || i.severity === "critical";
+        return (isHighOrCritical || hasActiveTicket) && (!t || t.status !== "resolved");
+      });
+      const activeThreats = activeIncidentTickets.length + orphanedTickets.length;
       return (
         <>
           <h3>SOC Manager KPIs</h3>
-          <p>Open Incidents: {health.incidents}</p>
-          <p>High+Critical Alerts: {highCount + criticalCount}</p>
-          <p>Estimated Analyst Load: {Math.max(1, Math.ceil((health.alerts + health.incidents) / 12))} analysts</p>
-          <p>Scenario Status: {(health.running_scenarios || []).join(", ") || "No active scenario"}</p>
+          <div className="kpi-grid">
+            <div className="kpi-card">
+              <div className="kpi-value">{activeThreats}</div>
+              <div className="kpi-label">Active Threats</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-value">{openTickets}</div>
+              <div className="kpi-label">Open Tickets</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-value">{inProgressTickets}</div>
+              <div className="kpi-label">In Progress</div>
+            </div>
+            <div className="kpi-card">
+              <div className="kpi-value">{resolvedTickets}</div>
+              <div className="kpi-label">Resolved</div>
+            </div>
+          </div>
         </>
       );
     }
 
+    // CISO executive risk summary
+    const cisoOrphaned = tickets.filter((t) => t.status !== "resolved" && !incidents.find((i) => i.id === t.incident_id)).length;
+    const activeIncidentCount = incidents.filter((i) => {
+      const t = tickets.find((tk) => tk.incident_id === i.id);
+      const hasActiveTicket = t && t.status !== "resolved";
+      const isHighOrCritical = i.severity === "high" || i.severity === "critical";
+      return (isHighOrCritical || hasActiveTicket) && (!t || t.status !== "resolved");
+    }).length + cisoOrphaned;
+    const resolvedCount = tickets.filter((t) => t.status === "resolved").length;
+    const affectedServices = new Set(alerts.filter((a) => a.severity === "high" || a.severity === "critical").map((a) => a.business_service)).size;
+    const riskLabel = riskScore >= 60 ? "Critical" : riskScore >= 30 ? "Elevated" : "Normal";
+    const riskColor = riskScore >= 60 ? "#fca5a5" : riskScore >= 30 ? "#fcd34d" : "#86efac";
     return (
       <>
         <h3>Executive Risk Summary</h3>
-        <p>Active Incidents: {health.incidents}</p>
-        <p>Threats Contained: {tickets.length}</p>
-        <p>Open Tickets: {openTicketCount}</p>
-        <p>Business Risk: {riskScore >= 60 ? "Material — escalate to leadership" : "Contained — monitoring in progress"}</p>
+        <div className="kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-value">{activeIncidentCount}</div>
+            <div className="kpi-label">Active Incidents</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-value">{resolvedCount}</div>
+            <div className="kpi-label">Threats Contained</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-value">{affectedServices || 0}</div>
+            <div className="kpi-label">Services Affected</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-value" style={{ color: riskColor }}>{riskLabel}</div>
+            <div className="kpi-label">Business Risk</div>
+          </div>
+        </div>
       </>
     );
   };
 
   const renderMainPanel = () => {
+    if (viewMode === "manager") {
+      const activeIncidents = incidents.filter((i) => {
+        const t = tickets.find((tk) => tk.incident_id === i.id);
+        const hasActiveTicket = t && t.status !== "resolved";
+        const isHighOrCritical = i.severity === "high" || i.severity === "critical";
+        return (isHighOrCritical || hasActiveTicket) && (!t || t.status !== "resolved");
+      });
+      const orphanedTickets = tickets.filter((t) => t.status !== "resolved" && !incidents.find((i) => i.id === t.incident_id));
+      const campaignLabel = scenarioRunning
+        ? `Active threat campaign: ${runningScenarioLabel.replace(/-/g, " ")}`
+        : "No active threat campaign detected";
+      const hasRows = activeIncidents.length > 0 || orphanedTickets.length > 0;
+      return (
+        <>
+          <h3>Incident Response Overview</h3>
+          <p className={`info-banner ${scenarioRunning ? "banner-warning" : ""}`}>{campaignLabel}</p>
+          {!hasRows ? (
+            <p className="info-banner">No active threats. Environment stable.</p>
+          ) : (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Incident</th>
+                  <th>Severity</th>
+                  <th>Alerts</th>
+                  <th>Assets</th>
+                  <th>Ticket</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeIncidents.map((inc) => {
+                  const t = tickets.find((tk) => tk.incident_id === inc.id);
+                  return (
+                    <tr key={inc.id}>
+                      <td>{inc.title}</td>
+                      <td><span className={`badge ${inc.severity}`}>{inc.severity}</span></td>
+                      <td>{inc.alert_ids.length}</td>
+                      <td>{inc.impacted_assets.join(", ")}</td>
+                      <td>{t ? t.id : <span style={{ color: "var(--muted)" }}>—</span>}</td>
+                      <td>{t ? <span className={`status-badge status-${t.status}`}>{t.status.replace("_", " ")}</span> : <span style={{ color: "var(--muted)" }}>pending</span>}</td>
+                    </tr>
+                  );
+                })}
+                {orphanedTickets.map((t) => (
+                  <tr key={t.id}>
+                    <td style={{ color: "#9ca3af", fontStyle: "italic" }}>{t.title}</td>
+                    <td><span className={`badge ${t.severity}`}>{t.severity}</span></td>
+                    <td style={{ color: "var(--muted)" }}>—</td>
+                    <td style={{ color: "#9ca3af", fontSize: "11px" }}>incident cleared</td>
+                    <td>{t.id}</td>
+                    <td><span className={`status-badge status-${t.status}`}>{t.status.replace("_", " ")}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      );
+    }
+
     if (viewMode === "ciso") {
       return (
         <>
           <h3>Active Incidents</h3>
           {(() => {
-            const significant = incidents.filter((i) => i.severity === "high" || i.severity === "critical");
-            if (significant.length === 0) return <p className="info-banner">No high or critical incidents. Monitoring in progress.</p>;
-            return significant.map((inc) => {
-              const linkedTicket = tickets.find((t) => t.incident_id === inc.id);
-              return (
-                <div key={inc.id} className="incident-card">
+            const significant = incidents.filter((i) => {
+              const linkedTicket = tickets.find((t) => t.incident_id === i.id);
+              const hasActiveTicket = linkedTicket && linkedTicket.status !== "resolved";
+              const isHighOrCritical = i.severity === "high" || i.severity === "critical";
+              return (isHighOrCritical || hasActiveTicket) && (!linkedTicket || linkedTicket.status !== "resolved");
+            });
+            const orphaned = tickets.filter((t) => t.status !== "resolved" && !incidents.find((i) => i.id === t.incident_id));
+            if (significant.length === 0 && orphaned.length === 0) return <p className="info-banner">No active high or critical incidents. Monitoring in progress.</p>;
+            return [
+              ...significant.map((inc) => {
+                const linkedTicket = tickets.find((t) => t.incident_id === inc.id);
+                return (
+                  <div key={inc.id} className="incident-card">
+                    <div className="incident-header">
+                      <span className={`badge ${inc.severity}`}>{inc.severity}</span>
+                      <strong>{inc.title}</strong>
+                    </div>
+                    <div className="incident-meta">
+                      <span>{inc.alert_ids.length} alerts</span>
+                      <span>First seen: {timeFmt.format(new Date(inc.first_seen))}</span>
+                      <span>Last seen: {timeFmt.format(new Date(inc.last_seen))}</span>
+                    </div>
+                    {inc.techniques.length > 0 && (
+                      <div className="incident-meta" style={{ marginTop: "4px" }}>
+                        <span>Techniques: {inc.techniques.join(", ")}</span>
+                      </div>
+                    )}
+                    {inc.impacted_assets.length > 0 && (
+                      <div className="incident-meta" style={{ marginTop: "4px" }}>
+                        <span>
+                          Services: {inc.impacted_assets.map((h) => hostServiceMap[h] ? `${hostServiceMap[h]} (${h})` : h).join(", ")}
+                        </span>
+                        {inc.impacted_users.length > 0 && (
+                          <span>Users: {inc.impacted_users.join(", ")}</span>
+                        )}
+                      </div>
+                    )}
+                    {linkedTicket && (
+                      <div className="incident-meta" style={{ marginTop: "4px" }}>
+                        <span className="ticket-ref">
+                          Ticket: {linkedTicket.id} · {linkedTicket.assignee} · {linkedTicket.status.replace("_", " ")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              }),
+              ...orphaned.map((t) => (
+                <div key={t.id} className="incident-card" style={{ borderColor: "#374151" }}>
                   <div className="incident-header">
-                    <span className={`badge ${inc.severity}`}>{inc.severity}</span>
-                    <strong>{inc.title}</strong>
+                    <span className={`badge ${t.severity}`}>{t.severity}</span>
+                    <strong>{t.title}</strong>
                   </div>
                   <div className="incident-meta">
-                    <span>{inc.alert_ids.length} alerts</span>
-                    <span>First seen: {timeFmt.format(new Date(inc.first_seen))}</span>
-                    <span>Last seen: {timeFmt.format(new Date(inc.last_seen))}</span>
+                    <span style={{ color: "#9ca3af", fontStyle: "italic" }}>Incident cleared by reset — ticket open</span>
                   </div>
-                  {inc.techniques.length > 0 && (
-                    <div className="incident-meta" style={{ marginTop: "4px" }}>
-                      <span>Techniques: {inc.techniques.join(", ")}</span>
-                    </div>
-                  )}
-                  {inc.impacted_assets.length > 0 && (
-                    <div className="incident-meta" style={{ marginTop: "4px" }}>
-                      <span>Assets: {inc.impacted_assets.join(", ")}</span>
-                      {inc.impacted_users.length > 0 && (
-                        <span>Users: {inc.impacted_users.join(", ")}</span>
-                      )}
-                    </div>
-                  )}
-                  {linkedTicket && (
-                    <div className="incident-meta" style={{ marginTop: "4px" }}>
-                      <span className="ticket-ref">
-                        Ticket: {linkedTicket.id} ({linkedTicket.status.replace("_", " ")})
-                      </span>
-                    </div>
-                  )}
+                  <div className="incident-meta" style={{ marginTop: "4px" }}>
+                    <span className="ticket-ref">Ticket: {t.id} · {t.assignee} · {t.status.replace("_", " ")}</span>
+                  </div>
                 </div>
-              );
-            });
+              ))
+            ];
           })()}
-          )}
         </>
       );
     }
@@ -404,7 +605,7 @@ export default function App() {
                 <td>{a.dest_hostname}</td>
                 <td><span className={`badge ${a.asset_criticality}`}>{a.asset_criticality}</span></td>
                 <td><span className={`risk-score risk-${riskBand(a.risk_score)}`}>{a.risk_score}</span></td>
-                <td>{lastColumnValue(a)}</td>
+                <td title={a.mitre_technique_name || ""}>{lastColumnValue(a)}</td>
               </tr>
             ))}
           </tbody>
@@ -431,8 +632,9 @@ export default function App() {
                   <th>Ticket</th>
                   <th>Severity</th>
                   <th>Title</th>
+                  <th>Assignee</th>
                   <th>Source</th>
-                  <th>Created</th>
+                  <th>Opened</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -446,8 +648,9 @@ export default function App() {
                     <td><code>{t.id}</code></td>
                     <td><span className={`badge ${t.severity}`}>{t.severity}</span></td>
                     <td>{t.title}</td>
+                    <td style={{ fontSize: "11px", color: "#9ca3af" }}>{t.assignee || "MDR Operations"}</td>
                     <td><span className={`source-badge source-${t.source || "auto"}`}>{t.source === "analyst" ? "Analyst" : "Auto"}</span></td>
-                    <td>{timeFmt.format(new Date(t.created_at))}</td>
+                    <td style={{ fontSize: "11px" }}>{ageLabel(t.created_at)}</td>
                     <td><span className={`status-badge status-${t.status}`}>{t.status.replace("_", " ")}</span></td>
                   </tr>
                 ))}
@@ -459,33 +662,27 @@ export default function App() {
         {selectedTicket && (
           <div className="card ticket-detail">
             <h3>{selectedTicket.id} — {selectedTicket.title}</h3>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", marginBottom: "12px" }}>
               <span className={`badge ${selectedTicket.severity}`}>{selectedTicket.severity}</span>
               <span className={`status-badge status-${selectedTicket.status}`}>{selectedTicket.status.replace("_", " ")}</span>
-              <span style={{ fontSize: "12px", color: "#9ca3af" }}>
-                Created: {timeFmt.format(new Date(selectedTicket.created_at))}
-              </span>
+              <span style={{ fontSize: "12px", color: "#9ca3af" }}>Opened {ageLabel(selectedTicket.created_at)}</span>
+              <span style={{ fontSize: "12px", color: "#9ca3af" }}>· Assignee: {selectedTicket.assignee || "MDR Operations"}</span>
             </div>
 
             <h4>Threat Summary</h4>
             <p>{selectedTicket.threat_summary}</p>
             <p><strong>MITRE Mapping:</strong> {selectedTicket.mitre_mapping}</p>
 
-            <h4>MDR Response Actions Taken</h4>
-            <table className="table">
-              <thead>
-                <tr><th>Time</th><th>Action</th><th>Actor</th></tr>
-              </thead>
-              <tbody>
-                {selectedTicket.response_actions.map((a, i) => (
-                  <tr key={i}>
-                    <td>{timeFmt.format(new Date(a.ts))}</td>
-                    <td>{a.action}</td>
-                    <td>{a.actor}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h4>MDR Response Timeline</h4>
+            <div className="timeline">
+              {selectedTicket.response_actions.map((a, i) => (
+                <div key={i} className="timeline-entry">
+                  <div className="timeline-time">{timeFmt.format(new Date(a.ts))}</div>
+                  <div className="timeline-track"><div className="timeline-dot" />{i < selectedTicket.response_actions.length - 1 && <div className="timeline-line" />}</div>
+                  <div className="timeline-content"><strong>{a.actor}</strong> — {a.action}</div>
+                </div>
+              ))}
+            </div>
 
             <h4>Action Required from Your Team</h4>
             <p className="customer-action">{selectedTicket.customer_action}</p>
@@ -519,6 +716,14 @@ export default function App() {
       <h2>SOC Twin Demo</h2>
 
       <div className="card">
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+          <span className={`health-dot ${connected ? "health-ok" : "health-err"}`} title={connected ? "Backend connected" : "Backend disconnected"} />
+          <span style={{ fontSize: "11px", color: connected ? "#86efac" : "#fca5a5" }}>{connected ? "Connected" : "Disconnected"}</span>
+          <span style={{ marginLeft: "auto", fontSize: "11px", color: "#9ca3af" }}>Speed:</span>
+          {[1, 2, 5].map((s) => (
+            <button key={s} className={speedMultiplier === s ? "active speed-btn" : "speed-btn"} onClick={() => setSpeedMultiplier(s)} disabled={scenarioRunning}>{s}×</button>
+          ))}
+        </div>
         <button disabled={scenarioRunning} onClick={() => runScenario("phishing-credential-lateral")}>Start Phishing Scenario</button>
         <button disabled={scenarioRunning} onClick={() => runScenario("ransomware-precursor")}>Start Ransomware Scenario</button>
         <button disabled={scenarioRunning} onClick={() => runScenario("cloud-identity-abuse")}>Start Cloud Identity Scenario</button>
@@ -527,7 +732,13 @@ export default function App() {
         <button onClick={exportCurrentView}>
           {exportState === "working" ? "Exporting..." : "Export Current View"}
         </button>
-        {scenarioRunning ? <p className="info-banner">Scenario running: {runningScenarioLabel}. Stop it before starting another.</p> : null}
+        {scenarioRunning && (
+          <p className="info-banner banner-warning" style={{ marginTop: "8px" }}>
+            {scenarioProgress.total > 0
+              ? `▶ ${scenarioProgress.name} — Stage ${scenarioProgress.step}/${scenarioProgress.total}${scenarioProgress.lastEvent ? `: ${scenarioProgress.lastEvent}` : ""}`
+              : `▶ ${runningScenarioLabel} running`}
+          </p>
+        )}
       </div>
 
       {newTicketBanner && (

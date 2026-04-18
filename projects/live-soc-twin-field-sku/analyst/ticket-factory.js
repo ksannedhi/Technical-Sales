@@ -46,6 +46,7 @@ function buildTicket(state, alert, summary, source = "auto") {
   return {
     id: `TKT-${ticketNum}`,
     source,
+    assignee: source === "auto" ? "MDR Operations" : "MDR Analyst",
     incident_id: alert.incident_id || null,
     alert_id: alert.id,
     created_at: new Date().toISOString(),

@@ -12,7 +12,6 @@ const BACKGROUND_EVENTS = [
   { severity: "medium", event_type: "Unusual Remote Session",        mitre_tactic: "Lateral Movement",  mitre_technique_id: "T1021.001" },
   { severity: "medium", event_type: "Account Permission Modified",   mitre_tactic: "Persistence",       mitre_technique_id: "T1098"     },
   { severity: "medium", event_type: "Suspicious Email Link Clicked", mitre_tactic: "Initial Access",    mitre_technique_id: "T1566.002" },
-  { severity: "high",   event_type: "Credential Dump Attempt",       mitre_tactic: "Credential Access", mitre_technique_id: "T1110.003" },
 ];
 
 function randomBackgroundEvent() {
@@ -34,10 +33,10 @@ function emitAlert(state, io, seed) {
   io.emit("alert:new", alert);
   io.emit("incident:updated", incident);
 
-  // Auto-ticket: fire on the first high/critical alert in an incident that has no ticket yet.
+  // Auto-ticket: scenario-driven alerts only; background noise creates incidents but no tickets.
   const isHighSeverity = AUTO_TICKET_SEVERITIES.includes(alert.severity);
-  const alreadyTicketed = state.tickets.some((t) => t.incident_id === incident.id);
-  if (isHighSeverity && !alreadyTicketed) {
+  const alreadyTicketed = state.tickets.some((t) => t.incident_id === incident.id && t.status !== "resolved");
+  if (alert.scenario_id && isHighSeverity && !alreadyTicketed) {
     const summary = summarizeAlert(alert, {});
     const ticket = buildTicket(state, alert, summary, "auto");
     state.tickets.push(ticket);
@@ -92,16 +91,8 @@ function runScenario(state, io, scenarioId, speedMultiplier = 1) {
     emitAlert(state, io, randomBackgroundEvent());
   }, Math.max(500, Number(traffic.background_rate_ms || incidentRateMs)));
 
-  const endTimer = setTimeout(() => {
-    if (run.noiseTimer) clearInterval(run.noiseTimer);
-    run.status = "completed";
-    io.emit("scenario:ended", { scenario_id: playbook.id });
-    state.scenarioRuns.delete(playbook.id);
-  }, Math.floor((playbook.duration_seconds * 1000) / speedMultiplier));
-  run.timers.push(endTimer);
-
   state.scenarioRuns.set(playbook.id, run);
-  io.emit("scenario:started", { scenario_id: playbook.id, speedMultiplier });
+  io.emit("scenario:started", { scenario_id: playbook.id, speedMultiplier, total_events: playbook.events.length, name: playbook.name });
   return playbook;
 }
 

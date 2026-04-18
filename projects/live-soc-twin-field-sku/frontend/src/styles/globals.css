@@ -89,6 +89,95 @@ button.active {
   color: #7dd3fc;
   margin-bottom: 10px;
 }
+.banner-warning {
+  color: #fca5a5;
+}
+.health-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.health-ok  { background: #86efac; box-shadow: 0 0 6px #86efac88; }
+.health-err { background: #fca5a5; box-shadow: 0 0 6px #fca5a588; }
+
+.speed-btn {
+  padding: 2px 8px;
+  font-size: 11px;
+  min-width: unset;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 12px;
+}
+.timeline-entry {
+  display: grid;
+  grid-template-columns: 56px 20px 1fr;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 36px;
+}
+.timeline-time {
+  font-size: 11px;
+  color: #9ca3af;
+  padding-top: 2px;
+  text-align: right;
+}
+.timeline-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.timeline-line {
+  width: 2px;
+  flex: 1;
+  background: #1f2937;
+  min-height: 20px;
+}
+.timeline-content {
+  font-size: 12px;
+  color: #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+.kpi-card {
+  background: #1a2235;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1;
+}
+.kpi-label {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 .plain-list {
   margin: 0;
   padding-left: 18px;
@@ -98,7 +187,8 @@ button.active {
 .status-open { background: #1e3a5f; color: #7dd3fc; }
 .status-in_progress { background: #78350f; color: #fcd34d; }
 .status-resolved { background: #14532d; color: #86efac; }
-.ticket-notification { border: 1px solid #0ea5e9; cursor: pointer; background: #0c1e35; }
+.ticket-notification { border: 1px solid #0ea5e9; cursor: pointer; background: #0c1e35; padding: 6px 12px !important; margin-bottom: 6px !important; font-size: 12px; }
+.ticket-notification p { margin: 0; }
 .ticket-detail { border-top: 2px solid #1f2937; margin-top: 4px; }
 .customer-action { background: #0f172a; border-left: 3px solid #0ea5e9; padding: 10px 14px; border-radius: 4px; margin: 0; color: #e5e7eb; }
 .incident-card { border: 1px solid #1f2937; border-radius: 6px; padding: 10px; margin-bottom: 8px; }

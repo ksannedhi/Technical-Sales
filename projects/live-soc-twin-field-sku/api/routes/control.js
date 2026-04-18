@@ -13,13 +13,16 @@ function createControlRouter(state, io, runner) {
 
   router.post("/seed", (req, res) => {
     const count = Number(req.body.count || 20);
+    const SEED_EVENTS = [
+      { severity: "low",    event_type: "Routine Auth Success",        mitre_tactic: "Discovery",         mitre_technique_id: "T1087"     },
+      { severity: "low",    event_type: "File Share Access",           mitre_tactic: "Discovery",         mitre_technique_id: "T1087"     },
+      { severity: "low",    event_type: "Outbound DNS Query",          mitre_tactic: "Discovery",         mitre_technique_id: "T1087"     },
+      { severity: "low",    event_type: "Scheduled Task Execution",    mitre_tactic: "Persistence",       mitre_technique_id: "T1098"     },
+      { severity: "medium", event_type: "Multiple Failed Logins",      mitre_tactic: "Credential Access", mitre_technique_id: "T1110.003" },
+      { severity: "medium", event_type: "Account Permission Modified", mitre_tactic: "Persistence",       mitre_technique_id: "T1098"     },
+    ];
     for (let i = 0; i < count; i += 1) {
-      runner.emitAlert(state, io, {
-        severity: i % 10 === 0 ? "high" : "low",
-        event_type: i % 10 === 0 ? "Multiple Failed Logins" : "Routine Auth Success",
-        mitre_tactic: i % 10 === 0 ? "Credential Access" : "Discovery",
-        mitre_technique_id: i % 10 === 0 ? "T1110.003" : "T1087"
-      });
+      runner.emitAlert(state, io, SEED_EVENTS[i % SEED_EVENTS.length]);
     }
     res.json({ ok: true, count });
   });
