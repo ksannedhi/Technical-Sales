@@ -63,3 +63,7 @@ Endpoints:
 - Technical indicators such as links, headers, reply-to mismatches, authentication failures, and attachment cues work regardless of language
 - English-language social-engineering heuristics are stronger than non-English ones today
 - Non-English phishing emails can still be caught, especially when technical signals are present, but multilingual deterministic coverage is a future improvement area
+
+## Documentation
+
+- Full product spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)

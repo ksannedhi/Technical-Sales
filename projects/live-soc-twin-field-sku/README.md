@@ -145,3 +145,7 @@ Auto-ticket fires on the first high/critical event in each chain (~25–35 s aft
 - No destructive payloads are executed — containment actions are simulated only.
 - Only one scenario can run at a time; the UI disables other scenario buttons while one is active.
 - Background noise events (low/medium only) generate incidents but never auto-create tickets.
+
+## Documentation
+
+- Full product spec: [SOC_Twin_Field_SKU_v1_SPEC.md](SOC_Twin_Field_SKU_v1_SPEC.md)

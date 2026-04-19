@@ -83,8 +83,7 @@ When a scan report contains multiple findings, the app now:
 │  ├─ app/
 │  ├─ data/
 │  └─ requirements.txt
-├─ docs/
-│  └─ SPECS.md
+├─ SPECS.md
 ├─ frontend/
 │  └─ .env.example
 ├─ Launch Threat-to-Business Translator.cmd
@@ -155,7 +154,7 @@ VITE_API_URL=http://127.0.0.1:8000
 
 ## Documentation
 
-- Product specs: [docs/SPECS.md](docs/SPECS.md)
+- Product specs: [SPECS.md](SPECS.md)
 
 ## Current limitations
 
@@ -164,3 +163,4 @@ VITE_API_URL=http://127.0.0.1:8000
 - Scenario and matcher configuration are still data/code driven rather than editable in the UI.
 - No persistence or saved project history yet.
 - No PDF or slide-deck board-pack export yet.
+

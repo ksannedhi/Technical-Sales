@@ -76,4 +76,4 @@ The main areas still being refined are:
 
 ## Documentation
 
-- Product spec: [docs/product-spec.md](docs/product-spec.md)
+- Product spec: [product-spec.md](product-spec.md)

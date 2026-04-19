@@ -99,3 +99,7 @@ Open [http://localhost:5173](http://localhost:5173).
 - Last run is held in-memory for API export convenience, while the UI downloads outputs directly from the loaded result.
 - Saved projects/results are persisted in SQLite.
 - Saved projects can be removed directly from the GUI.
+
+## Documentation
+
+- Full product spec: [Security_Tools_Mapping_Navigator_MVP_Spec.md](Security_Tools_Mapping_Navigator_MVP_Spec.md)

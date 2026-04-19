@@ -54,7 +54,7 @@ The app opens locally at:
   File ingestion and extraction helpers
 - `data/gate_config.json`
   Tunable scoring weights, thresholds, and heuristic settings
-- `docs/PRODUCT_SPEC.md`
+- `PRODUCT_SPEC.md`
   Product and behavior spec
 - `tests/test_engine.py`
   Basic regression coverage for scoring and ingestion
