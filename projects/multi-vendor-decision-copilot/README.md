@@ -13,7 +13,7 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 
 ## Documentation
 
-- Product and behavior spec: [docs/PROJECT_SPEC.md](docs/PROJECT_SPEC.md)
+- Product and behavior spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)
 
 ## Supported Intents
 

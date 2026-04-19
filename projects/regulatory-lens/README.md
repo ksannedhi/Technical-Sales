@@ -15,7 +15,7 @@ GCC cybersecurity compliance tool that maps an organisation profile to applicabl
 
 ## Documentation
 
-- Full product and architecture spec: [docs/PROJECT_SPEC.md](docs/PROJECT_SPEC.md)
+- Full product and architecture spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)
 
 ## Supported Frameworks
 
