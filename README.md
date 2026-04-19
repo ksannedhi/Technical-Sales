@@ -17,13 +17,13 @@ See `skills/presales-skills/README.md` for full setup and usage instructions.
 ## Demo Projects
 
 ### Live SOC Twin
-- Path: `projects/live-soc-twin-field-sku`
+- Path: `projects/soc-twin`
 - Purpose: laptop-runnable, deterministic SOC simulation for cybersecurity presales demos.
 - Quick launch (Windows):
 ```
-cd projects/live-soc-twin-field-sku && npm.cmd run demo:launch
+cd projects/soc-twin && npm.cmd run demo:launch
 ```
-Docs: `projects/live-soc-twin-field-sku/README.md`
+Docs: `projects/soc-twin/README.md`
 
 ---
 

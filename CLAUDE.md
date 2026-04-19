@@ -27,7 +27,7 @@ cmd.exe /c "robocopy \"C:\Users\ksann\Downloads\<standalone>\" \"C:\Users\ksann\
 
 | Project (repo `projects/`)        | Standalone (`Downloads/`)              | Backend port | Frontend port |
 |-----------------------------------|----------------------------------------|--------------|---------------|
-| `live-soc-twin-field-sku`         | `live-soc-twin-field-sku`              | 3001         | 5173          |
+| `soc-twin`         | `soc-twin`              | 3001         | 5173          |
 | `network-security-diagrammer`     | `network-security-diagrammer`          | 8787         | 5174          |
 | `phishing-analyzer`               | `phishing-analyzer`                    | 3002         | 5175          |
 | `security-tools-mapping-navigator`| `security-tools-mapping-navigator`     | 8010         | 5176          |
@@ -47,7 +47,7 @@ Stored locally at `C:\Users\ksann\Downloads\.claude\launch.json` — **not track
 
 | Project                         | Backend              | Frontend       |
 |---------------------------------|----------------------|----------------|
-| live-soc-twin-field-sku         | Node / Express       | Vite + React   |
+| soc-twin         | Node / Express       | Vite + React   |
 | network-security-diagrammer     | Node (Cloudflare Workers style) | Vite + React |
 | phishing-analyzer               | Node / Express       | Vite + React   |
 | security-tools-mapping-navigator| Python / FastAPI     | Vite + React   |
