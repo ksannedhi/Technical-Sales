@@ -41,7 +41,7 @@ function parseClaudeJSON(text) {
 async function callClaude(system, userMessage, maxTokens = 1500) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    signal: AbortSignal.timeout(60_000),
+    signal: AbortSignal.timeout(90_000),
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': process.env.ANTHROPIC_API_KEY,
@@ -68,7 +68,7 @@ app.get('/api/taxonomy', (_, res) => res.json(taxonomy));
 // ── Intake: framework recommendation ─────────────────────────────────────────
 app.post('/api/intake', async (req, res) => {
   try {
-    const raw    = await callClaude(INTAKE_SYSTEM, buildIntakePrompt(req.body), 1500);
+    const raw    = await callClaude(INTAKE_SYSTEM, buildIntakePrompt(req.body), 2500);
     const result = parseClaudeJSON(raw);
     res.json(result);
   } catch (e) {
