@@ -70,7 +70,9 @@ const ALL_FRAMEWORKS = [
   { id: 'PCI-DSS',   label: 'PCI DSS 4.0.1',            jurisdiction: 'International · Payments' },
   { id: 'IEC-62443', label: 'IEC 62443',                 jurisdiction: 'International · OT/ICS' },
   { id: 'SOC2',      label: 'SOC 2',                     jurisdiction: 'International · SaaS' },
-  { id: 'QATAR-NIAS', label: 'Qatar NIAS V2.1',          jurisdiction: 'Qatar' },
+  { id: 'QATAR-NIAS',   label: 'Qatar NIAS V2.1',                  jurisdiction: 'Qatar' },
+  { id: 'PDPL-KSA',    label: 'Saudi PDPL (RD M/19, M/148)',      jurisdiction: 'Saudi Arabia · Personal data' },
+  { id: 'KUWAIT-NBCC', label: 'Kuwait NBCC (Decision 2/2026)',     jurisdiction: 'Kuwait' },
 ];
 
 const WEIGHT_OPTS = ['mandatory', 'contractual', 'voluntary'];
@@ -228,7 +230,7 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
           controls and map them to the domain taxonomy automatically.
         </p>
         <p style={{ fontSize: '11px', color: '#A07000', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '6px', padding: '7px 10px', marginBottom: '12px', lineHeight: 1.6 }}>
-          <strong>Already built in — do not re-upload:</strong> NCA-ECC, SAMA-CSF, CBK, ISO 27001, NIST CSF, UAE NIAF, PCI-DSS, IEC-62443, SOC 2, PDPL-UAE, PDPL-QAT.
+          <strong>Already built in — do not re-upload:</strong> NCA-ECC, SAMA-CSF, CBK, ISO 27001, NIST CSF, UAE NIAF, PCI-DSS, IEC-62443, SOC 2, PDPL-UAE, PDPL-QAT, PDPL-KSA, QATAR-NIAS, Kuwait NBCC.
           Uploading a duplicate will create a conflicting second column in the matrix.
         </p>
 

@@ -1,6 +1,6 @@
 {
-  "version": "1.1",
-  "description": "Cross-framework domain taxonomy for GCC regulatory harmonisation — includes Qatar NIAS V2.1 (NCSA, May 2023)",
+  "version": "5.0",
+  "description": "Cross-framework domain taxonomy for GCC regulatory harmonisation — v5.0 promotes Kuwait NBCC (NCSC Decision No. 2 of 2026 — National Basic Cybersecurity Controls) from pending to a first-class framework with 35 core controls across six NIST CSF functions plus a 16-control Cloud Security appendix. The NBCC is aligned with CIS Controls v8.1 IG1 and NIST CSF and references the National Data Classification Framework (Decision No. 1 of 2025). All other frameworks — including PDPL-KSA with its Implementing Regulation and Transfer Regulation — are unchanged from v4.0.",
   "domains": [
     {
       "domainId": "governance-strategy",
@@ -52,6 +52,14 @@
           "Art.8-Controller obligations",
           "Art.11-Controller procedures"
         ],
+        "PDPL-KSA": [
+          "Art.8-Controller selection of Processors with necessary guarantees",
+          "Art.30-2-DPO appointment for situations set by Regulations",
+          "Art.30-3-Controller cooperation with Competent Authority (SDAIA)",
+          "IR-Art.17-Processor selection, agreement content, and continuous compliance monitoring",
+          "IR-Art.32-DPO appointment conditions and responsibilities (large-scale public, continuous monitoring, sensitive data core activities)",
+          "IR-Art.33-Records of Processing Activities retained for processing period +5 years"
+        ],
         "QATAR-NIAS": [
           "IG1-Appoint Security Manager",
           "IG2-Allocate budget",
@@ -63,6 +71,11 @@
           "IG8-Security Manager operational responsibilities",
           "IG9-Security Manager strategic responsibilities",
           "IG10-Security Manager familiarity with operating procedures"
+        ],
+        "KUWAIT-NBCC": [
+          "GOV-1-Designate manager-level-or-above cybersecurity accountable owner and document roles",
+          "GOV-2-Core written policies covering acceptable use, secure config, classification, access, backup, IR, third-party",
+          "GOV-5-Annual self-assessment against NBCC using NCSC-issued checklist with 3-year retention"
         ]
       }
     },
@@ -119,12 +132,22 @@
           "Art.8-3-Administrative precautions",
           "Art.13-Protection precautions"
         ],
+        "PDPL-KSA": [
+          "Art.22-Impact assessment (DPIA) based on nature of activity",
+          "IR-Art.16.3-Legitimate Interest Assessment (LIA) documented before processing on legitimate-interest basis",
+          "IR-Art.25-DPIA required for sensitive data, data linkage, continuous monitoring, new tech, automated decisions, or high-harm services",
+          "TR-Art.8-Cross-border transfer risk assessment for safeguards-based, exemption-based, or continuous/large-scale Sensitive Data transfers"
+        ],
         "QATAR-NIAS": [
           "RM1-Define risk assessment process",
           "RM2-Risk treatment plan",
           "RM3-Senior management vetting for High assets",
           "RM4-Periodic control effectiveness monitoring",
           "RM5-Risk assessment integrated with business process and regulatory changes"
+        ],
+        "KUWAIT-NBCC": [
+          "GOV-2-Exception process with documented risk acceptance and expiry date",
+          "PR-1.2-Structured vulnerability management and patching with quarterly scans minimum"
         ]
       }
     },
@@ -188,6 +211,18 @@
           "Art.8-Controller obligations",
           "Art.11-7-Compliance audits"
         ],
+        "PDPL-KSA": [
+          "Art.12-Privacy policy made available before Collection",
+          "Art.31-Processing activity records maintained for period required by Regulations",
+          "Art.33-Licensing for accreditation certificate issuers and auditors",
+          "Art.34-Data Subject complaints to Competent Authority",
+          "IR-Art.22.5.a-Develop and periodically update internal privacy policies and procedures",
+          "IR-Art.33-RoPA content minimums and retention (processing period +5 years)",
+          "IR-Art.34-National Register of Controllers rules (registration duty to be specified by SDAIA)",
+          "IR-Art.35-Accreditation body licensing (SDAIA to issue rules; DGA coordination for government services)",
+          "IR-Art.36-Audit and compliance checking licensing and independence requirements",
+          "IR-Art.37-Complaint filing window 90 days from incident or awareness; SDAIA processing procedure"
+        ],
         "QATAR-NIAS": [
           "DC1-Produce organisation security policy",
           "DC2-System security plans for critical systems",
@@ -202,6 +237,11 @@
           "AC6-Recertification on significant changes",
           "AC7-Fix non-conformance in defined timeline",
           "AC8-Exemptions approved by NCSA"
+        ],
+        "KUWAIT-NBCC": [
+          "GOV-2-Policies approved by management, reviewed at least every two years",
+          "GOV-5-Periodic self-assessment with documented gaps, actions, target dates",
+          "GOV-5-Records available to NCSC upon request; compliance also to other competent authorities where required"
         ]
       }
     },
@@ -260,6 +300,13 @@
           "Art.11-2-Identifying responsible processors",
           "Art.11-3-Training processors"
         ],
+        "PDPL-KSA": [
+          "Art.30-2-Personal Data Protection Officer appointment",
+          "Art.41-Ongoing confidentiality obligation post-employment/contract",
+          "IR-Art.32.3-DPO responsibilities: SDAIA liaison, DPIA oversight, rights handling, breach notification, RoPA monitoring, corrective actions",
+          "IR-Art.5.2-Controller ensures access does not disclose another individual during rights fulfilment",
+          "IR-Art.26.3-Segregation of duties across Health Data processing stages"
+        ],
         "QATAR-NIAS": [
           "PS1-HR processes aligned with security",
           "PS2-HR security requirements documented",
@@ -273,6 +320,11 @@
           "PS10-Disciplinary process",
           "PS11-Visitor management",
           "PS12-Offboarding change request process"
+        ],
+        "KUWAIT-NBCC": [
+          "GOV-1-Roles and responsibilities for InfoSec, IT ops, risk, data classification, incident response documented and reviewed annually",
+          "GOV-4-Kuwaitization priority and pre-employment screening for sensitive cyber roles (SOC analysts, admins, IR)",
+          "RS-1-Designated incident response lead plus backup coordinator"
         ]
       }
     },
@@ -323,6 +375,7 @@
         "PDPL-QAT": [
           "Art.11-3-Training and raising awareness of processors"
         ],
+        "PDPL-KSA": [],
         "QATAR-NIAS": [
           "SA1-Security awareness programme with budget",
           "SA2-Baseline training content including NIA requirements",
@@ -332,6 +385,9 @@
           "SA6-New employee induction security training",
           "SA7-Training effectiveness assessment",
           "SA8-Indirect media channels for awareness"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-3-Security awareness training annually and for new joiners covering phishing, social engineering, data handling, MFA, portable media, incident reporting"
         ]
       }
     },
@@ -389,6 +445,13 @@
           "Art.10-Data accuracy and relevance",
           "Art.11-5-Internal data management systems"
         ],
+        "PDPL-KSA": [
+          "Art.11-3-Data minimisation (content limited to minimum necessary)",
+          "Art.11-4-Destruction when no longer necessary",
+          "Art.31-Records of processing activities (contact, purpose, categories, transfers, retention)",
+          "IR-Art.19-Data minimisation using data maps linking each collected attribute to a specific purpose",
+          "IR-Art.33-RoPA structure including retention period per data category where possible"
+        ],
         "QATAR-NIAS": [
           "DL1-Serve as labelling authority",
           "DL2-Rate assets per IAP-NAT-DCLS C1-C4",
@@ -400,6 +463,14 @@
           "MS3-Volatile media classification with power",
           "MS4-Media reclassification triggers",
           "MS7-Visual classification marking on all media"
+        ],
+        "KUWAIT-NBCC": [
+          "ID-1-Central electronic inventory of hardware assets with owner, location, criticality, lifecycle; unique machine-readable labels",
+          "ID-1-Weekly review of network discovery for unauthorised devices",
+          "ID-2-Authorised software list including version families and service providers; monthly unauthorised-software review",
+          "ID-3-Inventory of critical and sensitive data sets with classification, location, business owner",
+          "ID-3-User and service account inventory with privileges and last activity",
+          "GOV-3-Data classification aligned with National Data Classification Framework using Sensitive, Restricted, Public minimum"
         ]
       }
     },
@@ -466,6 +537,14 @@
           "Art.11-6-Technologies for individual access rights",
           "Art.13-Protection against illegal access"
         ],
+        "PDPL-KSA": [
+          "Art.19-Organisational administrative and technical measures to protect Personal Data",
+          "Art.23-Health Data access restricted to minimum employees necessary",
+          "Art.24-Credit Data access controls aligned with Credit Information Law",
+          "IR-Art.3.1.c-Identity verification of Data Subject before acting on rights requests",
+          "IR-Art.5.1.a-Rights-based access must not harm rights of others (IP, trade secrets)",
+          "IR-Art.5.2-Controller ensures Data Subject access does not disclose another individual"
+        ],
         "QATAR-NIAS": [
           "AM1-Least privilege and need-to-know",
           "AM2-Access controlled via system controls and audit trails",
@@ -493,6 +572,16 @@
           "AM32-Administrators have individual accounts",
           "AM36-Two-factor authentication for C3+ remote access",
           "AM40-No access from public computers"
+        ],
+        "KUWAIT-NBCC": [
+          "ID-3-Quarterly review of accounts; disable or remove dormant interactive accounts inactive 90+ days",
+          "PR-2-Unique passwords (8+ chars with MFA, 14+ chars without MFA); avoid forced periodic rotation absent compromise",
+          "PR-2-MFA for all remote access, externally exposed apps, and privileged/admin accounts",
+          "PR-2-Session lock or screen saver after 15 minutes inactivity on workstations; ~2 minutes on mobile",
+          "PR-2-Dedicated admin accounts; admin duties separated from daily user activity",
+          "PR-2.2-Password manager solution for staff managing multiple credentials",
+          "CLD-9-MFA enforced for all users with admin access to cloud management consoles and root accounts",
+          "CLD-10-Service account identities MUST NOT be used for interactive human login; periodic rotation or identity federation (OIDC)"
         ]
       }
     },
@@ -546,6 +635,7 @@
         ],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
+        "PDPL-KSA": [],
         "QATAR-NIAS": [
           "NS1-No public disclosure of internal network config",
           "NS4-High-level and logical network diagrams maintained",
@@ -569,6 +659,13 @@
           "NS53-Voice and data separated physically or by VLAN",
           "NS55-SRTP for VoIP security",
           "NS64-IPv6 risk assessment conducted"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-1-Hardened configuration baselines for servers, workstations, network devices, and key applications",
+          "PR-1-Host-based firewall on endpoints and servers with traffic limited to operational need",
+          "PR-1.1-Separate user, server/data, and management networks; restrict management/admin interfaces to dedicated zone",
+          "PR-1.1-Internet-facing systems placed in controlled network zone; admin/Critical System access requires explicit authorisation with MFA",
+          "CLD-16-TLS 1.2 or higher encryption in transit between entity and cloud provider; management interfaces not publicly exposed — use bastions, VPNs, or Identity-Aware Proxies"
         ]
       }
     },
@@ -612,6 +709,11 @@
         ],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
+        "PDPL-KSA": [
+          "Art.25-Marketing/awareness materials require prior consent and opt-out mechanism",
+          "IR-Art.28-Marketing and awareness communications: named sender, documented consent, easy opt-out, free opt-out",
+          "IR-Art.29-Direct Marketing: consent before processing, no anonymous sender, cease on withdrawal"
+        ],
         "QATAR-NIAS": [
           "NS28-Email servers hardened as bastion servers",
           "NS29-TLS with SMTP mail server",
@@ -621,6 +723,11 @@
           "IE10-Email disclaimer on all outgoing email",
           "SU8-Public webmail not permitted from organisation systems",
           "SU10-C2+ emails not auto-forwarded outside organisation"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-4-Email security controls including spam filtering, attachment and URL filtering, dangerous extension blocking",
+          "PR-4-SPF, DKIM, and DMARC configured on email domains to prevent impersonation",
+          "PR-2.1-Official business communications only on entity-approved corporate email; personal/consumer email accounts prohibited on corporate devices and for work communication"
         ]
       }
     },
@@ -672,6 +779,7 @@
         ],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
+        "PDPL-KSA": [],
         "QATAR-NIAS": [
           "OS1-Mobile device usage policies",
           "OS5-Laptops and MDs encrypt information and are password protected",
@@ -681,6 +789,11 @@
           "OS10-Emergency destruction/locking/remote wipe plan",
           "SS13-Workstations use hardened standard operating environment",
           "SS14-Potential vulnerabilities reduced by removing shares patching disabling unused IO"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-4-Endpoint protection (anti-malware/EDR) deployed with automatic updates and centralised alerting",
+          "PR-4.2-Portable media device control: restrict or disable unapproved removable media (e.g. USB drives)",
+          "PR-2.1-Device and email configuration (MDM or mail client settings) prevents adding personal email accounts where feasible"
         ]
       }
     },
@@ -755,6 +868,32 @@
           "Art.15-Cross-border data flow controls",
           "Art.16-Special category data processing permission"
         ],
+        "PDPL-KSA": [
+          "Art.10-Collection directly from Data Subject and only for stated purposes",
+          "Art.11-Collection purpose directly related to Controller purposes",
+          "Art.11-2-Collection methods direct clear secure no deception",
+          "Art.11-4-Cease collection and destroy when no longer necessary",
+          "Art.14-Verify accuracy completeness timeliness relevance",
+          "Art.17-Correction completion update notification to all recipients",
+          "Art.18-Destruction when no longer necessary",
+          "Art.18-2-Retention only for legal basis or judicial proceedings",
+          "Art.19-Protect Personal Data including during Transfer",
+          "Art.23-Additional controls for Health Data Processing",
+          "Art.24-Additional controls for Credit Data Processing",
+          "Art.41-Ongoing confidentiality obligation",
+          "IR-Art.9-Anonymisation: irreversibility, risk assessment, effectiveness evaluation",
+          "IR-Art.11-Consent conditions: free, specific, documented, independent per purpose; explicit for Sensitive, Credit, automated decisions",
+          "IR-Art.12-Consent withdrawal: always available, procedures no harder than giving consent, cease processing without undue delay",
+          "IR-Art.14-Processing for Actual Interest of unreachable Data Subject with documented evidence",
+          "IR-Art.15-Collection from third parties: necessity, proportionality, no adverse impact on Data Subject",
+          "IR-Art.16-Legitimate interest processing: conditions, LIA, no Sensitive Data, reasonable expectations",
+          "IR-Art.18-Further processing: clearly define new purpose, minimise scope, update RoPA",
+          "IR-Art.19-Data minimisation using data maps",
+          "IR-Art.22-Correction obligations: accuracy verification, recipient notification, suspension until correction completed",
+          "IR-Art.26-Health Data processing: MoH/SCH/SAMA/CHI rules, segregation of duties, documented stages",
+          "IR-Art.27-Credit Data processing: SAMA rules, consent on disclosure requests, Credit Information Law alignment",
+          "IR-Art.31-Prohibition on photographing or copying official identification documents absent legal basis"
+        ],
         "QATAR-NIAS": [
           "CY3-C3 assets encrypted at rest and in transit",
           "CY5-TLS SFTP SSH S/MIME protocols for C3 data in transit",
@@ -770,6 +909,18 @@
           "MS12-Non-volatile magnetic media sanitised by overwriting or degaussing",
           "MS14-Flash memory sanitised by double overwrite",
           "MS18-Media destruction by degaussing breaking or incineration"
+        ],
+        "KUWAIT-NBCC": [
+          "GOV-3-Data Classification Policy approved by senior management and submitted to NCSC per Decision 1 of 2025",
+          "GOV-3-Data and related systems tagged with classification; protection increases with sensitivity",
+          "GOV-3-Sensitive data storage/processing outside Kuwait requires explicit NCSC approval before use",
+          "PR-5-Automated backups prioritising Sensitive and Restricted data, stored in at least one separate location",
+          "PR-5-Backup integrity protected via access controls and encryption; restoration tested at least annually",
+          "PR-5-Retention aligned with legal requirements and National Data Classification Framework; secure erasure when no longer needed",
+          "CLD-11-All cloud data at rest MUST be encrypted; Sensitive data may use Customer-Managed Encryption Keys based on risk",
+          "CLD-12-Cloud services configured to store and process Customer Content per National Data Classification Framework",
+          "CLD-13-Operational Metadata exemption — residency rules apply to Customer Content only; metadata identifiers must remain non-sensitive",
+          "CLD-14-Cloud storage resources configured to block public access by default; public exposure requires explicit documented data-owner exception"
         ]
       }
     },
@@ -828,6 +979,11 @@
         "PDPL-QAT": [
           "Art.8-2-Controls in designing/developing products and systems"
         ],
+        "PDPL-KSA": [
+          "Art.22-DPIA for new products or services",
+          "IR-Art.25.1.c-DPIA for new technologies or automated decision-making",
+          "IR-Art.25.1.d-DPIA for products or services likely to cause serious privacy harm"
+        ],
         "QATAR-NIAS": [
           "SS1-Security in all SDLC phases",
           "SS2-All applications classified per IAP-NAT-DCLS",
@@ -844,6 +1000,11 @@
           "SS29-Database files protected bypassing normal access controls",
           "SS31-Unprivileged users cannot see metadata they cannot access",
           "SS32-Sensitive database data masked for C3+"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-1-Secure configuration baselines extended to key applications",
+          "PR-1-Remove services, features, and ports not needed for system role; disable default accounts and passwords",
+          "CLD-7-Document cloud service model matrix (IaaS/PaaS/SaaS) and resulting division of security responsibilities; entity retains accountability for Data Classification, IAM, and Resource Configuration"
         ]
       }
     },
@@ -894,12 +1055,19 @@
         ],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
+        "PDPL-KSA": [],
         "QATAR-NIAS": [
           "PR5-Security evaluation on dedicated configuration",
           "PR9-Product patching follows change management",
           "SS7-Software vulnerability review before production",
           "SS14b-Ensure patching is up to date",
           "IM9-Annual Security Assurance Plan including penetration testing"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-1-OS and application patching at least monthly on supported systems with records of scans and remediation actions",
+          "PR-1.2-Written vulnerability management process reviewed annually",
+          "PR-1.2-Automated scans: monthly for internet-facing systems, quarterly for other important internal systems, and after major changes",
+          "PR-1.2-Post-scan action list prioritising high and critical findings with defined remediation aim"
         ]
       }
     },
@@ -959,6 +1127,13 @@
           "Art.11-7-Compliance audits and reviews",
           "Art.11-8-Monitoring processor compliance"
         ],
+        "PDPL-KSA": [
+          "Art.31-Records of Personal Data Processing activities including purpose categories transfers retention",
+          "IR-Art.3.1.d-Documentation and record-keeping of Data Subject requests (including oral requests)",
+          "IR-Art.20.6-Disclosure operations recorded in RoPA with dates, methods, purposes",
+          "IR-Art.22.5.b-Periodic review of Personal Data accuracy and timeliness",
+          "IR-Art.33-RoPA structure, content, retention, and SDAIA access rights"
+        ],
         "QATAR-NIAS": [
           "SM1-Technical controls for logging and continuous monitoring",
           "SM2-Monitoring practices established per infrastructure criticality 24/7 for C3/I3/A3",
@@ -968,6 +1143,14 @@
           "SM8-Audit logging records date time authentication activity unique identifiers",
           "SM9-Exceptions reported per incident handling policy",
           "VL8-Virtualisation environment logs monitored with other IT infrastructure"
+        ],
+        "KUWAIT-NBCC": [
+          "DE-1-Audit logging enabled on critical systems, network devices, security tools, and key applications covering authentication, admin actions, security events",
+          "DE-1-Centralised logging where feasible; log access restricted to authorised personnel; logs protected from tampering",
+          "DE-1-Retain logs for at least 90 days live and 12 months total (live or archived)",
+          "DE-1-Review logs at frequency appropriate to risk (weekly for smaller entities, daily for higher-risk)",
+          "DE-2-Time synchronization to reliable authoritative NTP source; timestamps consistent across infrastructure with periodic verification",
+          "CLD-15-Cloud audit logging for Admin Activity (configuration changes) and Data Access (who accessed sensitive workloads); retain 12 months minimum"
         ]
       }
     },
@@ -1034,6 +1217,15 @@
           "Art.13-Processor notifies Controller of breach",
           "Art.14-Controller notifies individual and competent dept of breach"
         ],
+        "PDPL-KSA": [
+          "Art.20-1-Notify Competent Authority (SDAIA) of breach damage or illegal access",
+          "Art.20-2-Notify Data Subject of breach causing damage or prejudice to rights",
+          "IR-Art.24.1-SDAIA notification within 72 hours of awareness including required breach metadata",
+          "IR-Art.24.2-Staggered reporting permitted with written justification when full information unavailable",
+          "IR-Art.24.3-Retain breach report copies and document corrective and preventive measures",
+          "IR-Art.24.4-Parallel obligations to NCA and other competent authorities are preserved",
+          "IR-Art.24.5-Data Subject notification without undue delay using clear language including risk description and advice"
+        ],
         "QATAR-NIAS": [
           "IM1-Appoint Incident Management owner and point of contact",
           "IM2-Incident response capability based on risk assessment",
@@ -1044,6 +1236,15 @@
           "IM7-Coordinate with NCSA incident repository",
           "IM8-Report Critical incidents to NCSA within 2 hours",
           "IM9-Annual Security Assurance Plan"
+        ],
+        "KUWAIT-NBCC": [
+          "RS-1-Simple incident reporting process so staff can report suspected incidents (phishing, data loss, system compromise)",
+          "RS-1-Up-to-date contacts for incident lead, backup, service providers, and NCSC",
+          "RS-1-Prompt NCSC notification through official channels within applicable NCSC-set timelines; out-of-band channels used during active incidents",
+          "RS-1-Follow-up updates to NCSC as required by NCSC reporting guidance",
+          "RS-2-Written incident response procedure covering triage, containment, communication, evidence preservation, recovery, reporting/escalation",
+          "RS-2-Post-incident lessons-learned review and sharing with NCSC or sector authorities where appropriate",
+          "CLD-4-Contracts MUST include CSP commitment to notify entity of confirmed cloud data incidents without undue delay"
         ]
       }
     },
@@ -1098,6 +1299,7 @@
         ],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
+        "PDPL-KSA": [],
         "QATAR-NIAS": [
           "BC1-Appoint Business Continuity Programme owner",
           "BC2-BC Plan with RTO and RPO per process",
@@ -1108,6 +1310,11 @@
           "BC7-Outsourcing contracts include strong BC controls",
           "BC8-BC Plan tested annually",
           "BC9-Employee awareness of BC plan"
+        ],
+        "KUWAIT-NBCC": [
+          "RC-1-Recovery plan or documented procedures for restoring critical systems after incidents or disruptions",
+          "RC-1-Plan references backup locations, key contacts, sequencing (especially for Sensitive and Restricted data); reviewed annually and after major changes",
+          "RC-2-Basic recovery/continuity tests at least annually (tabletop or partial restoration); lessons captured and improvements tracked"
         ]
       }
     },
@@ -1161,6 +1368,7 @@
         ],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
+        "PDPL-KSA": [],
         "QATAR-NIAS": [
           "PH2-Risk-based physical space zoning Minimal Baseline Medium High",
           "PH3-Zone-appropriate physical controls per Appendix A",
@@ -1171,6 +1379,12 @@
           "AppA-Minimal perimeter walls alarmed fire doors locks",
           "AppA-Baseline manned reception electronic locks audit trail forced-entry resistance",
           "AppA-Medium/High biometric metal detectors X-ray armoured conduit"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-6-Identify critical IT areas (data centers, server rooms, backup media storage) with simple inventory",
+          "PR-6-Lockable doors or cabinets for unattended areas; restricted access via keys, cards, or codes managed by IT or Facilities",
+          "PR-6-Simple record of non-routine visitors (may use existing building/guard logs)",
+          "PR-6-Backup media and portable equipment stored in locked room or cabinet when not in use"
         ]
       }
     },
@@ -1229,6 +1443,24 @@
           "Art.15-Cross-border data flow",
           "Art.11-8-Verifying processor compliance"
         ],
+        "PDPL-KSA": [
+          "Art.8-Controller selects Processors with necessary guarantees and monitors compliance",
+          "Art.15-Disclosure rules (consent, public source, public entity, public health, anonymised, legitimate interest)",
+          "Art.16-Disclosure restrictions (security, reputation, crime detection, privacy of others, professional obligations)",
+          "Art.29-Cross-border Transfer or Disclosure conditions and adequacy assessment by SDAIA",
+          "IR-Art.17.1-Processor agreement contents: purpose, categories, duration, breach duty, foreign-law impact, subcontractors",
+          "IR-Art.17.2-Controller instructions and Processor duty to notify violations in writing without undue delay",
+          "IR-Art.17.3-Periodic Controller assessment of Processor compliance; third-party assessor permitted",
+          "IR-Art.17.4-Processor reclassified as Controller and directly liable on instruction breach",
+          "IR-Art.17.5-Sub-processor guarantees, selection, and prior Controller acceptance",
+          "IR-Art.20-Disclosure safeguards including Pseudonymisation of third-party data and Legitimate Interest alignment",
+          "TR-Art.2-Cross-border transfer general conditions: national security non-impact, minimisation, Data Subject rights preservation",
+          "TR-Art.5-Appropriate safeguards: Binding Common Rules, Standard Contractual Clauses, certifications, Binding Codes of Conduct",
+          "TR-Art.5.2-Binding Common Rules minimum content (14 elements including audit, complaint handling, breach mechanism)",
+          "TR-Art.6-Exemption-based cross-border transfer conditions (agreement, national security, crime, Vital Interests)",
+          "TR-Art.7-Immediate cessation when national security, high privacy risk, or safeguard unenforceability is identified",
+          "TR-Art.8-Written risk assessment with six elements for safeguards, exemptions, or continuous/large-scale Sensitive transfers"
+        ],
         "QATAR-NIAS": [
           "TM1-Outsourced areas remain accountability of organisation",
           "TM2-Acknowledge and document outsourcing risks",
@@ -1239,6 +1471,18 @@
           "PR3-Vendor screening including location ownership financial status references",
           "PR5-Security evaluation on dedicated evaluation configuration",
           "PR8-Products from vendors committed to ongoing assurance maintenance"
+        ],
+        "KUWAIT-NBCC": [
+          "GOV-6-Inventory of service providers including cloud/managed services with classification and entity contact; reviewed annually or on significant change",
+          "GOV-6-For providers handling Sensitive data or supporting critical services: documented scope and shared responsibilities",
+          "GOV-6-Incident response contact list includes relevant service providers with defined reporting timeframes",
+          "GOV-6-Offboarding/termination: access removal, data handling, evidence retention",
+          "ID-2-Service provider inventory SHOULD include owner, contact, service description, criticality, data sensitivity; reviewed annually",
+          "CLD-1-CSP authorised to operate in Kuwait in accordance with national authority regulations",
+          "CLD-2-Pre-selection CSP security posture evaluation satisfied by valid independent certifications (ISO 27001, SOC 2 Type II, CSA STAR Level 2)",
+          "CLD-3-Right to Audit clause in CSP contracts exercised by reviewing independent Third-Party Audit Reports (SOC 2, C5) rather than physical data centre visits",
+          "CLD-5-Data ownership and exit: contract explicitly states entity retains exclusive ownership; CSP provides tools or standard APIs for data retrieval on termination",
+          "CLD-6-Service Level Agreements with availability commitments and financial remedies for SLA failure"
         ]
       }
     },
@@ -1289,6 +1533,18 @@
           "Art.15-Cross-border data flow controls",
           "Art.12-Data transfer to processor"
         ],
+        "PDPL-KSA": [
+          "Art.29-Cross-border Transfer requires adequate protection equivalent to KSA Law",
+          "Art.29-2b-SDAIA adequacy assessment of foreign Data Protection level",
+          "Art.29-2c-Minimum necessary data for cross-border Transfer",
+          "Art.33-4-Tools to monitor Controllers/Processors outside Kingdom",
+          "IR-Art.23.2-Information security controls defer to NCA controls where applicable; otherwise recognised cybersecurity best practice",
+          "TR-Art.3-Adequacy criteria: laws, rule of law, enforcement, Data Subject remedies, supervisory authority, cooperation, disclosure clarity",
+          "TR-Art.4.3-Adequacy decisions reviewed every 4 years or when necessary",
+          "TR-Art.4.4-Adequacy decisions may be terminated, amended, or suspended on SDAIA recommendation",
+          "TR-Art.5-Appropriate safeguards for cloud processors outside KSA (BCR, SCC, certification, BCoC)",
+          "TR-Art.8-Cross-border risk assessment for continuous or large-scale cloud data flows"
+        ],
         "QATAR-NIAS": [
           "VL1-Evaluate virtualisation risks in legal/regulatory context",
           "VL2-Harden hypervisor administrative layer and VMs per best practices",
@@ -1299,6 +1555,24 @@
           "VL7-Change management encompasses virtual technology environment",
           "TM3-Cloud service provider agreements include NIAS controls",
           "CY3-Data classified C3 encrypted at rest and in transit regardless of hosting"
+        ],
+        "KUWAIT-NBCC": [
+          "CLD-1-CSP regulatory authorisation to operate in Kuwait",
+          "CLD-2-CSP due diligence via independent security certifications",
+          "CLD-3-Right to audit via independent third-party audit reports",
+          "CLD-4-Incident notification clause in CSP contract",
+          "CLD-5-Data ownership and exit guarantees",
+          "CLD-6-SLAs with availability and financial remedies",
+          "CLD-7-Shared responsibility documentation with entity accountability for Data Classification, IAM, and Resource Configuration",
+          "CLD-8-Real-time cloud asset inventory using programmatic resource tagging for classification and business owner",
+          "CLD-9-MFA for cloud management consoles and root accounts",
+          "CLD-10-Service account hygiene: no interactive human login use; periodic rotation or identity federation",
+          "CLD-11-Encryption by default for all cloud data at rest; CMEK for Sensitive data on risk basis",
+          "CLD-12-Customer Content residency per National Data Classification Framework",
+          "CLD-13-Operational Metadata exemption — metadata may process globally if kept non-sensitive",
+          "CLD-14-Public access prevention: storage resources block public access by default",
+          "CLD-15-Cloud audit logging (Admin Activity and Data Access) with 12-month retention",
+          "CLD-16-Secure connectivity with TLS 1.2+ and non-public management interfaces"
         ]
       }
     },
@@ -1340,12 +1614,14 @@
         "SOC2": [],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
+        "PDPL-KSA": [],
         "QATAR-NIAS": [
           "NS5d-IPSEC/IPv6 for network security",
           "NS5i-IPS/IDS to detect and prevent malicious activity",
           "GS1-Networks protected from other networks by gateways",
           "GS6-DMZs used to separate externally accessible systems"
-        ]
+        ],
+        "KUWAIT-NBCC": []
       }
     },
     {
@@ -1398,7 +1674,9 @@
         ],
         "PDPL-UAE": [],
         "PDPL-QAT": [],
-        "QATAR-NIAS": []
+        "PDPL-KSA": [],
+        "QATAR-NIAS": [],
+        "KUWAIT-NBCC": []
       }
     },
     {
@@ -1447,6 +1725,11 @@
         "PDPL-QAT": [
           "Art.11-1-Reviewing privacy protection before new processing operations"
         ],
+        "PDPL-KSA": [
+          "Art.17-Amendments notified to all recipients of Personal Data",
+          "IR-Art.22.2.b-Correction notification to all prior recipients without delay",
+          "IR-Art.33.3-Controller ensures RoPA is accurate and up to date"
+        ],
         "QATAR-NIAS": [
           "CM1-Documented change management process Planned Major Maintenance Emergency categories",
           "CM2-Cross-functional Change Management Committee with security and risk representation",
@@ -1455,6 +1738,11 @@
           "CM5-Associated documentation updated post-change",
           "CM6-Emergency changes require verbal approval from Committee Head and post-emergency standard documentation",
           "VL7-Change management process encompasses virtual technology environment"
+        ],
+        "KUWAIT-NBCC": [
+          "GOV-2-Documented exception process with approved risk acceptance and expiry date",
+          "PR-1-Configuration reviews after major changes; annual review baseline",
+          "GOV-1-Role and responsibility structure reviewed on major organisational changes"
         ]
       }
     },
@@ -1501,7 +1789,108 @@
           "Art.10-Data minimisation and accuracy",
           "Art.22-Direct marketing consent requirement"
         ],
-        "QATAR-NIAS": []
+        "PDPL-KSA": [
+          "Art.4-1-Right to be informed of legal basis and purpose",
+          "Art.4-2-Right to access Personal Data held by Controller",
+          "Art.4-3-Right to receive data in readable clear format (portability)",
+          "Art.4-4-Right to correction completion update",
+          "Art.4-5-Right to request Destruction when no longer needed",
+          "Art.5-Consent required for Processing and purpose change",
+          "Art.5-2-Right to withdraw consent at any time",
+          "Art.6-Processing without consent (vital interests, law, public entity security, legitimate interest)",
+          "Art.7-Consent cannot be conditioned on unrelated service provision",
+          "Art.9-Controller time frames and limits on access right",
+          "Art.13-Information at Collection (legal basis, purpose, recipients, cross-border, consequences, rights)",
+          "Art.21-Response to Data Subject requests within Regulations-specified period",
+          "Art.25-Marketing/awareness materials opt-in and opt-out mechanism",
+          "Art.26-Marketing consent for non-sensitive data collected directly",
+          "Art.27-Research/statistical exemption if anonymised or identity destroyed before disclosure",
+          "Art.28-Restriction on copying official identifiable documents",
+          "IR-Art.3-Rights requests acted on within 30 days (extendable 30) with identity verification and documentation",
+          "IR-Art.4-Right to be informed at direct collection (seven elements) and within 30 days at indirect collection",
+          "IR-Art.5-Right of access via channel or request without prejudicing others",
+          "IR-Art.6-Right to request a copy in commonly-used electronic format",
+          "IR-Art.7-Right to restrict processing when accuracy is contested; Controller may request evidence",
+          "IR-Art.8-Right to request destruction including backups and notification to downstream recipients",
+          "IR-Art.10-Data Subject choice of communication means (email, SMS, national address, apps)",
+          "IR-Art.11-Consent form, conditions, independent per purpose; explicit for Sensitive, Credit, automated decisions",
+          "IR-Art.12-Consent withdrawal procedures, cessation, and downstream notification",
+          "IR-Art.13-Legal guardian exercises rights and gives consent for those lacking full legal capacity",
+          "IR-Art.30-Scientific, research, statistical exemption: pseudonymisation where possible, minimisation, no adverse impact",
+          "IR-Art.37-Complaint to SDAIA within 90 days with specified content"
+        ],
+        "QATAR-NIAS": [],
+        "KUWAIT-NBCC": []
+      }
+    },
+    {
+      "domainId": "information-exchange",
+      "domainLabel": "Information exchange and gateway security",
+      "description": "Secure information sharing between organisations, gateway controls, data import/export filtering, and cross-domain connectivity",
+      "controls": {
+        "NCA-ECC": [],
+        "SAMA-CSF": [],
+        "CBK": [],
+        "ISO-27001": [
+          "5.14",
+          "8.22",
+          "8.23"
+        ],
+        "NIST-CSF": [
+          "PR.DS-02",
+          "GV.SC"
+        ],
+        "UAE-NIAF": [],
+        "PCI-DSS": [],
+        "IEC-62443": [],
+        "SOC2": [
+          "CC6.7"
+        ],
+        "PDPL-UAE": [
+          "Art.22-Cross-border transfer with adequate protection"
+        ],
+        "PDPL-QAT": [
+          "Art.15-Cross-border data flow controls"
+        ],
+        "PDPL-KSA": [
+          "Art.15-Disclosure rules and conditions",
+          "Art.16-Disclosure restrictions (9 categories)",
+          "Art.17-Amendment notification to transferees",
+          "Art.29-Cross-border Transfer conditions and adequacy",
+          "IR-Art.15-Third-party collection safeguards: necessity, proportionality, Anonymisation",
+          "IR-Art.20-Disclosure safeguards: purpose proximity, privacy preservation, minimisation, pseudonymisation of third-party identities, RoPA logging",
+          "IR-Art.21-Public Entity disclosure for public interest: necessity, mandate proximity, damage limitation, RoPA logging",
+          "TR-Art.2-Cross-border Disclosure general conditions",
+          "TR-Art.6-Exemption-based cross-border Disclosure"
+        ],
+        "QATAR-NIAS": [
+          "IE1-Cross-domain risk evaluation prior to connectivity",
+          "IE2-Network-to-network connection risk review for cascaded connections",
+          "IE3-Confidentiality agreements prior to information exchange NDA",
+          "IE4-Exchange media protected from unauthorised access",
+          "IE5-Maintain classification of information received from other organisations",
+          "IE7-Trusted courier services only",
+          "IE8-Electronic messaging protected from unauthorised access",
+          "IE9-S/MIME or equivalent for C3+ information",
+          "IE12-Authenticated encrypted channels for C2/I2+ transmissions",
+          "IE13-Public information limited to sanitised approved content via designated spokesperson",
+          "GS1-Networks protected from other networks by gateways",
+          "GS4-Dual control four-eyes for C3+ gateway management",
+          "GS6-DMZs separate external from internal",
+          "GS7-Gateways deny all by default allow only explicitly authorised",
+          "GS8-Gateways hardened against malicious code DoS escalation",
+          "GS9-Gateway monitoring with threat prevention logging alerts",
+          "GS10-Content filtering offensive material malware DoS",
+          "GS13-Export filtering by classification label",
+          "GS14-Keyword search on textual data exports",
+          "GS16-Data import approval process",
+          "GS17-Imported data scanned for malicious content"
+        ],
+        "KUWAIT-NBCC": [
+          "PR-3.1-Official social media and digital presence: central register of entity accounts on external platforms with corporate email addresses and MFA",
+          "PR-4.1-Entity-approved communication and collaboration platforms only; private messaging, personal email, unauthorised remote-control tools prohibited for work",
+          "GOV-6-Service provider incident reporting mechanisms and timeframes defined"
+        ]
       }
     }
   ],
@@ -1628,7 +2017,128 @@
       ],
       "enforcer": "Ministry of Transport and Communications (Competent Department)",
       "confidenceLevel": "high",
-      "notes": "Applies to electronically processed personal data. Excludes personal/family use and official statistical data. Penalties up to 5M QAR for breaches of security controls. Favours cross-border data flow unless it causes serious damage to personal data or individual privacy."
+      "notes": "Applies to electronically processed personal data. Excludes personal/family use and official statistical data. Penalties up to 5M QAR for breaches of security controls."
+    },
+    "PDPL-KSA": {
+      "name": "Saudi Arabia Personal Data Protection Law",
+      "version": "Royal Decree M/19 of 2021, amended by M/148 of 2023, as supplemented by the SDAIA Implementing Regulation and the Regulation on Personal Data Transfer outside the Kingdom (both issued September 2023)",
+      "jurisdiction": [
+        "Saudi Arabia"
+      ],
+      "mandatory": true,
+      "sector": [
+        "All sectors processing personal data of individuals residing in the Kingdom"
+      ],
+      "enforcer": "Saudi Data and AI Authority (SDAIA) — Competent Authority under the Law",
+      "legalBasis": "Royal Decree No. M/19 dated 09/02/1443 AH (16/09/2021) — amended by Royal Decree No. M/148 dated 05/09/1444 AH (27/03/2023)",
+      "effectiveDate": "14 September 2023 (with one-year grace period ending September 2024)",
+      "implementingRegulations": {
+        "summary": "PDPL-KSA is a single regulatory framework comprising THREE instruments: (a) the Personal Data Protection Law (Royal Decree M/19 of 2021, amended by M/148 of 2023), (b) the Implementing Regulation of the Personal Data Protection Law, issued by SDAIA in September 2023, and (c) the Regulation on Personal Data Transfer outside the Kingdom, issued by SDAIA in September 2023. Control references use the prefix Art.X for Law articles, IR-Art.X for Implementing Regulation articles, and TR-Art.X for Transfer Regulation articles.",
+        "instruments": [
+          {
+            "instrumentId": "LAW",
+            "controlPrefix": "Art.",
+            "name": "Personal Data Protection Law",
+            "issuer": "Council of Ministers via Royal Decree",
+            "reference": "Royal Decree M/19 of 09/02/1443 AH, amended by Royal Decree M/148 of 05/09/1444 AH"
+          },
+          {
+            "instrumentId": "IR",
+            "controlPrefix": "IR-Art.",
+            "name": "Implementing Regulation of the Personal Data Protection Law",
+            "issuer": "SDAIA (Competent Authority)",
+            "reference": "Issued September 2023 alongside Law enforcement; 38 articles",
+            "scopeNote": "Operationalises the Law: specifies timelines (data subject response 30 days, breach notification 72 hours, RoPA retention +5 years, complaint window 90 days), consent forms, DPO triggers, DPIA scope, and legitimate-interest assessment."
+          },
+          {
+            "instrumentId": "TR",
+            "controlPrefix": "TR-Art.",
+            "name": "Regulation on Personal Data Transfer outside the Kingdom",
+            "issuer": "SDAIA (Competent Authority)",
+            "reference": "Issued September 2023 alongside Law enforcement; 10 articles across 4 chapters",
+            "scopeNote": "Regulates cross-border transfer through adequacy decisions issued by the Prime Minister on SDAIA recommendation, appropriate safeguards (Binding Common Rules, Standard Contractual Clauses, certifications, binding codes of conduct), and limited exemption cases. Mandates a written risk assessment for transfers under safeguards, exemption-based transfers, and continuous/large-scale transfers of Sensitive Data. Adequacy decisions are reviewed every 4 years."
+          }
+        ]
+      },
+      "confidenceLevel": "high",
+      "extraterritorial": "Yes — Article 2 applies the Law to any processing of personal data of individuals residing in the Kingdom, including processing from outside the Kingdom",
+      "penalties": {
+        "sensitiveDataDisclosure": "Up to 2 years imprisonment or fine up to SAR 3M or both (Art.35) — doubled for recidivism",
+        "otherViolations": "Warning or fine up to SAR 5M (Art.36) — doubled for repeat violations",
+        "civilCompensation": "Data Subject may claim proportionate compensation for material or moral damage (Art.40)"
+      },
+      "notes": "Covers deceased persons' data where identifying them or a family member (Art.2). Exempts personal/family use only (Art.2; IR-Art.2). Sensitive Data includes racial/ethnic origin, religious/intellectual/political belief, criminal convictions, biometric/genetic data, health data, and data indicating unknown parentage. Cross-border transfer regime is now fully operational via the SDAIA Transfer Regulation (TR-Art.2-8). Banking/credit data regulated jointly with SAMA and under the Credit Information Law (Art.24, Art.30-1; IR-Art.27). Health data has additional restrictions (Art.23; IR-Art.26). Information security controls explicitly defer to NCA controls where applicable (IR-Art.23.2) — implementing NCA-ECC can satisfy PDPL-KSA Art.23 / IR-Art.23 information-security obligations. Must coordinate with NCA on cybersecurity aspects per Art.42.",
+      "structuredTimelines": {
+        "breachNotificationToAuthority": {
+          "window": "72 hours from the Controller becoming aware of the incident",
+          "source": "IR-Art.24.1",
+          "staggeredReporting": "Permitted under IR-Art.24.2 with written justification for the delay",
+          "dataSubjectNotification": "Without undue delay, if breach may cause damage or conflict with rights (IR-Art.24.5)"
+        },
+        "dataSubjectRightsResponse": {
+          "window": "30 days from receipt of the request",
+          "extension": "Up to an additional 30 days if disproportionate effort or multiple requests; Data Subject must be notified in advance with reasons",
+          "source": "IR-Art.3.1.a"
+        },
+        "indirectCollectionInformationDuty": {
+          "window": "30 days from the point of collection (without undue delay)",
+          "source": "IR-Art.4.3"
+        },
+        "complaintFilingWindow": {
+          "window": "90 days from the incident or the date the Data Subject became aware",
+          "extension": "Competent Authority discretion to accept late complaints for reasonable cause",
+          "source": "IR-Art.37.1"
+        },
+        "recordsOfProcessingRetention": {
+          "window": "For the duration of processing plus 5 years from the date processing ends",
+          "source": "IR-Art.33.1"
+        },
+        "adequacyReviewCycle": {
+          "window": "Every 4 years, or sooner if necessary",
+          "source": "TR-Art.4.3",
+          "reviewable": "Prime Minister may terminate, amend, or suspend adequacy decisions on SDAIA recommendation (TR-Art.4.4)"
+        }
+      },
+      "dpoTriggers": {
+        "source": "IR-Art.32.1",
+        "requiredWhen": [
+          "Controller is a Public Entity providing services that involve Processing Personal Data on a large scale",
+          "Controller's primary activities consist of Processing operations requiring regular and continuous monitoring of individuals on a large scale",
+          "Controller's core activities consist of Processing sensitive Personal Data"
+        ],
+        "status": "May be an official, employee, or external contractor (IR-Art.32.2). SDAIA will issue further appointment rules (IR-Art.32.4).",
+        "largeScaleDefinition": "Not numerically defined in the Law, Implementing Regulation, or Transfer Regulation. SDAIA may issue guidance; do NOT invent a numeric threshold when reasoning."
+      },
+      "dpiaTriggers": {
+        "source": "IR-Art.25.1",
+        "required": [
+          "Processing of Sensitive Data",
+          "Collecting, comparing, or linking two or more Personal Data sets from different sources",
+          "Continuous and large-scale Processing of Personal Data of individuals lacking full legal capacity",
+          "Processing operations requiring continuous monitoring of Data Subjects",
+          "Processing Personal Data using new technologies",
+          "Decisions made based on automated Processing of Personal Data",
+          "Providing a product or service involving Processing likely to cause serious harm to Data Subject privacy"
+        ],
+        "elements": "Purpose and legal basis; nature, types and sources of data; scope including geography; context including relationships; necessity and proportionality; impact severity and likelihood; mitigating measures; suitability of mitigating measures (IR-Art.25.2)",
+        "distinctFromLIA": "IR-Art.25 DPIA (impact assessment) and IR-Art.16.3 Legitimate Interest Assessment are DISTINCT instruments. An LIA is required before processing on legitimate-interest basis; a DPIA is required in the seven scenarios above regardless of legal basis. A single processing activity may require BOTH."
+      },
+      "crossBorderTransfer": {
+        "source": "PDPL Art.29; TR-Art.2 through TR-Art.8",
+        "layeredRegime": [
+          "Step 1 — Adequacy: Prime Minister issues an adequacy decision on SDAIA recommendation based on TR-Art.3.1 criteria (laws, rule of law, enforcement effectiveness, Data Subject remedies, supervisory authority, cooperation, disclosure rules)",
+          "Step 2 — Appropriate safeguards (where adequacy absent): Binding Common Rules (TR-Art.5.1.a, TR-Art.5.2); SDAIA-approved Standard Contractual Clauses (TR-Art.5.1.b); certifications from accredited entities (TR-Art.5.1.c); Binding Codes of Conduct approved by SDAIA (TR-Art.5.1.d)",
+          "Step 3 — Exemption-based transfers (where safeguards unavailable): performance of agreement with Data Subject; public-entity national security or public interest; public-entity crime investigation/prosecution; protection of Vital Interests of unreachable Data Subject (TR-Art.6)",
+          "Step 4 — Risk assessment: mandatory written assessment before any transfer under safeguards, exemptions, or continuous/large-scale Sensitive Data transfers (TR-Art.8.1), covering purpose, nature, safeguards, minimisation, impact, and mitigation (TR-Art.8.2)"
+        ],
+        "stopConditions": "Controller must immediately stop cross-border transfer if it affects national security or Vital Interests of the Kingdom, if risk assessment reveals high privacy risk, or if appropriate safeguards become unenforceable (TR-Art.7)"
+      },
+      "referencedButUnmappedAuthorities": [
+        "National Cybersecurity Authority (NCA) — IR-Art.23.2 defers information-security controls to NCA controls where applicable, creating an explicit bridge to NCA-ECC",
+        "Digital Government Authority (DGA) — IR-Art.35 and IR-Art.36 require SDAIA coordination with DGA for accreditation and auditing entities serving government entities; DGA framework not currently in taxonomy",
+        "Saudi Central Bank (SAMA) — IR-Art.27 requires Credit Data processors to adopt SAMA rules on top of PDPL",
+        "Ministry of Health, Saudi Health Council, Council of Health Insurance — IR-Art.26 requires Health Data processors to adopt their rules on top of PDPL"
+      ]
     },
     "QATAR-NIAS": {
       "name": "Qatar National Information Assurance Standard",
@@ -1642,21 +2152,140 @@
       ],
       "enforcer": "National Cyber Security Agency (NCSA), Qatar",
       "legalBasis": "Amiri Decree No. 1 of 2021 establishing NCSA",
+      "certificationBody": "NCSA Cyber Assurance Department — accepts NIA V2.1 certification applications from May 2023",
       "confidenceLevel": "high",
-      "notes": "Applies to all Qatar organisations and their information assets including outsourced and subcontracted activities. Baseline controls marked * are mandatory for assets rated I1/A1/C1 or above. Additional controls required for higher classification tiers based on risk assessment."
+      "notes": "Applies to all Qatar organisations and their information assets including outsourced and subcontracted activities. Baseline controls (marked *) are mandatory for assets rated I1/A1/C1 or above. Additional controls required for I2/A2/C2 (one or more) and I3/A3/C3 (two or more) based on risk assessment. Must be used in conjunction with National Data Classification Policy [IAP-NAT-DCLS]. NIAP V2.0 certificates remain valid; re-certification to V2.1 required for recertification. V2.0 applications accepted until 31 Dec 2023.",
+      "domains26": [
+        "Security Governance [IG]",
+        "Risk Management [RM]",
+        "Third Party Security Management [TM]",
+        "Data Classification Label [DL]",
+        "Change Management [CM]",
+        "Personnel Security [PS]",
+        "Security Awareness [SA]",
+        "Incidents Management [IM]",
+        "Business Continuity Management [BC]",
+        "Logging and Security Monitoring [SM]",
+        "Data Retention and Archival [DR]",
+        "Documentation [DC]",
+        "Audit & Certification [AC]",
+        "Communication Security [CS]",
+        "Network Security [NS]",
+        "Information Exchange [IE]",
+        "Gateway Security [GS]",
+        "Product Security [PR]",
+        "Software Security [SS]",
+        "System Usage Security [SU]",
+        "Media Security [MS]",
+        "Access Control Security [AM]",
+        "Cryptographic Security [CY]",
+        "Portable Devices & Working Off-Site Security [OS]",
+        "Physical Security [PH]",
+        "Virtualization [VL]"
+      ]
+    },
+    "KUWAIT-NBCC": {
+      "name": "Kuwait National Basic Cybersecurity Controls",
+      "version": "NCSC Decision No. 2 of 2026, Annex (1) — English Annex is the authoritative technical text",
+      "jurisdiction": [
+        "Kuwait"
+      ],
+      "mandatory": true,
+      "sector": [
+        "All civil government, military, security agencies, and private sector entities within Kuwait that fall under the NCSC mandate as defined in Amiri Decree 37 of 2022. Other public and private entities not formally within this mandate are strongly encouraged to adopt the baseline voluntarily."
+      ],
+      "enforcer": "National Cyber Security Center (NCSC) — competent national authority established by Amiri Decree 37 of 2022",
+      "legalBasis": "Amiri Decree 37 of 2022 establishing NCSC; Cabinet Decision 117 of 2022 (supervising minister); Cabinet Decision 166 of 2025 (appointing NCSC Chairman); Decision 35 of 2023 (National Cybersecurity Governance Framework); Decision 1 of 2025 (National Data Classification Framework)",
+      "effectiveDate": "Published in Kuwait Al-Youm (Official Gazette) Issue 1785 on 5 April 2026; decision signed 31 March 2026",
+      "complianceDeadline": "18 months from Official Gazette publication date (Article 7) — target full compliance by early October 2027. Exceptions require documented, time-bound NCSC approval with justified risk and compensating controls where applicable.",
+      "structure": "NIST CSF 2.0 aligned — six functions: GOV (Govern), ID (Identify), PR (Protect), DE (Detect), RS (Respond), RC (Recover). 35 core controls total. Each control carries a Minimum Requirement expressed in MUST/SHOULD/MAY terms. A mandatory Cloud Security Appendix (Appendix A) adds 16 controls (CLD-1 through CLD-16) covering cloud acquisition, governance, IAM, data protection/sovereignty, and operational security. Aligned with CIS Controls v8.1 Implementation Group 1 (IG1) and NIST CSF.",
+      "confidenceLevel": "high",
+      "languageAuthority": "Article 6 specifies that the Annex remains in English and serves as the authoritative technical text for the National Basic Cybersecurity Controls. Arabic decision text governs the legal framing; English Annex governs the technical requirements.",
+      "controlsInventory": {
+        "GOV": [
+          "GOV-1",
+          "GOV-2",
+          "GOV-3",
+          "GOV-4",
+          "GOV-5",
+          "GOV-6"
+        ],
+        "ID": [
+          "ID-1",
+          "ID-2",
+          "ID-3"
+        ],
+        "PR": [
+          "PR-1",
+          "PR-1.1",
+          "PR-1.2",
+          "PR-2",
+          "PR-2.1",
+          "PR-2.2",
+          "PR-3",
+          "PR-3.1",
+          "PR-4",
+          "PR-4.1",
+          "PR-4.2",
+          "PR-5",
+          "PR-6"
+        ],
+        "DE": [
+          "DE-1",
+          "DE-2"
+        ],
+        "RS": [
+          "RS-1",
+          "RS-2"
+        ],
+        "RC": [
+          "RC-1",
+          "RC-2"
+        ],
+        "CLD": [
+          "CLD-1",
+          "CLD-2",
+          "CLD-3",
+          "CLD-4",
+          "CLD-5",
+          "CLD-6",
+          "CLD-7",
+          "CLD-8",
+          "CLD-9",
+          "CLD-10",
+          "CLD-11",
+          "CLD-12",
+          "CLD-13",
+          "CLD-14",
+          "CLD-15",
+          "CLD-16"
+        ]
+      },
+      "kuwaitSpecificDistinctives": [
+        "GOV-3 data sovereignty: storing or processing Sensitive data outside Kuwait requires explicit NCSC approval under Decision 1 of 2025 before use",
+        "GOV-4 Kuwaitization: prioritise qualified Kuwaiti nationals for sensitive cyber roles (SOC analysts, administrators, incident responders) consistent with national HR frameworks",
+        "PR-2.1 corporate email only: personal/consumer email accounts MUST NOT be configured on corporate devices and MUST NOT be used for work communication",
+        "PR-4.1 approved communications: entity-approved platforms only for official work; private messaging, personal email, unauthorised remote-control tools prohibited",
+        "CLD-1 CSP regulatory authorisation: Cloud Service Providers must be authorised to operate in Kuwait in accordance with national authority regulations",
+        "CLD-12 data residency: Customer Content residency rules apply per National Data Classification Framework (Decision 1 of 2025)",
+        "RS-1 incident reporting timelines are set by NCSC (not numerically fixed in the baseline itself; refer to separately issued NCSC incident-management guidance)"
+      ],
+      "notes": "The NBCC is explicitly a MINIMUM BASELINE and starting point, not an end state. Entities MAY implement stronger or additional controls based on risk profile, legal obligations, or sector-specific requirements. Where sector regulators impose stricter requirements (e.g. CBK for banking), Article 4 of Decision 2/2026 requires compliance with the stricter standard without prejudice to NBCC and NCSC authority. Undefined technical terms default to the NIST glossary unless otherwise defined in national instruments. Annual self-assessments using NCSC-issued checklists are mandatory (GOV-5) with records retained for at least 3 years."
     }
   },
   "sectorFrameworkMap": {
     "Banking & financial services": {
       "Kuwait": [
         "CBK",
-        "NCA-ECC",
+        "KUWAIT-NBCC",
         "ISO-27001",
+        "NIST-CSF",
         "PCI-DSS"
       ],
       "Saudi Arabia": [
         "SAMA-CSF",
         "NCA-ECC",
+        "PDPL-KSA",
         "ISO-27001",
         "PCI-DSS"
       ],
@@ -1667,9 +2296,10 @@
         "PDPL-UAE"
       ],
       "Qatar": [
+        "QATAR-NIAS",
+        "PDPL-QAT",
         "ISO-27001",
-        "PCI-DSS",
-        "PDPL-QAT"
+        "PCI-DSS"
       ],
       "Default": [
         "ISO-27001",
@@ -1681,6 +2311,7 @@
     "Oil & gas": {
       "Saudi Arabia": [
         "NCA-ECC",
+        "PDPL-KSA",
         "IEC-62443",
         "ISO-27001"
       ],
@@ -1691,25 +2322,29 @@
         "PDPL-UAE"
       ],
       "Kuwait": [
+        "KUWAIT-NBCC",
         "IEC-62443",
-        "ISO-27001"
+        "ISO-27001",
+        "NIST-CSF"
+      ],
+      "Qatar": [
+        "QATAR-NIAS",
+        "IEC-62443",
+        "ISO-27001",
+        "NIST-CSF",
+        "PDPL-QAT"
       ],
       "Default": [
         "IEC-62443",
         "ISO-27001",
         "NIST-CSF",
         "PDPL-UAE"
-      ],
-      "Qatar": [
-        "IEC-62443",
-        "ISO-27001",
-        "NIST-CSF",
-        "PDPL-QAT"
       ]
     },
     "Government": {
       "Saudi Arabia": [
         "NCA-ECC",
+        "PDPL-KSA",
         "ISO-27001"
       ],
       "UAE": [
@@ -1718,6 +2353,12 @@
         "PDPL-UAE"
       ],
       "Kuwait": [
+        "KUWAIT-NBCC",
+        "ISO-27001",
+        "NIST-CSF"
+      ],
+      "Qatar": [
+        "QATAR-NIAS",
         "ISO-27001",
         "NIST-CSF"
       ],
@@ -1725,16 +2366,12 @@
         "ISO-27001",
         "NIST-CSF",
         "PDPL-UAE"
-      ],
-      "Qatar": [
-        "ISO-27001",
-        "NIST-CSF",
-        "PDPL-QAT"
       ]
     },
     "Healthcare": {
       "Saudi Arabia": [
         "NCA-ECC",
+        "PDPL-KSA",
         "ISO-27001"
       ],
       "UAE": [
@@ -1742,20 +2379,27 @@
         "ISO-27001",
         "PDPL-UAE"
       ],
+      "Qatar": [
+        "QATAR-NIAS",
+        "PDPL-QAT",
+        "ISO-27001",
+        "NIST-CSF"
+      ],
+      "Kuwait": [
+        "KUWAIT-NBCC",
+        "NIST-CSF",
+        "ISO-27001"
+      ],
       "Default": [
         "ISO-27001",
         "NIST-CSF",
         "PDPL-UAE"
-      ],
-      "Qatar": [
-        "ISO-27001",
-        "NIST-CSF",
-        "PDPL-QAT"
       ]
     },
     "Telecoms": {
       "Saudi Arabia": [
         "NCA-ECC",
+        "PDPL-KSA",
         "ISO-27001"
       ],
       "UAE": [
@@ -1763,48 +2407,66 @@
         "ISO-27001",
         "PDPL-UAE"
       ],
+      "Qatar": [
+        "QATAR-NIAS",
+        "PDPL-QAT",
+        "ISO-27001",
+        "NIST-CSF"
+      ],
+      "Kuwait": [
+        "KUWAIT-NBCC",
+        "NIST-CSF",
+        "ISO-27001"
+      ],
       "Default": [
         "ISO-27001",
         "NIST-CSF",
         "PDPL-UAE"
-      ],
-      "Qatar": [
-        "ISO-27001",
-        "NIST-CSF",
-        "PDPL-QAT"
       ]
     },
     "Retail / e-commerce": {
+      "Qatar": [
+        "QATAR-NIAS",
+        "PDPL-QAT",
+        "PCI-DSS",
+        "ISO-27001",
+        "NIST-CSF"
+      ],
+      "Kuwait": [
+        "KUWAIT-NBCC",
+        "NIST-CSF",
+        "ISO-27001"
+      ],
       "Default": [
         "PCI-DSS",
         "ISO-27001",
         "NIST-CSF",
         "PDPL-UAE"
-      ],
-      "Qatar": [
-        "PCI-DSS",
-        "ISO-27001",
-        "NIST-CSF",
-        "PDPL-QAT"
       ]
     },
     "Technology / SaaS": {
+      "Qatar": [
+        "QATAR-NIAS",
+        "PDPL-QAT",
+        "SOC2",
+        "ISO-27001",
+        "NIST-CSF"
+      ],
+      "Kuwait": [
+        "KUWAIT-NBCC",
+        "NIST-CSF",
+        "ISO-27001"
+      ],
       "Default": [
         "SOC2",
         "ISO-27001",
         "NIST-CSF",
         "PDPL-UAE"
-      ],
-      "Qatar": [
-        "SOC2",
-        "ISO-27001",
-        "NIST-CSF",
-        "PDPL-QAT"
       ]
     }
   },
   "pdplTriggers": {
-    "description": "PDPL frameworks are triggered by data handling, not just geography. Include PDPL-UAE when processing personal data of UAE residents regardless of where the organisation is located. Include PDPL-QAT when processing personal data of Qatar residents.",
+    "description": "PDPL frameworks are triggered by data handling, not just geography. Include PDPL-UAE when processing personal data of UAE residents. Include PDPL-QAT when processing personal data of Qatar residents. Include PDPL-KSA when processing personal data of individuals residing in Saudi Arabia (Art.2 extraterritorial). All three PDPLs can apply simultaneously to an organisation processing GCC-wide personal data. PDPL-KSA additionally requires compliance with the Implementing Regulation (IR-Art.X) and, for any data leaving the Kingdom, the Regulation on Personal Data Transfer outside the Kingdom (TR-Art.X).",
     "PDPL-UAE": {
       "trigger": "Processing personal data of any natural person who is a UAE resident, or operating as a Controller/Processor located in UAE",
       "exemptions": [
@@ -1821,6 +2483,57 @@
         "Personal or family use",
         "Official statistical data processing"
       ]
+    },
+    "PDPL-KSA": {
+      "trigger": "Processing personal data of any individual residing in the Kingdom of Saudi Arabia, by any means, including processing by parties outside the Kingdom (extraterritorial per Art.2). Also applies to data of deceased persons where it could identify them or a family member.",
+      "exemptions": [
+        "Personal or family use not disclosed outside the family or limited social circle (IR-Art.2); purely professional/commercial/non-profit uses are never personal-or-family use",
+        "Banking and credit data regulated jointly with Saudi Central Bank (SAMA) under separate frameworks (Art.30-1; IR-Art.27)"
+      ],
+      "sensitiveDataDefinition": "Racial or ethnic origin; religious, intellectual or political belief; criminal convictions and offenses; biometric or genetic data for identification; health data; data indicating unknown parentage (Art.1-11)",
+      "implementingRegulationTrigger": "Whenever PDPL-KSA applies, the Implementing Regulation applies by default — there is no separate applicability test. Treat them as one framework for selection purposes.",
+      "transferRegulationTrigger": "Applies whenever the Controller transfers Personal Data outside the Kingdom or discloses it to a party outside the Kingdom, regardless of the transfer mechanism. A mandatory written risk assessment is required for transfers relying on appropriate safeguards (TR-Art.5), exemption cases (TR-Art.6), or involving continuous or large-scale Sensitive Data (TR-Art.8). Include whenever cloud processors, SaaS vendors, group companies, or subcontractors are outside the Kingdom.",
+      "implementingRegulationTimelines": {
+        "breachNotificationToSDAIA": "72 hours (IR-Art.24.1)",
+        "dataSubjectResponse": "30 days, extendable 30 (IR-Art.3.1.a)",
+        "indirectCollectionNotice": "30 days (IR-Art.4.3)",
+        "complaintWindow": "90 days (IR-Art.37.1)",
+        "RoPARetention": "processing period +5 years (IR-Art.33.1)",
+        "adequacyReview": "4 years (TR-Art.4.3)"
+      }
+    }
+  },
+  "pendingFrameworks": {
+    "SDAIA-DPO-RULES": {
+      "name": "SDAIA Rules for Data Protection Officer Appointment",
+      "issuedBy": "Saudi Data and AI Authority (SDAIA)",
+      "legalBasis": "IR-Art.32.4 — SDAIA shall issue rules for DPO appointment",
+      "status": "pending — referenced by the Implementing Regulation but not yet issued at the time of v4.0 taxonomy authorship. Upload via custom framework feature when available.",
+      "impact": "Will clarify \"large scale\" threshold and specific DPO appointment scenarios currently left open in IR-Art.32.1"
+    },
+    "SDAIA-NATIONAL-REGISTER": {
+      "name": "SDAIA National Register of Controllers — Registration Rules",
+      "issuedBy": "Saudi Data and AI Authority (SDAIA)",
+      "legalBasis": "IR-Art.34 — SDAIA shall issue the rules for registration including which Controllers are required to register",
+      "status": "pending — referenced by the Implementing Regulation. When issued, will add an explicit registration-duty control to policy-compliance domain."
+    },
+    "SDAIA-ACCREDITATION-AUDIT-RULES": {
+      "name": "SDAIA Accreditation and Audit Body Licensing Rules",
+      "issuedBy": "Saudi Data and AI Authority (SDAIA), coordinated with Digital Government Authority for government services",
+      "legalBasis": "IR-Art.35 (accreditation), IR-Art.36 (audit) — SDAIA shall issue regulatory rules for licensing entities",
+      "status": "pending — referenced by the Implementing Regulation. When issued, will populate the policy-compliance domain with specific audit/accreditation control obligations."
+    },
+    "SDAIA-SCC": {
+      "name": "SDAIA Standard Contractual Clauses and Binding Common Rules Templates",
+      "issuedBy": "Saudi Data and AI Authority (SDAIA)",
+      "legalBasis": "TR-Art.5.1.b (SCC standard model), TR-Art.5.1.a (BCR approval), TR-Art.9 (guidelines)",
+      "status": "pending — SDAIA has stated it will issue the standard contractual clauses model and guidelines. Until issued, cross-border transfers lacking an adequacy decision must rely on bespoke safeguards with SDAIA case-by-case approval."
+    },
+    "SDAIA-ADEQUACY-LIST": {
+      "name": "SDAIA Adequacy Decisions — List of Adequate Countries, Sectors, and International Organisations",
+      "issuedBy": "Prime Minister on SDAIA recommendation",
+      "legalBasis": "TR-Art.3, TR-Art.4",
+      "status": "pending at v4.0 authorship — no public adequacy decisions have been issued. Cross-border transfers must currently rely on appropriate safeguards (TR-Art.5) or exemption cases (TR-Art.6) supported by risk assessment (TR-Art.8)."
     }
   }
 }

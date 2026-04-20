@@ -71,7 +71,7 @@ export default function App() {
     setSelectedFrameworks(selected);
     setFrameworkWeights(weights);
     setStep('harmonising');
-    setProgress({ completed: 0, total: 23, label: 'Starting…' });
+    setProgress({ completed: 0, total: 24, label: 'Starting…' });
 
     const qs = `frameworks=${selected.join(',')}`;
     const es = new EventSource(`/api/harmonise/stream?${qs}`);
@@ -153,7 +153,7 @@ export default function App() {
         <>
           {step === 'intake'      && <IntakeForm onSubmit={handleIntakeSubmit} initialProfile={intakeProfile} />}
           {step === 'frameworks'  && <FrameworkSelector recommended={recommendedFrameworks} initialSelected={selectedFrameworks} initialWeights={frameworkWeights} onStart={handleStartHarmonisation} onBack={() => setStep('intake')} />}
-          {step === 'harmonising' && <ProgressBar progress={progress} total={23} />}
+          {step === 'harmonising' && <ProgressBar progress={progress} total={24} />}
 
           {step === 'matrix' && (
             <>
