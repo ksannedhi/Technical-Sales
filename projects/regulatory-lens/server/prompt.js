@@ -238,25 +238,56 @@ Schema:
       "domainLabel": string,
       "currentPosture": "not-implemented" | "partial" | "full" | "not-assessed",
       "priority": "immediate" | "short-term" | "medium-term" | "planned",
-      "mandatoryFrameworkGaps": string[],  // frameworkIds where this domain is mandatory but not covered
+      "mandatoryFrameworkGaps": string[],  // frameworkIds where weight=mandatory AND coverage is partial/not-addressed AND posture is not-implemented or partial
       "weightedScore": number,             // 0-100 prioritisation score
-      "recommendedActions": string[],      // 3-5 specific actions
+      "recommendedActions": string[],      // 3-5 specific actions — language must match gap type (see below)
       "estimatedEffort": string,
-      "quickWins": string[]               // 1-2 things that can be done in under 2 weeks
+      "quickWins": string[]               // 1-2 things achievable in under 2 weeks — language must match gap type
     }
   ],
-  "executiveSummary": string,   // 3-4 sentences: overall posture and top priorities
+  "executiveSummary": string,   // 3-4 sentences — language must reflect gap types present (see below)
   "totalGaps": number,
-  "criticalGaps": number        // domains where mandatory framework controls are not implemented
+  "criticalGaps": number        // ONLY domains where a mandatory framework has partial/not-addressed coverage AND posture is not-implemented or partial — never count full-posture domains as critical
 }
 
-Prioritisation logic:
-- mandatory framework + not-implemented = immediate
-- mandatory framework + partial = short-term
-- contractual framework + not-implemented = short-term
-- contractual framework + partial = medium-term
-- voluntary framework = planned unless posture is not-implemented and effort is low
-- Higher weightedScore = higher priority
+═══ GAP TYPE CLASSIFICATION ═══
+Before writing any action or summary text, classify each domain gap using BOTH posture and coverage:
+
+IMPLEMENTATION GAP — posture is not-implemented or not-assessed
+  → Controls are absent. Build from scratch.
+  → Action language: "Implement X", "Deploy Y", "Establish Z", "Build A"
+
+PARTIAL GAP — posture is partial (regardless of coverage level)
+  → Baseline exists but is incomplete. Extend and formalise.
+  → Action language: "Extend X to cover Y", "Enhance A to include B", "Complete C"
+
+COMPLIANCE ALIGNMENT GAP — posture is full but coverage is partial or not-addressed for a framework
+  → Controls are already in place. The gap is documentation, mapping, and evidence — not missing technology or process.
+  → Action language: "Document existing X against [framework] requirements", "Map current Y controls to [framework] standard", "Evidence compliance by formalising Z", "Conduct a structured gap assessment of existing A against [framework] specification"
+  → Quick wins: "Commission a gap mapping exercise", "Produce a control-to-requirement traceability matrix for [framework]"
+  → Do NOT use implementation verbs (implement, deploy, establish, build) for compliance alignment gaps
+
+═══ PRIORITY ASSIGNMENT ═══
+Combine framework weight WITH posture to determine priority:
+
+  mandatory  + not-implemented or not-assessed → immediate
+  mandatory  + partial                         → short-term
+  mandatory  + full (compliance alignment gap) → short-term  ← NOT immediate; controls exist
+  contractual + not-implemented or not-assessed → short-term
+  contractual + partial                         → medium-term
+  contractual + full (compliance alignment gap) → medium-term ← NOT short-term; controls exist
+  voluntary  + any posture                      → planned
+
+═══ NOT-ADDRESSED COVERAGE ═══
+"not-addressed" means the framework has no controls in that domain — it is NOT the organisation's gap.
+Do NOT include a framework in mandatoryFrameworkGaps solely because its coverage is "not-addressed".
+Only include it if the framework IS mandatory, coverage is partial (the framework does address it partially),
+and posture is not-implemented or partial.
+
+═══ EXECUTIVE SUMMARY LANGUAGE ═══
+- If ALL posture ratings are "full": describe findings as "compliance alignment gaps" or "framework mapping gaps" — never "critical gaps", "missing controls", or "not implemented". The organisation has controls in place; the work ahead is structured mapping and evidencing.
+- If posture ratings are mixed: distinguish between domains requiring new implementation and domains requiring compliance alignment.
+- If posture ratings are all not-implemented: use "implementation gaps" and "critical" as appropriate.
 `;
 
 export function buildRoadmapPrompt(harmonisationResults, postureMap, selectedFrameworks, frameworkWeights) {
