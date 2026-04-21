@@ -30,6 +30,9 @@ function parseClaudeJSON(text) {
     try { return JSON.parse(snippet); } catch { /* fall through */ }
   }
 
+  // Log the actual response for debugging
+  const preview = text.length > 500 ? text.slice(0, 500) + '…[truncated]' : text;
+  console.error('[parseClaudeJSON] Failed to parse. Raw response:', preview);
   throw new Error('No parseable JSON found in Claude response');
 }
 
