@@ -38,7 +38,7 @@ function parseClaudeJSON(text) {
   throw new Error('No parseable JSON found in Claude response');
 }
 
-async function callClaude(system, userMessage, maxTokens = 1500) {
+async function callClaude(system, userMessage, maxTokens = 1500, temperature = 1) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     signal: AbortSignal.timeout(90_000),
@@ -50,6 +50,7 @@ async function callClaude(system, userMessage, maxTokens = 1500) {
     body: JSON.stringify({
       model: 'claude-haiku-4-5',
       max_tokens: maxTokens,
+      temperature,
       system,
       messages: [{ role: 'user', content: userMessage }]
     })
@@ -58,6 +59,11 @@ async function callClaude(system, userMessage, maxTokens = 1500) {
   const data = await res.json();
   return data.content[0]?.text || '';
 }
+
+// ── Intake recommendation cache — keyed by JSON-serialised profile ────────────
+// Prevents non-deterministic re-scoring when the user navigates Back and
+// re-submits the same profile without making any changes.
+const intakeCache = new Map();
 
 // ── Health ────────────────────────────────────────────────────────────────────
 app.get('/api/health', (_, res) => res.json({ status: 'ok', domains: taxonomy.domains.length, frameworks: Object.keys(taxonomy.frameworks).length }));
@@ -68,8 +74,16 @@ app.get('/api/taxonomy', (_, res) => res.json(taxonomy));
 // ── Intake: framework recommendation ─────────────────────────────────────────
 app.post('/api/intake', async (req, res) => {
   try {
-    const raw    = await callClaude(INTAKE_SYSTEM, buildIntakePrompt(req.body), 2500);
+    // Stable cache key: sort object keys so field ordering doesn't create spurious misses
+    const cacheKey = JSON.stringify(req.body, Object.keys(req.body).sort());
+    if (intakeCache.has(cacheKey)) {
+      console.log('[/intake] cache hit — returning cached recommendation');
+      return res.json(intakeCache.get(cacheKey));
+    }
+    // temperature=0 makes the recommendation deterministic for identical profiles
+    const raw    = await callClaude(INTAKE_SYSTEM, buildIntakePrompt(req.body), 2500, 0);
     const result = parseClaudeJSON(raw);
+    intakeCache.set(cacheKey, result);
     res.json(result);
   } catch (e) {
     console.error('[/intake]', e.message);
@@ -197,6 +211,7 @@ app.post('/api/change-tracker/description', async (req, res) => {
 // ── Cache: clear harmonisation cache (useful for demo resets) ────────────────
 app.post('/api/cache/clear', (req, res) => {
   clearHarmonisationCache();
+  intakeCache.clear();
   res.json({ cleared: true });
 });
 
