@@ -11,7 +11,7 @@ export default function ProgressBar({ progress, total }) {
         <span>{progress.label || 'Processing…'}</span>
         <span>{progress.completed} / {total} domains</span>
       </div>
-      <p style={{ fontSize: '12px', color: '#aaa', marginTop: '16px' }}>Claude is reasoning across all selected frameworks simultaneously. This takes 20–40 seconds.</p>
+      <p style={{ fontSize: '12px', color: '#aaa', marginTop: '16px' }}>Analysing domain-framework coverage. Most analyses complete in 30–90 seconds.</p>
     </div>
   );
 }

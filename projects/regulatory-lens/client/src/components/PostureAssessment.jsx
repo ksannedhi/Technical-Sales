@@ -6,12 +6,15 @@ const POSTURE_OPTS = [
   { value: 'not-implemented',label: 'Not implemented',       color: '#E24B4A' },
 ];
 
-export default function PostureAssessment({ results, onSubmit, onBack, initialPosture }) {
+export default function PostureAssessment({ results, onSubmit, onBack, initialPosture, onPostureChange }) {
   const [posture, setPosture] = useState(initialPosture || {});
   const [loading, setLoading] = useState(false);
 
   function setDomainPosture(domainId, value) {
-    setPosture(prev => ({ ...prev, [domainId]: value }));
+    const updated = { ...posture, [domainId]: value };
+    setPosture(updated);
+    // Persist to parent so selections survive navigation
+    if (onPostureChange) onPostureChange(updated);
   }
 
   async function handleSubmit() {

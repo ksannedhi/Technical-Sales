@@ -167,7 +167,7 @@ export default function App() {
 
           {step === 'posture' && (
             <>
-              <PostureAssessment results={harmonisationResults} onSubmit={handlePostureSubmit} onBack={() => setStep('matrix')} initialPosture={postureMap} />
+              <PostureAssessment results={harmonisationResults} onSubmit={handlePostureSubmit} onBack={() => setStep('matrix')} initialPosture={postureMap} onPostureChange={setPostureMap} />
             </>
           )}
 
