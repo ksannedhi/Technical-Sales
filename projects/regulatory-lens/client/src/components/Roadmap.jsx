@@ -13,7 +13,11 @@ const EFFORT_STYLE = {
 };
 
 export default function Roadmap({ roadmap, onBack }) {
-  if (!roadmap) return null;
+  if (!roadmap) {
+    console.warn('[Roadmap] component mounted with roadmap=null or undefined');
+    return null;
+  }
+  console.log('[Roadmap] rendering with data:', roadmap);
   const items = roadmap.roadmapItems || [];
 
   return (

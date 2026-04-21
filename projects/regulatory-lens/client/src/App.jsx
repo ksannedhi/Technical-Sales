@@ -107,10 +107,16 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ harmonisationResults, postureMap: posture, selectedFrameworks, frameworkWeights })
       });
+      if (!res.ok) {
+        const errData = await res.text();
+        throw new Error(`Server error (${res.status}): ${errData}`);
+      }
       const data = await res.json();
+      console.log('[handlePostureSubmit] roadmap received:', data);
       setRoadmap(data);
       setStep('roadmap');
     } catch (e) {
+      console.error('[handlePostureSubmit] error:', e);
       setError('Roadmap generation failed: ' + e.message + '. Your posture ratings are saved — try again.');
     }
   }
