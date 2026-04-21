@@ -1,11 +1,11 @@
 # Cross-Framework Regulatory Harmoniser
 
-GCC cybersecurity compliance tool that maps an organisation profile to applicable regulatory frameworks, runs parallel domain analysis across 23 control domains, and produces a unified coverage matrix and weighted implementation roadmap.
+GCC cybersecurity compliance tool that maps an organisation profile to applicable regulatory frameworks, runs parallel domain analysis across 24 control domains, and produces a unified coverage matrix and weighted implementation roadmap.
 
 ## What It Does
 
 - Takes an organisation profile (geography, sector, data types, characteristics) and recommends applicable GCC regulatory frameworks with weight and rationale
-- Runs parallel Claude analysis across 23 control domains against up to 12 built-in frameworks simultaneously
+- Runs parallel Claude analysis across 24 control domains against up to 14 built-in frameworks simultaneously
 - Displays a unified coverage matrix showing Full / Partial / Not-addressed per domain per framework — click any row to expand implementation guidance, typical technologies, and per-framework key requirements
 - Captures current implementation posture (not implemented / partial / full) per domain before generating the roadmap
 - Produces a prioritised implementation roadmap with weighted scores, recommended actions, and quick wins
@@ -29,6 +29,8 @@ GCC cybersecurity compliance tool that maps an organisation profile to applicabl
 | UAE NIAF | UAE | All |
 | UAE PDPL (DL 45/2021) | UAE | Personal data |
 | Qatar PDPL (Law 13/2016) | Qatar | Personal data |
+| Saudi PDPL (RD M/19, M/148) | Saudi Arabia | Personal data (extraterritorial) |
+| Kuwait NBCC (Decision 2/2026) | Kuwait | All (NCSC mandate) |
 | PCI DSS 4.0.1 | International | Payments |
 | IEC 62443 | International | OT/ICS |
 | SOC 2 | International | SaaS / Technology |
@@ -64,7 +66,7 @@ Health check:
 
 ```
 GET http://localhost:3004/api/health
-→ { "status": "ok", "domains": 23, "frameworks": 12 }
+→ { "status": "ok", "domains": 24, "frameworks": 14 }
 ```
 
 ## Workflow
@@ -73,9 +75,9 @@ GET http://localhost:3004/api/health
 |------|--------|-------------|
 | 1 | Intake Form | Enter organisation profile — geography, sector, employee count, data types, characteristics |
 | 2 | Framework Selector | Review AI-recommended frameworks with weights; adjust manually; optionally upload a custom framework PDF |
-| 3 | Harmonisation | Parallel Claude analysis across 23 domains — live progress bar with per-domain status |
+| 3 | Harmonisation | Parallel Claude analysis across 24 domains — live progress bar with per-domain status |
 | 4 | Coverage Matrix | Colour-coded matrix — Full (green) / Partial (amber) / Not-addressed (grey) per domain and framework. Click any row to expand harmonised summary, implementation guidance, typical technologies, and per-framework key requirements |
-| 5 | Posture Assessment | Rate current implementation status for all 23 domains before proceeding |
+| 5 | Posture Assessment | Rate current implementation status for all 24 domains before proceeding |
 | 6 | Roadmap | Weighted implementation roadmap with priority, gap analysis, recommended actions, and quick wins |
 | 7 | Export | Download Excel matrix or full PDF report |
 
@@ -90,7 +92,7 @@ The Change Tracker tab is independent of the Harmoniser workflow and can be used
 | GET | `/api/health` | Liveness check |
 | GET | `/api/taxonomy` | Full taxonomy JSON |
 | POST | `/api/intake` | Framework recommendation from profile |
-| GET | `/api/harmonise/stream` | SSE — parallel domain analysis (up to 23 Claude calls) |
+| GET | `/api/harmonise/stream` | SSE — parallel domain analysis (up to 24 Claude calls) |
 | POST | `/api/roadmap` | Weighted roadmap from harmonisation and posture |
 | POST | `/api/export/excel` | Download Excel coverage matrix |
 | POST | `/api/export/pdf` | Download PDF report |
@@ -103,7 +105,7 @@ The Change Tracker tab is independent of the Harmoniser workflow and can be used
 
 ## Custom Framework Upload
 
-Upload any regulatory or internal policy PDF. The backend extracts control text, maps it to the 23 taxonomy domains, and makes it available as a selectable framework on the Framework Selector screen. An extraction preview shows which domains were covered before harmonisation runs.
+Upload any regulatory or internal policy PDF. The backend extracts control text, maps it to the 24 taxonomy domains, and makes it available as a selectable framework on the Framework Selector screen. An extraction preview shows which domains were covered before harmonisation runs.
 
 Built-in frameworks are blocked from re-upload — the tool detects common names and aliases and returns a clear error.
 

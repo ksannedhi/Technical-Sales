@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-Cross-Framework Regulatory Harmoniser is a GCC cybersecurity compliance tool that takes an organisation's profile, determines which regulatory frameworks apply, and produces a side-by-side analysis of how those frameworks address each of 23 control domains — identifying gaps, overlaps, and the most demanding requirement in each domain.
+Cross-Framework Regulatory Harmoniser is a GCC cybersecurity compliance tool that takes an organisation's profile, determines which regulatory frameworks apply, and produces a side-by-side analysis of how those frameworks address each of 24 control domains — identifying gaps, overlaps, and the most demanding requirement in each domain.
 
 The tool is designed to compress months of manual framework comparison work into a single session. Its primary users are:
 
@@ -15,7 +15,7 @@ The tool is designed to compress months of manual framework comparison work into
 The system must:
 
 - determine the most relevant cybersecurity regulatory frameworks for a given GCC organisation profile using the Claude API
-- analyse 23 control domains in parallel against all selected frameworks in a single session
+- analyse 24 control domains in parallel against all selected frameworks in a single session
 - produce a colour-coded coverage matrix (Full / Partial / Not-addressed) across all selected frameworks
 - collect the organisation's current implementation posture before generating a roadmap
 - produce a prioritised, weighted implementation roadmap that respects framework weight (mandatory, contractual, voluntary) and posture gap
@@ -26,12 +26,12 @@ The system must:
 The system must not:
 
 - recommend frameworks that do not genuinely apply to the described organisation
-- inflate coverage for data protection laws (PDPL-UAE, PDPL-QAT) by inferring general governance principles across technical domains
+- inflate coverage for data protection laws (PDPL-UAE, PDPL-QAT, PDPL-KSA) by inferring general governance principles across technical domains
 - allow re-upload of built-in frameworks as custom documents
 
 ## 3. Control Domains
 
-The taxonomy covers 23 domains drawn from actual GCC framework documents:
+The taxonomy covers 24 domains drawn from actual GCC framework documents:
 
 1. Governance & Strategy
 2. Risk Management
@@ -56,8 +56,9 @@ The taxonomy covers 23 domains drawn from actual GCC framework documents:
 21. Payment Systems
 22. Change Management
 23. Privacy & Rights Management
+24. Information Exchange & Gateway Security
 
-The domain taxonomy is pre-built and stored in `server/taxonomy.json`. It is not regenerated at runtime.
+The domain taxonomy is pre-built and stored in `server/taxonomy.json` (v5.0). It is not regenerated at runtime.
 
 ## 4. Supported Frameworks
 
@@ -75,6 +76,8 @@ The domain taxonomy is pre-built and stored in `server/taxonomy.json`. It is not
 | IEC-62443 | IEC 62443 | International | OT/ICS environments |
 | SOC2 | SOC 2 | International | SaaS/technology companies |
 | QATAR-NIAS | Qatar National Information Assurance Standard V2.1 | Qatar | All Qatar organisations (NCSA, Amiri Decree No. 1 of 2021) |
+| PDPL-KSA | Saudi Personal Data Protection Law (RD M/19 of 2021, amended M/148 of 2023) | Saudi Arabia | Any org processing Saudi residents' data (extraterritorial) |
+| KUWAIT-NBCC | Kuwait National Basic Cybersecurity Controls (NCSC Decision No. 2 of 2026) | Kuwait | All Kuwait entities under NCSC mandate |
 
 ## 5. Workflow
 
@@ -94,29 +97,32 @@ The user provides:
 
 The intake profile is sent to the Claude API with a detailed system prompt encoding GCC regulatory rules. The model returns a JSON array of recommended frameworks with:
 
-- `frameworkId` — one of the 12 built-in IDs
+- `frameworkId` — one of the 14 built-in IDs
 - `weight` — `mandatory`, `contractual`, or `voluntary`
 - `rationale` — 1–2 sentences
 - `regulatoryBasis` — the specific law or regulation
 
 Key recommendation rules:
 
-- NCA-ECC is mandatory for Saudi entities
-- SAMA-CSF is mandatory for Saudi banking
+- NCA-ECC is mandatory for Saudi entities; omitted entirely for UAE/Kuwait/Qatar/Bahrain/Oman
+- SAMA-CSF is mandatory for Saudi banking only — no jurisdiction outside Saudi Arabia
 - CBK is mandatory for Kuwait banking only — not for Kuwait government, CNI operators, or any non-financial sector
 - QATAR-NIAS is mandatory for all Qatar entities under Amiri Decree No. 1 of 2021
-- PDPL-UAE weight is calibrated by geography — mandatory only if primary geography is UAE
-- PDPL-QAT weight is calibrated by geography — mandatory only if primary geography is Qatar
-- Both PDPLs are never set to mandatory simultaneously just because "Personal data of GCC residents" was selected
-- PCI-DSS is mandatory if payment card data is selected regardless of geography
+- KUWAIT-NBCC is mandatory for all Kuwait entities under NCSC mandate (Amiri Decree 37 of 2022); compliance deadline ~October 2027
+- PDPL-UAE weight is calibrated by geography — mandatory for UAE private sector entities; government entities exempt
+- PDPL-QAT weight is calibrated by geography — mandatory if primary geography is Qatar
+- PDPL-KSA is extraterritorial — mandatory for any organisation processing Saudi residents' data regardless of where the org is based
+- Multi-PDPL applicability: PDPLs are triggered by data-subject location, not org headquarters
+- PCI-DSS is mandatory if payment card data is selected; downgraded to contractual for central bank profiles
 - IEC-62443 is contractual if OT/ICS systems are present
 - SOC2 is contractual for listed entities and SaaS companies serving international clients
+- NIST-CSF upgrades to contractual for stock-exchange-listed entities
 
 The user can adjust weights and toggle frameworks on the Framework Selector screen before running harmonisation.
 
 ### 5.3 Harmonisation
 
-The selected frameworks are analysed against all 23 domains in parallel using a concurrency limiter (max 3 simultaneous Claude calls) to respect the Anthropic rate limit.
+The selected frameworks are analysed against all 24 domains in parallel using a concurrency limiter (max 2 simultaneous Claude calls) to respect the Anthropic rate limit. 429 rate-limit responses are automatically retried with exponential backoff (15s → 30s → 60s, up to 4 attempts).
 
 For each domain, Claude receives:
 
@@ -137,7 +143,7 @@ Results are streamed to the frontend via Server-Sent Events as each domain compl
 
 ### 5.4 Coverage Matrix
 
-Displays a grid of 23 domains × N frameworks. Each cell shows Full (green) / Partial (amber) / Not-addressed (grey). Clicking any row expands an inline detail panel showing:
+Displays a grid of 24 domains × N frameworks. Each cell shows Full (green) / Partial (amber) / Not-addressed (grey). Clicking any row expands an inline detail panel showing:
 
 - **What frameworks collectively require** — the harmonised summary across all selected frameworks
 - **Most demanding framework** — badge showing the framework with the most prescriptive requirement
@@ -147,7 +153,7 @@ Displays a grid of 23 domains × N frameworks. Each cell shows Full (green) / Pa
 
 ### 5.5 Posture Assessment
 
-Before the roadmap can be generated, the user must rate the organisation's current implementation status for all 23 domains. The Continue button is disabled until all domains have been rated. The counter turns green when all 23 are rated.
+Before the roadmap can be generated, the user must rate the organisation's current implementation status for all 24 domains. The Continue button is disabled until all domains have been rated. The counter turns green when all 24 are rated.
 
 Posture options per domain: `not-implemented`, `partial`, `full`, `not-assessed`.
 
@@ -184,7 +190,7 @@ Each roadmap item includes: rank, priority, weighted score, mandatory framework 
 Key responsibilities:
 
 - framework recommendation via Claude API
-- parallel domain analysis (SSE stream, concurrency-limited to 3)
+- parallel domain analysis (SSE stream, concurrency-limited to 2)
 - in-memory harmonisation cache keyed by `domainId + sorted framework list`
 - custom framework extraction and in-memory store
 - roadmap generation via Claude API
@@ -224,17 +230,17 @@ Results are cached in a module-level `Map` in `harmonise.js` keyed by `domainId 
 
 - Provider: Anthropic Claude API
 - Model: `claude-haiku-4-5`
-- Chosen for cost efficiency across up to 23 parallel domain calls per session
+- Chosen for cost efficiency across up to 24 parallel domain calls per session
 
 ### 7.2 Concurrency Limiting
 
-A custom `runWithConcurrency(items, 3, fn)` function limits simultaneous Claude calls to 3. This prevents 429 rate-limit errors on the Anthropic free/standard tier (10,000 TPM) when all 23 domains are analysed at once.
+A custom `runWithConcurrency(items, 2, fn)` function limits simultaneous Claude calls to 2 during harmonisation. This reduces burst pressure on the Anthropic standard tier (10,000 TPM). 429 responses are retried automatically with exponential backoff: 15s, 30s, 60s (up to 4 attempts total).
 
 ### 7.3 Token Budget
 
 | Call | Max tokens |
 |---|---|
-| Intake / framework recommendation | 1200 |
+| Intake / framework recommendation | 2500 |
 | Domain harmonisation (per domain) | 2000 |
 | Roadmap | 6000 |
 | Custom framework extraction | 3000 |
@@ -248,7 +254,7 @@ All Claude calls use a hardened `parseClaudeJSON()` function that attempts four 
 
 1. User uploads a PDF on the Framework Selector screen
 2. Backend extracts raw text via pdf-parse
-3. Text (capped at 12,000 characters) is sent to Claude with the 23 domain list
+3. Text (capped at 12,000 characters) is sent to Claude with the 24 domain list
 4. Claude returns a `domainControlMap` mapping each domain to extracted control IDs and text
 5. The custom framework is stored in-memory as `CUSTOM-<uuid>` and made available as a selectable framework
 6. An extraction preview component on the Framework Selector screen shows which domains were covered before harmonisation runs
@@ -277,7 +283,7 @@ Output also includes `staleAssessments` (domain IDs that need re-harmonisation) 
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/health` | Liveness — returns domain count and framework list |
+| GET | `/api/health` | Liveness — returns `{ status: "ok", domains: 24, frameworks: 14 }` |
 | GET | `/api/taxonomy` | Full taxonomy JSON |
 | POST | `/api/intake` | Framework recommendation from profile |
 | GET | `/api/harmonise/stream` | SSE — parallel domain analysis |
@@ -317,13 +323,13 @@ The Puppeteer PDF call returns a `Uint8Array` in Puppeteer v22+ — wrapped in `
 
 ## 13. Taxonomy
 
-`server/taxonomy.json` is the authoritative control mapping file. It contains:
+`server/taxonomy.json` is the authoritative control mapping file (v5.0). It contains:
 
-- 23 domain definitions with `domainId`, `domainLabel`, and `description`
-- A `controls` map per domain with control ID arrays for each of the 12 built-in frameworks
+- 24 domain definitions with `domainId`, `domainLabel`, and `description`
+- A `controls` map per domain with control ID arrays for each of the 14 built-in frameworks
 - A `frameworks` map with metadata for each framework (name, version, jurisdiction, mandatory flag, sector, enforcer, legal basis, confidence level, notes)
 
-The taxonomy was built from actual framework documents. It is versioned (`1.1` as of the QATAR-NIAS addition) and must not be regenerated from scratch — only amended with targeted migration scripts.
+The taxonomy was built from actual framework documents. It must not be regenerated from scratch — only amended with targeted migration scripts.
 
 ## 14. Launcher
 
@@ -338,14 +344,14 @@ The taxonomy was built from actual framework documents. It is versioned (`1.1` a
 ## 15. Key Project Files
 
 - `server/index.js` — Express app, all route handlers, Claude intake call
-- `server/harmonise.js` — parallel domain analysis, concurrency limiter, cache, roadmap call
+- `server/harmonise.js` — parallel domain analysis, concurrency limiter (max 2), 429 retry logic, cache, roadmap call
 - `server/prompt.js` — all Claude system prompts, prompt builder functions, taxonomy loader
 - `server/customFramework.js` — PDF extraction, custom framework store, duplicate guard
 - `server/changeTracker.js` — Change Tracker Claude calls and route handler
 - `server/excel.js` — ExcelJS matrix export
 - `server/pdf.js` — Puppeteer PDF generation
 - `server/reportTemplate.js` — HTML template for PDF with `esc()` escaping
-- `server/taxonomy.json` — 23 domains × 12 frameworks control mapping
+- `server/taxonomy.json` — 24 domains × 14 frameworks control mapping (v5.0)
 - `client/src/App.jsx` — top-level state machine (intake → frameworks → harmonising → matrix → posture → roadmap)
 - `client/src/components/` — all UI components
 - `client/vite.config.js` — Vite dev server with proxy to `:3004`, 120-second timeout
@@ -363,11 +369,11 @@ The taxonomy was built from actual framework documents. It is versioned (`1.1` a
 
 ### Rate Limiting
 
-The Anthropic API enforces a tokens-per-minute limit on standard tiers. Running all 23 domains simultaneously triggers 429 errors. The concurrency limiter (max 3) resolves this at the cost of slightly longer total analysis time (~60–90 seconds for 23 domains at max 3 concurrent).
+The Anthropic API enforces a tokens-per-minute limit on standard tiers. The concurrency limiter (max 2 simultaneous calls) reduces burst pressure, and 429 responses are retried with 15s/30s/60s exponential backoff rather than failing immediately. Total harmonisation time is approximately 90–120 seconds for 24 domains at concurrency 2.
 
 ### Roadmap Token Budget
 
-The roadmap prompt covers 23 domains × N frameworks worth of coverage data. The prompt has been slimmed to a compact one-line-per-domain format and max_tokens set to 6000 to avoid truncation. If additional frameworks are added in future, this budget may need revisiting.
+The roadmap prompt covers 24 domains × N frameworks worth of coverage data. The prompt uses a compact one-line-per-domain format and max_tokens is set to 6000 to avoid truncation. If additional frameworks are added in future, this budget may need revisiting.
 
 ### Custom Framework Quality
 
@@ -390,18 +396,21 @@ The project currently includes:
 - inline error banners replacing alert() for intake, harmonisation, and roadmap failures
 - back navigation at every step (frameworks → matrix → posture → roadmap)
 - "New analysis" reset button in topbar clearing all state and the server-side cache
-- working intake form with geography, sector, stock exchange listing, and CNI characteristic detection
-- Claude-powered framework recommendation with GCC-tuned rules for all 12 built-in frameworks
-- parallel domain harmonisation via SSE stream with concurrency limiter
+- Claude-powered framework recommendation with GCC-tuned jurisdiction scoping rules for all 14 built-in frameworks
+- jurisdiction OMIT rules preventing cross-border hallucination (NCA-ECC/SAMA-CSF Saudi-only, CBK Kuwait-banking-only, government entity PDPL-UAE exemption, central bank PCI-DSS downgrade)
+- multi-PDPL applicability logic: PDPL-KSA extraterritorial scope, data-subject-location trigger for multi-PDPL recommendations
+- parallel domain harmonisation via SSE stream with concurrency limiter (max 2) and 429 retry backoff
 - in-memory harmonisation cache with per-domain invalidation on framework selection change
-- posture assessment gate requiring all 23 domains to be rated before roadmap generation
+- posture assessment gate requiring all 24 domains to be rated before roadmap generation
 - weighted roadmap generation with mandatory/contractual/voluntary priority logic
 - Excel export via ExcelJS
 - PDF export via Puppeteer with HTML escaping and Buffer compatibility
 - custom framework ingestion via PDF upload with extraction preview
 - Change Tracker for document comparison and description-based change analysis
 - built-in framework duplicate upload guard
-- QATAR-NIAS V2.1 as the 12th built-in framework (all 23 domains mapped, NCSA enforcer, Amiri Decree No. 1 of 2021)
+- PDPL-KSA (Saudi PDPL, Royal Decree M/19/2021) as the 13th built-in framework
+- KUWAIT-NBCC (NCSC Decision No. 2 of 2026) as the 14th built-in framework
+- Information Exchange & Gateway Security as the 24th control domain
 - hardened Claude JSON parser with 4-fallback extraction strategy
 - Windows single-click launcher with automatic Chromium download
 
@@ -410,7 +419,7 @@ The project currently includes:
 Potential next steps:
 
 - persistent session storage (IndexedDB client-side or SQLite server-side)
-- additional GCC frameworks: Bahrain PDO, Oman NCSI, Kuwait NCSC (when published)
+- additional GCC frameworks: Bahrain PDO, Oman NCSI
 - control-level gap export — CSV listing each missing control per framework
 - evidence upload per domain — attach screenshots or policy documents to a posture rating
 - AI-assisted posture assessment — upload existing policies and let Claude rate the posture

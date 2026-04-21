@@ -34,9 +34,11 @@ function parseClaudeJSON(text) {
 }
 
 // Retryable HTTP status codes — transient Anthropic-side errors
-const RETRYABLE_STATUSES = new Set([500, 529]);
-const MAX_RETRIES = 3;
-const RETRY_BASE_MS = 2000; // 2s, 4s, 8s
+// 429 = rate-limited (retry after backoff); 500/529 = Anthropic server errors
+const RETRYABLE_STATUSES = new Set([429, 500, 529]);
+const MAX_RETRIES = 4;
+const RETRY_BASE_MS  = 2000;  // base for 500/529 (2s, 4s, 8s …)
+const RATE_LIMIT_MS  = 15000; // base for 429 (15s, 30s, 60s …) — TPM window is 60s
 
 async function callClaude(system, userMessage, maxTokens = 1500) {
   let lastError;
@@ -44,7 +46,7 @@ async function callClaude(system, userMessage, maxTokens = 1500) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const res = await fetch(API_URL, {
       method: 'POST',
-      signal: AbortSignal.timeout(60_000),
+      signal: AbortSignal.timeout(90_000),
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
@@ -66,14 +68,16 @@ async function callClaude(system, userMessage, maxTokens = 1500) {
     const errText = await res.text();
 
     if (RETRYABLE_STATUSES.has(res.status) && attempt < MAX_RETRIES) {
-      const delay = RETRY_BASE_MS * Math.pow(2, attempt - 1);
-      console.warn(`[Claude] ${res.status} on attempt ${attempt}/${MAX_RETRIES} — retrying in ${delay}ms`);
+      // 429: respect the TPM window — back off longer than other errors
+      const base  = res.status === 429 ? RATE_LIMIT_MS : RETRY_BASE_MS;
+      const delay = base * Math.pow(2, attempt - 1);
+      console.warn(`[Claude] ${res.status} on attempt ${attempt}/${MAX_RETRIES} — retrying in ${Math.round(delay/1000)}s`);
       await new Promise(r => setTimeout(r, delay));
       lastError = new Error(`Claude API ${res.status}: ${errText}`);
       continue;
     }
 
-    // Non-retryable (400, 401, 404, 429) or final attempt — throw immediately
+    // Non-retryable (400, 401, 404) or final attempt — throw immediately
     throw new Error(`Claude API ${res.status}: ${errText}`);
   }
 
@@ -138,7 +142,7 @@ export async function runHarmonisation(selectedFrameworkIds, onDomainComplete, c
   let completed = 0;
   const results = [];
 
-  const domainResults = await runWithConcurrency(domains, 3, async (domain) => {
+  const domainResults = await runWithConcurrency(domains, 2, async (domain) => {
     try {
       // Merge taxonomy domain controls with custom framework overrides
       const domainWithCustom = {
