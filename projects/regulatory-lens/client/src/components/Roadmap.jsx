@@ -13,11 +13,21 @@ const EFFORT_STYLE = {
 };
 
 export default function Roadmap({ roadmap, onBack }) {
+  console.log('[Roadmap] mounted. roadmap:', roadmap);
   if (!roadmap) {
-    console.warn('[Roadmap] component mounted with roadmap=null or undefined');
-    return null;
+    console.warn('[Roadmap] component mounted with roadmap=null or undefined — check API response');
+    return (
+      <div className="card">
+        <div className="step-label">Step 5 of 5 — Implementation roadmap</div>
+        <h2 className="step-title">Weighted implementation roadmap</h2>
+        <div style={{ marginBottom: '12px' }}>
+          <button className="btn" onClick={onBack}>← Back to posture</button>
+        </div>
+        <div style={{ color: '#E24B4A', fontSize: '14px', fontWeight: 500 }}>⚠ No roadmap data received. This may indicate an API error — check the browser console.</div>
+      </div>
+    );
   }
-  console.log('[Roadmap] rendering with data:', roadmap);
+  console.log('[Roadmap] rendering with full data');
   const items = roadmap.roadmapItems || [];
 
   return (
