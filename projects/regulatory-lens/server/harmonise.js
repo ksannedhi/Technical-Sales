@@ -23,11 +23,32 @@ function parseClaudeJSON(text) {
   match = text.match(/```json\s*([\s\S]*?)```/);
   if (match) return JSON.parse(match[1].trim());
 
-  // Fallback 3: bare JSON object (truncated response — <r> tag may be missing)
+  // Fallback 3: bare JSON object (complete)
   const jsonStart = text.indexOf('{');
   if (jsonStart !== -1) {
     const snippet = text.slice(jsonStart);
-    try { return JSON.parse(snippet); } catch { /* fall through */ }
+    try { return JSON.parse(snippet); } catch { /* fall through to truncation recovery */ }
+  }
+
+  // Fallback 4: partial JSON after <r> tag (response was truncated before </r>)
+  // Truncation typically happens mid-string — try to recover usable items
+  const openTag = text.indexOf('<r>');
+  if (openTag !== -1) {
+    const partial = text.slice(openTag + 3).trim();
+    // For roadmap: extract roadmapItems array even if executiveSummary is cut off
+    const itemsMatch = partial.match(/"roadmapItems"\s*:\s*(\[[\s\S]*)/);
+    if (itemsMatch) {
+      const arrayText = itemsMatch[1];
+      // Find the last complete object — close after the last }
+      const lastClose = arrayText.lastIndexOf('}');
+      if (lastClose !== -1) {
+        try {
+          const safeArray = JSON.parse(arrayText.slice(0, lastClose + 1) + ']');
+          console.warn('[parseClaudeJSON] Recovered partial roadmap — response was truncated. Increase max_tokens.');
+          return { roadmapItems: safeArray, executiveSummary: 'Analysis truncated — please re-run to get the full summary.', totalGaps: safeArray.length, criticalGaps: 0 };
+        } catch { /* fall through */ }
+      }
+    }
   }
 
   // Log the actual response for debugging
@@ -217,6 +238,9 @@ export async function runHarmonisation(selectedFrameworkIds, onDomainComplete, c
 // ── Generate roadmap from harmonisation results + posture ────────────────────
 export async function generateRoadmap(harmonisationResults, postureMap, selectedFrameworks, frameworkWeights) {
   const prompt = buildRoadmapPrompt(harmonisationResults, postureMap, selectedFrameworks, frameworkWeights);
-  const raw = await callClaude(ROADMAP_SYSTEM, prompt, 6000);
+  // 8192 = max output tokens for claude-haiku-4-5.
+  // 6000 was too low for a full 24-domain roadmap (~300 tokens/item = ~7200 tokens)
+  // which caused the closing </r> tag to be truncated and JSON parsing to fail.
+  const raw = await callClaude(ROADMAP_SYSTEM, prompt, 8192);
   return parseClaudeJSON(raw);
 }
