@@ -6,13 +6,30 @@ from ..models import ToolControlRow
 
 
 REQUIRED_COLUMNS = [
-    "record_id",
     "tool_name",
     "control_domain",
     "control_objective",
 ]
 
 NUMERIC_COLUMNS = ["effectiveness_score", "annual_cost_usd", "utilization_percent", "license_count"]
+
+# Normalise common domain variants so every row maps to a canonical domain.
+# Keys are lowercase; values are the canonical domain strings used by the analyzer.
+DOMAIN_ALIASES: dict[str, str] = {
+    "email":                "Data",
+    "email security":       "Data",
+    "epp":                  "Endpoint",
+    "endpoint protection":  "Endpoint",
+    "appsec":               "AppSec",
+    "application":          "AppSec",
+    "application security": "AppSec",
+    "web application":      "AppSec",
+    "api security":         "AppSec",
+}
+
+
+def _normalise_domain(raw: str) -> str:
+    return DOMAIN_ALIASES.get(raw.lower().strip(), raw.strip())
 
 
 def parse_tool_control_csv(contents: bytes) -> List[ToolControlRow]:
@@ -31,6 +48,8 @@ def parse_tool_control_csv(contents: bytes) -> List[ToolControlRow]:
         cleaned = {k: (v or "").strip() for k, v in row.items()}
         if not cleaned.get("record_id"):
             cleaned["record_id"] = f"MAP-{idx}"
+
+        cleaned["control_domain"] = _normalise_domain(cleaned.get("control_domain", ""))
 
         for numeric in NUMERIC_COLUMNS:
             value = cleaned.get(numeric, "")

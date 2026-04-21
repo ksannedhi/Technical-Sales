@@ -11,7 +11,7 @@ GUI-first proprietary application that ingests a security tools-controls mapping
 ## Framework Modes
 
 - `NIST` (NIST CSF 2.0 aligned controls)
-- `CIS` (CIS Controls v8 aligned controls)
+- `CIS` (CIS Controls v8.1 aligned controls)
 - `BOTH` (dual mapping)
 
 ## Current Scope
@@ -32,10 +32,9 @@ GUI-first proprietary application that ingests a security tools-controls mapping
 
 - `backend/` FastAPI service with analysis engine + SQLite persistence
 - `frontend/` React + Vite GUI
-- `data/tools_controls_mapping_template.csv` CSV template
+- `frontend/public/tools_controls_mapping_template.csv` downloadable CSV template
 - `data/sample_tools_controls_1200.csv` large synthetic test dataset
-- `start.cmd` one-click launcher (recommended)
-- `start.ps1` PowerShell launcher (optional)
+- `start.cmd` one-click launcher
 
 ## Input CSV Fields
 
@@ -44,7 +43,7 @@ GUI-first proprietary application that ingests a security tools-controls mapping
 ## Sample Template Download
 
 - In the GUI, use `Download Sample Template` to download a ready-to-fill CSV.
-- The downloadable sample is also available at `frontend/public/tools_controls_mapping_template.csv`.
+- The file is served as a static asset from `frontend/public/tools_controls_mapping_template.csv` — this is the single source of truth for the template.
 
 ## One-Click Start (Recommended)
 

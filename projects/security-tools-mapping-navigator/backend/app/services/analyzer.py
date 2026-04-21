@@ -27,13 +27,21 @@ class ControlDef:
 ALIAS_TOKEN_MAP: Dict[str, List[str]] = {
     "capability_identity": [
         "entra id",
+        "azure ad",
+        "active directory",
         "okta",
+        "ping identity",
         "pingfederate",
         "sailpoint",
         "cyberark",
         "beyondtrust",
+        "delinea",
+        "thycotic",
+        "duo",
         "privileged account management",
         "pam",
+        "iga",
+        "identity governance",
     ],
     "capability_endpoint": [
         "crowdstrike",
@@ -41,25 +49,38 @@ ALIAS_TOKEN_MAP: Dict[str, List[str]] = {
         "sentinelone",
         "carbon black",
         "defender for endpoint",
+        "microsoft defender",
+        "cortex xdr",
         "deep security",
         "qualys",
         "tenable",
+        "rapid7",
+        "insightvm",
         "mcafee",
         "trend micro",
+        "bitdefender",
+        "eset",
     ],
     "capability_soc": [
         "microsoft sentinel",
-        "sentinel",
         "ibm qradar",
         "qradar",
         "elastic security",
-        "elasticsearch",
         "splunk",
         "insightidr",
         "darktrace",
+        "vectra",
+        "extrahop",
         "fortianalyzer",
+        "fortisiem",
         "anomali",
         "logrhythm",
+        "sumo logic",
+        "exabeam",
+        "securonix",
+        "cortex",
+        "xsoar",
+        "demisto",
     ],
     "capability_network": [
         "palo alto",
@@ -68,23 +89,25 @@ ALIAS_TOKEN_MAP: Dict[str, List[str]] = {
         "check point",
         "zscaler",
         "netskope",
+        "cisco firepower",
+        "cisco asa",
+        "juniper",
+        "sophos",
         "tippingpoint",
         "algosec",
         "gigamon",
-        "solarwinds",
+        "infoblox",
     ],
     "capability_data": [
-        "imperva",
         "proofpoint",
         "mimecast",
         "barracuda",
         "purview",
-        "invicti",
-        "f5",
-        "cloudflare",
+        "microsoft purview",
+        "digital guardian",
+        "symantec dlp",
+        "varonis",
         "boldon james",
-        "goanywhere",
-        "archer",
         "reversing labs",
     ],
     "capability_cloud": [
@@ -94,6 +117,33 @@ ALIAS_TOKEN_MAP: Dict[str, List[str]] = {
         "aqua",
         "panoptica",
         "sonrai",
+        "lacework",
+        "sysdig",
+        "defender for cloud",
+        "microsoft defender for cloud",
+        "aws security hub",
+        "gcp security command center",
+    ],
+    "capability_appsec": [
+        "imperva",
+        "f5",
+        "cloudflare",
+        "invicti",
+        "netsparker",
+        "veracode",
+        "checkmarx",
+        "fortify",
+        "snyk",
+        "black duck",
+        "mend",
+        "sonarqube",
+        "burp suite",
+        "salt security",
+        "noname",
+        "traceable",
+        "apigee",
+        "aws waf",
+        "azure waf",
     ],
 }
 
@@ -103,18 +153,86 @@ def _keywords(*terms: str) -> List[str]:
 
 
 CONTROL_LIBRARY: List[ControlDef] = [
-    ControlDef("NIST-PR.AA", "NIST", "Identity Management and Access Control", "Identity", _keywords("identity", "sso", "mfa", "access", "iam", "directory", "capability_identity")),
-    ControlDef("NIST-PR.PS", "NIST", "Endpoint and Platform Security", "Endpoint", _keywords("endpoint", "edr", "xdr", "antimalware", "workload", "vulnerability", "capability_endpoint", "capability_cloud")),
-    ControlDef("NIST-DE.CM", "NIST", "Security Continuous Monitoring", "SOC", _keywords("siem", "monitor", "detection", "log", "telemetry", "observability", "capability_soc")),
-    ControlDef("NIST-PR.AC", "NIST", "Network Access and Segmentation", "Network", _keywords("firewall", "ztna", "ids", "ips", "segment", "sase", "proxy", "dns", "capability_network")),
-    ControlDef("NIST-PR.DS", "NIST", "Data Security", "Data", _keywords("dlp", "encryption", "data", "classification", "email security", "waf", "capability_data")),
-    ControlDef("NIST-RS.RP", "NIST", "Incident Response Planning", "SOC", _keywords("soar", "incident", "response", "playbook", "containment", "capability_soc")),
-    ControlDef("CIS-5", "CIS", "Account Management", "Identity", _keywords("identity", "mfa", "access", "account", "directory", "provisioning", "capability_identity")),
-    ControlDef("CIS-10", "CIS", "Malware Defenses", "Endpoint", _keywords("edr", "xdr", "antimalware", "endpoint", "workload", "capability_endpoint", "capability_cloud")),
-    ControlDef("CIS-8", "CIS", "Audit Log Management", "SOC", _keywords("siem", "log", "monitor", "telemetry", "detection", "capability_soc")),
-    ControlDef("CIS-12", "CIS", "Network Infrastructure Management", "Network", _keywords("firewall", "network", "ids", "ips", "ztna", "sase", "capability_network")),
-    ControlDef("CIS-3", "CIS", "Data Protection", "Data", _keywords("dlp", "encryption", "classification", "email security", "waf", "capability_data")),
-    ControlDef("CIS-17", "CIS", "Incident Response Management", "SOC", _keywords("incident", "response", "soar", "playbook", "case management", "capability_soc")),
+    # ── NIST CSF 2.0 ──────────────────────────────────────────────────────────
+    # PR.AA  (Protect – Identity Management, Authentication, and Access Control)
+    ControlDef("NIST-PR.AA", "NIST", "Identity Management, Authentication, and Access Control", "Identity",
+               _keywords("pr.aa", "identity", "sso", "mfa", "iam", "directory", "privileged", "pam",
+                         "rbac", "least privilege", "capability_identity")),
+    # PR.PS  (Protect – Platform Security)  covers endpoint and cloud workloads
+    ControlDef("NIST-PR.PS", "NIST", "Platform Security", "Endpoint",
+               _keywords("pr.ps", "endpoint", "edr", "xdr", "antimalware", "workload", "patch",
+                         "hardening", "configuration", "posture", "benchmark",
+                         "capability_endpoint", "capability_cloud")),
+    # PR.DS  (Protect – Data Security)  covers data protection and application-layer defences
+    ControlDef("NIST-PR.DS", "NIST", "Data Security", "Data",
+               _keywords("pr.ds", "dlp", "encryption", "data loss", "classification", "email security",
+                         "email protection", "phishing", "spam", "waf", "api security",
+                         "web application", "capability_data", "capability_appsec")),
+    # PR.IR  (Protect – Technology Infrastructure Resilience)  ← replaces CSF 1.1 PR.AC
+    ControlDef("NIST-PR.IR", "NIST", "Technology Infrastructure Resilience", "Network",
+               _keywords("pr.ir", "firewall", "ztna", "zero trust", "ids", "ips", "ndr",
+                         "segmentation", "sase", "proxy", "dns", "vpn", "network resilience",
+                         "capability_network")),
+    # DE.CM  (Detect – Continuous Monitoring)
+    ControlDef("NIST-DE.CM", "NIST", "Continuous Monitoring", "SOC",
+               _keywords("de.cm", "siem", "monitoring", "detection", "log management", "telemetry",
+                         "observability", "threat detection", "capability_soc")),
+    # RS.MA  (Respond – Incident Management)  ← replaces CSF 1.1 RS.RP
+    ControlDef("NIST-RS.MA", "NIST", "Incident Management", "SOC",
+               _keywords("rs.ma", "soar", "incident response", "orchestration", "playbook",
+                         "containment", "case management", "triage", "capability_soc")),
+
+    # ── CIS Controls v8.1 ─────────────────────────────────────────────────────
+    # CIS-3  Data Protection
+    ControlDef("CIS-3", "CIS", "Data Protection", "Data",
+               _keywords("cis-3", "dlp", "encryption", "data loss", "classification",
+                         "email security", "email protection", "phishing", "spam", "capability_data")),
+    # CIS-4  Secure Configuration of Enterprise Assets and Software  → Cloud domain
+    ControlDef("CIS-4", "CIS", "Secure Configuration of Enterprise Assets and Software", "Cloud",
+               _keywords("cis-4", "configuration", "hardening", "posture", "cspm", "cnapp",
+                         "benchmark", "secure config", "misconfiguration", "cis benchmark",
+                         "capability_cloud", "capability_endpoint")),
+    # CIS-5  Account Management
+    ControlDef("CIS-5", "CIS", "Account Management", "Identity",
+               _keywords("cis-5", "account", "mfa", "directory", "provisioning", "deprovisioning",
+                         "user lifecycle", "capability_identity")),
+    # CIS-6  Access Control Management
+    ControlDef("CIS-6", "CIS", "Access Control Management", "Identity",
+               _keywords("cis-6", "privileged", "pam", "rbac", "least privilege", "access control",
+                         "role-based", "just-in-time", "jit", "capability_identity")),
+    # CIS-7  Continuous Vulnerability Management
+    ControlDef("CIS-7", "CIS", "Continuous Vulnerability Management", "Endpoint",
+               _keywords("cis-7", "vulnerability", "patch", "cve", "scan", "remediation",
+                         "qualys", "tenable", "rapid7", "insightvm", "capability_endpoint")),
+    # CIS-8  Audit Log Management
+    ControlDef("CIS-8", "CIS", "Audit Log Management", "SOC",
+               _keywords("cis-8", "siem", "log", "audit", "telemetry", "monitoring", "detection",
+                         "capability_soc")),
+    # CIS-9  Email and Web Browser Protections
+    ControlDef("CIS-9", "CIS", "Email and Web Browser Protections", "Data",
+               _keywords("cis-9", "email", "phishing", "spam", "web gateway", "url filtering",
+                         "sandboxing", "browser", "email security", "capability_data")),
+    # CIS-10 Malware Defenses
+    ControlDef("CIS-10", "CIS", "Malware Defenses", "Endpoint",
+               _keywords("cis-10", "edr", "xdr", "antimalware", "antivirus", "endpoint protection",
+                         "workload protection", "capability_endpoint", "capability_cloud")),
+    # CIS-12 Network Infrastructure Management
+    ControlDef("CIS-12", "CIS", "Network Infrastructure Management", "Network",
+               _keywords("cis-12", "firewall", "network infrastructure", "ids", "ips", "ztna",
+                         "zero trust", "sase", "capability_network")),
+    # CIS-13 Network Monitoring and Defense
+    ControlDef("CIS-13", "CIS", "Network Monitoring and Defense", "Network",
+               _keywords("cis-13", "ndr", "network detection", "network monitoring", "ids", "ips",
+                         "packet", "flow", "traffic analysis", "lateral movement", "capability_network")),
+    # CIS-16 Application Software Security  → AppSec domain
+    ControlDef("CIS-16", "CIS", "Application Software Security", "AppSec",
+               _keywords("cis-16", "waf", "api security", "dast", "sast", "sca", "owasp",
+                         "devsecops", "application security", "web application", "code scanning",
+                         "vulnerability scanning", "appsec", "capability_appsec")),
+    # CIS-17 Incident Response Management
+    ControlDef("CIS-17", "CIS", "Incident Response Management", "SOC",
+               _keywords("cis-17", "incident response", "soar", "orchestration", "playbook",
+                         "case management", "triage", "capability_soc")),
 ]
 
 
@@ -133,7 +251,7 @@ def _normalize_text(row: ToolControlRow) -> str:
         row.product or "",
         row.control_domain,
         row.control_objective,
-        row.current_control_name or "",
+        row.current_control_id or "",   # direct control ID match (e.g. "PR.AA", "CIS-5")
         row.framework_alignment or "",
         row.notes or "",
     ]
@@ -299,17 +417,21 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
     current_diagram = _build_current_state_diagram(rows)
 
     target_nodes = [
-        DiagramNode(id="t-identity", label="Unified IAM Control Stack", domain="Identity", state="target"),
-        DiagramNode(id="t-endpoint", label="Consolidated Endpoint Control Stack", domain="Endpoint", state="target"),
-        DiagramNode(id="t-network", label="Policy-Driven Network Control Plane", domain="Network", state="target"),
-        DiagramNode(id="t-data", label="Integrated Data Security Controls", domain="Data", state="target"),
-        DiagramNode(id="t-soc", label="Centralized Detection and Response Controls", domain="SOC", state="target"),
+        DiagramNode(id="t-identity", label="Unified IAM Control Stack",                    domain="Identity", state="target"),
+        DiagramNode(id="t-endpoint", label="Consolidated Endpoint Control Stack",           domain="Endpoint", state="target"),
+        DiagramNode(id="t-network",  label="Policy-Driven Network Control Plane",           domain="Network",  state="target"),
+        DiagramNode(id="t-data",     label="Integrated Data Security Controls",             domain="Data",     state="target"),
+        DiagramNode(id="t-cloud",    label="Cloud Security Posture and Workload Controls",  domain="Cloud",    state="target"),
+        DiagramNode(id="t-appsec",   label="Application and API Security Controls",         domain="AppSec",   state="target"),
+        DiagramNode(id="t-soc",      label="Centralized Detection and Response Controls",   domain="SOC",      state="target"),
     ]
     target_edges = [
         DiagramEdge(source="t-identity", target="t-endpoint", label="identity context"),
-        DiagramEdge(source="t-endpoint", target="t-network", label="telemetry + policy"),
-        DiagramEdge(source="t-network", target="t-data", label="enforcement"),
-        DiagramEdge(source="t-data", target="t-soc", label="detection + response"),
+        DiagramEdge(source="t-endpoint", target="t-network",  label="telemetry + policy"),
+        DiagramEdge(source="t-network",  target="t-data",     label="enforcement"),
+        DiagramEdge(source="t-cloud",    target="t-appsec",   label="workload context"),
+        DiagramEdge(source="t-appsec",   target="t-data",     label="application data protection"),
+        DiagramEdge(source="t-data",     target="t-soc",      label="detection + response"),
     ]
 
     return AnalysisResponse(

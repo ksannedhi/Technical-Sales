@@ -316,7 +316,7 @@ export default function App() {
             </div>
             <select id="framework" value={framework} onChange={(e) => setFramework(e.target.value)}>
               <option value="NIST">NIST CSF 2.0</option>
-              <option value="CIS">CIS Controls v8</option>
+              <option value="CIS">CIS Controls v8.1</option>
               <option value="BOTH">Both (Dual Mapping)</option>
             </select>
           </div>

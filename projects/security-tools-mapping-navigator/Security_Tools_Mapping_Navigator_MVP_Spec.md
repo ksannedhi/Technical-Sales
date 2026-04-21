@@ -1,6 +1,6 @@
-# Security Tools Mapping Navigator - Project Specification
+﻿# Security Tools Mapping Navigator - Project Specification (MVP)
 
-Version: 0.3.0
+Version: 0.3.0  
 Date: 2026-03-25
 
 ## 1. Executive Summary
@@ -12,7 +12,7 @@ Security Tools Mapping Navigator is a GUI-based proprietary application that ana
 - Redundancy and consolidation opportunities
 - Migration roadmap guidance
 
-The solution is framework-aware and supports NIST CSF 2.0, CIS Controls v8, or dual mapping.
+The solution is framework-aware and supports NIST CSF 2.0, CIS Controls v8.1, or dual mapping.
 
 ## 2. Problem Statement
 Security programs often accumulate overlapping tools and uneven control coverage over time. Teams need a structured way to:
@@ -23,7 +23,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 - Build a phased roadmap that improves both control posture and architecture outcomes
 
 ## 3. Scope Definition
-### In Scope
+### In Scope (MVP)
 - Tool/control mapping ingestion via CSV
 - Framework-aware analysis (`NIST`, `CIS`, `BOTH`)
 - Deterministic gap and redundancy analysis
@@ -33,7 +33,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 - Project result persistence in SQLite
 - GUI-based review and exports
 
-### Out of Scope
+### Out of Scope (MVP)
 - Live connector ingestion from customer APIs
 - Full CMDB/asset topology modeling
 - Automated infra change execution
@@ -47,6 +47,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 
 ### Core Use Cases
 - Upload mapping dataset and run framework-aligned analysis
+- Download a sample template directly from the GUI before preparing input data
 - Compare control coverage across tools
 - Identify overlap and estimate consolidation savings
 - Save and reload project analysis snapshots
@@ -55,15 +56,16 @@ Security programs often accumulate overlapping tools and uneven control coverage
 
 ## 5. Functional Requirements
 1. Accept mapping CSV upload with required schema
-2. Analyze against selected framework mode
-3. Produce control gap findings with severity and rationale
-4. Produce redundancy findings with overlap score and estimated savings
-5. Generate current-state and target-state control maps
-6. Generate phased migration roadmap
-7. Export last analysis to JSON/CSV
-8. Save project results to SQLite when `project_name` provided
-9. List and load historical projects from SQLite
-10. Delete saved projects from SQLite
+2. Provide a `Download Sample Template` action in the GUI
+3. Analyze against selected framework mode
+4. Produce control gap findings with severity and rationale
+5. Produce redundancy findings with overlap score and estimated savings
+6. Generate current-state and target-state control maps
+7. Generate phased migration roadmap
+8. Export last analysis to JSON/CSV
+9. Save project results to SQLite when `project_name` provided
+10. List and load historical projects from SQLite
+11. Delete saved projects from SQLite
 
 ## 6. Non-Functional Requirements
 - Explainable analysis (rule-based, deterministic)
@@ -75,7 +77,7 @@ Security programs often accumulate overlapping tools and uneven control coverage
 ## 7. System Architecture
 ### Frontend
 - React 18 + Vite
-- Main view includes upload, framework selector, project save/load, KPIs, tables, and map sections
+- Main view includes upload, framework selector, sample-template download, project save/load/delete, KPIs, tables, and map sections
 
 ### Backend
 - FastAPI
@@ -116,7 +118,10 @@ Full schema:
 Reference template:
 - `data/tools_controls_mapping_template.csv`
 
-## 10. Analysis Logic
+GUI download:
+- `Download Sample Template` button in the main action bar
+
+## 10. Analysis Logic (MVP)
 ### Coverage Classification
 For each framework control objective:
 - `covered` if 2+ matching tool/control mappings
@@ -221,7 +226,7 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 5. Multi-project comparison dashboards
 6. Architecture impact scoring tied to roadmap actions
 
-## 17. Acceptance Criteria
+## 17. Acceptance Criteria (MVP)
 - Upload valid CSV and receive analysis without errors
 - Framework selection changes returned control set
 - Gaps, redundancies, roadmap, and diagrams all populate

@@ -1,7 +1,6 @@
 ﻿import csv
 import io
 import json
-from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -33,15 +32,14 @@ app.add_middleware(
 )
 
 LAST_ANALYSIS: AnalysisResponse | None = None
-TEMPLATE_PATH = Path(__file__).resolve().parents[2] / "data" / "tools_controls_mapping_template.csv"
 
 
 def _default_framework_alignment(framework: FrameworkChoice) -> str:
     if framework == FrameworkChoice.NIST:
         return "NIST-CSF-2.0"
     if framework == FrameworkChoice.CIS:
-        return "CIS-v8"
-    return "NIST-CSF-2.0;CIS-v8"
+        return "CIS-v8.1"
+    return "NIST-CSF-2.0;CIS-v8.1"
 
 
 def _apply_framework_alignment_defaults(rows, framework: FrameworkChoice) -> list[str]:
@@ -112,17 +110,6 @@ def root() -> dict[str, str]:
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
-
-@app.get("/template")
-def download_template():
-    if not TEMPLATE_PATH.exists():
-        raise HTTPException(status_code=404, detail="Template file not found on server.")
-
-    return StreamingResponse(
-        io.BytesIO(TEMPLATE_PATH.read_bytes()),
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=tools_controls_mapping_template.csv"},
-    )
 
 
 @app.post("/analyze", response_model=AnalysisResponse)

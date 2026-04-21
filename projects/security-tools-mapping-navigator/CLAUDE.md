@@ -40,7 +40,7 @@ curl http://localhost:8010/health
 
 ## Architecture
 
-A **security tools-to-controls mapping navigator** that ingests a CSV of security tools and maps them to NIST CSF 2.0 and CIS Controls v8 frameworks. Analysis is deterministic (rule-based + alias enrichment) with SQLite persistence.
+A **security tools-to-controls mapping navigator** that ingests a CSV of security tools and maps them to NIST CSF 2.0 and CIS Controls v8.1 frameworks. Analysis is deterministic (rule-based + alias enrichment) with SQLite persistence.
 
 ```
 frontend/src/           React SPA — CSV upload, framework selector, gap analysis view
@@ -58,11 +58,10 @@ backend/app/
 
 ## Key design decisions
 
-- **Isolated Python deps via `--target`** — no venv; launcher installs packages to `backend/.deps` and sets `PYTHONPATH`. This avoids conflicts with system Python.
-- **No external AI API** — analysis is entirely rule-based using a curated tool-to-control mapping database. No API key required.
-- **SQLite persistence** — projects and results are saved to a local SQLite file, surviving server restarts.
-- **Deterministic mapping** — vendor/product aliases are resolved before mapping so `"CrowdStrike Falcon"` and `"Falcon EDR"` both map correctly.
-- **Frontend-only `node_modules`** — backend uses `--target` dep isolation; frontend uses standard npm install in `frontend/`.
+- **Isolated Python deps via `--target`** — no venv; launcher installs packages to `backend/.deps` and sets `PYTHONPATH`. Avoids conflicts with system Python.
+- **No external AI API** — analysis is entirely rule-based. No API key required.
+- **SQLite persistence** — projects and results survive server restarts.
+- **Deterministic mapping** — vendor/product aliases resolved before mapping so `"CrowdStrike Falcon"` and `"Falcon EDR"` both map correctly.
 
 ## Environment variables
 
@@ -79,7 +78,7 @@ No environment file required. All configuration is embedded in the launcher or d
 | Backend (FastAPI/uvicorn) | `8010` |
 | Frontend (Vite) | `5176` → proxies `/api` to `:8010` |
 
-> ⚠️ The launcher (`start.cmd`) uses `--port 8010`. Do not change this without updating the vite proxy target in `frontend/vite.config.js`.
+> ⚠️ The launcher (`start.cmd`) uses `--port 8010`. Do not change this without also updating the proxy target in `frontend/vite.config.js`.
 
 ## API endpoints
 
@@ -100,7 +99,7 @@ No environment file required. All configuration is embedded in the launcher or d
 - `backend/requirements.txt` — Python dependencies
 - `frontend/src/` — React SPA
 - `frontend/vite.config.js` — Vite config with `/api` proxy to `:8010`
-- `start.cmd` — self-contained Windows launcher (installs deps, starts both services)
+- `start.cmd` — self-contained Windows launcher
 
 ## Non-goals
 
