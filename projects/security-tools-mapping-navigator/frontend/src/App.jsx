@@ -284,7 +284,7 @@ export default function App() {
   };
 
   const downloadTemplate = () => {
-    window.open(`${window.location.origin}/tools_controls_mapping_template.csv`, "_blank");
+    window.open(`${window.location.origin}/Security_Tools_Mapping_Template.xlsx`, "_blank");
   };
 
   return (
