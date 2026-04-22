@@ -236,6 +236,25 @@ td {
   min-width: 88px;
 }
 
+/* ── Analysis summary banner ─────────────────────────────────────────────── */
+.summary-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 6px;
+  margin-top: 16px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: linear-gradient(115deg, #0f8b6b, #114b5f);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.summary-sep {
+  opacity: 0.45;
+}
+
 /* ── How to Use ──────────────────────────────────────────────────────────── */
 .how-to-use-toggle {
   width: 100%;

@@ -375,8 +375,8 @@ export default function App() {
       <section className="hero">
         <h1>Security Tools Mapping Navigator</h1>
         <p>
-          Upload tools-controls mapping data, choose framework mode (NIST, CIS, or both), and
-          generate current/target control maps, gaps, redundancies, and migration roadmap guidance.
+          Map your existing security tools to NIST CSF 2.0 and CIS Controls v8.1, identify
+          coverage gaps, flag redundancies, and generate a prioritised remediation roadmap.
         </p>
       </section>
 
@@ -481,6 +481,33 @@ export default function App() {
           rows={savedProjects}
         />
       </section>
+
+      {result && (() => {
+        const covered = (result.controls_total ?? 0) - (result.controls_missing ?? 0);
+        const savings = (result.redundancies ?? []).reduce(
+          (sum, r) => sum + (r.estimated_savings_usd ?? 0), 0
+        );
+        const savingsFmt = savings > 0
+          ? `· Est. savings $${savings.toLocaleString("en-US")}`
+          : "";
+        return (
+          <div className="summary-banner">
+            <span>{result.rows_processed ?? 0} tools mapped</span>
+            <span className="summary-sep">·</span>
+            <span>{covered} controls covered</span>
+            <span className="summary-sep">·</span>
+            <span>{result.controls_missing ?? 0} gaps found</span>
+            <span className="summary-sep">·</span>
+            <span>{(result.redundancies ?? []).length} redundancies</span>
+            {savingsFmt && (
+              <>
+                <span className="summary-sep">·</span>
+                <span>Est. savings ${savings.toLocaleString("en-US")}</span>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       <section className="card grid cols-4">
         {stats.map((s) => (
