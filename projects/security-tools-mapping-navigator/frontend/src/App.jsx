@@ -134,6 +134,77 @@ function triggerDownload(filename, content, contentType) {
   URL.revokeObjectURL(url);
 }
 
+function HowToUse() {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="card how-to-use">
+      <button
+        type="button"
+        className="how-to-use-toggle"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span>How to Use</span>
+        <span className="how-to-use-chevron">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <ol className="steps">
+          <li>
+            <strong>Download the template</strong>
+            <p>
+              Click <em>Download Sample Template</em> below to get the Excel workbook.
+              The <em>Instructions</em> tab explains every field and lists valid values
+              for each dropdown column.
+            </p>
+          </li>
+          <li>
+            <strong>Fill in your security tools</strong>
+            <p>
+              Add one row per tool in the <em>Tool Inventory</em> tab. The three
+              required fields are <code>tool_name</code>, <code>control_domain</code>,
+              and <code>control_objective</code>. Be specific in the objective — it
+              drives the gap analysis. Delete the seven example rows before uploading.
+            </p>
+          </li>
+          <li>
+            <strong>Export as CSV</strong>
+            <p>
+              Save the file as <em>CSV (Comma delimited)</em> via File → Save As.
+              Only CSV files are accepted for upload — Excel dropdowns and formatting
+              are for your convenience during data entry only.
+            </p>
+          </li>
+          <li>
+            <strong>Choose a framework mode</strong>
+            <p>
+              Select <em>NIST CSF 2.0</em>, <em>CIS Controls v8.1</em>, or{" "}
+              <em>Both</em> to match your organisation's compliance target. Rows
+              with a blank <code>framework_alignment</code> column will inherit
+              this selection automatically.
+            </p>
+          </li>
+          <li>
+            <strong>Run the analysis</strong>
+            <p>
+              Optionally enter a project name to save results for later, then
+              upload the CSV and click <em>Run Analysis</em>.
+            </p>
+          </li>
+          <li>
+            <strong>Review your results</strong>
+            <p>
+              Explore <em>Control Gaps</em> (with severity ratings),{" "}
+              <em>Redundancy Opportunities</em> (with estimated savings), and
+              a phased <em>Migration Roadmap</em>. Download outputs as JSON or
+              CSV for use in reports and proposals.
+            </p>
+          </li>
+        </ol>
+      )}
+    </section>
+  );
+}
+
 export default function App() {
   const [framework, setFramework] = useState("BOTH");
   const [projectName, setProjectName] = useState("");
@@ -296,6 +367,8 @@ export default function App() {
           generate current/target control maps, gaps, redundancies, and migration roadmap guidance.
         </p>
       </section>
+
+      <HowToUse />
 
       <section className="card">
         <form className="grid cols-4" onSubmit={handleAnalyze}>

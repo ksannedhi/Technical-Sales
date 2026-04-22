@@ -235,3 +235,82 @@ td {
   width: auto;
   min-width: 88px;
 }
+
+/* ── How to Use ──────────────────────────────────────────────────────────── */
+.how-to-use-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--accent-2);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.how-to-use-toggle:hover {
+  color: var(--accent);
+}
+
+.how-to-use-chevron {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.steps {
+  margin: 16px 0 4px;
+  padding-left: 0;
+  counter-reset: steps;
+  list-style: none;
+  display: grid;
+  gap: 14px;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 0 12px;
+  align-items: start;
+  counter-increment: steps;
+}
+
+.steps li::before {
+  content: counter(steps);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--accent-2);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.steps li strong {
+  display: block;
+  color: var(--accent-2);
+  margin-bottom: 3px;
+}
+
+.steps li p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.91rem;
+  line-height: 1.5;
+}
+
+.steps li code {
+  background: #edf7f3;
+  border: 1px solid #c5dfd6;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+  color: var(--accent-2);
+}
