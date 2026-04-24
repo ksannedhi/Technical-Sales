@@ -145,8 +145,11 @@ function DomainCoverageMatrix({ result }) {
               const tools = toolsByDomain[domain] || [];
               const s = domainStats[domain] || { covered: 0, partial: 0, missing: 0 };
               const total = s.covered + s.partial + s.missing;
-              const badgeType = s.missing > 0 ? "missing" : s.partial > 0 ? "partial" : "covered";
-              const badgeText = s.missing > 0 ? "Gap" : s.partial > 0 ? "Partial" : "Covered";
+              // total === 0 means this domain exists in the customer's CSV but has no controls
+              // in the currently selected framework (e.g. AppSec/Cloud tools in NIST-only mode).
+              const notInMode = total === 0;
+              const badgeType = notInMode ? null : s.missing > 0 ? "missing" : s.partial > 0 ? "partial" : "covered";
+              const badgeText = notInMode ? null : s.missing > 0 ? "Gap" : s.partial > 0 ? "Partial" : "Covered";
               return (
                 <tr key={domain}>
                   <td><strong>{domain}</strong></td>
@@ -159,16 +162,26 @@ function DomainCoverageMatrix({ result }) {
                       : <span className="helper">None mapped</span>}
                   </td>
                   <td style={{ whiteSpace: "nowrap", fontSize: "0.88rem" }}>
-                    {[
-                      s.covered > 0 && <span key="c" style={{ color: "var(--ok)" }}>{s.covered} covered</span>,
-                      s.partial > 0 && <span key="p" style={{ color: "var(--warn)" }}>{s.partial} partial</span>,
-                      s.missing > 0 && <span key="m" style={{ color: "var(--danger)" }}>{s.missing} missing</span>,
-                    ]
-                      .filter(Boolean)
-                      .reduce((acc, el, i) => [...acc, i > 0 && <span key={`sep-${i}`} style={{ color: "var(--muted)" }}> · </span>, el], [])}
-                    <span style={{ color: "var(--muted)" }}> / {total}</span>
+                    {notInMode ? (
+                      <span className="helper">No controls in this mode</span>
+                    ) : (
+                      <>
+                        {[
+                          s.covered > 0 && <span key="c" style={{ color: "var(--ok)" }}>{s.covered} covered</span>,
+                          s.partial > 0 && <span key="p" style={{ color: "var(--warn)" }}>{s.partial} partial</span>,
+                          s.missing > 0 && <span key="m" style={{ color: "var(--danger)" }}>{s.missing} missing</span>,
+                        ]
+                          .filter(Boolean)
+                          .reduce((acc, el, i) => [...acc, i > 0 && <span key={`sep-${i}`} style={{ color: "var(--muted)" }}> · </span>, el], [])}
+                        <span style={{ color: "var(--muted)" }}> / {total}</span>
+                      </>
+                    )}
                   </td>
-                  <td><Badge text={badgeText} type={badgeType} /></td>
+                  <td>
+                    {notInMode
+                      ? <span className="helper" style={{ fontStyle: "italic" }}>Switch to CIS or Both</span>
+                      : <Badge text={badgeText} type={badgeType} />}
+                  </td>
                 </tr>
               );
             })}
