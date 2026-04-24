@@ -37,10 +37,8 @@ ALIAS_TOKEN_MAP: Dict[str, List[str]] = {
         "beyondtrust",
         "delinea",
         "thycotic",
-        "duo",
+        "duo security",
         "privileged account management",
-        "pam",
-        "iga",
         "identity governance",
     ],
     "capability_endpoint": [
@@ -161,7 +159,8 @@ CONTROL_LIBRARY: List[ControlDef] = [
     # PR.PS  (Protect – Platform Security)  covers endpoint and cloud workloads
     ControlDef("NIST-PR.PS", "NIST", "Platform Security", "Endpoint",
                _keywords("pr.ps", "endpoint", "edr", "xdr", "antimalware", "workload", "patch",
-                         "hardening", "configuration", "posture", "benchmark",
+                         "hardening", "configuration", "endpoint posture", "cloud posture",
+                         "cloud security posture", "endpoint security posture", "benchmark",
                          "capability_endpoint", "capability_cloud")),
     # PR.DS  (Protect – Data Security)  covers data protection and application-layer defences
     ControlDef("NIST-PR.DS", "NIST", "Data Security", "Data",
@@ -170,13 +169,13 @@ CONTROL_LIBRARY: List[ControlDef] = [
                          "web application", "capability_data", "capability_appsec")),
     # PR.IR  (Protect – Technology Infrastructure Resilience)  ← replaces CSF 1.1 PR.AC
     ControlDef("NIST-PR.IR", "NIST", "Technology Infrastructure Resilience", "Network",
-               _keywords("pr.ir", "firewall", "ztna", "zero trust", "ids", "ips", "ndr",
-                         "segmentation", "sase", "proxy", "dns", "vpn", "network resilience",
+               _keywords("pr.ir", "network firewall", "ngfw", "ztna", "zero trust", "ids", "ips",
+                         "ndr", "segmentation", "sase", "proxy", "dns", "vpn", "network resilience",
                          "capability_network")),
     # DE.CM  (Detect – Continuous Monitoring)
     ControlDef("NIST-DE.CM", "NIST", "Continuous Monitoring", "SOC",
-               _keywords("de.cm", "siem", "monitoring", "detection", "log management", "telemetry",
-                         "observability", "threat detection", "capability_soc")),
+               _keywords("de.cm", "siem", "monitoring", "log management", "telemetry",
+                         "observability", "threat detection", "ueba", "capability_soc")),
     # RS.MA  (Respond – Incident Management)  ← replaces CSF 1.1 RS.RP
     ControlDef("NIST-RS.MA", "NIST", "Incident Management", "SOC",
                _keywords("rs.ma", "soar", "incident response", "orchestration", "playbook",
@@ -189,8 +188,9 @@ CONTROL_LIBRARY: List[ControlDef] = [
                          "email security", "email protection", "phishing", "spam", "capability_data")),
     # CIS-4  Secure Configuration of Enterprise Assets and Software  → Cloud domain
     ControlDef("CIS-4", "CIS", "Secure Configuration of Enterprise Assets and Software", "Cloud",
-               _keywords("cis-4", "configuration", "hardening", "posture", "cspm", "cnapp",
-                         "benchmark", "secure config", "misconfiguration", "cis benchmark",
+               _keywords("cis-4", "configuration", "hardening", "cloud posture", "endpoint posture",
+                         "cloud security posture", "cspm", "cnapp", "benchmark", "secure config",
+                         "misconfiguration", "cis benchmark",
                          "capability_cloud", "capability_endpoint")),
     # CIS-5  Account Management
     ControlDef("CIS-5", "CIS", "Account Management", "Identity",
@@ -198,16 +198,16 @@ CONTROL_LIBRARY: List[ControlDef] = [
                          "user lifecycle", "capability_identity")),
     # CIS-6  Access Control Management
     ControlDef("CIS-6", "CIS", "Access Control Management", "Identity",
-               _keywords("cis-6", "privileged", "pam", "rbac", "least privilege", "access control",
-                         "role-based", "just-in-time", "jit", "capability_identity")),
+               _keywords("cis-6", "privileged", "privileged access", "rbac", "least privilege",
+                         "access control", "role-based", "just-in-time", "jit", "capability_identity")),
     # CIS-7  Continuous Vulnerability Management
     ControlDef("CIS-7", "CIS", "Continuous Vulnerability Management", "Endpoint",
                _keywords("cis-7", "vulnerability", "patch", "cve", "scan", "remediation",
                          "qualys", "tenable", "rapid7", "insightvm", "capability_endpoint")),
     # CIS-8  Audit Log Management
     ControlDef("CIS-8", "CIS", "Audit Log Management", "SOC",
-               _keywords("cis-8", "siem", "log", "audit", "telemetry", "monitoring", "detection",
-                         "capability_soc")),
+               _keywords("cis-8", "siem", "log", "audit", "telemetry", "monitoring",
+                         "threat detection", "ueba", "capability_soc")),
     # CIS-9  Email and Web Browser Protections
     ControlDef("CIS-9", "CIS", "Email and Web Browser Protections", "Data",
                _keywords("cis-9", "email", "phishing", "spam", "web gateway", "url filtering",
@@ -218,8 +218,8 @@ CONTROL_LIBRARY: List[ControlDef] = [
                          "workload protection", "capability_endpoint", "capability_cloud")),
     # CIS-12 Network Infrastructure Management
     ControlDef("CIS-12", "CIS", "Network Infrastructure Management", "Network",
-               _keywords("cis-12", "firewall", "network infrastructure", "ids", "ips", "ztna",
-                         "zero trust", "sase", "capability_network")),
+               _keywords("cis-12", "network firewall", "ngfw", "network infrastructure", "ids", "ips",
+                         "ztna", "zero trust", "sase", "capability_network")),
     # CIS-13 Network Monitoring and Defense
     ControlDef("CIS-13", "CIS", "Network Monitoring and Defense", "Network",
                _keywords("cis-13", "ndr", "network detection", "network monitoring", "ids", "ips",
