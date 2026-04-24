@@ -10,6 +10,7 @@ and a dynamic phased roadmap — all without an AI API or internet connection.
 
 | Output | Description |
 |---|---|
+| **How to Use** | Collapsible step-by-step guide built into the app: template download → fill in inventory → export CSV → choose framework → run analysis → review results |
 | **Executive Summary** | Auto-generated prose narrative with a one-click Copy button |
 | **Domain Coverage at a Glance** | Per-domain table: tools active, controls covered/partial/missing, status badge |
 | **Control Gaps** | Every framework control with severity, status, and specific vendor recommendations |
@@ -17,6 +18,29 @@ and a dynamic phased roadmap — all without an AI API or internet connection.
 | **Migration Roadmap** | 3-phase plan derived from the actual gaps and redundancies found |
 | **Print / Save as PDF** | Browser print view scoped to result sections only |
 | **JSON / CSV export** | Full result including Executive Summary narrative |
+
+---
+
+## How to Use (in-app guide)
+
+The app includes a collapsible **How to Use** panel at the top of the page.  Click it to expand
+the full 6-step walkthrough:
+
+1. **Download the template** — click *Download Sample Template* to get the Excel workbook.
+   The *Instructions* tab explains every column and lists valid values for each dropdown.
+2. **Fill in your security tools** — add one row per tool in the *Tool Inventory* tab.  Required
+   fields: `tool_name`, `control_domain`, `control_objective`.  Be specific in the objective — it
+   drives the gap analysis.  Delete the example rows before uploading.
+3. **Export as CSV** — save via File → Save As → *CSV (Comma delimited)*.  Only CSV is accepted
+   for upload; the Excel dropdowns and formatting are for data-entry convenience only.
+4. **Choose a framework mode** — select *NIST CSF 2.0*, *CIS Controls v8.1*, or *Both* to match
+   your organisation's compliance target.  Rows with a blank `framework_alignment` column inherit
+   this selection automatically.
+5. **Run the analysis** — optionally enter a project name to save results for later, then upload
+   the CSV and click *Run Analysis*.
+6. **Review your results** — explore *Control Gaps* (with severity and vendor recommendations),
+   *Redundancy Opportunities* (with estimated savings), and the phased *Migration Roadmap*.
+   Download outputs as JSON or CSV for use in reports and proposals.
 
 ---
 

@@ -92,13 +92,22 @@ def delete_project_result(project_id: int) -> bool:
     conn = _connect()
     try:
         cursor = conn.execute(
-            """
-            DELETE FROM project_results
-            WHERE id = ?
-            """,
+            "DELETE FROM project_results WHERE id = ?",
             (project_id,),
         )
         conn.commit()
-        return cursor.rowcount > 0
+        deleted = cursor.rowcount > 0
+        if deleted:
+            # When the table is fully empty, reset the AUTOINCREMENT counter so
+            # the next saved project starts at ID 1 again.
+            remaining = conn.execute(
+                "SELECT COUNT(*) FROM project_results"
+            ).fetchone()[0]
+            if remaining == 0:
+                conn.execute(
+                    "DELETE FROM sqlite_sequence WHERE name = 'project_results'"
+                )
+                conn.commit()
+        return deleted
     finally:
         conn.close()

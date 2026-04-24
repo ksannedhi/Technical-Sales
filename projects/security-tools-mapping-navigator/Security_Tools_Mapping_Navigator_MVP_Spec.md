@@ -82,21 +82,25 @@ Presales architects need a structured, repeatable way to:
 ## 5. Functional Requirements
 
 1. Accept CSV upload with required schema; reject with descriptive error on missing columns
-2. Provide a `Download Sample Template` action in the GUI (Excel workbook with Instructions,
+2. Provide a collapsible **How to Use** panel at the top of the page covering the full 6-step
+   workflow: template download, inventory fill, CSV export, framework selection, analysis run,
+   and result review; panel is excluded from the print/PDF view via `.no-print` class
+3. Provide a `Download Sample Template` action in the GUI (Excel workbook with Instructions,
    Discovery Questions, Tool Objectives Library, and Tool Inventory sheets)
-3. Analyse against selected framework mode (`NIST`, `CIS`, or `BOTH`)
-4. Produce control gap findings with severity, status, rationale, and vendor recommendations
-5. Produce redundancy findings with capability-filtered grouping, deduplication, classification,
+4. Analyse against selected framework mode (`NIST`, `CIS`, or `BOTH`)
+5. Produce control gap findings with severity, status, rationale, and vendor recommendations
+6. Produce redundancy findings with capability-filtered grouping, deduplication, classification,
    savings estimate, and contributing framework label
-6. Render Domain Coverage at a Glance: per-domain tool names, coverage breakdown, status badge;
+7. Render Domain Coverage at a Glance: per-domain tool names, coverage breakdown, status badge;
    show "No controls in this mode" for domains not represented in the selected framework
-7. Generate auto-prose Executive Summary with copy-to-clipboard
-8. Generate dynamic phased roadmap from the actual gaps and redundancies found
-9. Show summary banner with: tools mapped, fully covered, partial, gaps, redundancies, est. savings
-10. Provide Print / Save as PDF (browser print limited to result sections)
-11. Export last analysis to JSON (includes narrative) and CSV
-12. Persist results to SQLite when `project_name` provided; display timestamps in local timezone
-13. List, load, and delete historical projects; highlight currently loaded project in the table
+8. Generate auto-prose Executive Summary with copy-to-clipboard
+9. Generate dynamic phased roadmap from the actual gaps and redundancies found
+10. Show summary banner with: tools mapped, fully covered, partial, gaps, redundancies, est. savings
+11. Provide Print / Save as PDF (browser print limited to result sections)
+12. Export last analysis to JSON (includes narrative) and CSV
+13. Persist results to SQLite when `project_name` provided; display timestamps in local timezone;
+    reset the auto-increment ID counter when all projects are deleted so the next project starts at 1
+14. List, load, and delete historical projects; highlight currently loaded project in the table
 
 ---
 
@@ -354,6 +358,7 @@ services in separate terminal windows. No venv, no admin rights, no system-level
 
 ## 18. Acceptance Criteria
 
+- How to Use panel is collapsed by default; expands and collapses on click; hidden from print/PDF
 - Upload valid CSV → analysis returns without errors across all three framework modes
 - Framework selection changes the control set and roadmap content
 - Domain Coverage at a Glance shows tool names per domain; shows "No controls in this mode"
@@ -367,3 +372,4 @@ services in separate terminal windows. No venv, no admin rights, no system-level
 - Project save and reload work via SQLite; timestamps display in local timezone
 - Loaded project row is highlighted in the Saved Projects table
 - JSON export includes `narrative` field; CSV export includes gap findings
+- Deleting all saved projects resets the ID counter; the next saved project gets ID 1
