@@ -31,6 +31,8 @@ class ToolControlRow(BaseModel):
     license_count: Optional[float] = 0
     eol_date: Optional[str] = ""
     notes: Optional[str] = ""
+    # Set by the enricher when AI suggests a control_id for a blank row
+    ai_enriched: bool = False
 
 
 class GapFinding(BaseModel):
@@ -95,6 +97,8 @@ class AnalysisResponse(BaseModel):
     controls_partial: int
     controls_missing: int
     warnings: List[str] = []
+    # Number of rows whose control_id was suggested by the AI enricher
+    enriched_count: int = 0
     gaps: List[GapFinding]
     redundancies: List[RedundancyFinding]
     roadmap: List[RoadmapItem]

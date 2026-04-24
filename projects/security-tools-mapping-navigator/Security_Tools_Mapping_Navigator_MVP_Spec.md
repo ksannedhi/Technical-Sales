@@ -1,6 +1,6 @@
 # Security Tools Mapping Navigator — Project Specification
 
-Version: 0.4.0
+Version: 0.5.0
 Date: 2026-04-24
 
 ---
@@ -17,7 +17,9 @@ security tool inventory against NIST CSF 2.0 and CIS Controls v8.1, producing:
 - Auto-generated Executive Summary narrative (copyable prose)
 - Print / Save as PDF output scoped to result sections
 
-Analysis is deterministic and rule-based. No external AI API or internet connection required.
+Analysis is deterministic and rule-based by default (no external API required). An optional
+AI enrichment mode uses the Claude API to suggest control IDs for rows with vague objectives
+or niche vendors not covered by the built-in alias dictionary.
 
 ---
 
@@ -92,21 +94,29 @@ Presales architects need a structured, repeatable way to:
    show "No controls in this mode" for domains not represented in the selected framework
 7. Generate auto-prose Executive Summary with copy-to-clipboard
 8. Generate dynamic phased roadmap from the actual gaps and redundancies found
-9. Show summary banner with: tools mapped, fully covered, partial, gaps, redundancies, est. savings
+9. Show summary banner with: tools mapped, fully covered, partial, gaps, redundancies, est. savings,
+   and AI-enriched row count when enrichment was used
 10. Provide Print / Save as PDF (browser print limited to result sections)
 11. Export last analysis to JSON (includes narrative) and CSV
 12. Persist results to SQLite when `project_name` provided; display timestamps in local timezone
 13. List, load, and delete historical projects; highlight currently loaded project in the table
+14. Optional AI enrichment: when `ANTHROPIC_API_KEY` is set in `backend/.env`, expose a
+    "Use AI enrichment" checkbox on the upload form; when checked, send all rows with a blank
+    `current_control_id` to the Claude API in a single batch call and merge suggested control IDs
+    back before the deterministic analyzer runs; display enriched row count in the results banner
+    and as a warning prompting the user to review before sharing
 
 ---
 
 ## 6. Non-Functional Requirements
 
 - Explainable, deterministic analysis — no black-box scoring
-- Offline operation — no external API calls at runtime
+- Offline operation — no external API calls at runtime (AI enrichment is opt-in and clearly labelled)
 - Fast local processing for datasets up to ~200 tool rows
 - Windows-friendly one-click startup via `start.cmd`
 - Isolated Python dependencies (`backend/.deps`) — no system-level installs required
+- Graceful degradation: if API key absent, enrichment toggle hidden; if API call fails, analysis
+  proceeds deterministically without enrichment
 
 ---
 
@@ -119,8 +129,10 @@ backend/app/main.py           FastAPI — CORS, route registration, last-analysi
 backend/app/services/
   csv_parser.py               Schema validation, row parsing
   analyzer.py                 Mapping engine, alias enrichment, gap/redundancy/roadmap logic
+  enricher.py                 Optional AI enrichment — batch control ID suggestion via Claude API
   storage.py                  SQLite read/write
 backend/data/navigator.db     SQLite — project_results table
+backend/.env                  Optional — set ANTHROPIC_API_KEY to enable AI enrichment (gitignored)
 ```
 
 ### Frontend port: 5176
@@ -134,10 +146,11 @@ No Vite proxy — the frontend calls `http://127.0.0.1:8010` directly; FastAPI C
 
 | Component | Technology |
 |---|---|
-| Backend | Python 3.13+, FastAPI 0.116+, Uvicorn 0.35+ |
+| Backend | Python 3.13+, FastAPI 0.116+, Uvicorn 0.35+, python-dotenv 1.0+ |
 | Frontend | React 18, Vite 5, plain CSS (no UI framework) |
 | Persistence | SQLite via Python built-in `sqlite3` |
 | Deps isolation | `pip install --target backend/.deps` (no venv) |
+| AI enrichment (optional) | Anthropic Python SDK (`anthropic>=0.40`), `claude-haiku-4-5` model |
 
 ---
 
@@ -223,11 +236,17 @@ Phase content is derived from the actual `gaps` and `redundancies` lists:
 ### `GET /health`
 Returns `{"status": "ok"}`.
 
+### `GET /ai-status`
+Returns `{"enabled": true}` if `ANTHROPIC_API_KEY` is configured, otherwise `{"enabled": false}`.
+Used by the frontend to show or hide the AI enrichment toggle.
+
 ### `POST /analyze`
 Multipart form:
 - `framework` — `NIST` | `CIS` | `BOTH`
 - `mapping_file` — CSV file
 - `project_name` (optional) — triggers SQLite persistence
+- `use_ai_enrichment` (optional, default `"false"`) — `"true"` to enable AI-assisted control ID
+  suggestion for rows with a blank `current_control_id`
 
 Returns `AnalysisResponse`.
 
@@ -265,7 +284,8 @@ overlap_score, classification, estimated_savings_usd
 ```
 project_id, framework_selected, rows_processed,
 controls_total, controls_covered, controls_partial, controls_missing,
-warnings, gaps, redundancies, roadmap,
+warnings, enriched_count,   ← rows whose control_id was suggested by AI enrichment
+gaps, redundancies, roadmap,
 current_state_diagram, target_state_diagram
 ```
 
@@ -289,22 +309,25 @@ current_state_diagram, target_state_diagram
 ```
 backend/
   app/
-    main.py               FastAPI app, CORS, framework-alignment defaulting
+    main.py               FastAPI app, CORS, dotenv load, /ai-status, framework-alignment defaulting
     models.py             Pydantic models (ToolControlRow, GapFinding, RedundancyFinding, …)
     services/
       analyzer.py         ALIAS_TOKEN_MAP, CONTROL_LIBRARY, _CONTROL_RECOMMENDATIONS,
                           _DOMAIN_EXPECTED_CAPS, _build_roadmap, analyze_mappings
       csv_parser.py       Schema validation, CSV → ToolControlRow list
+      enricher.py         Optional AI enrichment — batch control ID suggestion via Claude API
       storage.py          SQLite CRUD
   data/
     navigator.db          SQLite (gitignored)
+  .env                    Optional — ANTHROPIC_API_KEY (gitignored)
+  .env.example            Template for .env
   requirements.txt
 
 frontend/
   public/
     Security_Tools_Mapping_Template.xlsx   Excel template (Instructions + 3 helper sheets + Tool Inventory)
   src/
-    App.jsx               Full SPA: upload, analysis display, all result sections
+    App.jsx               Full SPA: upload, AI toggle, analysis display, all result sections
     styles/globals.css    Design tokens, layout, print CSS (@media print)
 
 start.cmd                 One-click launcher
@@ -349,6 +372,12 @@ services in separate terminal windows. No venv, no admin rights, no system-level
    in coverage, gaps closed, savings delta
 5. **Mapping dictionary editor** — GUI admin view for tuning alias tokens and control keywords
    without editing Python source
+6. **AI gap narrative** — use the LLM to generate a personalised, organisation-specific
+   rationale for each gap finding rather than the generic fixed strings (avoids suggesting
+   tools the customer already has)
+7. **Per-control AI enrichment indicator** — surface which specific controls benefited from
+   AI-suggested IDs in the Control Gaps table (requires passing enriched record_ids through
+   to the GapFinding model)
 
 ---
 
@@ -367,3 +396,7 @@ services in separate terminal windows. No venv, no admin rights, no system-level
 - Project save and reload work via SQLite; timestamps display in local timezone
 - Loaded project row is highlighted in the Saved Projects table
 - JSON export includes `narrative` field; CSV export includes gap findings
+- AI enrichment toggle hidden when `ANTHROPIC_API_KEY` is not set; visible when set
+- When enrichment is enabled and rows have blank control IDs, `enriched_count > 0` in response
+- Enrichment warning appears in the results banner and below the form
+- If enrichment API call fails, analysis completes without enrichment and no error is surfaced to the user

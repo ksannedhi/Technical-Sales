@@ -1,7 +1,17 @@
 ﻿import csv
 import io
 import json
+from pathlib import Path
 from typing import Literal
+
+# Load backend/.env if present (e.g. ANTHROPIC_API_KEY for AI enrichment).
+# python-dotenv is listed in requirements.txt so it will always be present after
+# the first start.cmd run.  The guard is a safety net only.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env")
+except ImportError:
+    pass
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
@@ -12,6 +22,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from .models import AnalysisResponse, FrameworkChoice
 from .services.analyzer import analyze_mappings
 from .services.csv_parser import parse_tool_control_csv
+from .services.enricher import enrich_rows, is_enrichment_enabled
 from .services.storage import (
     delete_project_result,
     get_project_result,
@@ -111,27 +122,50 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/ai-status")
+def ai_status() -> dict[str, bool]:
+    """Report whether AI enrichment is available (ANTHROPIC_API_KEY is set)."""
+    return {"enabled": is_enrichment_enabled()}
+
+
 
 @app.post("/analyze", response_model=AnalysisResponse)
 async def analyze(
     framework: FrameworkChoice = Form(...),
     mapping_file: UploadFile = File(...),
     project_name: str = Form(default=""),
+    use_ai_enrichment: str = Form(default="false"),
 ) -> AnalysisResponse:
     global LAST_ANALYSIS
 
     if not mapping_file.filename.lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are supported in MVP.")
 
+    want_enrichment = use_ai_enrichment.lower() in ("true", "1", "yes")
+
     raw = await mapping_file.read()
     try:
         rows = parse_tool_control_csv(raw)
         warnings = _apply_framework_alignment_defaults(rows, framework)
+
+        enriched_count = 0
+        if want_enrichment and is_enrichment_enabled():
+            from .services.analyzer import CONTROL_LIBRARY  # avoid circular at module level
+            enriched_ids = enrich_rows(rows, CONTROL_LIBRARY)
+            enriched_count = len(enriched_ids)
+            if enriched_count:
+                warnings.append(
+                    f"AI enrichment: {enriched_count} row(s) had a control ID suggested "
+                    "by the Claude API because their control_objective text was too vague "
+                    "for keyword matching. Review these rows before sharing results."
+                )
+
         result = analyze_mappings(rows, framework)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     result.warnings = warnings
+    result.enriched_count = enriched_count
 
     if project_name.strip():
         project_id = save_project_result(

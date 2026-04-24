@@ -2,6 +2,7 @@
 .deps/
 backend/.venv/
 backend/.deps/
+backend/.env
 frontend/node_modules/
 frontend/dist/
 __pycache__/

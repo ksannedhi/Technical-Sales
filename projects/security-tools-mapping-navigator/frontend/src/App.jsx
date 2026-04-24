@@ -368,7 +368,12 @@ function HowToUse() {
               <strong>Run the analysis</strong>
               <p>
                 Optionally enter a project name to save results for later, then
-                upload the CSV and click <em>Run Analysis</em>.
+                upload the CSV and click <em>Run Analysis</em>. If your inventory
+                contains tools with vague objectives or niche vendors not in the
+                built-in alias dictionary, enable{" "}
+                <em>Use AI enrichment</em> (requires an Anthropic API key set in{" "}
+                <code>backend/.env</code>) — Claude will suggest the best-matching
+                control ID for those rows before analysis runs.
               </p>
             </div>
           </li>
@@ -398,6 +403,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loadedProjectId, setLoadedProjectId] = useState(null);
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [useAiEnrichment, setUseAiEnrichment] = useState(false);
 
   const loadSavedProjects = async () => {
     try {
@@ -410,8 +417,20 @@ export default function App() {
     }
   };
 
+  const checkAiStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-status`);
+      if (!response.ok) return;
+      const payload = await response.json();
+      setAiEnabled(!!payload.enabled);
+    } catch {
+      // Not critical — AI toggle stays hidden.
+    }
+  };
+
   useEffect(() => {
     loadSavedProjects();
+    checkAiStatus();
   }, []);
 
   const stats = useMemo(() => {
@@ -447,6 +466,7 @@ export default function App() {
       form.append("framework", framework);
       form.append("mapping_file", file);
       form.append("project_name", projectName);
+      form.append("use_ai_enrichment", useAiEnrichment ? "true" : "false");
 
       const response = await fetch(`${API_BASE}/analyze`, {
         method: "POST",
@@ -596,7 +616,22 @@ export default function App() {
             </button>
           </div>
         </form>
-        {error && <p style={{ color: "#c53d3d", fontWeight: 700 }}>{error}</p>}
+        {aiEnabled && (
+          <div style={{ marginTop: "12px" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", marginBottom: 0 }}>
+              <input
+                type="checkbox"
+                style={{ width: "auto", margin: 0 }}
+                checked={useAiEnrichment}
+                onChange={(e) => setUseAiEnrichment(e.target.checked)}
+              />
+              <span style={{ color: "var(--muted)", fontWeight: 600, fontSize: "0.9rem" }}>
+                Use AI enrichment — Claude suggests control IDs for rows with vague or non-standard objectives
+              </span>
+            </label>
+          </div>
+        )}
+        {error && <p style={{ color: "#c53d3d", fontWeight: 700, marginTop: "10px" }}>{error}</p>}
         {result?.warnings?.length > 0 && (
           <div style={{ marginTop: "12px", padding: "12px", borderRadius: "10px", background: "#fff6e5", color: "#8a5600" }}>
             {result.warnings.map((warning, idx) => (
@@ -604,6 +639,11 @@ export default function App() {
                 {warning}
               </p>
             ))}
+          </div>
+        )}
+        {(result?.enriched_count > 0) && (
+          <div style={{ marginTop: "10px", padding: "10px 14px", borderRadius: "10px", background: "#edf7f3", color: "var(--accent-2)", fontSize: "0.9rem", fontWeight: 600 }}>
+            ✨ {result.enriched_count} row{result.enriched_count !== 1 ? "s" : ""} had a control ID suggested by AI enrichment. Review before sharing results.
           </div>
         )}
         <p className="helper">
@@ -694,6 +734,12 @@ export default function App() {
               <>
                 <span className="summary-sep">·</span>
                 <span>Est. savings ${savings.toLocaleString("en-US")}</span>
+              </>
+            )}
+            {(result.enriched_count > 0) && (
+              <>
+                <span className="summary-sep">·</span>
+                <span>✨ {result.enriched_count} AI-enriched</span>
               </>
             )}
           </div>

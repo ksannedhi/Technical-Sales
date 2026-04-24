@@ -38,72 +38,91 @@ python -m pip install -r backend/requirements.txt --target backend/.deps
 curl http://localhost:8010/health
 ```
 
+**AI enrichment status:**
+```bash
+curl http://localhost:8010/ai-status
+```
+
 ## Architecture
 
-A **security tools-to-controls mapping navigator** that ingests a CSV of security tools and maps them to NIST CSF 2.0 and CIS Controls v8.1 frameworks. Analysis is deterministic (rule-based + alias enrichment) with SQLite persistence.
+A **security tools-to-controls mapping navigator** that ingests a CSV of security tools and
+maps them to NIST CSF 2.0 and CIS Controls v8.1 frameworks.  Analysis is deterministic
+(rule-based + alias enrichment) with SQLite persistence.  An optional AI enrichment mode
+sends vague rows to the Claude API for control ID suggestions before analysis runs.
 
 ```
-frontend/src/           React SPA — CSV upload, framework selector, gap analysis view
-        ↕ REST (fetch via Vite proxy → /api)
-backend/app/main.py     FastAPI app — CORS, route registration
-        ↓
-backend/app/
-  routes/               /api/analyze, /api/projects, /api/export
-  services/             Mapping engine, alias enrichment, gap analysis
-  models/               Pydantic models
-  db/                   SQLite persistence (projects and results)
+frontend/src/App.jsx         React SPA — CSV upload, AI toggle, framework selector, results
+        ↕  HTTP (direct to http://127.0.0.1:8010)
+backend/app/main.py          FastAPI app — CORS, dotenv load, route registration
+backend/app/services/
+  csv_parser.py              Schema validation, CSV → ToolControlRow list
+  enricher.py                Optional AI enrichment (batch Claude API call)
+  analyzer.py                Mapping engine, alias enrichment, gap/redundancy/roadmap logic
+  storage.py                 SQLite CRUD
+backend/data/navigator.db    SQLite (auto-created, gitignored)
+backend/.env                 Optional — ANTHROPIC_API_KEY (gitignored)
 ```
 
-**Vite proxy:** All `/api` calls from the frontend are forwarded to `http://localhost:8010`. No CORS issues in dev.
+**No Vite proxy** — the frontend calls `http://127.0.0.1:8010` directly; FastAPI CORS allows `*`.
 
 ## Key design decisions
 
-- **Isolated Python deps via `--target`** — no venv; launcher installs packages to `backend/.deps` and sets `PYTHONPATH`. Avoids conflicts with system Python.
-- **No external AI API** — analysis is entirely rule-based. No API key required.
+- **Isolated Python deps via `--target`** — no venv; launcher installs packages to `backend/.deps`
+  and sets `PYTHONPATH`. Avoids conflicts with system Python.
+- **Deterministic analysis by default** — no API key required for standard use.
+- **Optional AI enrichment** — `enricher.py` resolves two failure modes: vague `control_objective`
+  text and niche vendors not in `ALIAS_TOKEN_MAP`.  Enabled only when `ANTHROPIC_API_KEY` is set.
+  The frontend checks `/ai-status` on mount and shows the toggle only if enabled.
 - **SQLite persistence** — projects and results survive server restarts.
-- **Deterministic mapping** — vendor/product aliases resolved before mapping so `"CrowdStrike Falcon"` and `"Falcon EDR"` both map correctly.
+- **Deterministic mapping** — vendor/product aliases resolved before mapping so
+  `"CrowdStrike Falcon"` and `"Falcon EDR"` both map correctly.
 
 ## Environment variables
-
-No environment file required. All configuration is embedded in the launcher or defaults.
 
 | Variable | Set by | Description |
 |----------|--------|-------------|
 | `PYTHONPATH` | `start.cmd` | Points to `backend/.deps` and `backend/` |
+| `ANTHROPIC_API_KEY` | `backend/.env` | Optional — enables AI enrichment toggle in the UI |
+
+Copy `backend/.env.example` to `backend/.env` and set `ANTHROPIC_API_KEY` to enable AI enrichment.
 
 ## Ports
 
 | Service | Port |
 |---------|------|
 | Backend (FastAPI/uvicorn) | `8010` |
-| Frontend (Vite) | `5176` → proxies `/api` to `:8010` |
+| Frontend (Vite) | `5176` |
 
-> ⚠️ The launcher (`start.cmd`) uses `--port 8010`. Do not change this without also updating the proxy target in `frontend/vite.config.js`.
+> The launcher (`start.cmd`) uses `--port 8010`. Do not change without also checking
+> that the frontend `API_BASE` constant in `frontend/src/App.jsx` stays in sync.
 
 ## API endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Health check |
-| POST | `/api/analyze` | Upload CSV and run mapping analysis |
-| GET | `/api/projects` | List saved projects |
-| DELETE | `/api/projects/{id}` | Delete a project |
-| GET | `/api/export/{id}` | Export results as CSV/JSON |
+| GET | `/ai-status` | Returns `{"enabled": true/false}` for AI enrichment availability |
+| POST | `/analyze` | Upload CSV and run analysis (`framework`, `mapping_file`, `project_name`, `use_ai_enrichment`) |
+| GET | `/projects` | List saved projects |
+| GET | `/projects/{id}` | Load saved project |
+| DELETE | `/projects/{id}` | Delete a project |
+| GET | `/export?format=json\|csv` | Export last in-memory analysis |
 
 ## Key project files
 
-- `backend/app/main.py` — FastAPI app, middleware, route registration
-- `backend/app/routes/` — API route handlers
-- `backend/app/services/` — mapping engine, alias resolver, gap analyser
-- `backend/app/models/` — Pydantic request/response models
-- `backend/requirements.txt` — Python dependencies
-- `frontend/src/` — React SPA
-- `frontend/vite.config.js` — Vite config with `/api` proxy to `:8010`
-- `start.cmd` — self-contained Windows launcher
+- `backend/app/main.py` — FastAPI app, dotenv load, `/ai-status` endpoint
+- `backend/app/models.py` — Pydantic models (`ToolControlRow.ai_enriched`, `AnalysisResponse.enriched_count`)
+- `backend/app/services/enricher.py` — AI enrichment batch call and response parsing
+- `backend/app/services/analyzer.py` — ALIAS_TOKEN_MAP, CONTROL_LIBRARY, gap/redundancy/roadmap
+- `backend/app/services/csv_parser.py` — CSV schema validation
+- `backend/app/services/storage.py` — SQLite persistence
+- `backend/requirements.txt` — Python deps (includes anthropic, python-dotenv)
+- `backend/.env.example` — template for the optional API key
+- `frontend/src/App.jsx` — full SPA including AI toggle
+- `frontend/src/styles/globals.css` — design tokens, print CSS
 
 ## Non-goals
 
 - Cloud/SaaS deployment
 - Live tool inventory sync (manual CSV upload only)
-- AI-powered gap recommendations
 - Authentication or multi-user support
