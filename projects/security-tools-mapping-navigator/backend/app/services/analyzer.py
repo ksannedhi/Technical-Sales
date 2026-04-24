@@ -246,6 +246,32 @@ CONTROL_LIBRARY: List[ControlDef] = [
 ]
 
 
+# Curated tool recommendations per control — shown for missing and partial controls only.
+# Format: short, vendor-specific, include function label in parentheses where helpful.
+_CONTROL_RECOMMENDATIONS: Dict[str, str] = {
+    # ── NIST CSF 2.0 ──────────────────────────────────────────────────────────
+    "NIST-PR.AA":  "Entra ID, Okta, Ping Identity (IdP/SSO)  ·  CyberArk, BeyondTrust, Delinea (PAM)",
+    "NIST-PR.PS":  "CrowdStrike Falcon, SentinelOne, Defender for Endpoint (EDR)  ·  Wiz, Orca, Prisma Cloud (CSPM)",
+    "NIST-PR.DS":  "Varonis, Microsoft Purview (DLP/classification)  ·  Mimecast, Proofpoint (email)  ·  Cloudflare, F5 BIG-IP (WAF)",
+    "NIST-PR.IR":  "Palo Alto NGFW, FortiGate, Check Point (NGFW)  ·  Zscaler, Netskope (SASE/ZTNA)",
+    "NIST-DE.CM":  "Splunk, Microsoft Sentinel, IBM QRadar (SIEM)  ·  Darktrace, Vectra AI, ExtraHop (NDR/UEBA)",
+    "NIST-RS.MA":  "Palo Alto XSOAR, Splunk SOAR, IBM QRadar SOAR (SOAR/orchestration)",
+    # ── CIS Controls v8.1 ─────────────────────────────────────────────────────
+    "CIS-3":   "Varonis, Microsoft Purview, Digital Guardian (DLP/classification)",
+    "CIS-4":   "Wiz, Orca, Prisma Cloud, Defender for Cloud (CSPM/CNAPP)",
+    "CIS-5":   "Microsoft Entra ID, Okta, SailPoint, Saviynt (IAM/provisioning)",
+    "CIS-6":   "CyberArk, BeyondTrust, Delinea (PAM/JIT access)",
+    "CIS-7":   "Qualys VMDR, Tenable.io, Rapid7 InsightVM (vulnerability management)",
+    "CIS-8":   "Splunk, Microsoft Sentinel, Elastic SIEM, LogRhythm (SIEM/log management)",
+    "CIS-9":   "Mimecast, Proofpoint, Defender for Office 365 (email/browser protection)",
+    "CIS-10":  "CrowdStrike Falcon, SentinelOne, Defender for Endpoint (EDR/AV)",
+    "CIS-12":  "Palo Alto NGFW, Fortinet FortiGate, Check Point, Cisco Firepower",
+    "CIS-13":  "ExtraHop, Darktrace, Vectra AI, Gigamon (NDR/network monitoring)",
+    "CIS-16":  "Cloudflare, F5 BIG-IP (WAF)  ·  Checkmarx, Veracode, Snyk (SAST/SCA)",
+    "CIS-17":  "Palo Alto XSOAR, Splunk SOAR, ServiceNow SecOps (IR/orchestration)",
+}
+
+
 # Maps each control domain to the capability-bucket tokens that are meaningful for
 # redundancy grouping within that domain.  Tools that happen to match a control via a
 # *different* capability bucket (e.g. a WAF matching NIST-PR.DS which also covers Data)
@@ -543,6 +569,10 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
                 severity=severity,
                 coverage_score=score,
                 rationale=rationale,
+                recommended_tools=(
+                    _CONTROL_RECOMMENDATIONS.get(control.control_id, "")
+                    if status != "covered" else ""
+                ),
             )
         )
 

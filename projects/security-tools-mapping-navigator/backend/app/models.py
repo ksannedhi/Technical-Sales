@@ -42,6 +42,7 @@ class GapFinding(BaseModel):
     severity: str
     coverage_score: float
     rationale: str
+    recommended_tools: str = ""
 
 
 class RedundancyFinding(BaseModel):

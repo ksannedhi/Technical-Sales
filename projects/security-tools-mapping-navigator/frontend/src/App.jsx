@@ -294,7 +294,7 @@ function ExecutiveSummary({ result }) {
 function HowToUse() {
   const [open, setOpen] = useState(false);
   return (
-    <section className="card how-to-use">
+    <section className="card how-to-use no-print">
       <button
         type="button"
         className="how-to-use-toggle"
@@ -545,7 +545,7 @@ export default function App() {
 
       <HowToUse />
 
-      <section className="card">
+      <section className="card no-print">
         <form className="grid cols-4" onSubmit={handleAnalyze}>
           <div>
             <label htmlFor="projectName">Project Name (for save)</label>
@@ -597,7 +597,7 @@ export default function App() {
         </p>
       </section>
 
-      <section className="card">
+      <section className="card no-print">
         <div className="actions">
           <button type="button" className="secondary" onClick={downloadTemplate}>
             Download Sample Template
@@ -608,13 +608,16 @@ export default function App() {
           <button type="button" className="secondary" onClick={() => download("csv")} disabled={!result}>
             Download CSV Output
           </button>
+          <button type="button" className="secondary" onClick={() => window.print()} disabled={!result}>
+            Print / Save as PDF
+          </button>
           <button type="button" className="secondary" onClick={loadSavedProjects}>
             Refresh Saved Projects
           </button>
         </div>
       </section>
 
-      <section className="card">
+      <section className="card no-print">
         <h3>Saved Projects</h3>
         <Table
           rowStyle={(row) =>
@@ -721,7 +724,19 @@ export default function App() {
                 </span>
               ),
             },
-            { key: "coverage_score", label: "Score" },
+            {
+              key: "recommended_tools",
+              label: "Recommended",
+              render: (v, row) => {
+                if (!v) return <span className="helper">—</span>;
+                const prefix = row.status === "missing" ? "Consider: " : "Strengthen: ";
+                return (
+                  <span style={{ fontSize: "0.83rem", color: "var(--muted)", fontStyle: "italic" }}>
+                    {prefix}{v}
+                  </span>
+                );
+              },
+            },
           ]}
           rows={result?.gaps || []}
         />

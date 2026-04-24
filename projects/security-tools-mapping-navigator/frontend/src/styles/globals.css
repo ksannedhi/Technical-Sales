@@ -366,3 +366,104 @@ td {
   color: var(--text);
   font-size: 0.97rem;
 }
+
+/* ── Print / Save as PDF ─────────────────────────────────────────────────── */
+@media print {
+  /* Hide everything non-essential */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 1.4cm 1.8cm;
+  }
+
+  body {
+    background: white !important;
+    font-size: 10pt;
+    color: #152222;
+  }
+
+  .container {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Hero banner */
+  .hero {
+    background: #0f8b6b !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border-radius: 8px;
+    box-shadow: none;
+    padding: 16px;
+  }
+
+  /* Summary banner */
+  .summary-banner {
+    background: linear-gradient(115deg, #0f8b6b, #114b5f) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border-radius: 8px;
+  }
+
+  /* Cards */
+  .card {
+    border: 1px solid #cfe0da;
+    box-shadow: none;
+    page-break-inside: avoid;
+    margin-top: 10px;
+  }
+
+  /* Don't orphan a card header from its content */
+  .card h3 {
+    page-break-after: avoid;
+  }
+
+  /* Tables */
+  .table-wrap {
+    overflow: visible !important;
+  }
+
+  table {
+    page-break-inside: auto;
+    font-size: 8.5pt;
+    width: 100%;
+  }
+
+  tr {
+    page-break-inside: avoid;
+  }
+
+  /* Force badge colours to print */
+  .badge {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badge.high    { background: #ffe6e6 !important; color: #c53d3d !important; }
+  .badge.medium  { background: #fff1de !important; color: #cc7a00 !important; }
+  .badge.low,
+  .badge.covered { background: #e7f7ea !important; color: #1a7f37 !important; }
+  .badge.partial { background: #fff5df !important; color: #cc7a00 !important; }
+  .badge.missing { background: #ffe6e6 !important; color: #c53d3d !important; }
+
+  /* KPI tiles: keep 4-up layout */
+  .grid.cols-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* Hide the Copy button inside Executive Summary */
+  .copy-btn {
+    display: none !important;
+  }
+
+  /* Executive summary left border */
+  .exec-summary {
+    border-left: 4px solid #0f8b6b !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
