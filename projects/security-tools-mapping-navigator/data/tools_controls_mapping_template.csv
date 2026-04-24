@@ -1,2 +1,0 @@
-﻿record_id,tool_name,vendor,product,version,control_domain,control_objective,current_control_id,current_control_name,framework_alignment,deployment_scope,environment,coverage_level,effectiveness_score,operational_status,annual_cost_usd,utilization_percent,license_count,eol_date,notes
-TM-0001,Identity Access Platform,Microsoft,Entra ID,P2,Identity,Strong identity and access control,PR.AA,Conditional Access and MFA,NIST-CSF-2.0;CIS-5,Enterprise-wide,Production,Partial,72,Active,250000,92,12000,,Legacy auth methods still enabled
