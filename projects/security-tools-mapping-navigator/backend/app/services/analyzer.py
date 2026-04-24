@@ -47,15 +47,18 @@ ALIAS_TOKEN_MAP: Dict[str, List[str]] = {
         "sentinelone",
         "carbon black",
         "defender for endpoint",
-        "microsoft defender",
+        # "microsoft defender" removed — too broad; matches "Defender for Office 365"
+        # when vendor "Microsoft" and product name concatenate.  "defender for endpoint" is sufficient.
         "cortex xdr",
         "deep security",
+        # "trend micro" removed — TippingPoint IPS vendor string also contains "trend micro"
+        # which falsely injects endpoint capability into a network tool.
+        # Trend Micro endpoint products are caught by "deep security" (specific product name).
         "qualys",
         "tenable",
         "rapid7",
         "insightvm",
         "mcafee",
-        "trend micro",
         "bitdefender",
         "eset",
     ],
@@ -188,9 +191,12 @@ CONTROL_LIBRARY: List[ControlDef] = [
                          "email security", "email protection", "phishing", "spam", "capability_data")),
     # CIS-4  Secure Configuration of Enterprise Assets and Software  → Cloud domain
     ControlDef("CIS-4", "CIS", "Secure Configuration of Enterprise Assets and Software", "Cloud",
-               _keywords("cis-4", "configuration", "hardening", "cloud posture", "endpoint posture",
+               _keywords("cis-4", "configuration", "cloud posture", "endpoint posture",
                          "cloud security posture", "cspm", "cnapp", "benchmark", "secure config",
                          "misconfiguration", "cis benchmark",
+                         # "hardening" removed — too generic; matches "workload hardening" in
+                         # EPP/patch objectives, falsely pulling endpoint tools into CIS-4.
+                         # CIS-4 is identified by configuration/posture terms, not the word "hardening".
                          "capability_cloud")),
     # CIS-5  Account Management
     ControlDef("CIS-5", "CIS", "Account Management", "Identity",
