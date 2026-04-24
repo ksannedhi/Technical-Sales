@@ -586,23 +586,21 @@ export default function App() {
       </section>
 
       {result && (() => {
-        const covered = (result.controls_total ?? 0) - (result.controls_missing ?? 0);
         const savings = (result.redundancies ?? []).reduce(
           (sum, r) => sum + (r.estimated_savings_usd ?? 0), 0
         );
-        const savingsFmt = savings > 0
-          ? `· Est. savings $${savings.toLocaleString("en-US")}`
-          : "";
         return (
           <div className="summary-banner">
             <span>{result.rows_processed ?? 0} tools mapped</span>
             <span className="summary-sep">·</span>
-            <span>{covered} controls covered</span>
+            <span>{result.controls_covered ?? 0} fully covered</span>
             <span className="summary-sep">·</span>
-            <span>{result.controls_missing ?? 0} gaps found</span>
+            <span>{result.controls_partial ?? 0} partial</span>
+            <span className="summary-sep">·</span>
+            <span>{result.controls_missing ?? 0} gaps</span>
             <span className="summary-sep">·</span>
             <span>{(result.redundancies ?? []).length} redundancies</span>
-            {savingsFmt && (
+            {savings > 0 && (
               <>
                 <span className="summary-sep">·</span>
                 <span>Est. savings ${savings.toLocaleString("en-US")}</span>

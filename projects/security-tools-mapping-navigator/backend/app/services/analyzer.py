@@ -246,6 +246,36 @@ CONTROL_LIBRARY: List[ControlDef] = [
 ]
 
 
+# Maps each control domain to the capability-bucket tokens that are meaningful for
+# redundancy grouping within that domain.  Tools that happen to match a control via a
+# *different* capability bucket (e.g. a WAF matching NIST-PR.DS which also covers Data)
+# are excluded so cross-function tools are never flagged as redundant with each other.
+# "Endpoint" deliberately includes capability_cloud because NIST-PR.PS covers both.
+_DOMAIN_EXPECTED_CAPS: Dict[str, set] = {
+    "Identity": {"capability_identity"},
+    "Endpoint": {"capability_endpoint", "capability_cloud"},
+    "Cloud":    {"capability_cloud"},
+    "Network":  {"capability_network"},
+    "Data":     {"capability_data"},     # capability_appsec excluded — WAF != DLP/email
+    "AppSec":   {"capability_appsec"},
+    "SOC":      {"capability_soc"},
+}
+
+
+def _row_caps(row: ToolControlRow) -> set:
+    """Return the set of capability-bucket tokens present in a row's combined text fields."""
+    parts = " ".join([
+        row.tool_name,
+        row.vendor or "",
+        row.product or "",
+        row.control_domain,
+        row.control_objective,
+        row.current_control_id or "",
+        row.notes or "",
+    ]).lower()
+    return {tok for tok, aliases in ALIAS_TOKEN_MAP.items() if any(a in parts for a in aliases)}
+
+
 def _selected_controls(framework: FrameworkChoice) -> List[ControlDef]:
     if framework == FrameworkChoice.NIST:
         return [c for c in CONTROL_LIBRARY if c.framework == "NIST"]
@@ -364,7 +394,16 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
             domain_to_rows[(control.domain, control.name)].extend(matched_rows)
 
     redundancies: List[RedundancyFinding] = []
+    avg_cost = sum([(r.annual_cost_usd or 0) for r in rows]) / max(1, len(rows))
+
     for (domain, objective), matching_rows in domain_to_rows.items():
+        # Filter to tools whose capability bucket aligns with this domain.
+        # This prevents cross-function tools (e.g. a WAF matching NIST-PR.DS which
+        # also covers Data) from being grouped as redundant with data-protection tools.
+        expected_caps = _DOMAIN_EXPECTED_CAPS.get(domain, set())
+        if expected_caps:
+            matching_rows = [r for r in matching_rows if _row_caps(r) & expected_caps]
+
         unique_tools = sorted({row.tool_name for row in matching_rows})
         if len(unique_tools) < 2:
             continue
@@ -373,7 +412,6 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
         unique_products = sorted({(row.product or "").strip() for row in matching_rows if (row.product or "").strip()})
 
         overlap_score = min(1.0, len(unique_tools) / 5)
-        avg_cost = sum([(r.annual_cost_usd or 0) for r in rows]) / max(1, len(rows))
         savings = round(max(0, (len(unique_tools) - 1) * avg_cost * 0.2), 2)
         classification = "likely_redundant" if len(unique_tools) >= 3 else "healthy_overlap"
 
@@ -389,6 +427,18 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
                 estimated_savings_usd=savings,
             )
         )
+
+    # Deduplicate entries that share the same tool set and domain.  In BOTH mode the same
+    # tool pair can satisfy a NIST control *and* a CIS control in the same domain, which
+    # would otherwise produce two identical-looking redundancy rows.
+    seen_keys: set = set()
+    deduped: List[RedundancyFinding] = []
+    for r in redundancies:
+        key = (frozenset(r.tools), r.domain)
+        if key not in seen_keys:
+            seen_keys.add(key)
+            deduped.append(r)
+    redundancies = deduped
 
     covered = sum(1 for g in gaps if g.status == "covered")
     partial = sum(1 for g in gaps if g.status == "partial")
