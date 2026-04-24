@@ -118,24 +118,89 @@ function Table({ columns, rows, rowStyle }) {
   );
 }
 
-function DiagramView({ title, nodes = [], edges = [] }) {
+/** Per-domain summary: which tools are active, how many controls covered/partial/missing. */
+function DomainCoverageMatrix({ result }) {
+  // Tool names per domain — from current_state_diagram tool nodes
+  // (domain-header nodes have ids starting with "cur-domain-"; skip them)
+  const toolsByDomain = {};
+  for (const node of (result.current_state_diagram?.nodes || [])) {
+    if (node.id.startsWith("cur-domain-")) continue;
+    if (!toolsByDomain[node.domain]) toolsByDomain[node.domain] = [];
+    toolsByDomain[node.domain].push(node.label);
+  }
+
+  // Per-domain coverage counts from the gaps list
+  const domainStats = {};
+  for (const gap of (result.gaps || [])) {
+    if (!domainStats[gap.domain]) domainStats[gap.domain] = { covered: 0, partial: 0, missing: 0 };
+    domainStats[gap.domain][gap.status] = (domainStats[gap.domain][gap.status] || 0) + 1;
+  }
+
+  const allDomains = [
+    ...new Set([...Object.keys(toolsByDomain), ...Object.keys(domainStats)]),
+  ].sort();
+
+  const DOMAIN_WHAT_IT_MEANS = {
+    Identity: "IAM, SSO, MFA, PAM",
+    Endpoint: "EDR, XDR, CSPM, patching",
+    Network:  "NGFW, NDR, ZTNA, SASE",
+    Data:     "DLP, email security, classification",
+    Cloud:    "CSPM, CNAPP, cloud workload",
+    AppSec:   "WAF, DAST/SAST, API security",
+    SOC:      "SIEM, SOAR, threat detection",
+  };
+
   return (
-    <div className="diagram">
-      <h4>{title}</h4>
-      <p className="helper">Nodes</p>
-      <div className="nodes">
-        {nodes.map((n) => (
-          <div className="node" key={n.id}>
-            <strong>{n.label}</strong>
-            <div>{n.domain}</div>
-          </div>
-        ))}
+    <section className="card">
+      <h3>
+        Domain Coverage at a Glance
+        <InfoTip text="One row per security domain. Shows which uploaded tools are active there and how many framework controls are covered, partial, or missing." />
+      </h3>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th>Covers</th>
+              <th>Tools mapped</th>
+              <th>Controls</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allDomains.map((domain) => {
+              const tools = toolsByDomain[domain] || [];
+              const s = domainStats[domain] || { covered: 0, partial: 0, missing: 0 };
+              const total = s.covered + s.partial + s.missing;
+              const badgeType = s.missing > 0 ? "missing" : s.partial > 0 ? "partial" : "covered";
+              const badgeText = s.missing > 0 ? "Gap" : s.partial > 0 ? "Partial" : "Covered";
+              return (
+                <tr key={domain}>
+                  <td><strong>{domain}</strong></td>
+                  <td style={{ color: "var(--muted)", fontSize: "0.88rem" }}>
+                    {DOMAIN_WHAT_IT_MEANS[domain] ?? "—"}
+                  </td>
+                  <td>
+                    {tools.length > 0
+                      ? tools.join(", ")
+                      : <span className="helper">None mapped</span>}
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ color: "var(--ok)" }}>{s.covered}✓</span>
+                    {" · "}
+                    <span style={{ color: "var(--warn)" }}>{s.partial}~</span>
+                    {" · "}
+                    <span style={{ color: "var(--danger)" }}>{s.missing}✗</span>
+                    <span style={{ color: "var(--muted)", fontSize: "0.82rem" }}> / {total}</span>
+                  </td>
+                  <td><Badge text={badgeText} type={badgeType} /></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-      <p className="helper">
-        Generated Links: {edges.length}
-        <InfoTip text="Count of generated relationships between map nodes." />
-      </p>
-    </div>
+    </section>
   );
 }
 
@@ -658,18 +723,7 @@ export default function App() {
         ))}
       </section>
 
-      <section className="card grid cols-2">
-        <DiagramView
-          title="Current Control Map (Generated)"
-          nodes={result?.current_state_diagram?.nodes || []}
-          edges={result?.current_state_diagram?.edges || []}
-        />
-        <DiagramView
-          title="Target Control Map (Generated)"
-          nodes={result?.target_state_diagram?.nodes || []}
-          edges={result?.target_state_diagram?.edges || []}
-        />
-      </section>
+      {result && <DomainCoverageMatrix result={result} />}
 
       <section className="card">
         <h3>
