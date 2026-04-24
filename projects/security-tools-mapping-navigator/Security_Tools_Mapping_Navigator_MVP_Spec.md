@@ -150,7 +150,6 @@ No Vite proxy — the frontend calls `http://127.0.0.1:8010` directly; FastAPI C
 ### Required columns
 | Column | Notes |
 |---|---|
-| `record_id` | Unique row identifier |
 | `tool_name` | Tool name displayed throughout the analysis |
 | `control_domain` | Domain bucket: Identity / Endpoint / Data / Cloud / Network / AppSec / SOC |
 | `control_objective` | Free-text objective — primary matching signal |
@@ -158,17 +157,12 @@ No Vite proxy — the frontend calls `http://127.0.0.1:8010` directly; FastAPI C
 ### Optional columns (improve analysis quality)
 | Column | Notes |
 |---|---|
+| `record_id` | Unique row identifier; auto-generated as `MAP-N` if blank |
 | `vendor` | Vendor name; feeds alias-token enrichment |
 | `product` | Product name; feeds alias-token enrichment |
 | `current_control_id` | Direct control reference: `PR.AA`, `CIS-5`, or `PR.AA;CIS-5` |
-| `current_control_name` | Human-readable control name |
 | `framework_alignment` | `NIST-CSF-2.0`, `CIS-v8.1`, or `NIST-CSF-2.0;CIS-v8.1`; blank = inherits selected mode |
-| `deployment_scope` | e.g. On-premises, Cloud, Hybrid |
-| `environment` | e.g. Production, Staging |
-| `coverage_level` | e.g. Full, Partial, Planned |
-| `operational_status` | e.g. Active, Decommissioning |
 | `annual_cost_usd` | Enables savings estimates in Redundancy Opportunities |
-| `license_count` | Informational |
 | `notes` | Additional context fed into the matching engine |
 
 ---
