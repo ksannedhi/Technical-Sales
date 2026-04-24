@@ -2,32 +2,6 @@
 
 const API_BASE = "http://127.0.0.1:8010";
 
-function InfoTip({ text }) {
-  return (
-    <span
-      title={text}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "16px",
-        height: "16px",
-        marginLeft: "6px",
-        borderRadius: "999px",
-        background: "#d9e9ea",
-        color: "#114b5f",
-        fontSize: "0.75rem",
-        fontWeight: 700,
-        cursor: "help",
-        verticalAlign: "middle",
-      }}
-      aria-label={text}
-    >
-      i
-    </span>
-  );
-}
-
 async function parseApiError(response) {
   let payload = null;
 
@@ -152,10 +126,7 @@ function DomainCoverageMatrix({ result }) {
 
   return (
     <section className="card">
-      <h3>
-        Domain Coverage at a Glance
-        <InfoTip text="One row per security domain. Shows which uploaded tools are active there and how many framework controls are covered, partial, or missing." />
-      </h3>
+      <h3>Domain Coverage at a Glance</h3>
       <div className="table-wrap">
         <table>
           <thead>
@@ -585,10 +556,7 @@ export default function App() {
             />
           </div>
           <div>
-            <div className="label-row">
-              <label htmlFor="framework">Framework Mode</label>
-              <InfoTip text="Sets the primary scoring framework and the default for blank framework alignment values." />
-            </div>
+            <label htmlFor="framework">Framework Mode</label>
             <select id="framework" value={framework} onChange={(e) => setFramework(e.target.value)}>
               <option value="NIST">NIST CSF 2.0</option>
               <option value="CIS">CIS Controls v8.1</option>
@@ -726,10 +694,7 @@ export default function App() {
       {result && <DomainCoverageMatrix result={result} />}
 
       <section className="card">
-        <h3>
-          Control Gaps
-          <InfoTip text="Coverage is inferred from matching tool-control rows." />
-        </h3>
+        <h3>Control Gaps</h3>
         <Table
           columns={[
             { key: "control_id", label: "Control ID" },
@@ -761,12 +726,10 @@ export default function App() {
       </section>
 
       <section className="card">
-        <h3>
-          Redundancy Opportunities
-          <InfoTip text="Groups tools mapped to the same control objective." />
-        </h3>
+        <h3>Redundancy Opportunities</h3>
         <Table
           columns={[
+            { key: "framework", label: "Framework" },
             { key: "domain", label: "Domain" },
             { key: "objective", label: "Objective" },
             {
@@ -778,20 +741,40 @@ export default function App() {
               key: "vendors",
               label: "Vendors",
               render: (v) =>
-                Array.isArray(v) && v.length > 0 ? v.join(", ") : <span className="helper">Not captured</span>,
+                Array.isArray(v) && v.length > 0 ? v.join(", ") : <span className="helper">—</span>,
             },
             {
               key: "products",
               label: "Products",
               render: (v) =>
-                Array.isArray(v) && v.length > 0 ? v.join(", ") : <span className="helper">Not captured</span>,
+                Array.isArray(v) && v.length > 0 ? v.join(", ") : <span className="helper">—</span>,
             },
-            { key: "classification", label: "Classification" },
-            { key: "overlap_score", label: "Overlap Score" },
-            { key: "estimated_savings_usd", label: "Est. Savings (USD)" },
+            {
+              key: "classification",
+              label: "Classification",
+              render: (v) => {
+                const labels = { likely_redundant: "Likely Redundant", healthy_overlap: "Healthy Overlap" };
+                const types  = { likely_redundant: "high", healthy_overlap: "low" };
+                return <Badge text={labels[v] ?? v} type={types[v] ?? "medium"} />;
+              },
+            },
+            {
+              key: "estimated_savings_usd",
+              label: "Est. Savings (USD)",
+              render: (v) => (v > 0 ? `$${Number(v).toLocaleString("en-US")}` : "—"),
+            },
           ]}
           rows={result?.redundancies || []}
         />
+        {(() => {
+          const hasCosts = (result?.redundancies ?? []).some((r) => r.estimated_savings_usd > 0);
+          return hasCosts ? (
+            <p className="helper" style={{ marginTop: "10px" }}>
+              Est. savings = (overlapping tools − 1) × avg. annual tool cost × 20% consolidation factor.
+              Based on annual costs entered in the uploaded CSV.
+            </p>
+          ) : null;
+        })()}
       </section>
 
       <section className="card">

@@ -45,6 +45,7 @@ class GapFinding(BaseModel):
 
 
 class RedundancyFinding(BaseModel):
+    framework: str
     domain: str
     objective: str
     tools: List[str]

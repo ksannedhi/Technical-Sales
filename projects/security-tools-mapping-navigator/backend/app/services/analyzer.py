@@ -361,11 +361,132 @@ def _coverage_status(match_count: int) -> Tuple[str, float, str]:
     return "missing", 0.0, "No mapped tool/control found for this objective."
 
 
+def _build_roadmap(
+    fw: str,
+    gaps: List[GapFinding],
+    redundancies: List[RedundancyFinding],
+) -> List[RoadmapItem]:
+    """Generate a roadmap directly from the analysis findings."""
+    missing_gaps  = [g for g in gaps if g.status == "missing"]
+    partial_gaps  = [g for g in gaps if g.status == "partial"]
+    missing_domains = sorted({g.domain for g in missing_gaps})
+    partial_domains = sorted({g.domain for g in partial_gaps})
+
+    likely_red    = [r for r in redundancies if r.classification == "likely_redundant"]
+    healthy_ovlp  = [r for r in redundancies if r.classification == "healthy_overlap"]
+    total_savings = sum(r.estimated_savings_usd for r in redundancies)
+
+    def _plural(n: int, word: str) -> str:
+        return f"{n} {word}{'s' if n != 1 else ''}"
+
+    # ── Phase 1: close missing controls ──────────────────────────────────────
+    if missing_domains:
+        p1 = RoadmapItem(
+            phase="Phase 1 (0–3 months)",
+            initiative=(
+                f"Deploy controls for {', '.join(missing_domains)} — "
+                f"{_plural(len(missing_gaps), 'control')} currently have no coverage"
+            ),
+            framework_focus=fw,
+            priority="P1",
+            effort="M",
+            expected_outcome=(
+                f"Eliminate critical exposure in {', '.join(missing_domains)}; "
+                "achieve baseline coverage across all mapped domains"
+            ),
+            depends_on="Tool procurement planning and control ownership assignment per domain",
+        )
+    else:
+        p1 = RoadmapItem(
+            phase="Phase 1 (0–3 months)",
+            initiative=(
+                f"No critical gaps — harden {_plural(len(partial_gaps), 'partially-covered control')} "
+                f"in {', '.join(partial_domains) if partial_domains else 'all domains'}"
+            ),
+            framework_focus=fw,
+            priority="P1",
+            effort="M",
+            expected_outcome="Uplift partial controls to full coverage; reduce single-point-of-failure risk",
+            depends_on="Control ownership mapping and stakeholder sign-off",
+        )
+
+    # ── Phase 2: strengthen partial controls ─────────────────────────────────
+    if partial_domains:
+        p2 = RoadmapItem(
+            phase="Phase 2 (3–6 months)",
+            initiative=(
+                f"Add second-layer coverage for {', '.join(partial_domains)} — "
+                f"{_plural(len(partial_gaps), 'control')} rely on a single tool"
+            ),
+            framework_focus=fw,
+            priority="P1",
+            effort="L",
+            expected_outcome=(
+                "Eliminate single-tool dependencies; improve resilience and "
+                "control confidence across all domains"
+            ),
+            depends_on="Vendor shortlisting and proof-of-concept for gap-fill tools",
+        )
+    else:
+        p2 = RoadmapItem(
+            phase="Phase 2 (3–6 months)",
+            initiative="All controls have multi-tool coverage — deepen integrations and data-sharing between tools",
+            framework_focus=fw,
+            priority="P1",
+            effort="L",
+            expected_outcome="Improved detection fidelity and reduced analyst workload through tighter tool integration",
+            depends_on="Architecture review and integration feasibility assessment",
+        )
+
+    # ── Phase 3: consolidate redundancies or harden posture ──────────────────
+    if likely_red:
+        red_domains = sorted({r.domain for r in likely_red})
+        p3 = RoadmapItem(
+            phase="Phase 3 (6–12 months)",
+            initiative=(
+                f"Consolidate likely-redundant tools in {', '.join(red_domains)} — "
+                f"est. ${total_savings:,.0f} in potential savings"
+            ),
+            framework_focus=fw,
+            priority="P2",
+            effort="M",
+            expected_outcome="Reduced TCO and operational complexity without loss of control coverage",
+            depends_on="Vendor contractual review; workload migration and cutover planning",
+        )
+    elif healthy_ovlp:
+        p3 = RoadmapItem(
+            phase="Phase 3 (6–12 months)",
+            initiative=(
+                f"Review {_plural(len(healthy_ovlp), 'healthy-overlap tool pair')} "
+                "for selective consolidation or enhanced integration"
+            ),
+            framework_focus=fw,
+            priority="P2",
+            effort="M",
+            expected_outcome="Lower operational overhead and improved visibility through fewer, better-integrated tools",
+            depends_on="Cost–benefit analysis per tool pair; business continuity planning",
+        )
+    else:
+        p3 = RoadmapItem(
+            phase="Phase 3 (6–12 months)",
+            initiative="Establish continuous compliance posture monitoring and align tool stack to target architecture",
+            framework_focus=fw,
+            priority="P2",
+            effort="M",
+            expected_outcome="Sustained governance and framework-aligned control posture",
+            depends_on="Runbook and automation integration; regular review cadence",
+        )
+
+    return [p1, p2, p3]
+
+
 def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> AnalysisResponse:
     controls = _selected_controls(framework)
     normalized = [_normalize_text(r) for r in rows]
     gaps: List[GapFinding] = []
-    domain_to_rows: Dict[Tuple[str, str], List[ToolControlRow]] = defaultdict(list)
+
+    # Tracks matched rows AND contributing frameworks per (domain, control_name) key
+    domain_to_meta: Dict[Tuple[str, str], dict] = defaultdict(lambda: {"rows": [], "frameworks": set()})
 
     for control in controls:
         match_count = 0
@@ -391,12 +512,17 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
         )
 
         if matched_rows:
-            domain_to_rows[(control.domain, control.name)].extend(matched_rows)
+            key = (control.domain, control.name)
+            domain_to_meta[key]["rows"].extend(matched_rows)
+            domain_to_meta[key]["frameworks"].add(control.framework)
 
     redundancies: List[RedundancyFinding] = []
     avg_cost = sum([(r.annual_cost_usd or 0) for r in rows]) / max(1, len(rows))
 
-    for (domain, objective), matching_rows in domain_to_rows.items():
+    for (domain, objective), meta in domain_to_meta.items():
+        matching_rows: List[ToolControlRow] = meta["rows"]
+        fw_label = "BOTH" if len(meta["frameworks"]) > 1 else next(iter(meta["frameworks"]))
+
         # Filter to tools whose capability bucket aligns with this domain.
         # This prevents cross-function tools (e.g. a WAF matching NIST-PR.DS which
         # also covers Data) from being grouped as redundant with data-protection tools.
@@ -408,15 +534,16 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
         if len(unique_tools) < 2:
             continue
 
-        unique_vendors = sorted({(row.vendor or "").strip() for row in matching_rows if (row.vendor or "").strip()})
+        unique_vendors  = sorted({(row.vendor  or "").strip() for row in matching_rows if (row.vendor  or "").strip()})
         unique_products = sorted({(row.product or "").strip() for row in matching_rows if (row.product or "").strip()})
 
-        overlap_score = min(1.0, len(unique_tools) / 5)
-        savings = round(max(0, (len(unique_tools) - 1) * avg_cost * 0.2), 2)
+        overlap_score  = min(1.0, len(unique_tools) / 5)
+        savings        = round(max(0, (len(unique_tools) - 1) * avg_cost * 0.2), 2)
         classification = "likely_redundant" if len(unique_tools) >= 3 else "healthy_overlap"
 
         redundancies.append(
             RedundancyFinding(
+                framework=fw_label,
                 domain=domain,
                 objective=objective,
                 tools=unique_tools,
@@ -444,35 +571,7 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
     partial = sum(1 for g in gaps if g.status == "partial")
     missing = sum(1 for g in gaps if g.status == "missing")
 
-    roadmap: List[RoadmapItem] = [
-        RoadmapItem(
-            phase="Phase 1 (0-3 months)",
-            initiative="Close high-severity control gaps for IAM, endpoint protection, and monitoring",
-            framework_focus=framework.value,
-            priority="P1",
-            effort="M",
-            expected_outcome="Immediate control coverage uplift for highest-risk objectives",
-            depends_on="Tool/control mapping validation and control ownership alignment",
-        ),
-        RoadmapItem(
-            phase="Phase 2 (3-6 months)",
-            initiative="Consolidate redundant controls and rationalize overlapping tools",
-            framework_focus=framework.value,
-            priority="P1",
-            effort="L",
-            expected_outcome="Reduced TCO and simplified operations without reducing coverage",
-            depends_on="Vendor/workload migration planning",
-        ),
-        RoadmapItem(
-            phase="Phase 3 (6-12 months)",
-            initiative="Harden control effectiveness and align tool stack to target security architecture",
-            framework_focus=framework.value,
-            priority="P2",
-            effort="M",
-            expected_outcome="Sustained governance and architecture-aligned control posture",
-            depends_on="Runbook and automation integration",
-        ),
-    ]
+    roadmap = _build_roadmap(framework.value, gaps, redundancies)
 
     current_diagram = _build_current_state_diagram(rows)
 
