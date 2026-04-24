@@ -361,6 +361,11 @@ def _coverage_status(match_count: int) -> Tuple[str, float, str]:
     return "missing", 0.0, "No mapped tool/control found for this objective."
 
 
+# Core domains carry the highest baseline risk — prioritised in Phase 1 when no controls are missing.
+# Specialty domains follow in Phase 2.
+_CORE_DOMAINS = {"Identity", "SOC", "Endpoint", "Network"}
+
+
 def _build_roadmap(
     fw: str,
     gaps: List[GapFinding],
@@ -379,43 +384,53 @@ def _build_roadmap(
     def _plural(n: int, word: str) -> str:
         return f"{n} {word}{'s' if n != 1 else ''}"
 
-    # ── Phase 1: close missing controls ──────────────────────────────────────
+    def _join(items: list) -> str:
+        return ", ".join(items) if items else "all domains"
+
+    # ── Phase 1: close missing controls, or prioritise core partial domains ──
     if missing_domains:
         p1 = RoadmapItem(
             phase="Phase 1 (0–3 months)",
             initiative=(
-                f"Deploy controls for {', '.join(missing_domains)} — "
+                f"Deploy controls for {_join(missing_domains)} — "
                 f"{_plural(len(missing_gaps), 'control')} currently have no coverage"
             ),
             framework_focus=fw,
             priority="P1",
             effort="M",
             expected_outcome=(
-                f"Eliminate critical exposure in {', '.join(missing_domains)}; "
+                f"Eliminate critical exposure in {_join(missing_domains)}; "
                 "achieve baseline coverage across all mapped domains"
             ),
             depends_on="Tool procurement planning and control ownership assignment per domain",
         )
     else:
+        # Split partial domains: core (Identity, SOC, Endpoint, Network) get Phase 1 focus
+        core_partial = sorted(d for d in partial_domains if d in _CORE_DOMAINS)
+        p1_targets = core_partial if core_partial else partial_domains
         p1 = RoadmapItem(
             phase="Phase 1 (0–3 months)",
             initiative=(
-                f"No critical gaps — harden {_plural(len(partial_gaps), 'partially-covered control')} "
-                f"in {', '.join(partial_domains) if partial_domains else 'all domains'}"
+                f"No critical gaps — add second-layer coverage for {_join(p1_targets)} "
+                "to reduce single-tool dependency in highest-risk domains"
             ),
             framework_focus=fw,
             priority="P1",
             effort="M",
-            expected_outcome="Uplift partial controls to full coverage; reduce single-point-of-failure risk",
-            depends_on="Control ownership mapping and stakeholder sign-off",
+            expected_outcome=(
+                f"Uplift {_join(p1_targets)} controls to full coverage; "
+                "eliminate single-point-of-failure risk in core security domains"
+            ),
+            depends_on="Control ownership mapping, stakeholder sign-off, and vendor shortlisting",
         )
 
-    # ── Phase 2: strengthen partial controls ─────────────────────────────────
-    if partial_domains:
+    # ── Phase 2: remaining partial domains or integration work ───────────────
+    if missing_domains and partial_domains:
+        # There were gaps in Phase 1; Phase 2 cleans up partial controls
         p2 = RoadmapItem(
             phase="Phase 2 (3–6 months)",
             initiative=(
-                f"Add second-layer coverage for {', '.join(partial_domains)} — "
+                f"Add second-layer coverage for {_join(partial_domains)} — "
                 f"{_plural(len(partial_gaps), 'control')} rely on a single tool"
             ),
             framework_focus=fw,
@@ -427,10 +442,30 @@ def _build_roadmap(
             ),
             depends_on="Vendor shortlisting and proof-of-concept for gap-fill tools",
         )
+    elif not missing_domains and partial_domains:
+        # No gaps: Phase 2 covers specialty domains not addressed in Phase 1
+        core_partial    = sorted(d for d in partial_domains if d in _CORE_DOMAINS)
+        spec_partial    = sorted(d for d in partial_domains if d not in _CORE_DOMAINS)
+        p2_targets      = spec_partial if (core_partial and spec_partial) else partial_domains
+        p2 = RoadmapItem(
+            phase="Phase 2 (3–6 months)",
+            initiative=(
+                f"Extend second-layer coverage to {_join(p2_targets)} and "
+                "deepen tool integrations to improve cross-domain signal fidelity"
+            ),
+            framework_focus=fw,
+            priority="P1",
+            effort="L",
+            expected_outcome=(
+                "Complete defense-in-depth across all domains; "
+                "reduce analyst workload through tighter tool integration"
+            ),
+            depends_on="Proof-of-concept for gap-fill tools; architecture review for integration touchpoints",
+        )
     else:
         p2 = RoadmapItem(
             phase="Phase 2 (3–6 months)",
-            initiative="All controls have multi-tool coverage — deepen integrations and data-sharing between tools",
+            initiative="All controls have multi-tool coverage — deepen integrations and automate control evidence collection",
             framework_focus=fw,
             priority="P1",
             effort="L",
