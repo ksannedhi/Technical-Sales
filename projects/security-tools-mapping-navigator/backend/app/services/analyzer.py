@@ -191,7 +191,7 @@ CONTROL_LIBRARY: List[ControlDef] = [
                _keywords("cis-4", "configuration", "hardening", "cloud posture", "endpoint posture",
                          "cloud security posture", "cspm", "cnapp", "benchmark", "secure config",
                          "misconfiguration", "cis benchmark",
-                         "capability_cloud", "capability_endpoint")),
+                         "capability_cloud")),
     # CIS-5  Account Management
     ControlDef("CIS-5", "CIS", "Account Management", "Identity",
                _keywords("cis-5", "account", "mfa", "directory", "provisioning", "deprovisioning",
@@ -202,7 +202,8 @@ CONTROL_LIBRARY: List[ControlDef] = [
                          "access control", "role-based", "just-in-time", "jit", "capability_identity")),
     # CIS-7  Continuous Vulnerability Management
     ControlDef("CIS-7", "CIS", "Continuous Vulnerability Management", "Endpoint",
-               _keywords("cis-7", "vulnerability", "patch", "cve", "scan", "remediation",
+               _keywords("cis-7", "vulnerability", "patch", "cve", "vulnerability scan",
+                         "vulnerability management", "remediation",
                          "qualys", "tenable", "rapid7", "insightvm", "capability_endpoint")),
     # CIS-8  Audit Log Management
     ControlDef("CIS-8", "CIS", "Audit Log Management", "SOC",
@@ -211,22 +212,25 @@ CONTROL_LIBRARY: List[ControlDef] = [
     # CIS-9  Email and Web Browser Protections
     ControlDef("CIS-9", "CIS", "Email and Web Browser Protections", "Data",
                _keywords("cis-9", "email", "phishing", "spam", "web gateway", "url filtering",
-                         "sandboxing", "browser", "email security", "capability_data")),
+                         "sandboxing", "browser", "email security", "email threat",
+                         "email gateway", "email protection")),
     # CIS-10 Malware Defenses
     ControlDef("CIS-10", "CIS", "Malware Defenses", "Endpoint",
                _keywords("cis-10", "edr", "xdr", "antimalware", "antivirus", "endpoint protection",
                          "workload protection", "capability_endpoint", "capability_cloud")),
     # CIS-12 Network Infrastructure Management
     ControlDef("CIS-12", "CIS", "Network Infrastructure Management", "Network",
-               _keywords("cis-12", "network firewall", "ngfw", "network infrastructure", "ids", "ips",
-                         "ztna", "zero trust", "sase", "capability_network")),
+               _keywords("cis-12", "network firewall", "ngfw", "network infrastructure",
+                         "segmentation", "perimeter", "ids", "ips", "ztna", "zero trust",
+                         "sase", "capability_network")),
     # CIS-13 Network Monitoring and Defense
     ControlDef("CIS-13", "CIS", "Network Monitoring and Defense", "Network",
                _keywords("cis-13", "ndr", "network detection", "network monitoring", "ids", "ips",
                          "packet", "flow", "traffic analysis", "lateral movement", "capability_network")),
     # CIS-16 Application Software Security  → AppSec domain
     ControlDef("CIS-16", "CIS", "Application Software Security", "AppSec",
-               _keywords("cis-16", "waf", "api security", "dast", "sast", "sca", "owasp",
+               _keywords("cis-16", "waf", "api security", "dast", "sast",
+                         "software composition", "software composition analysis", "owasp",
                          "devsecops", "application security", "web application", "code scanning",
                          "vulnerability scanning", "appsec", "capability_appsec")),
     # CIS-17 Incident Response Management
