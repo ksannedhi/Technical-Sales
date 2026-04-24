@@ -333,3 +333,36 @@ td {
   font-size: 0.85em;
   color: var(--accent-2);
 }
+
+/* ── Executive Summary ───────────────────────────────────────────────────── */
+.exec-summary {
+  border-left: 4px solid var(--accent);
+}
+
+.exec-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.copy-btn {
+  width: auto;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  background: var(--accent-2);
+  border-radius: 8px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  background: var(--accent);
+}
+
+.exec-narrative {
+  margin: 0;
+  line-height: 1.75;
+  color: var(--text);
+  font-size: 0.97rem;
+}

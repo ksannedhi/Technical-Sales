@@ -134,6 +134,108 @@ function triggerDownload(filename, content, contentType) {
   URL.revokeObjectURL(url);
 }
 
+function listJoin(items) {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+function buildNarrative(result) {
+  const frameworkLabel = {
+    NIST: "NIST CSF 2.0",
+    CIS: "CIS Controls v8.1",
+    BOTH: "NIST CSF 2.0 and CIS Controls v8.1",
+  }[result.framework_selected] ?? result.framework_selected;
+
+  const toolCount    = result.rows_processed ?? 0;
+  const totalCtrls   = result.controls_total ?? 0;
+  const missing      = result.controls_missing ?? 0;
+  const partial      = result.controls_partial ?? 0;
+  const covered      = result.controls_covered ?? 0;
+  const gaps         = result.gaps ?? [];
+  const redundancies = result.redundancies ?? [];
+
+  // Per-domain coverage breakdown from the gaps list
+  const domainStatus = {};
+  for (const gap of gaps) {
+    if (!domainStatus[gap.domain])
+      domainStatus[gap.domain] = { missing: 0, partial: 0, covered: 0 };
+    domainStatus[gap.domain][gap.status] =
+      (domainStatus[gap.domain][gap.status] || 0) + 1;
+  }
+  const coveredDomains = Object.entries(domainStatus)
+    .filter(([, s]) => s.missing === 0 && s.partial === 0 && s.covered > 0)
+    .map(([d]) => d);
+  const missingDomains = Object.entries(domainStatus)
+    .filter(([, s]) => s.missing > 0)
+    .map(([d]) => d);
+
+  // Sentence 1 — scope
+  const s1 = `${toolCount} security tool${toolCount !== 1 ? "s" : ""} analysed against ${frameworkLabel} across ${totalCtrls} control objective${totalCtrls !== 1 ? "s" : ""}.`;
+
+  // Sentence 2 — coverage headline
+  let s2;
+  if (missing === 0 && partial === 0) {
+    s2 = "All controls are fully covered — no gaps identified.";
+  } else if (coveredDomains.length > 0 && missingDomains.length > 0) {
+    s2 = `Coverage is strongest in ${listJoin(coveredDomains)}; gaps were identified in ${listJoin(missingDomains)}.`;
+  } else if (coveredDomains.length === 0 && missingDomains.length > 0) {
+    s2 = `Coverage gaps span ${listJoin(missingDomains)}, with ${missing} control${missing !== 1 ? "s" : ""} entirely unaddressed.`;
+  } else {
+    s2 = `${covered} control${covered !== 1 ? "s" : ""} fully covered, ${partial} partially covered, ${missing} with no coverage.`;
+  }
+
+  // Sentence 3 — top gap
+  const topGap = gaps.find((g) => g.severity === "high");
+  let s3;
+  if (topGap) {
+    s3 = `Highest-priority gap: ${topGap.control_name} (${topGap.control_id}) — no dedicated tool covers this control.`;
+  } else if (partial > 0) {
+    s3 = `No critical gaps found; ${partial} control${partial !== 1 ? "s" : ""} rely on a single tool and would benefit from a second-layer defence.`;
+  } else {
+    s3 = "";
+  }
+
+  // Sentence 4 — redundancy savings
+  const totalSavings = redundancies.reduce((s, r) => s + (r.estimated_savings_usd ?? 0), 0);
+  const s4 =
+    redundancies.length > 0
+      ? `${redundancies.length} redundancy opportunit${redundancies.length !== 1 ? "ies" : "y"} identified with an estimated $${totalSavings.toLocaleString("en-US")} in potential consolidation savings.`
+      : "";
+
+  return [s1, s2, s3, s4].filter(Boolean).join(" ");
+}
+
+function ExecutiveSummary({ result }) {
+  const [copied, setCopied] = useState(false);
+  const text = buildNarrative(result);
+
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    });
+  };
+
+  return (
+    <section className="card exec-summary">
+      <div className="exec-summary-header">
+        <h3 style={{ margin: 0 }}>Executive Summary</h3>
+        <button
+          type="button"
+          className="copy-btn"
+          onClick={copy}
+          title="Copy narrative to clipboard"
+        >
+          {copied ? "✓ Copied" : "Copy"}
+        </button>
+      </div>
+      <p className="exec-narrative">{text}</p>
+    </section>
+  );
+}
+
 function HowToUse() {
   const [open, setOpen] = useState(false);
   return (
@@ -339,7 +441,8 @@ export default function App() {
     }
 
     if (format === "json") {
-      triggerDownload("tools_mapping_result.json", JSON.stringify(result, null, 2), "application/json");
+      const output = { ...result, narrative: buildNarrative(result) };
+      triggerDownload("tools_mapping_result.json", JSON.stringify(output, null, 2), "application/json");
       return;
     }
 
@@ -508,6 +611,8 @@ export default function App() {
           </div>
         );
       })()}
+
+      {result && <ExecutiveSummary result={result} />}
 
       <section className="card grid cols-4">
         {stats.map((s) => (
