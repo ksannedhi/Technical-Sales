@@ -2,9 +2,7 @@
 
 GUI-first presales tool that ingests a security tools-controls mapping CSV and produces a
 framework-aligned gap analysis, redundancy audit, domain coverage summary, tool recommendations,
-and a dynamic phased roadmap.  Analysis is deterministic and fully offline by default; an optional
-AI enrichment toggle uses the Claude API to suggest control IDs for rows with vague objectives or
-niche vendors not in the built-in alias dictionary.
+and a dynamic phased roadmap — all without an AI API or internet connection.
 
 ---
 
@@ -29,29 +27,6 @@ niche vendors not in the built-in alias dictionary.
 | `NIST` | NIST CSF 2.0 — 6 controls across Identity, Endpoint, Data, Network, SOC |
 | `CIS` | CIS Controls v8.1 — 12 controls across Identity, Endpoint, Data, Cloud, Network, AppSec, SOC |
 | `BOTH` | All 18 controls, deduplicated redundancy output |
-
----
-
-## Optional AI enrichment
-
-The deterministic engine matches tools by keyword and alias tokens.  Two failure modes exist:
-- **Vague objectives** — free-text like "prevent ransomware spreading laterally" contains none of the
-  expected tokens (`edr`, `endpoint`, `capability_endpoint`) and scores as a miss.
-- **Niche vendors** — products not in `ALIAS_TOKEN_MAP` inject no capability token and rely entirely
-  on keyword matching in `control_objective`.
-
-When `ANTHROPIC_API_KEY` is set in `backend/.env`, an **"Use AI enrichment"** checkbox appears on
-the upload form.  Enabling it sends all rows whose `current_control_id` is blank to the Claude API
-in a single batch call.  Claude suggests the best-matching control ID from the library; the
-suggestion is written into `current_control_id` before the deterministic analyzer runs.
-
-```
-# backend/.env
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-The toggle is hidden when no API key is configured.  If the API call fails for any reason the
-analysis proceeds without enrichment — fully graceful degradation.
 
 ---
 
@@ -149,8 +124,7 @@ Phases are derived from the actual findings — not hardcoded:
 | Method | Path | Description |
 |---|---|---|
 | GET | `/health` | Health check |
-| GET | `/ai-status` | Returns `{"enabled": true/false}` — whether ANTHROPIC_API_KEY is configured |
-| POST | `/analyze` | Upload CSV and run analysis (`framework`, `mapping_file`, optional `project_name`, optional `use_ai_enrichment`) |
+| POST | `/analyze` | Upload CSV and run analysis (`framework`, `mapping_file`, optional `project_name`) |
 | GET | `/projects` | List saved projects |
 | GET | `/projects/{id}` | Load a saved project |
 | DELETE | `/projects/{id}` | Delete a saved project |
