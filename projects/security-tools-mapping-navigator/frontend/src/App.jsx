@@ -158,13 +158,15 @@ function DomainCoverageMatrix({ result }) {
                       ? tools.join(", ")
                       : <span className="helper">None mapped</span>}
                   </td>
-                  <td style={{ whiteSpace: "nowrap" }}>
-                    <span style={{ color: "var(--ok)" }}>{s.covered}✓</span>
-                    {" · "}
-                    <span style={{ color: "var(--warn)" }}>{s.partial}~</span>
-                    {" · "}
-                    <span style={{ color: "var(--danger)" }}>{s.missing}✗</span>
-                    <span style={{ color: "var(--muted)", fontSize: "0.82rem" }}> / {total}</span>
+                  <td style={{ whiteSpace: "nowrap", fontSize: "0.88rem" }}>
+                    {[
+                      s.covered > 0 && <span key="c" style={{ color: "var(--ok)" }}>{s.covered} covered</span>,
+                      s.partial > 0 && <span key="p" style={{ color: "var(--warn)" }}>{s.partial} partial</span>,
+                      s.missing > 0 && <span key="m" style={{ color: "var(--danger)" }}>{s.missing} missing</span>,
+                    ]
+                      .filter(Boolean)
+                      .reduce((acc, el, i) => [...acc, i > 0 && <span key={`sep-${i}`} style={{ color: "var(--muted)" }}> · </span>, el], [])}
+                    <span style={{ color: "var(--muted)" }}> / {total}</span>
                   </td>
                   <td><Badge text={badgeText} type={badgeType} /></td>
                 </tr>
