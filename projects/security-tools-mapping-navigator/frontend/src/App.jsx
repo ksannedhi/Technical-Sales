@@ -64,11 +64,28 @@ async function parseApiError(response) {
   return `Request failed (${response.status}).`;
 }
 
+/** Convert a SQLite CURRENT_TIMESTAMP string ("2026-04-24 09:29:42", stored in UTC)
+ *  to a human-readable local-timezone string. */
+function formatLocalTime(utcStr) {
+  if (!utcStr) return "";
+  // Append "Z" so Date() treats it as UTC, not local
+  const d = new Date(utcStr.replace(" ", "T") + "Z");
+  if (isNaN(d.getTime())) return utcStr;
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 function Badge({ text, type }) {
   return <span className={`badge ${type}`}>{text}</span>;
 }
 
-function Table({ columns, rows }) {
+function Table({ columns, rows, rowStyle }) {
   return (
     <div className="table-wrap">
       <table>
@@ -88,7 +105,7 @@ function Table({ columns, rows }) {
             </tr>
           ) : (
             rows.map((row, idx) => (
-              <tr key={idx}>
+              <tr key={idx} style={rowStyle ? rowStyle(row) : undefined}>
                 {columns.map((c) => (
                   <td key={c.key}>{c.render ? c.render(row[c.key], row) : row[c.key]}</td>
                 ))}
@@ -327,6 +344,7 @@ export default function App() {
   const [savedProjects, setSavedProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loadedProjectId, setLoadedProjectId] = useState(null);
 
   const loadSavedProjects = async () => {
     try {
@@ -386,7 +404,9 @@ export default function App() {
         throw new Error(await parseApiError(response));
       }
 
-      setResult(await response.json());
+      const r = await response.json();
+      setResult(r);
+      setLoadedProjectId(r.project_id ?? null);
       await loadSavedProjects();
     } catch (e) {
       setError(e.message);
@@ -404,6 +424,7 @@ export default function App() {
       const payload = await response.json();
       setResult(payload.result);
       setProjectName(payload.project_name || "");
+      setLoadedProjectId(id);
     } catch (e) {
       setError(e.message);
     }
@@ -427,6 +448,7 @@ export default function App() {
 
       setSavedProjects((current) => current.filter((project) => project.id !== id));
       setResult((current) => (current?.project_id === id ? null : current));
+      setLoadedProjectId((cur) => (cur === id ? null : cur));
       if (projectName === name) {
         setProjectName("");
       }
@@ -560,19 +582,34 @@ export default function App() {
       <section className="card">
         <h3>Saved Projects</h3>
         <Table
+          rowStyle={(row) =>
+            row.id === loadedProjectId
+              ? { background: "#e7f7ea", borderLeft: "3px solid #1a7f37" }
+              : undefined
+          }
           columns={[
             { key: "id", label: "ID" },
             { key: "project_name", label: "Project" },
             { key: "framework", label: "Framework" },
             { key: "rows_processed", label: "Rows" },
-            { key: "created_at", label: "Created" },
+            {
+              key: "created_at",
+              label: "Created",
+              render: (v) => formatLocalTime(v),
+            },
             {
               key: "id",
               label: "Action",
               render: (id, row) => (
                 <div className="inline-actions">
-                  <button type="button" className="secondary" onClick={() => loadProject(id)}>
-                    Load
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() => loadProject(id)}
+                    disabled={id === loadedProjectId}
+                    style={id === loadedProjectId ? { background: "#1a7f37", opacity: 1 } : undefined}
+                  >
+                    {id === loadedProjectId ? "✓ Loaded" : "Load"}
                   </button>
                   <button type="button" className="secondary danger" onClick={() => deleteProject(id, row.project_name)}>
                     Delete
