@@ -20,11 +20,11 @@ TERM_NORMALIZATIONS = {
 }
 PROBLEM_ALIASES = {
     "ransomware_protection": ["ransomware", "endpoint security", "endpoint protection", "edr", "xdr"],
-    "cloud_security": ["cloud security", "cloud posture", "cloud misconfiguration", "cnapp", "cspm", "cwpp"],
+    "cloud_security": ["cloud security", "cloud posture", "cloud misconfiguration", "cnapp", "cspm", "cwpp", "cloud security posture", "cloud workload protection"],
     "identity_protection": ["identity protection", "identity security", "pam", "mfa", "passwordless", "itdr"],
     "identity_governance": ["identity governance", "iga", "access review", "access certification", "joiner mover leaver", "segregation of duties", "birthright access"],
     "api_security": ["api security", "waf", "web application firewall"],
-    "data_security": ["data security", "dspm", "dlp", "data privacy"],
+    "data_security": ["data security", "dspm", "dlp", "data loss prevention", "data privacy"],
     "network_visibility": ["network visibility", "ndr", "siem", "security visibility", "qradar", "splunk", "fortisiem", "forisiem"],
     "email_protection": ["email security", "email protection"],
     "mobile_security": ["mobile security", "mobile threat"],
@@ -32,16 +32,16 @@ PROBLEM_ALIASES = {
 }
 CATEGORY_ALIASES = {
     "API Security": ["api security"],
-    "ASM": ["asm", "attack surface management"],
-    "CNAPP": ["cnapp"],
-    "CSPM": ["cspm"],
-    "CWPP": ["cwpp"],
+    "ASM": ["asm", "easm", "attack surface management", "external attack surface management"],
+    "CNAPP": ["cnapp", "cspm", "cwpp", "cloud security posture", "cloud workload protection"],
     "DLP": ["dlp"],
-    "DSPM": ["dspm"],
+    "DSPM": ["dspm", "data security posture", "data privacy"],
     "EDR": ["edr"],
+    "Email Security": ["email security", "email protection", "phishing protection", "anti-phishing"],
     "Firewall": ["firewall", "firewalls", "next generation firewall", "ngfw"],
     "IGA": ["iga", "identity governance", "identity governance and administration", "access review", "access certification", "joiner mover leaver", "segregation of duties"],
     "Identity Security": ["identity security"],
+    "ITDR": ["itdr", "identity threat detection", "identity threat detection and response"],
     "Microsegmentation": ["microsegmentation"],
     "MFA": ["mfa"],
     "Mobile Security": ["mobile security"],
@@ -170,7 +170,6 @@ class DecisionEngine:
         if parsed.intent == "comparison" and parsed.compare_targets and len(parsed.compare_targets) >= 2 and not matched_products:
             return self._insufficient(parsed, self._missing_comparison_reason(parsed, parsed.compare_targets))
         categories = self._resolve_categories(parsed)
-        products = [product for product in self.products if any(category in product["categories"] for category in categories)]
         if not categories:
             if parsed.required_region and not (parsed.vendors or parsed.lookup_products):
                 return self._insufficient(
@@ -182,8 +181,11 @@ class DecisionEngine:
             if parsed.unsupported_terms:
                 reason = f"The current dataset does not yet cover: {', '.join(parsed.unsupported_terms)}."
             return self._insufficient(parsed, reason)
+        if len(categories) > 1:
+            return self._build_stack(parsed, categories)
+        products = [product for product in self.products if categories[0] in product["categories"]]
         if not products:
-            vendor_matches = self._vendor_category_matches(categories[0]) if categories else []
+            vendor_matches = self._vendor_category_matches(categories[0])
             if vendor_matches:
                 return self._vendor_category_recommendation(parsed, categories[0], vendor_matches)
             return self._insufficient(parsed, "I identified a relevant category, but the current dataset has no products for it.", categories)
@@ -206,7 +208,7 @@ class DecisionEngine:
         integrations = self._alias_matches(text, INTEGRATION_ALIASES)
         has_category_signal = bool(categories or problems)
         vendor_capability_hint = bool(vendors) and bool(re.search(r"\b(?:can|does)\b.+\b(?:provide|offer|support)\b", text))
-        intent = "comparison" if comparison_hint or len(compare_targets) >= 2 else "lookup" if (lookup_hint and not has_category_signal and (vendors or lookup_products)) or vendor_capability_hint else "recommendation"
+        intent = "comparison" if comparison_hint or len(compare_targets) >= 2 else "lookup" if (lookup_hint and not has_category_signal) or vendor_capability_hint else "recommendation"
         return ParsedQuery(query, intent, categories, problems, vendors, lookup_products, compare_targets, unsupported, deployment, region, compliance, integrations)
 
     def _matched_products(self, parsed: ParsedQuery) -> list[dict[str, Any]]:
@@ -271,6 +273,8 @@ class DecisionEngine:
         return unique[:5]
 
     def _lookup_profile(self, parsed: ParsedQuery) -> dict[str, Any]:
+        if not parsed.vendors and not parsed.lookup_products:
+            return self._insufficient(parsed, "I could not find a vendor or product matching your request in the current dataset.")
         if parsed.vendors:
             vendor_name = parsed.vendors[0]
             vendor = self.vendor_lookup.get(vendor_name.lower())
@@ -566,7 +570,7 @@ class DecisionEngine:
             and deployment_models == ["SaaS"]
         ):
             reasons.append("Excluded because the request requires on-prem and this product is SaaS-only.")
-        if "exclude_if_required_compliance_missing" in active_rules and parsed.required_compliance:
+        if "exclude_if_required_compliance_missing" in active_rules and parsed.required_compliance and compliance:
             missing = [item for item in parsed.required_compliance if item.lower() not in compliance]
             if missing:
                 reasons.append(f"Excluded because required compliance tags are missing: {', '.join(missing)}.")
@@ -574,6 +578,7 @@ class DecisionEngine:
             "exclude_if_product_not_available_in_region" in active_rules
             and parsed.required_region
             and parsed.required_region not in vendor.get("regions", [])
+            and "Global" not in vendor.get("regions", [])
         ):
             reasons.append(f"Excluded because the product is not marked available in {parsed.required_region}.")
         if "exclude_if_required_integration_missing" in active_rules and parsed.required_integrations:
@@ -663,6 +668,59 @@ class DecisionEngine:
             "assumptions": ["Scoring uses configured weights across deployment, available feature coverage, integrations, compliance, cost, and operational complexity when the dataset contains those fields."],
             "data_gaps": self._data_gaps(parsed),
             "confidence": "low-to-medium",
+        }
+
+    def _build_stack(self, parsed: ParsedQuery, categories: list[str]) -> dict[str, Any]:
+        stack = []
+        all_excluded: list[dict[str, Any]] = []
+        for category in categories:
+            cat_products = [p for p in self.products if category in p["categories"]]
+            if not cat_products:
+                vendor_matches = self._vendor_category_matches(category)
+                if vendor_matches:
+                    stack.append({
+                        "category": category,
+                        "status": "vendor_only",
+                        "message": f"Vendor-level coverage only for {category}. No product records available yet.",
+                        "recommended_product": None,
+                    })
+                else:
+                    stack.append({
+                        "category": category,
+                        "status": "insufficient_data",
+                        "message": f"No coverage for {category} in the current dataset.",
+                        "recommended_product": None,
+                    })
+                continue
+            ranked = self._rank_category(parsed, category, cat_products)
+            all_excluded.extend(ranked.get("excluded_products", []))
+            if ranked["mode"] == "insufficient_data":
+                stack.append({
+                    "category": category,
+                    "status": "insufficient_data",
+                    "message": ranked["reason"],
+                    "recommended_product": None,
+                })
+            else:
+                stack.append({
+                    "category": category,
+                    "status": "ok",
+                    "message": None,
+                    "recommended_product": ranked["top_recommendation"],
+                })
+        ok_count = sum(1 for item in stack if item["status"] == "ok")
+        confidence = "medium" if ok_count == len(categories) else "low-to-medium" if ok_count else "low"
+        return {
+            "mode": "stack",
+            "query": parsed.raw_query,
+            "interpreted_problem": parsed.problems,
+            "solution_categories": categories,
+            "constraints": self._constraints_dict(parsed),
+            "solution_stack": stack,
+            "excluded_products": all_excluded,
+            "assumptions": ["Each category is evaluated independently using the same constraint filters."],
+            "data_gaps": self._data_gaps(parsed),
+            "confidence": confidence,
         }
 
     def _alias_matches(self, text: str, alias_map: dict[str, list[str]]) -> list[str]:

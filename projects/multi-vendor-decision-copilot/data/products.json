@@ -2,262 +2,401 @@
   {
     "vendor": "CrowdStrike",
     "product": "Falcon Insight XDR",
-    "category": [
-      "EDR",
-      "XDR"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["EDR", "XDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID", "AWS", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "CrowdStrike",
     "product": "Falcon Prevent",
-    "category": [
-      "EDR"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["EDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2"],
+    "integration_support": ["ServiceNow", "Okta"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
   },
   {
     "vendor": "Palo Alto Networks",
     "product": "Cortex XDR",
-    "category": [
-      "XDR"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["XDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Palo Alto Networks",
     "product": "Prisma Cloud",
-    "category": [
-      "CNAPP"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["CNAPP"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "PCI DSS"],
+    "integration_support": ["AWS", "Azure", "GCP", "ServiceNow"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Microsoft Security",
     "product": "Defender for Endpoint",
-    "category": [
-      "EDR"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["EDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["Microsoft Entra ID", "Azure", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
   },
   {
     "vendor": "Microsoft Security",
     "product": "Microsoft Sentinel",
-    "category": [
-      "SIEM"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["SIEM"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA", "PCI DSS"],
+    "integration_support": ["Microsoft Entra ID", "Azure", "ServiceNow", "Okta"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "SentinelOne",
     "product": "Singularity Endpoint",
-    "category": [
-      "EDR"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["EDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "AWS"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
   },
   {
     "vendor": "Fortinet",
     "product": "FortiEDR",
-    "category": [
-      "EDR"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["EDR"],
+    "deployment": ["Hybrid"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Cisco",
     "product": "SecureX",
-    "category": [
-      "XDR"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["XDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2"],
+    "integration_support": ["ServiceNow", "Okta"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Splunk",
     "product": "Splunk Enterprise Security",
-    "category": [
-      "SIEM"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["SIEM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "HIPAA", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID", "AWS", "Azure", "GCP"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
+  },
+  {
+    "vendor": "Splunk",
+    "product": "Splunk SOAR",
+    "category": ["SOAR"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "SOC 2"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID", "AWS"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
   },
   {
     "vendor": "IBM Security",
     "product": "QRadar SIEM",
-    "category": [
-      "SIEM"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["SIEM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "HIPAA", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "AWS"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
   },
   {
     "vendor": "Trend Micro",
     "product": "Vision One",
-    "category": [
-      "XDR"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["XDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "AWS", "Azure"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Imperva",
     "product": "Imperva Cloud WAF",
-    "category": [
-      "WAF"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["WAF"],
+    "deployment": ["SaaS"],
+    "compliance": ["PCI DSS", "SOC 2"],
+    "integration_support": ["ServiceNow", "AWS"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Cloudflare",
+    "product": "Cloudflare Application Security",
+    "category": ["WAF"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "FedRAMP"],
+    "integration_support": ["AWS", "Azure", "GCP"],
+    "pricing_tier": "low",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Akamai",
+    "product": "Akamai App & API Protector",
+    "category": ["WAF"],
+    "deployment": ["SaaS"],
+    "compliance": ["PCI DSS", "SOC 2", "ISO 27001"],
+    "integration_support": ["AWS", "Azure", "GCP"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Varonis",
     "product": "Varonis Data Security Platform",
-    "category": [
-      "DSPM"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["DSPM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["SOC 2", "HIPAA", "PCI DSS", "ISO 27001"],
+    "integration_support": ["Microsoft Entra ID", "Okta", "ServiceNow"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "BigID",
     "product": "BigID Data Intelligence Platform",
-    "category": [
-      "Data Privacy"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["Data Privacy", "DSPM"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "HIPAA", "PCI DSS"],
+    "integration_support": ["AWS", "Azure", "GCP", "ServiceNow"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Cyera",
     "product": "Cyera DSPM",
-    "category": [
-      "DSPM"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["DSPM"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["AWS", "Azure", "GCP"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Forcepoint",
+    "product": "Forcepoint DLP",
+    "category": ["DLP"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "HIPAA", "PCI DSS", "SOC 2", "ISO 27001"],
+    "integration_support": ["Microsoft Entra ID", "Okta", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Symantec",
+    "product": "Symantec DLP",
+    "category": ["DLP"],
+    "deployment": ["Hybrid"],
+    "compliance": ["HIPAA", "PCI DSS", "SOC 2", "ISO 27001"],
+    "integration_support": ["Microsoft Entra ID", "ServiceNow"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
   },
   {
     "vendor": "Illumio",
     "product": "Illumio Core",
-    "category": [
-      "Microsegmentation"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["Microsegmentation"],
+    "deployment": ["Hybrid"],
+    "compliance": ["PCI DSS", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "AWS", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Silverfort",
     "product": "Silverfort Identity Security Platform",
-    "category": [
-      "Identity Security"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["Identity Security", "ITDR"],
+    "deployment": ["Hybrid"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["Microsoft Entra ID", "Okta", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "BeyondTrust",
     "product": "Password Safe",
-    "category": [
-      "PAM"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["PAM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "HIPAA", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Wallarm",
     "product": "Wallarm API Security Platform",
-    "category": [
-      "API Security"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["API Security"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["AWS", "Azure", "GCP"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
   },
   {
     "vendor": "TXOne",
     "product": "Stellar",
-    "category": [
-      "OT Security"
-    ],
-    "deployment": [
-      "Hybrid"
-    ]
+    "category": ["OT Security"],
+    "deployment": ["Hybrid"],
+    "compliance": ["ISO 27001"],
+    "integration_support": [],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
   },
   {
     "vendor": "Yubico",
     "product": "YubiKey",
-    "category": [
-      "MFA"
-    ],
-    "deployment": [
-      "Hardware"
-    ]
+    "category": ["MFA"],
+    "deployment": ["Hardware"],
+    "compliance": ["FedRAMP", "HIPAA", "PCI DSS"],
+    "integration_support": ["Okta", "Microsoft Entra ID"],
+    "pricing_tier": "low",
+    "operational_complexity": "low"
   },
   {
     "vendor": "Zimperium",
     "product": "Zimperium Mobile Threat Defense",
-    "category": [
-      "Mobile Security"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["Mobile Security"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "FedRAMP"],
+    "integration_support": ["Microsoft Entra ID", "Okta"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
   },
   {
     "vendor": "Wiz",
     "product": "Wiz Cloud Security Platform",
-    "category": [
-      "CNAPP"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["CNAPP"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "PCI DSS"],
+    "integration_support": ["AWS", "Azure", "GCP", "ServiceNow", "Okta"],
+    "pricing_tier": "high",
+    "operational_complexity": "low"
   },
   {
     "vendor": "Orca Security",
     "product": "Orca Platform",
-    "category": [
-      "CNAPP"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["CNAPP"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["AWS", "Azure", "GCP", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
   },
   {
     "vendor": "Sysdig",
     "product": "Sysdig Secure",
-    "category": [
-      "CNAPP"
-    ],
-    "deployment": [
-      "SaaS"
-    ]
+    "category": ["CNAPP"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["AWS", "Azure", "GCP"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Darktrace",
+    "product": "Darktrace DETECT + RESPOND",
+    "category": ["NDR"],
+    "deployment": ["Hybrid"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Microsoft Entra ID"],
+    "pricing_tier": "high",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Vectra AI",
+    "product": "Cognito Detect",
+    "category": ["NDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "ExtraHop",
+    "product": "Reveal(x) 360",
+    "category": ["NDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "FedRAMP"],
+    "integration_support": ["ServiceNow", "AWS"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Proofpoint",
+    "product": "Proofpoint Email Protection",
+    "category": ["Email Security"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "HIPAA", "SOC 2", "ISO 27001"],
+    "integration_support": ["Microsoft Entra ID", "Okta", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Okta",
+    "product": "Okta Workforce Identity",
+    "category": ["Identity Security", "MFA"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["Microsoft Entra ID", "ServiceNow", "AWS", "Azure"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "SailPoint",
+    "product": "SailPoint IdentityNow",
+    "category": ["IGA"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["Okta", "Microsoft Entra ID", "ServiceNow", "AWS"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Saviynt",
+    "product": "Saviynt Enterprise Identity Cloud",
+    "category": ["IGA"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "FedRAMP"],
+    "integration_support": ["Okta", "Microsoft Entra ID", "ServiceNow", "AWS", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Tenable",
+    "product": "Tenable Attack Surface Management",
+    "category": ["ASM"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "FedRAMP"],
+    "integration_support": ["ServiceNow", "AWS", "Azure"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Qualys",
+    "product": "Qualys EASM",
+    "category": ["ASM"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "FedRAMP", "PCI DSS"],
+    "integration_support": ["ServiceNow", "AWS", "Azure"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
   }
 ]

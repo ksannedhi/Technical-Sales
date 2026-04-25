@@ -21,7 +21,7 @@
         ]
       },
       {
-        "vendor": "Microsoft",
+        "vendor": "Microsoft Security",
         "product": "Defender for Endpoint",
         "features": [
           "behavioral detection",

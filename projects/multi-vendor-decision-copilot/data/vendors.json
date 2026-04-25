@@ -78,6 +78,61 @@
     ]
   },
   {
+    "vendor": "SailPoint",
+    "categories": [
+      "IGA"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Saviynt",
+    "categories": [
+      "IGA"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Forcepoint",
+    "categories": [
+      "DLP"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Symantec",
+    "categories": [
+      "DLP",
+      "Endpoint Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Tenable",
+    "categories": [
+      "ASM"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Qualys",
+    "categories": [
+      "ASM"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
     "vendor": "IBM Security",
     "categories": [
       "SIEM",

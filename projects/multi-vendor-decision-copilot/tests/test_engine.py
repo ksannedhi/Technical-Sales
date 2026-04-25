@@ -89,9 +89,10 @@ class DecisionEngineTests(unittest.TestCase):
 
     def test_data_security_routes_to_category(self) -> None:
         result = self.engine.analyze("What about data security?")
-        self.assertEqual(result["mode"], "single_category")
-        self.assertEqual(result["solution_categories"], ["DSPM"])
-        self.assertEqual(result["top_recommendation"]["vendor"], "Varonis")
+        # data_security now maps to both DSPM and DLP, both have products — stack mode fires
+        self.assertEqual(result["mode"], "stack")
+        self.assertIn("DSPM", result["solution_categories"])
+        self.assertIn("DLP", result["solution_categories"])
 
     def test_ot_security_routes_to_category(self) -> None:
         result = self.engine.analyze("I want to secure my manufacturing plant. Can you recommend few ot security solutions?")
@@ -115,10 +116,11 @@ class DecisionEngineTests(unittest.TestCase):
         self.assertEqual(result["mode"], "single_category")
         self.assertEqual(result["solution_categories"], ["CNAPP"])
 
-    def test_iga_maps_but_fails_honestly_without_products(self) -> None:
+    def test_iga_recommendation_works_with_products(self) -> None:
         result = self.engine.analyze("Recommend IGA tools for access reviews and joiner mover leaver workflows.")
-        self.assertEqual(result["mode"], "insufficient_data")
+        self.assertEqual(result["mode"], "single_category")
         self.assertEqual(result["solution_categories"], ["IGA"])
+        self.assertGreaterEqual(len(result["ranked_products"]), 1)
 
     def test_region_only_query_gets_guided_clarification(self) -> None:
         result = self.engine.analyze("What solutions are available for the Middle East market?")

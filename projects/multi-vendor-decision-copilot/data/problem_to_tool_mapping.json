@@ -4,9 +4,7 @@
     "XDR"
   ],
   "cloud_security": [
-    "CNAPP",
-    "CSPM",
-    "CWPP"
+    "CNAPP"
   ],
   "identity_protection": [
     "PAM",
