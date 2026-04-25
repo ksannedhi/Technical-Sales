@@ -25,6 +25,8 @@ Users can optionally tailor the output by:
 - uploading a vulnerability scan report
 - naming the affected business service (free-text field — helps map the input to the right business unit and revenue context when the CVE text alone is ambiguous)
 
+When a CVSS base score or vector string is present in the pasted text, the engine uses it directly as the authoritative exploitability signal rather than relying on keyword inference. Supported formats include full vector strings (`CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H`), labeled scores (`CVSSv3 Base Score: 9.8`), and bare scores (`CVSS: 8.7`).
+
 Supported upload formats:
 - `.pdf`
 - `.txt`
@@ -143,9 +145,9 @@ VITE_API_URL=http://127.0.0.1:8000
 
 ## Current limitations
 
-- Ad hoc analysis still uses heuristic template matching rather than a trained classifier.
+- Ad hoc analysis uses heuristic keyword matching. CVEs with very sparse titles and no CVSS data may route to the generic fallback.
 - Dollar estimates are synthetic and directional, not benchmark-calibrated.
-- Scenario and matcher configuration are still data/code driven rather than editable in the UI.
+- Scenario and matcher configuration are data/code driven rather than editable in the UI.
 - No persistence or saved project history yet.
 - No PDF or slide-deck board-pack export yet.
 

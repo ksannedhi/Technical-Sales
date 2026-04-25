@@ -133,7 +133,16 @@ If the user does not apply custom assumptions, the app uses built-in defaults.
 - When provided, the engine resolves it to the closest known business service and uses that service's BU, revenue proportion, and criticality for scoring, while the CVE text continues to drive signal factors independently.
 - When no match is found, the engine proceeds without override and the fallback neutralisation applies as normal.
 
-### FR9. Single-click launch
+### FR10. CVSS-driven exploitability
+- When a CVSS base score or vector string is present in the input text, the engine uses it as the authoritative exploitability signal in place of keyword inference.
+- Supported formats: full v3 vector string (`CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H`), labeled prose scores (`CVSSv3 Base Score: 9.8`, `Base Score: 7.5`), and bare scores (`CVSS: 8.7`).
+- CVSS v3 severity bands map directly: Critical ≥9.0 → 5, High ≥7.0 → 4, Medium ≥4.0 → 3, Low ≥0.1 → 2.
+- When only a vector string is present (no numeric score), exploitability is synthesised from AV, AC, PR, and UI components.
+- Active exploitation signals (KEV, "exploited in the wild") apply a +1 boost even when CVSS is present, since KEV status is not encoded in CVSS scores.
+- The scoring rationale cites the CVSS source and notes that keyword inference was overridden.
+- When no CVSS data is found the engine falls back to keyword inference unchanged.
+
+### FR11. Single-click launch
 - A Windows launcher starts backend and frontend together.
 - The launcher handles first-run dependency installation when possible.
 
@@ -173,6 +182,7 @@ The current synthetic graph should be replaceable later with real-world sources 
 - synthetic enterprise graph stored in JSON
 - deterministic enrichment and scoring engine
 - weighted scenario template matching for ad hoc analysis
+- CVSS v3 score and vector parser for authoritative exploitability
 - scan-report parsing and roll-up logic
 
 ### Data model
@@ -222,7 +232,7 @@ The intended reading order is:
 
 ## Known Limitations
 
-- Ad hoc analysis relies on heuristic keyword matching rather than trained classification. CVEs with sparse titles and no structured CVSS data may route to the generic fallback.
+- Ad hoc analysis relies on heuristic keyword matching. CVEs with very sparse titles and no CVSS data may route to the generic fallback.
 - Dollar estimates are synthetic and directional, not benchmark-calibrated.
 - Scenario management and scoring weights are not yet editable through the UI.
 - No authentication or multi-user workflow exists in the MVP.
@@ -232,9 +242,8 @@ The intended reading order is:
 
 ## Suggested Next Steps
 
-1. Parse CVSS base scores and attack vectors directly from input text to replace keyword inference when structured data is available.
-2. Add an industry sector selector (financial services, healthcare, manufacturing, retail) that pre-loads appropriate profile defaults.
-3. Add "what if" profile sliders that update risk scores live without re-submitting, turning the tool into a real-time risk calculator.
-4. Add a formatted PDF export for board-pack leave-behinds.
-5. Add a session risk roll-up showing aggregate exposure across all analyses in the current session.
-6. Move scoring weights and matcher configuration into editable config files or a lightweight admin UI.
+1. Add an industry sector selector (financial services, healthcare, manufacturing, retail) that pre-loads appropriate profile defaults.
+2. Add "what if" profile sliders that update risk scores live without re-submitting, turning the tool into a real-time risk calculator.
+3. Add a formatted PDF export for board-pack leave-behinds.
+4. Add a session risk roll-up showing aggregate exposure across all analyses in the current session.
+5. Move scoring weights and matcher configuration into editable config files or a lightweight admin UI.

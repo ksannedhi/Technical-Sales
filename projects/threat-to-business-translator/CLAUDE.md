@@ -79,7 +79,9 @@ Key constants:
 
 Key functions:
 - `_infer_scenario()` — scores every `SCENARIO_MATCHERS` template against the input text, picks the best match above threshold, or fires the generic fallback.
-- `_derive_signal_factors()` — adjusts `exploitability` and `threat_activity` from defaults using conditional language detection (strong: −2; moderate: −1) and confirmed severity signals (+1 each).
+- `_parse_cvss()` — extracts CVSS v3 data from free text. Handles full vector strings (`CVSS:3.1/AV:N/...`) and labeled score patterns (`CVSSv3 Base Score: 9.8`, `CVSS: 8.7`, `Base Score: 7.5`). A negative-lookahead guard prevents false-matching the version prefix inside a vector string.
+- `_cvss_exploitability()` — maps parsed CVSS data to a 1–5 score. Base score is authoritative (Critical ≥9.0 → 5, High ≥7.0 → 4, Medium ≥4.0 → 3). When only a vector string is present, synthesises from AV/AC/PR/UI components.
+- `_derive_signal_factors()` — when CVSS data is present, uses `_cvss_exploitability()` as the authoritative exploitability source (skipping keyword-based adjustments since CVSS already encodes them). When no CVSS is found, falls back to keyword inference with conditional language detection (strong: −2; moderate: −1). Active exploitation signals (`"known exploited"`, `"cisa kev"`) boost exploitability and threat_activity regardless of CVSS presence.
 - `_neutralise_fallback_context()` — replaces all template-sourced BU/service/asset/identity fields with neutral placeholders when the fallback fires. Risk scores and loss figures are preserved.
 - `_resolve_service()` — matches a customer-provided free-text service name against the domain using exact name, partial name, BU name, and `_SERVICE_KEYWORDS` synonym map.
 - `_derive_executive_trigger()` — extracts the first clean sentence (split at `.`) up to 280 chars with word-boundary truncation.
