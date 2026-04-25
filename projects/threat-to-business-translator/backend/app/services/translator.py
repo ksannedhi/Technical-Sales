@@ -202,6 +202,87 @@ def analyze_raw_input(raw_text: str, file_name: str | None = None, profile: dict
     return _analyze_single_input(raw_text, file_name, org_profile, domain)
 
 
+_FALLBACK_RECOMMENDED_ACTIONS = [
+    "Patch the affected product per vendor advisory on an urgent timeline.",
+    "Restrict network or application access to the affected component pending remediation.",
+    "Monitor for exploitation indicators in relevant system and application logs.",
+    "Assess internet exposure of the affected component and isolate if feasible.",
+]
+
+
+def _neutralise_fallback_context(report: dict, raw_text: str) -> dict:
+    """Replace template-derived business context with neutral placeholders.
+
+    When the engine falls back to the generic template (no keyword match above
+    MINIMUM_MATCH_SCORE), the inherited BU, service, asset, and identity fields
+    describe a fictional scenario unrelated to the actual input. Surfacing those
+    fields as facts — e.g. 'Customer Support Platform' for a SOAR platform CVE —
+    would mislead a customer who knows their environment.
+
+    The risk scores, loss figures, and exposure bands remain intact; only the
+    fields that are directly template-sourced and therefore meaningless for this
+    input are replaced.
+    """
+    likely_usd = report["business_impact"]["impact_band"]["likely_usd"]
+    high_usd = report["business_impact"]["impact_band"]["high_usd"]
+    overall_risk = report["risk_assessment"]["overall_risk"]
+    likelihood = report["risk_assessment"]["likelihood"]
+    impact = report["risk_assessment"]["impact"]
+    confidence_pct = int(report["risk_assessment"]["confidence"] * 100)
+    avoided_usd = report["risk_reduction_if_fixed"]["likely_loss_avoided_usd"]
+    avoided_hrs = report["risk_reduction_if_fixed"]["downtime_avoided_hours"]
+    residual_risk = report["risk_reduction_if_fixed"]["residual_risk"]
+    trigger = raw_text.strip()[:280]
+
+    report["business_context"].update({
+        "business_unit": "Not determined — provide customer context to refine",
+        "business_service": "Not determined — provide customer context to refine",
+        "service_owner": "Not determined",
+        "primary_asset": "Affected product or service (details unknown)",
+        "primary_asset_type": "Unknown",
+        "affected_assets": [],
+        "impacted_identities": [],
+    })
+
+    report["leadership_output"]["recommended_actions"] = _FALLBACK_RECOMMENDED_ACTIONS
+
+    report["leadership_output"]["executive_summary"] = (
+        f"{trigger} represents a credible security risk requiring leadership attention. "
+        f"The engine could not match this input to a known business service — provide the "
+        f"affected service, asset owner, and business unit to enable a service-specific analysis. "
+        f"At current risk parameters (likelihood {likelihood}/5, impact {impact}/5), the modeled "
+        f"likely loss exposure is ${likely_usd:,}."
+    )
+
+    report["leadership_output"]["board_brief"] = (
+        f"Leadership should treat this as an unclassified cyber risk pending service-owner confirmation. "
+        f"The modeled high-case exposure is ${high_usd:,}. Escalation path and classification should be "
+        f"determined once the affected business service is confirmed."
+    )
+
+    report["business_impact"]["summary"] = (
+        f"The current input represents a {overall_risk} risk to business operations. "
+        f"Without customer context on the affected service, the engine models a likely loss exposure of "
+        f"${likely_usd:,} at conservative baseline parameters."
+    )
+
+    report["risk_assessment"]["rationale"] = [
+        "Business service and asset context could not be determined from the input provided.",
+        f"Risk is modeled at conservative baseline signal levels (likelihood {likelihood}/5, impact {impact}/5).",
+        f"Confidence is {confidence_pct}% — provide customer context to improve accuracy.",
+        "Provide the affected service, asset owner, and business unit to enable a service-specific analysis.",
+    ]
+
+    report["risk_reduction_if_fixed"]["summary"] = (
+        f"If the recommended remediation actions are completed, risk exposure is expected to fall to "
+        f"{residual_risk}. The modeled likely loss avoided is ${avoided_usd:,}, with roughly "
+        f"{avoided_hrs} hours of disruption avoided. Refine this estimate by providing customer context "
+        f"on the affected service."
+    )
+
+    return report
+
+
 def _analyze_single_input(
     raw_text: str,
     file_name: str | None,
@@ -219,6 +300,8 @@ def _analyze_single_input(
     report["technical_summary"] = raw_text.strip()[:AD_HOC_SUMMARY_LIMIT]
     report["analysis_type"] = "ad_hoc"
     report["leadership_output"]["headline"] = _ad_hoc_headline(raw_text, report["leadership_output"]["headline"])
+    if scenario.get("_used_fallback"):
+        report = _neutralise_fallback_context(report, raw_text)
     return report
 
 
@@ -412,6 +495,7 @@ def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
         ad_hoc_defaults["threat_activity"] = min(ad_hoc_defaults["threat_activity"], FALLBACK_SIGNAL_CAP)
     scenario["signal_factors"] = _derive_signal_factors(raw_text, ad_hoc_defaults)
     scenario["recommended_actions"] = template["recommended_actions"]
+    scenario["_used_fallback"] = used_fallback
     return scenario
 
 
