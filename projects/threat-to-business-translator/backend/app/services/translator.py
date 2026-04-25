@@ -115,6 +115,14 @@ SCENARIO_MATCHERS = {
             "injection": 2,
             "http request": 2,
             "unauthenticated": 2,
+            # Path traversal / directory traversal / auth bypass via web
+            "path traversal": 5,
+            "directory traversal": 4,
+            "cwe-24": 5,
+            "cwe-22": 4,   # CWE-22 is the parent Path Traversal class
+            "bypass authentication": 4,  # word-order variant (e.g. "bypass authentication via HTTP")
+            "jrpc": 3,
+            "api endpoint": 2,
         },
     },
     "vpn-zero-day-finance": {
@@ -125,6 +133,7 @@ SCENARIO_MATCHERS = {
             "remote code execution": 3,
             "vulnerable": 2,
             "authentication bypass": 4,
+            "bypass authentication": 3,   # word-order variant of the above
             "internet-facing": 3,
             "scan report": 1,
         },
@@ -358,7 +367,11 @@ def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
 
     scenario = deepcopy(template)
     scenario["id"] = f"ad-hoc-{template['id']}"
-    scenario["name"] = f"Ad hoc analysis based on {template['name']}"
+    # Use the template's category (e.g. "CVE / exposure", "Web / application exposure")
+    # rather than its specific name. The template name describes a fictional scenario
+    # ("Outdated Internet-facing web server...") that has no relation to the customer's
+    # actual input and would erode trust during a demo.
+    scenario["name"] = f"Ad hoc {template['category']} analysis"
     scenario["technical_signal"] = raw_text.strip()[:2000] or template["technical_signal"]
     scenario["executive_trigger"] = _derive_executive_trigger(raw_text, template["executive_trigger"])
 
