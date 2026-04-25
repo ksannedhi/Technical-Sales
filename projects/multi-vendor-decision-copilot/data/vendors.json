@@ -133,6 +133,24 @@
     ]
   },
   {
+    "vendor": "Recorded Future",
+    "categories": [
+      "TIP"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "ThreatConnect",
+    "categories": [
+      "TIP"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
     "vendor": "IBM Security",
     "categories": [
       "SIEM",
@@ -298,7 +316,9 @@
   {
     "vendor": "Okta",
     "categories": [
-      "Identity Security"
+      "Identity Security",
+      "MFA",
+      "CIAM"
     ],
     "regions": [
       "Global"
@@ -307,7 +327,8 @@
   {
     "vendor": "Ping Identity",
     "categories": [
-      "Identity Security"
+      "Identity Security",
+      "CIAM"
     ],
     "regions": [
       "Global"

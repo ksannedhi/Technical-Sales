@@ -23,10 +23,10 @@ PROBLEM_ALIASES = {
     "cloud_security": ["cloud security", "cloud posture", "cloud misconfiguration", "cnapp", "cspm", "cwpp", "cloud security posture", "cloud workload protection"],
     "identity_protection": ["identity protection", "identity security", "pam", "mfa", "passwordless", "itdr"],
     "identity_governance": ["identity governance", "iga", "access review", "access certification", "joiner mover leaver", "segregation of duties", "birthright access"],
-    "api_security": ["api security", "waf", "web application firewall"],
-    "data_security": ["data security", "dspm", "dlp", "data loss prevention", "data privacy"],
+    "api_security": ["api security", "waf", "web application firewall", "apis", "api abuse", "api exposure", "api attack", "secure our api"],
+    "data_security": ["data security", "dspm", "dlp", "data loss prevention", "data privacy", "data leakage", "sensitive data", "protect our data", "prevent data loss"],
     "network_visibility": ["network visibility", "ndr", "siem", "security visibility", "qradar", "splunk", "fortisiem", "forisiem"],
-    "email_protection": ["email security", "email protection"],
+    "email_protection": ["email security", "email protection", "phishing", "stop phishing", "email threats", "email attack", "email threat"],
     "mobile_security": ["mobile security", "mobile threat"],
     "ot_security": ["ot security", "operational technology", "ics security", "industrial control systems", "manufacturing plant", "factory security"],
 }
@@ -36,8 +36,11 @@ CATEGORY_ALIASES = {
     "CNAPP": ["cnapp", "cspm", "cwpp", "cloud security posture", "cloud workload protection"],
     "DLP": ["dlp"],
     "DSPM": ["dspm", "data security posture", "data privacy"],
+    "CIAM": ["ciam", "customer identity", "customer identity and access management", "consumer identity"],
+    "DAM": ["dam", "database activity monitoring", "database monitoring", "db activity monitoring"],
     "EDR": ["edr"],
     "Email Security": ["email security", "email protection", "phishing protection", "anti-phishing"],
+    "TIP": ["tip", "threat intelligence", "threat intel", "threat intelligence platform", "cyber threat intelligence", "cti"],
     "Firewall": ["firewall", "firewalls", "next generation firewall", "ngfw"],
     "IGA": ["iga", "identity governance", "identity governance and administration", "access review", "access certification", "joiner mover leaver", "segregation of duties"],
     "Identity Security": ["identity security"],
@@ -274,6 +277,12 @@ class DecisionEngine:
 
     def _lookup_profile(self, parsed: ParsedQuery) -> dict[str, Any]:
         if not parsed.vendors and not parsed.lookup_products:
+            if parsed.required_region:
+                return self._insufficient(
+                    parsed,
+                    f"I can use {parsed.required_region} as a region constraint, but I still need a cybersecurity category, vendor, or problem area to recommend solutions responsibly.",
+                    suggested_queries=self._region_guided_queries(parsed.required_region),
+                )
             return self._insufficient(parsed, "I could not find a vendor or product matching your request in the current dataset.")
         if parsed.vendors:
             vendor_name = parsed.vendors[0]

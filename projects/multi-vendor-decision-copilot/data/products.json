@@ -398,5 +398,55 @@
     "integration_support": ["ServiceNow", "AWS", "Azure"],
     "pricing_tier": "medium",
     "operational_complexity": "low"
+  },
+  {
+    "vendor": "Recorded Future",
+    "product": "Recorded Future Intelligence Platform",
+    "category": ["TIP"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Splunk", "Microsoft Entra ID"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "ThreatConnect",
+    "product": "ThreatConnect Platform",
+    "category": ["TIP"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Splunk", "AWS"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Imperva",
+    "product": "Imperva DAM",
+    "category": ["DAM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["PCI DSS", "SOC 2", "HIPAA", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Splunk"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Okta",
+    "product": "Okta Customer Identity Cloud",
+    "category": ["CIAM"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["AWS", "Azure", "GCP", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Ping Identity",
+    "product": "PingOne for Customers",
+    "category": ["CIAM"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["AWS", "Azure", "GCP"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
   }
 ]
