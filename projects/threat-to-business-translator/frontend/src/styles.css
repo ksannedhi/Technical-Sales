@@ -217,6 +217,20 @@ select {
   min-height: 54px;
 }
 
+.text-input.single-line {
+  resize: none;
+  min-height: unset;
+  height: 38px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.label-optional {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .optional-profile {
   border: 1px solid var(--border);
   border-radius: 18px;

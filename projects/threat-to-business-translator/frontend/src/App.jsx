@@ -43,6 +43,7 @@ export default function App() {
   const [useCustomProfile, setUseCustomProfile] = useState(false);
   const [rawText, setRawText] = useState("");
   const [sourceFile, setSourceFile] = useState(null);
+  const [affectedService, setAffectedService] = useState("");
   const [scenarioLoadError, setScenarioLoadError] = useState("");
   const [reportMode, setReportMode] = useState("scenario");
 
@@ -123,6 +124,9 @@ export default function App() {
       if (sourceFile) {
         formData.append("source_file", sourceFile);
       }
+      if (affectedService.trim()) {
+        formData.append("affected_service", affectedService.trim());
+      }
       if (useCustomProfile) {
         Object.entries(profileToParams(profile)).forEach(([key, value]) => formData.append(key, value));
       }
@@ -140,6 +144,7 @@ export default function App() {
       setReportMode(payload.analysis_type === "scan_report" ? "scanReport" : "adHoc");
       setRawText("");
       setSourceFile(null);
+      setAffectedService("");
       window.scrollTo({ top: document.querySelector(".report-panel")?.offsetTop - 24 || 0, behavior: "smooth" });
     } catch (loadError) {
       setError(loadError.message || "Unable to analyze the supplied input.");
@@ -311,6 +316,22 @@ export default function App() {
                   type="file"
                   accept=".pdf,.txt,.csv,.json,.log"
                   onChange={(event) => setSourceFile(event.target.files?.[0] ?? null)}
+                />
+              </div>
+            </div>
+
+            <div className="intake-row">
+              <div className="intake-field grow">
+                <label className="input-label" htmlFor="affectedService">
+                  Affected business service or product <span className="label-optional">(optional — helps map the CVE to the right business context)</span>
+                </label>
+                <input
+                  id="affectedService"
+                  className="text-input single-line"
+                  type="text"
+                  value={affectedService}
+                  onChange={(event) => setAffectedService(event.target.value)}
+                  placeholder="e.g. payroll, customer portal, supply chain, digital banking"
                 />
               </div>
             </div>

@@ -93,6 +93,7 @@ def translate(
 async def analyze(
     raw_text: str = Form(default=""),
     source_file: UploadFile | None = File(default=None),
+    affected_service: str = Form(default=""),
     annual_revenue_musd: int = Form(default=250),
     employee_count: int = Form(default=5000),
     internet_exposure: int = Form(default=4),
@@ -118,5 +119,10 @@ async def analyze(
         regulatory_sensitivity,
         crown_jewel_dependency,
     )
-    result = analyze_raw_input(combined_text, file_name=file_name, profile=profile)
+    result = analyze_raw_input(
+        combined_text,
+        file_name=file_name,
+        profile=profile,
+        affected_service=affected_service.strip() or None,
+    )
     return TranslationResponse.model_validate(result)

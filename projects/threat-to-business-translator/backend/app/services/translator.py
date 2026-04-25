@@ -193,14 +193,36 @@ def translate_scenario(scenario_id: str, profile: dict | None = None) -> dict | 
     return _build_report(bundle, normalize_profile(profile))
 
 
-def analyze_raw_input(raw_text: str, file_name: str | None = None, profile: dict | None = None) -> dict:
+def analyze_raw_input(
+    raw_text: str,
+    file_name: str | None = None,
+    profile: dict | None = None,
+    affected_service: str | None = None,
+) -> dict:
     domain = load_domain()
     org_profile = normalize_profile(profile)
     parsed_findings = _parse_scan_report(raw_text)
     if len(parsed_findings) >= 2:
         return _analyze_scan_report(raw_text, file_name, org_profile, domain, parsed_findings)
-    return _analyze_single_input(raw_text, file_name, org_profile, domain)
+    return _analyze_single_input(raw_text, file_name, org_profile, domain, affected_service=affected_service)
 
+
+# Keyword map used by _resolve_service() to match customer free-text against
+# known service IDs. Each list covers common names, abbreviations, and related
+# concepts a customer might type when asked "which service does this affect?"
+_SERVICE_KEYWORDS: dict[str, list[str]] = {
+    "payroll-processing":           ["payroll", "salary", "wages", "hr", "human resources", "hris", "people ops"],
+    "customer-support-platform":    ["customer support", "support platform", "crm", "helpdesk", "help desk",
+                                     "service desk", "contact centre", "contact center"],
+    "customer-onboarding-analytics":["onboarding", "kyc", "know your customer", "analytics", "customer analytics",
+                                     "data analytics", "identity verification"],
+    "supplier-fulfillment-hub":     ["supplier", "supply chain", "fulfillment", "fulfilment", "logistics",
+                                     "procurement", "vendor management", "warehouse"],
+    "finance-data-platform":        ["finance data", "financial data", "erp", "accounting", "finance platform",
+                                     "general ledger", "gl", "financial reporting", "treasury"],
+    "customer-portal-experience":   ["customer portal", "portal", "digital banking", "online banking",
+                                     "web portal", "self-service", "internet banking"],
+}
 
 _FALLBACK_RECOMMENDED_ACTIONS = [
     "Patch the affected product per vendor advisory on an urgent timeline.",
@@ -283,16 +305,83 @@ def _neutralise_fallback_context(report: dict, raw_text: str) -> dict:
     return report
 
 
+def _resolve_service(text: str, domain: dict) -> dict | None:
+    """Match customer free-text to a known domain service.
+
+    Checks in priority order:
+    1. Exact service name (case-insensitive)
+    2. Partial service name (substring either way)
+    3. Business unit name → returns the highest-criticality service in that BU
+    4. _SERVICE_KEYWORDS map — covers abbreviations and common synonyms
+
+    Returns the matched service dict, or None if no confident match is found.
+    """
+    if not text or not text.strip():
+        return None
+
+    text_lower = text.lower().strip()
+    services = {svc["id"]: svc for svc in domain["business_services"]}
+
+    # 1. Exact service name
+    for svc in services.values():
+        if svc["name"].lower() == text_lower:
+            return svc
+
+    # 2. Partial service name match
+    for svc in services.values():
+        if text_lower in svc["name"].lower() or svc["name"].lower() in text_lower:
+            return svc
+
+    # 3. Business unit name → most critical service in that BU
+    for bu in domain["business_units"]:
+        if text_lower in bu["name"].lower() or bu["name"].lower() in text_lower:
+            bu_services = [svc for svc in services.values() if svc["business_unit_id"] == bu["id"]]
+            if bu_services:
+                return max(bu_services, key=lambda s: s["criticality"])
+
+    # 4. Keyword map
+    for service_id, keywords in _SERVICE_KEYWORDS.items():
+        if any(kw in text_lower for kw in keywords):
+            return services.get(service_id)
+
+    return None
+
+
 def _analyze_single_input(
     raw_text: str,
     file_name: str | None,
     org_profile: dict,
     domain: dict,
     finding: dict | None = None,
+    affected_service: str | None = None,
 ) -> dict:
     scenario = _infer_scenario(raw_text, file_name, domain)
     if finding is not None:
         scenario = _apply_finding_overrides(scenario, finding)
+
+    # If the customer named an affected service, resolve it and override the
+    # scenario's service binding. This separates the two concerns: the CVE text
+    # drives signal factors (exploitability, threat activity, conditional language),
+    # while the customer's service input drives business context (BU, revenue,
+    # criticality, recommended actions).
+    resolved_service = _resolve_service(affected_service, domain) if affected_service else None
+    # Save the fallback flag before any override — needed to decide whether to
+    # substitute recommended actions after the report is built.
+    was_fallback_before_service_override = scenario.get("_used_fallback", False)
+    if resolved_service:
+        scenario["service_id"] = resolved_service["id"]
+        # Use a primary asset from the resolved service's own scenarios if available,
+        # so revenue and criticality calculations are anchored to the right service.
+        service_scenarios = [s for s in domain["scenarios"] if s["service_id"] == resolved_service["id"]]
+        if service_scenarios:
+            scenario["primary_asset_id"] = service_scenarios[0]["primary_asset_id"]
+        # Clear linked assets and identities — customer named a service, not specific
+        # assets or identities, so we should not assert fictional ones.
+        scenario["asset_ids"] = []
+        scenario["identity_ids"] = []
+        # Mark as not a fallback so neutralisation does not run.
+        scenario["_used_fallback"] = False
+
     bundle = _bundle_for_inferred_scenario(scenario, domain)
     report = _build_report(bundle, org_profile)
     report["scenario_name"] = scenario["name"]
@@ -300,8 +389,24 @@ def _analyze_single_input(
     report["technical_summary"] = raw_text.strip()[:AD_HOC_SUMMARY_LIMIT]
     report["analysis_type"] = "ad_hoc"
     report["leadership_output"]["headline"] = _ad_hoc_headline(raw_text, report["leadership_output"]["headline"])
+
     if scenario.get("_used_fallback"):
         report = _neutralise_fallback_context(report, raw_text)
+    elif resolved_service:
+        # Service was customer-provided — clear fictional asset/identity details
+        # and note the source in the rationale.
+        report["business_context"]["affected_assets"] = []
+        report["business_context"]["impacted_identities"] = []
+        report["risk_assessment"]["rationale"].insert(
+            0,
+            f"Business context resolved from customer-provided service input: '{resolved_service['name']}' "
+            f"({report['business_context']['business_unit']}).",
+        )
+        # If the CVE match was too weak to reach a specific template (fallback),
+        # the inherited recommended actions are irrelevant for the resolved service.
+        # Replace them with generic CVE-response actions.
+        if was_fallback_before_service_override:
+            report["leadership_output"]["recommended_actions"] = _FALLBACK_RECOMMENDED_ACTIONS
     return report
 
 
