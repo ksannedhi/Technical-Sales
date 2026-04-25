@@ -102,6 +102,19 @@ SCENARIO_MATCHERS = {
             "customer portal": 4,
             "outdated version": 3,
             "known vulnerabilities": 2,
+            # OS command injection / web injection / RCE via HTTP
+            "os command injection": 5,
+            "command injection": 4,
+            "cwe-78": 5,
+            "cwe-89": 5,
+            "sql injection": 4,
+            "execute unauthorized code": 4,
+            "crafted http": 4,
+            "crafted request": 3,
+            "unauthorized code": 3,
+            "injection": 2,
+            "http request": 2,
+            "unauthenticated": 2,
         },
     },
     "vpn-zero-day-finance": {
@@ -390,7 +403,8 @@ def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
     context_completeness = defaults["context_completeness"]
 
     # Upward adjustments — confirmed severity signals
-    if any(token in text for token in ["critical", "active exploitation", "known exploited", "rce", "remote code execution"]):
+    if any(token in text for token in ["critical", "active exploitation", "known exploited", "rce", "remote code execution",
+                                        "unauthenticated attacker", "no authentication required"]):
         exploitability = min(5, exploitability + 1)
     if any(token in text for token in ["high", "sev 1", "urgent", "multiple hosts", "multiple assets"]):
         threat_activity = min(5, threat_activity + 1)

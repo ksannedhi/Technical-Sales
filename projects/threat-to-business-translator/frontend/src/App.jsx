@@ -159,13 +159,17 @@ export default function App() {
 
     const isAdHoc = report.analysis_type === "ad_hoc";
     const isScanReport = report.analysis_type === "scan_report";
-    const inputSnippet = (report.technical_summary || "").trim().slice(0, 120);
+    // Full input for the header line — no truncation so the .md accurately records
+    // the exact text the user submitted.
+    const inputFull = (report.technical_summary || "").trim();
+    // Shorter slug for the filename (filesystem-safe, reasonable length).
+    const inputSlug = inputFull.slice(0, 60);
 
     const lines = [
       "# Threat-to-Business Translator Analysis",
       "",
       isAdHoc || isScanReport
-        ? `Input: ${inputSnippet}${inputSnippet.length === 120 ? "…" : ""}`
+        ? `Input: ${inputFull}`
         : `Scenario: ${report.scenario_name}`,
       `Analysis Type: ${formatLabel(report.analysis_type || "scenario")}`,
       `Audience: ${report.audience}`,
@@ -250,7 +254,7 @@ export default function App() {
     const anchor = document.createElement("a");
     anchor.href = url;
     const fileBase = isAdHoc || isScanReport
-      ? `${isScanReport ? "scan-report" : "ad-hoc"}-${slugify(inputSnippet.slice(0, 60))}`
+      ? `${isScanReport ? "scan-report" : "ad-hoc"}-${slugify(inputSlug)}`
       : slugify(report.scenario_name);
     anchor.download = `${fileBase}-analysis.md`;
     document.body.appendChild(anchor);
