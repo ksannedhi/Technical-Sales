@@ -140,6 +140,10 @@ SCENARIO_MATCHERS = {
     "vpn-zero-day-finance": {
         "keywords": {
             "vpn gateway": 5,
+            "globalprotect": 4,   # PAN-OS VPN/remote-access component
+            "denial of service": 3,
+            "maintenance mode": 3,  # PAN-OS/Fortinet DoS symptom
+            "firewall": 2,
             "cve-": 1,   # generic CVE prefix — tiebreaker only, not a decisive signal
             "cvss": 2,
             "remote code execution": 3,
@@ -254,7 +258,11 @@ def _neutralise_fallback_context(report: dict, raw_text: str) -> dict:
     avoided_usd = report["risk_reduction_if_fixed"]["likely_loss_avoided_usd"]
     avoided_hrs = report["risk_reduction_if_fixed"]["downtime_avoided_hours"]
     residual_risk = report["risk_reduction_if_fixed"]["residual_risk"]
-    trigger = raw_text.strip()[:280]
+    # Use _derive_executive_trigger so we get the first clean sentence (split at
+    # the first period) rather than a raw 280-char slice that can end mid-sentence
+    # and produce a grammatical break when stitched into "… represents a credible
+    # security risk" below.
+    trigger = _derive_executive_trigger(raw_text, raw_text.strip()[:80])
 
     report["business_context"].update({
         "business_unit": "Not determined — provide customer context to refine",
@@ -579,7 +587,10 @@ def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
     # rather than its specific name. The template name describes a fictional scenario
     # ("Outdated Internet-facing web server...") that has no relation to the customer's
     # actual input and would erode trust during a demo.
-    scenario["name"] = f"Ad hoc {template['category']} analysis"
+    # Use a specific category name only when we confidently matched a template.
+    # For fallback routes the template category (e.g. "EDR / identity") describes
+    # a completely unrelated fictional scenario — always use the neutral label instead.
+    scenario["name"] = "Ad hoc vulnerability analysis" if used_fallback else f"Ad hoc {template['category']} analysis"
     scenario["technical_signal"] = raw_text.strip()[:2000] or template["technical_signal"]
     scenario["executive_trigger"] = _derive_executive_trigger(raw_text, template["executive_trigger"])
 
