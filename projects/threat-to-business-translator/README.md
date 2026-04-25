@@ -86,7 +86,7 @@ The launcher will:
 - create the backend virtual environment if needed
 - install backend requirements if missing
 - install frontend packages if missing
-- open backend and frontend windows
+- open backend and frontend in separate PowerShell windows
 
 ### Option 2: manual run
 

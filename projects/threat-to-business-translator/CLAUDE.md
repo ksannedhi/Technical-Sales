@@ -116,8 +116,7 @@ No `.env` file required. The engine is fully deterministic and offline.
 - `backend/requirements.txt` — Python dependencies (fastapi, uvicorn, pypdf, python-multipart)
 - `frontend/src/` — React SPA with scenario browser and file upload
 - `frontend/vite.config.js` — Vite config with `/api` proxy to `:8000`
-- `launch.ps1` — PowerShell launcher (venv setup + both services)
-- `Launch Threat-to-Business Translator.cmd` — Windows entry point (calls launch.ps1)
+- `Launch Threat-to-Business Translator.cmd` — Windows entry point; handles venv creation, dependency install, and spawns backend and frontend in separate PowerShell windows inline (no separate .ps1 script)
 
 ## Non-goals
 
