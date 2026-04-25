@@ -157,10 +157,16 @@ export default function App() {
       return;
     }
 
+    const isAdHoc = report.analysis_type === "ad_hoc";
+    const isScanReport = report.analysis_type === "scan_report";
+    const inputSnippet = (report.technical_summary || "").trim().slice(0, 120);
+
     const lines = [
       "# Threat-to-Business Translator Analysis",
       "",
-      `Scenario: ${report.scenario_name}`,
+      isAdHoc || isScanReport
+        ? `Input: ${inputSnippet}${inputSnippet.length === 120 ? "…" : ""}`
+        : `Scenario: ${report.scenario_name}`,
       `Analysis Type: ${formatLabel(report.analysis_type || "scenario")}`,
       `Audience: ${report.audience}`,
       "",
@@ -243,7 +249,10 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${slugify(report.scenario_name)}-analysis.md`;
+    const fileBase = isAdHoc || isScanReport
+      ? `${isScanReport ? "scan-report" : "ad-hoc"}-${slugify(inputSnippet.slice(0, 60))}`
+      : slugify(report.scenario_name);
+    anchor.download = `${fileBase}-analysis.md`;
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -395,9 +404,6 @@ export default function App() {
                       Showing the built-in synthetic scenario outcome for leadership review.
                     </p>
                   )}
-                  <button className="secondary-button download-button" type="button" onClick={handleDownloadAnalysis}>
-                    Download Analysis
-                  </button>
                 </div>
               </div>
 
@@ -511,15 +517,17 @@ export default function App() {
                   ))}
                 </Panel>
 
-                <Panel title="Technical Trigger">
-                  <p>{report.technical_summary}</p>
-                </Panel>
-
                 <Panel title="Scoring Rationale">
                   {report.risk_assessment.rationale.map((item) => (
                     <p key={item}>{item}</p>
                   ))}
                 </Panel>
+              </div>
+
+              <div className="report-download-bar">
+                <button className="secondary-button download-button" type="button" onClick={handleDownloadAnalysis}>
+                  Download Analysis
+                </button>
               </div>
             </>
           ) : (
@@ -563,7 +571,7 @@ function Panel({ title, children }) {
 }
 
 function ExposureBar({ label, value }) {
-  const tone = value >= 85 ? "critical" : value >= 70 ? "high" : value >= 45 ? "medium" : "low";
+  const tone = value >= 80 ? "critical" : value >= 60 ? "high" : value >= 40 ? "medium" : "low";
   return (
     <div className="exposure-row">
       <div className="exposure-meta">

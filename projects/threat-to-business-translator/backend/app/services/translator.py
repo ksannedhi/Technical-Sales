@@ -7,6 +7,7 @@ from copy import deepcopy
 from .data_loader import get_scenario_bundle, load_domain
 
 
+# Legacy 1-D label map — kept for reference.
 RISK_LABELS = {
     1: "low",
     2: "moderate",
@@ -14,6 +15,23 @@ RISK_LABELS = {
     4: "high",
     5: "critical",
 }
+
+# Fix #5: ISO 31000-aligned 5×5 risk matrix keyed by (likelihood, impact).
+# Replaces the naive max(likelihood, impact) lookup that over-rated low-likelihood,
+# high-impact scenarios.
+RISK_MATRIX: dict[tuple[int, int], str] = {
+    (1, 1): "low",      (1, 2): "low",      (1, 3): "moderate", (1, 4): "moderate", (1, 5): "moderate",
+    (2, 1): "low",      (2, 2): "moderate",  (2, 3): "moderate", (2, 4): "high",     (2, 5): "high",
+    (3, 1): "moderate", (3, 2): "moderate",  (3, 3): "high",     (3, 4): "high",     (3, 5): "critical",
+    (4, 1): "moderate", (4, 2): "high",      (4, 3): "high",     (4, 4): "critical",  (4, 5): "critical",
+    (5, 1): "moderate", (5, 2): "high",      (5, 3): "critical",  (5, 4): "critical",  (5, 5): "critical",
+}
+
+# Fix #6: FAIR-inspired correlated loss weights. Each subsequent finding (sorted by loss,
+# descending) contributes at a diminishing rate — prevents linear over-summation when
+# findings share infrastructure or blast radius.
+CORRELATION_WEIGHTS = [1.0, 0.5, 0.3, 0.2, 0.15]
+CORRELATION_WEIGHT_TAIL = 0.10
 
 DEFAULT_PROFILE = {
     "annual_revenue_musd": 250,
@@ -193,9 +211,11 @@ def _analyze_scan_report(
     top_finding, top_report = ranked_reports[0]
     report = deepcopy(top_report)
 
-    low_total = sum(item["business_impact"]["impact_band"]["low_usd"] for _, item in ranked_reports)
-    likely_total = sum(item["business_impact"]["impact_band"]["likely_usd"] for _, item in ranked_reports)
-    high_total = sum(item["business_impact"]["impact_band"]["high_usd"] for _, item in ranked_reports)
+    # Fix #6: correlated aggregation — diminishing weights prevent linear over-summation
+    # when multiple findings share infrastructure or map to overlapping scenarios.
+    low_total = _correlated_sum([item["business_impact"]["impact_band"]["low_usd"] for _, item in ranked_reports])
+    likely_total = _correlated_sum([item["business_impact"]["impact_band"]["likely_usd"] for _, item in ranked_reports])
+    high_total = _correlated_sum([item["business_impact"]["impact_band"]["high_usd"] for _, item in ranked_reports])
     downtime_max = max(item["business_impact"]["impact_band"]["downtime_hours"] for _, item in ranked_reports)
     people_total = max(item["business_impact"]["impact_band"]["people_affected"] for _, item in ranked_reports)
     likelihood = max(item["risk_assessment"]["likelihood"] for _, item in ranked_reports)
@@ -231,29 +251,31 @@ def _analyze_scan_report(
     }
     report["business_impact"]["summary"] = (
         f"This scan report contains {len(findings)} findings, including {severity_counts.get('critical', 0)} critical and "
-        f"{severity_counts.get('high', 0)} high issues. The modeled combined likely loss exposure is ${likely_total:,}, "
-        f"with the highest business disruption pressure on {', '.join(top_services)}."
+        f"{severity_counts.get('high', 0)} high issues. The modeled combined likely loss exposure is ${likely_total:,} "
+        f"(correlation-adjusted), with the highest business disruption pressure on {', '.join(top_services)}."
     )
     report["risk_assessment"]["likelihood"] = likelihood
     report["risk_assessment"]["impact"] = impact
     report["risk_assessment"]["urgency"] = urgency
     report["risk_assessment"]["confidence"] = confidence
-    report["risk_assessment"]["overall_risk"] = RISK_LABELS[max(likelihood, impact)]
+    report["risk_assessment"]["overall_risk"] = RISK_MATRIX.get((likelihood, impact), "moderate")  # Fix #5
     report["risk_assessment"]["rationale"] = [
         f"Uploaded report contains {len(findings)} discrete findings mapped across {len(top_services)} business services.",
         f"Highest-severity finding is '{top_finding['title']}' with severity {top_finding['severity']}.",
         f"Top exposed business services are {', '.join(top_services)}.",
-        f"Combined modeled likely loss exposure is ${likely_total:,} across the uploaded findings.",
+        f"Combined modeled likely loss exposure is ${likely_total:,} across the uploaded findings (correlation-adjusted).",
     ]
-    report["risk_reduction_if_fixed"]["likely_loss_avoided_usd"] = sum(
-        item["risk_reduction_if_fixed"]["likely_loss_avoided_usd"] for _, item in ranked_reports
+    # Fix #6: correlated aggregation for avoided loss as well.
+    report["risk_reduction_if_fixed"]["likely_loss_avoided_usd"] = _correlated_sum(
+        [item["risk_reduction_if_fixed"]["likely_loss_avoided_usd"] for _, item in ranked_reports]
     )
     report["risk_reduction_if_fixed"]["downtime_avoided_hours"] = max(
         item["risk_reduction_if_fixed"]["downtime_avoided_hours"] for _, item in ranked_reports
     )
     report["risk_reduction_if_fixed"]["summary"] = (
         f"If the highest-priority remediation actions are completed, leadership can reduce the report-level risk concentration "
-        f"and avoid about ${report['risk_reduction_if_fixed']['likely_loss_avoided_usd']:,} in modeled likely loss exposure."
+        f"and avoid about ${report['risk_reduction_if_fixed']['likely_loss_avoided_usd']:,} in modeled likely loss exposure "
+        f"(correlation-adjusted across {len(findings)} findings)."
     )
     report["leadership_output"]["headline"] = (
         f"{len(findings)} scan findings map to a likely ${likely_total:,} business risk concentration requiring leadership review."
@@ -326,7 +348,19 @@ def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
     scenario["name"] = f"Ad hoc analysis based on {template['name']}"
     scenario["technical_signal"] = raw_text.strip()[:2000] or template["technical_signal"]
     scenario["executive_trigger"] = _derive_executive_trigger(raw_text, template["executive_trigger"])
-    scenario["signal_factors"] = _derive_signal_factors(raw_text, template["signal_factors"])
+
+    # Fix: for ad hoc input, reset evidence_quality and context_completeness to
+    # conservative baselines before text-driven adjustments. Template values (often 5/5)
+    # reflect a fully-confirmed, well-documented incident scenario — not a pasted CVE
+    # advisory or SIEM alert where confirmation and asset context are unknown.
+    # exploitability and threat_activity are kept from the template (they reflect the
+    # vulnerability's inherent characteristics) and adjusted by _derive_signal_factors.
+    ad_hoc_defaults = {
+        **template["signal_factors"],
+        "evidence_quality": min(template["signal_factors"]["evidence_quality"], 2),
+        "context_completeness": min(template["signal_factors"]["context_completeness"], 2),
+    }
+    scenario["signal_factors"] = _derive_signal_factors(raw_text, ad_hoc_defaults)
     scenario["recommended_actions"] = template["recommended_actions"]
     return scenario
 
@@ -338,7 +372,14 @@ def _derive_executive_trigger(raw_text: str, fallback: str) -> str:
     first_sentence = text.split(".")[0].strip()
     if len(first_sentence) < 20:
         return fallback
-    return first_sentence[:180]
+    limit = 280
+    if len(first_sentence) <= limit:
+        return first_sentence
+    # Truncate at the last word boundary before the limit to avoid mid-word cuts.
+    # Preserving conditional clauses (e.g. "under specific configuration") is important
+    # for accuracy — truncating before them silently inflates the apparent severity.
+    truncated = first_sentence[:limit].rsplit(" ", 1)[0]
+    return truncated + "…"
 
 
 def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
@@ -348,6 +389,7 @@ def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
     evidence_quality = defaults["evidence_quality"]
     context_completeness = defaults["context_completeness"]
 
+    # Upward adjustments — confirmed severity signals
     if any(token in text for token in ["critical", "active exploitation", "known exploited", "rce", "remote code execution"]):
         exploitability = min(5, exploitability + 1)
     if any(token in text for token in ["high", "sev 1", "urgent", "multiple hosts", "multiple assets"]):
@@ -356,6 +398,44 @@ def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
         evidence_quality = min(5, evidence_quality + 1)
     if any(token in text for token in ["asset", "owner", "business unit", "internet-facing", "public"]):
         context_completeness = min(5, context_completeness + 1)
+
+    # Downward adjustments — conditional/hedged language lowers exploitability.
+    # A vulnerability that only triggers "under specific configuration" or "may allow"
+    # has a narrower real-world attack surface than an unconditional exploit.
+    # -2: strong conditionality (specific server config, physical access required)
+    # -1: moderate hedge (probabilistic language, authenticated-attacker precondition)
+    strong_conditional = [
+        "under specific",
+        "specific configuration",
+        "specific ldap",
+        "when configured",
+        "if configured",
+        "requires physical",
+        "physical access",
+        "under certain conditions",
+        "in certain configurations",
+        "requires local",
+        "local access required",
+    ]
+    moderate_conditional = [
+        "may allow",
+        "could allow",
+        "might allow",
+        "requires authentication",
+        "authenticated attacker",
+        "authenticated user",
+        "low privileges required",
+        "user interaction required",
+        "requires user",
+    ]
+
+    if any(token in text for token in strong_conditional):
+        exploitability = max(1, exploitability - 2)
+        # Conditional exploits are less likely to have active threat campaigns
+        threat_activity = max(1, threat_activity - 1)
+    elif any(token in text for token in moderate_conditional):
+        exploitability = max(1, exploitability - 1)
+
     if "medium" in text and exploitability > 3:
         exploitability -= 1
 
@@ -577,6 +657,14 @@ def _build_report(bundle: dict, profile: dict) -> dict:
     linked_identities = bundle["linked_identities"]
     linked_controls = bundle["linked_controls"]
 
+    # Fix #3: scope loss to the affected BU's proportional share of org revenue.
+    # Using the BU's share of the fictional enterprise total as a structural weight
+    # against the customer's org revenue avoids inflating BU-scoped incidents to
+    # full company scale.
+    domain = load_domain()
+    total_bu_revenue = sum(bu["annual_revenue_musd"] for bu in domain["business_units"])
+    bu_proportion = business_unit["annual_revenue_musd"] / total_bu_revenue
+
     coverage_score = _coverage_score(linked_controls)
     exploitability = scenario["signal_factors"]["exploitability"]
     threat_activity = scenario["signal_factors"]["threat_activity"]
@@ -584,12 +672,16 @@ def _build_report(bundle: dict, profile: dict) -> dict:
     internet_exposure = max(1, min(5, round((base_internet_exposure + profile["internet_exposure"]) / 2)))
     control_gap = max(1, min(5, round(5 - (coverage_score / 25) + ((3 - profile["security_maturity"]) * 0.4))))
 
+    # Fix #1: exploitability is the dominant term (0.42) per CVSS/FAIR convention.
+    # Removed the redundant profile["internet_exposure"] * 0.1 term — internet exposure
+    # is already captured in the blended internet_exposure variable above.
+    # Weights: exploitability 0.42, control_gap 0.20, threat_activity 0.20,
+    #          internet_exposure 0.18 → sum = 1.00.
     likelihood = _bounded_round(
-        exploitability * 0.32
+        exploitability * 0.42
         + internet_exposure * 0.18
         + control_gap * 0.2
         + threat_activity * 0.2
-        + profile["internet_exposure"] * 0.1
     )
     impact = _bounded_round(
         service["criticality"] * 0.24
@@ -600,10 +692,13 @@ def _build_report(bundle: dict, profile: dict) -> dict:
         + profile["crown_jewel_dependency"] * 0.16
     )
     urgency = _bounded_round((likelihood * 0.55) + (impact * 0.45))
+
+    # Fix #2: base lowered from 0.4 → 0.12; minimum confidence is now ~28% for
+    # ambiguous input with minimal evidence quality and context completeness.
     confidence = round(
         min(
             0.98,
-            0.4
+            0.12
             + scenario["signal_factors"]["evidence_quality"] * 0.07
             + scenario["signal_factors"]["context_completeness"] * 0.05
             + profile["security_maturity"] * 0.04,
@@ -611,10 +706,11 @@ def _build_report(bundle: dict, profile: dict) -> dict:
         2,
     )
 
-    impact_band = _impact_band(service, business_unit, likelihood, impact, profile)
-    residual_likelihood = max(1, likelihood - 2)
-    residual_impact = max(1, impact - 1)
-    residual_impact_band = _impact_band(service, business_unit, residual_likelihood, residual_impact, profile)
+    impact_band = _impact_band(service, business_unit, likelihood, impact, profile, bu_proportion)
+
+    # Fix #4: scenario-aware residual deltas.
+    residual_likelihood, residual_impact = _residual_deltas(scenario, service, profile, likelihood, impact)
+    residual_impact_band = _impact_band(service, business_unit, residual_likelihood, residual_impact, profile, bu_proportion)
 
     return {
         "scenario_id": scenario["id"],
@@ -637,10 +733,12 @@ def _build_report(bundle: dict, profile: dict) -> dict:
             "impact": impact,
             "urgency": urgency,
             "confidence": confidence,
-            "overall_risk": RISK_LABELS[max(likelihood, impact)],
+            "overall_risk": RISK_MATRIX.get((likelihood, impact), "moderate"),  # Fix #5
             "rationale": _rationale(service, primary_asset, scenario, coverage_score, likelihood, impact, profile),
         },
-        "risk_reduction_if_fixed": _risk_reduction_if_fixed(impact_band, residual_likelihood, residual_impact, residual_impact_band),
+        "risk_reduction_if_fixed": _risk_reduction_if_fixed(
+            impact_band, residual_likelihood, residual_impact, residual_impact_band, scenario, service, profile
+        ),
         "leadership_output": {
             "headline": _headline(service, impact_band),
             "executive_summary": _executive_summary(scenario, service, primary_asset, impact_band, likelihood, impact),
@@ -692,8 +790,25 @@ def _band_label(score: int) -> str:
     return "low"
 
 
-def _impact_band(service: dict, business_unit: dict, likelihood: int, impact: int, profile: dict) -> dict:
-    revenue_base = max(profile["annual_revenue_musd"], business_unit["annual_revenue_musd"]) * 100000
+def _correlated_sum(values: list[int]) -> int:
+    """Aggregate loss values with FAIR-inspired diminishing weights.
+
+    Findings are sorted descending by value; each subsequent entry contributes at a
+    decreasing rate to account for shared infrastructure and correlated blast radius.
+    Prevents linear over-summation when findings map to overlapping scenarios.
+    """
+    total = 0.0
+    for i, value in enumerate(sorted(values, reverse=True)):
+        weight = CORRELATION_WEIGHTS[i] if i < len(CORRELATION_WEIGHTS) else CORRELATION_WEIGHT_TAIL
+        total += value * weight
+    return int(total)
+
+
+def _impact_band(service: dict, business_unit: dict, likelihood: int, impact: int, profile: dict, bu_proportion: float) -> dict:
+    # Fix #3: customer org revenue scaled by the BU's proportional share of the
+    # fictional enterprise total — keeps loss figures BU-scoped, not company-wide.
+    customer_bu_revenue_musd = profile["annual_revenue_musd"] * bu_proportion
+    revenue_base = customer_bu_revenue_musd * 100_000
     people_scale = max(profile["employee_count"] / 1000, 1)
     service_modifier = 0.42 + (service["revenue_dependency"] * 0.07) + (profile["crown_jewel_dependency"] * 0.05)
     risk_modifier = 0.55 + (likelihood * 0.08) + (impact * 0.1) + (profile["regulatory_sensitivity"] * 0.03)
@@ -705,6 +820,36 @@ def _impact_band(service: dict, business_unit: dict, likelihood: int, impact: in
         "downtime_hours": int((impact * 4) + (likelihood * 2) + service["criticality"] + max(0, 3 - profile["security_maturity"])),
         "people_affected": max(service["estimated_people_affected"], int(profile["employee_count"] * 0.35)),
     }
+
+
+def _residual_deltas(scenario: dict, service: dict, profile: dict, likelihood: int, impact: int) -> tuple[int, int]:
+    """Return (residual_likelihood, residual_impact) driven by scenario and service characteristics.
+
+    Likelihood reduction:
+    - exploitability >= threat_activity → fix removes the primary attack path → -2
+    - threat_activity > exploitability → active adversary persists beyond the patch → -1
+
+    Impact reduction:
+    - max(service criticality, crown jewel dependency) >= 5 → mission-critical, floor stays → -0
+    - same >= 4 → high criticality constrains blast radius reduction → -1
+    - otherwise → controls can meaningfully reduce blast radius → -2
+    """
+    exploitability = scenario["signal_factors"]["exploitability"]
+    threat_activity = scenario["signal_factors"]["threat_activity"]
+    likelihood_reduction = 2 if exploitability >= threat_activity else 1
+
+    crown_and_criticality = max(service["criticality"], profile["crown_jewel_dependency"])
+    if crown_and_criticality >= 5:
+        impact_reduction = 0
+    elif crown_and_criticality >= 4:
+        impact_reduction = 1
+    else:
+        impact_reduction = 2
+
+    return (
+        max(1, likelihood - likelihood_reduction),
+        max(1, impact - impact_reduction),
+    )
 
 
 def _exposure_scores(
@@ -725,25 +870,54 @@ def _exposure_scores(
     }
 
 
-def _risk_reduction_if_fixed(impact_band: dict, residual_likelihood: int, residual_impact: int, residual_impact_band: dict) -> dict:
+def _risk_reduction_if_fixed(
+    impact_band: dict,
+    residual_likelihood: int,
+    residual_impact: int,
+    residual_impact_band: dict,
+    scenario: dict,
+    service: dict,
+    profile: dict,
+) -> dict:
     avoided_loss = max(0, impact_band["likely_usd"] - residual_impact_band["likely_usd"])
     avoided_downtime = max(0, impact_band["downtime_hours"] - residual_impact_band["downtime_hours"])
+    residual_risk = RISK_MATRIX.get((residual_likelihood, residual_impact), "moderate")
+
+    exploitability = scenario["signal_factors"]["exploitability"]
+    threat_activity = scenario["signal_factors"]["threat_activity"]
+    crown_and_criticality = max(service["criticality"], profile["crown_jewel_dependency"])
+
+    likelihood_note = (
+        "addressing the exploitable weakness removes the primary attack path"
+        if exploitability >= threat_activity
+        else "an active threat actor means likelihood remains elevated even after patching"
+    )
+    impact_note = (
+        "the mission-critical nature of this service means impact cannot be significantly reduced by a single fix"
+        if crown_and_criticality >= 5
+        else "the high business criticality constrains how much the blast radius can be reduced"
+        if crown_and_criticality >= 4
+        else "recommended controls can meaningfully reduce the blast radius"
+    )
+
     return {
         "residual_likelihood": residual_likelihood,
         "residual_impact": residual_impact,
-        "residual_risk": RISK_LABELS[max(residual_likelihood, residual_impact)],
+        "residual_risk": residual_risk,
         "likely_loss_avoided_usd": avoided_loss,
         "downtime_avoided_hours": avoided_downtime,
         "summary": (
-            f"If the recommended controls are implemented, the scenario would likely fall to {RISK_LABELS[max(residual_likelihood, residual_impact)]} "
-            f"risk, avoiding about ${avoided_loss:,} in likely loss exposure and roughly {avoided_downtime} hours of disruption."
+            f"If the recommended controls are implemented, the scenario would likely fall to "
+            f"{residual_risk} risk — {likelihood_note}, and {impact_note}. "
+            f"This avoids about ${avoided_loss:,} in likely loss exposure and roughly "
+            f"{avoided_downtime} hours of disruption."
         ),
     }
 
 
 def _business_impact_summary(service: dict, business_unit: dict, impact_band: dict, likelihood: int, impact: int) -> str:
     return (
-        f"The current issue creates a {RISK_LABELS[max(likelihood, impact)]} risk of disruption to {service['name']} "
+        f"The current issue creates a {RISK_MATRIX.get((likelihood, impact), 'moderate')} risk of disruption to {service['name']} "
         f"within {business_unit['name']}. If not contained, leadership should plan around roughly "
         f"{impact_band['downtime_hours']} hours of interruption and a likely loss exposure of ${impact_band['likely_usd']:,}."
     )
@@ -774,7 +948,7 @@ def _headline(service: dict, impact_band: dict) -> str:
 def _ad_hoc_headline(raw_text: str, fallback: str) -> str:
     text = (raw_text or "").strip()
     if not text:
-        return fallback
+        return "Security input provided — business risk review recommended."
 
     first_line = text.splitlines()[0].strip()
     if len(first_line) <= 64 and first_line.lower().startswith("cve-"):
@@ -783,7 +957,8 @@ def _ad_hoc_headline(raw_text: str, fallback: str) -> str:
     if len(first_line) <= 90:
         return f"Ad hoc input indicates a business-impacting cyber risk that leadership should review now."
 
-    return fallback
+    # Fix #9: generic fallback — avoids naming the wrong service for unrelated ad hoc input.
+    return "Submitted security input maps to a business-impacting risk that leadership should review now."
 
 
 def _executive_summary(scenario: dict, service: dict, primary_asset: dict, impact_band: dict, likelihood: int, impact: int) -> str:

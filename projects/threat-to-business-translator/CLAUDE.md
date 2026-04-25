@@ -8,7 +8,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 ```
 Double-click: Launch Threat-to-Business Translator.cmd
 ```
-The launcher creates a Python venv, installs deps, and opens both backend and frontend in separate windows.
+The launcher creates a Python venv, installs deps, and opens backend and frontend in separate windows.
 
 **Start backend manually:**
 ```bash
@@ -64,11 +64,11 @@ backend/app/
 
 ## Key design decisions
 
-- **Python venv (not --target)** — unlike security-tools-mapping-navigator, this project uses a standard `.venv` inside `backend/`. The launcher handles venv creation and activation.
+- **Python venv (not --target)** — uses a standard `.venv` inside `backend/`. The launcher handles venv creation and activation automatically.
 - **Built-in scenario library** — `data_loader.py` loads pre-written scenarios so demos run without any external API or customer data.
-- **Organisation risk profile** — all translation endpoints accept profile parameters (revenue, employee count, security maturity, etc.) to contextualise the output for a specific organisation.
+- **Organisation risk profile** — all translation endpoints accept profile parameters (revenue, employee count, security maturity, etc.) to contextualise output for a specific organisation.
 - **pypdf for document parsing** — PDF text extraction is handled locally; no external OCR service.
-- **uvicorn default port** — backend runs on uvicorn's default port `8000`. No `--port` flag is used in the launcher.
+- **uvicorn default port** — backend runs on uvicorn's default port `8000`. No `--port` flag used in the launcher.
 
 ## Environment variables
 
@@ -100,7 +100,7 @@ No `.env` file required for base functionality (built-in scenarios + local proce
 - `backend/app/main.py` — FastAPI app, middleware, all route handlers
 - `backend/app/services/translator.py` — core translation/narrative logic
 - `backend/app/services/data_loader.py` — built-in scenario card loader
-- `backend/app/models.py` — Pydantic request/response models (`TranslationResponse`)
+- `backend/app/models.py` — Pydantic request/response models
 - `backend/requirements.txt` — Python dependencies (fastapi, uvicorn, pypdf, python-multipart)
 - `frontend/src/` — React SPA with scenario browser and file upload
 - `frontend/vite.config.js` — Vite config with `/api` proxy to `:8000`
