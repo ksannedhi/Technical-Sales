@@ -832,7 +832,14 @@ def _impact_band(service: dict, business_unit: dict, likelihood: int, impact: in
         "likely_usd": likely,
         "high_usd": int(likely * 1.85),
         "downtime_hours": int((impact * 4) + (likelihood * 2) + service["criticality"] + max(0, 3 - profile["security_maturity"])),
-        "people_affected": max(service["estimated_people_affected"], int(profile["employee_count"] * 0.35)),
+        # Cap at employee_count. The domain's estimated_people_affected values were
+        # authored for a large fictional enterprise and will exceed smaller customer
+        # org sizes. We have no external customer-count input, so the org's employee
+        # count is the only defensible upper bound.
+        "people_affected": min(
+            max(service["estimated_people_affected"], int(profile["employee_count"] * 0.35)),
+            profile["employee_count"],
+        ),
     }
 
 
