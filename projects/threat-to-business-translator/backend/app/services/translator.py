@@ -177,6 +177,28 @@ SCENARIO_MATCHERS = {
 }
 
 
+# CVSS v3 full vector string — extracts AV, AC, PR, UI in one match.
+# Example: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+_CVSS_VECTOR_RE = re.compile(
+    r"cvss:3\.\d+/av:([nalp])/ac:([lh])/pr:([nlh])/ui:([nr])",
+    re.IGNORECASE,
+)
+
+# CVSS base score in prose — handles the formats most common in vendor advisories
+# and NVD page text:
+#   "CVSS: 9.8"  "CVSSv3 Base Score: 9.8"  "CVSS v3.1 Score: 9.8"  "Base Score: 7.5"
+# The negative lookahead (?!\d+\.\d*/) prevents matching the version prefix inside
+# a vector string (e.g. "CVSS:3.1/AV:N/..." must not yield score=3.1).
+_CVSS_SCORE_RE = re.compile(
+    r"(?:"
+    r"cvss\s*(?:v?\d+(?:\.\d+)?)?\s*(?:base\s+)?score\s*:?\s*"
+    r"|base\s+score\s*:?\s*"
+    r"|cvss\s*:(?!\d+\.\d*/)\s*"
+    r")(\d+(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+
+
 def default_profile() -> dict:
     return dict(DEFAULT_PROFILE)
 
@@ -632,29 +654,91 @@ def _derive_executive_trigger(raw_text: str, fallback: str) -> str:
     return truncated + "…"
 
 
+def _parse_cvss(text: str) -> dict | None:
+    """Extract CVSS v3 data from input text.
+
+    Tries the full vector string first (version-explicit, all key fields).
+    Falls back to a labeled base-score pattern ("CVSS: 9.8", "Base Score: 7.5",
+    "CVSSv3 Base Score: 9.8", etc.).
+
+    Returns a dict containing any subset of:
+        base_score (float), attack_vector (str), attack_complexity (str),
+        privileges_required (str), user_interaction (str)
+    or None if no CVSS data is found.
+    """
+    result: dict = {}
+    text_lower = text.lower()
+
+    vector_match = _CVSS_VECTOR_RE.search(text_lower)
+    if vector_match:
+        result["attack_vector"] = vector_match.group(1).upper()
+        result["attack_complexity"] = vector_match.group(2).upper()
+        result["privileges_required"] = vector_match.group(3).upper()
+        result["user_interaction"] = vector_match.group(4).upper()
+
+    score_match = _CVSS_SCORE_RE.search(text_lower)
+    if score_match:
+        score = float(score_match.group(1))
+        if 0.0 <= score <= 10.0:
+            result["base_score"] = score
+
+    return result or None
+
+
+def _cvss_exploitability(cvss: dict) -> int:
+    """Map parsed CVSS data to an exploitability score (1–5).
+
+    Base score is the primary signal — the CVSS formula already incorporates
+    attack vector, complexity, privileges, and user interaction, so no further
+    adjustments from those fields are needed when a score is present.
+
+    When only a vector string is available (no numeric score), the four vector
+    components are used to synthesise a score from a medium baseline.
+
+    CVSS v3 severity bands:  Critical ≥9.0 → 5,  High ≥7.0 → 4,
+                              Medium  ≥4.0 → 3,  Low  ≥0.1 → 2,  None → 1.
+    """
+    if "base_score" in cvss:
+        score = cvss["base_score"]
+        if score >= 9.0:
+            return 5
+        if score >= 7.0:
+            return 4
+        if score >= 4.0:
+            return 3
+        if score >= 0.1:
+            return 2
+        return 1
+
+    # Vector-only fallback — synthesise from available components.
+    base = 3
+    av = cvss.get("attack_vector")
+    ac = cvss.get("attack_complexity")
+    pr = cvss.get("privileges_required")
+    ui = cvss.get("user_interaction")
+    if av == "N":
+        base += 1          # Network-reachable — most exploitable
+    elif av in ("L", "P"):
+        base -= 1          # Local / Physical access required
+    if ac == "H":
+        base -= 1          # High attack complexity
+    if pr == "H":
+        base -= 1          # High privileges required
+    if ui == "R":
+        base -= 1          # User interaction required
+    return max(1, min(5, base))
+
+
 def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
     text = raw_text.lower()
-    exploitability = defaults["exploitability"]
+    cvss = _parse_cvss(text)
+
     threat_activity = defaults["threat_activity"]
     evidence_quality = defaults["evidence_quality"]
     context_completeness = defaults["context_completeness"]
 
-    # Upward adjustments — confirmed severity signals
-    if any(token in text for token in ["critical", "active exploitation", "known exploited", "rce", "remote code execution",
-                                        "unauthenticated attacker", "no authentication required"]):
-        exploitability = min(5, exploitability + 1)
-    if any(token in text for token in ["high", "sev 1", "urgent", "multiple hosts", "multiple assets"]):
-        threat_activity = min(5, threat_activity + 1)
-    if any(token in text for token in ["ioc", "evidence", "observed", "confirmed", "scan", "cvss"]):
-        evidence_quality = min(5, evidence_quality + 1)
-    if any(token in text for token in ["asset", "owner", "business unit", "internet-facing", "public"]):
-        context_completeness = min(5, context_completeness + 1)
-
-    # Downward adjustments — conditional/hedged language lowers exploitability.
-    # A vulnerability that only triggers "under specific configuration" or "may allow"
-    # has a narrower real-world attack surface than an unconditional exploit.
-    # -2: strong conditionality (specific server config, physical access required)
-    # -1: moderate hedge (probabilistic language, authenticated-attacker precondition)
+    # Conditional language tokens — used for both exploitability and threat_activity.
+    # Defined here so they are available regardless of whether CVSS is present.
     strong_conditional = [
         "under specific",
         "specific configuration",
@@ -680,22 +764,75 @@ def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
         "requires user",
     ]
 
-    if any(token in text for token in strong_conditional):
-        exploitability = max(1, exploitability - 2)
-        # Conditional exploits are less likely to have active threat campaigns
+    has_strong_conditional = any(token in text for token in strong_conditional)
+    has_moderate_conditional = any(token in text for token in moderate_conditional)
+
+    # Active exploitation is not encoded in CVSS scores — it is a separate signal
+    # that warrants boosting exploitability and threat_activity regardless of
+    # whether a CVSS score is present.
+    actively_exploited = any(token in text for token in [
+        "active exploitation", "actively exploited", "known exploited",
+        "exploited in the wild", "cisa kev",
+    ])
+
+    # --- Exploitability ---
+    if cvss:
+        # CVSS base score (or vector) is authoritative. The CVSS formula already
+        # incorporates attack vector, complexity, privileges required, and user
+        # interaction — do not additionally apply keyword-based adjustments, as
+        # that would double-penalise conditions already reflected in the score.
+        exploitability = _cvss_exploitability(cvss)
+        if actively_exploited:
+            # KEV / in-the-wild exploitation is not captured by CVSS; treat it
+            # as additive even when the score is present.
+            exploitability = min(5, exploitability + 1)
+    else:
+        # No CVSS data — fall back to keyword-based inference.
+        exploitability = defaults["exploitability"]
+        if actively_exploited or any(token in text for token in [
+            "critical", "rce", "remote code execution",
+            "unauthenticated attacker", "no authentication required",
+        ]):
+            exploitability = min(5, exploitability + 1)
+        if has_strong_conditional:
+            exploitability = max(1, exploitability - 2)
+        elif has_moderate_conditional:
+            exploitability = max(1, exploitability - 1)
+        if "medium" in text and exploitability > 3:
+            exploitability -= 1
+
+    # --- Threat activity ---
+    # Always keyword-driven — CVSS does not capture threat intelligence or
+    # active campaign data.
+    if any(token in text for token in ["high", "sev 1", "urgent", "multiple hosts", "multiple assets"]):
+        threat_activity = min(5, threat_activity + 1)
+    if actively_exploited:
+        threat_activity = min(5, threat_activity + 1)
+    # Conditional language reduces expected threat activity regardless of CVSS.
+    if has_strong_conditional:
         threat_activity = max(1, threat_activity - 1)
-    elif any(token in text for token in moderate_conditional):
-        exploitability = max(1, exploitability - 1)
 
-    if "medium" in text and exploitability > 3:
-        exploitability -= 1
+    # --- Evidence quality ---
+    if any(token in text for token in ["ioc", "evidence", "observed", "confirmed", "scan", "cvss"]):
+        evidence_quality = min(5, evidence_quality + 1)
 
-    return {
+    # --- Context completeness ---
+    if any(token in text for token in ["asset", "owner", "business unit", "internet-facing", "public"]):
+        context_completeness = min(5, context_completeness + 1)
+
+    result: dict = {
         "exploitability": exploitability,
         "threat_activity": threat_activity,
         "evidence_quality": evidence_quality,
         "context_completeness": context_completeness,
     }
+    # Attach parsed CVSS metadata so _rationale() can cite the source.
+    if cvss:
+        if "base_score" in cvss:
+            result["cvss_base_score"] = cvss["base_score"]
+        if "attack_vector" in cvss:
+            result["cvss_attack_vector"] = cvss["attack_vector"]
+    return result
 
 
 def _parse_scan_report(raw_text: str) -> list[dict]:
@@ -1190,13 +1327,38 @@ def _rationale(
     impact: int,
     profile: dict,
 ) -> list[str]:
-    return [
+    sf = scenario["signal_factors"]
+    cvss_score = sf.get("cvss_base_score")
+    cvss_av = sf.get("cvss_attack_vector")
+
+    if cvss_score is not None:
+        _av_labels = {"N": "Network", "A": "Adjacent", "L": "Local", "P": "Physical"}
+        av_note = f", AV:{cvss_av} ({_av_labels.get(cvss_av, '')})" if cvss_av else ""
+        exploit_line = (
+            f"Exploitability {sf['exploitability']}/5 derived from CVSS base score "
+            f"{cvss_score}{av_note}; keyword inference overridden."
+        )
+    else:
+        exploit_line = (
+            f"Threat activity is {sf['threat_activity']}/5 and exploitability is "
+            f"{sf['exploitability']}/5."
+        )
+
+    lines = [
         f"{service['name']} carries service criticality {service['criticality']}/5 and supports {service['business_unit']} operations.",
         f"The primary asset {primary_asset['name']} is {'internet-facing' if primary_asset['internet_exposed'] else 'internally reachable'} and is tagged {primary_asset['criticality']} criticality.",
-        f"Threat activity is {scenario['signal_factors']['threat_activity']}/5 and exploitability is {scenario['signal_factors']['exploitability']}/5.",
+        exploit_line,
+    ]
+    # When CVSS drove exploitability, the exploit_line describes exploitability only —
+    # add a separate threat activity line. When falling back to keywords, exploit_line
+    # already covers both, so the separate line would be a duplicate.
+    if cvss_score is not None:
+        lines.append(f"Threat activity is {sf['threat_activity']}/5.")
+    lines += [
         f"Average control effectiveness across linked controls is {coverage_score:.1f}/100, adjusted for organizational maturity {profile['security_maturity']}/5.",
         f"Combined likelihood {likelihood}/5 and impact {impact}/5 justify leadership escalation.",
     ]
+    return lines
 
 
 def _headline(service: dict, impact_band: dict) -> str:
