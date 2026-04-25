@@ -23,6 +23,7 @@ Users can optionally tailor the output by:
 - pasting a CVE description
 - pasting a SOC alert or incident summary
 - uploading a vulnerability scan report
+- naming the affected business service (free-text field — helps map the input to the right business unit and revenue context when the CVE text alone is ambiguous)
 
 Supported upload formats:
 - `.pdf`
@@ -75,22 +76,6 @@ When a scan report contains multiple findings, the app now:
 ### Data
 - synthetic enterprise graph stored as JSON
 
-## Project structure
-
-```text
-.
-├─ backend/
-│  ├─ app/
-│  ├─ data/
-│  └─ requirements.txt
-├─ SPECS.md
-├─ frontend/
-│  └─ .env.example
-├─ Launch Threat-to-Business Translator.cmd
-├─ launch.ps1
-└─ README.md
-```
-
 ## Getting started
 
 ### Option 1: one-click launcher
@@ -141,7 +126,7 @@ VITE_API_URL=http://127.0.0.1:8000
 ```
 
 ### Local URLs
-- UI: `http://127.0.0.1:5173`
+- UI: `http://127.0.0.1:5178`
 - API: `http://127.0.0.1:8000`
 
 ## API overview

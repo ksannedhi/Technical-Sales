@@ -128,6 +128,11 @@ If the user does not apply custom assumptions, the app uses built-in defaults.
 ### FR8. Downloadable analysis
 - The current analysis can be downloaded from the UI as a markdown file.
 
+### FR9. Affected business service override
+- The user can optionally provide a free-text service name alongside a CVE or alert input.
+- When provided, the engine resolves it to the closest known business service and uses that service's BU, revenue proportion, and criticality for scoring, while the CVE text continues to drive signal factors independently.
+- When no match is found, the engine proceeds without override and the fallback neutralisation applies as normal.
+
 ### FR9. Single-click launch
 - A Windows launcher starts backend and frontend together.
 - The launcher handles first-run dependency installation when possible.
@@ -217,17 +222,19 @@ The intended reading order is:
 
 ## Known Limitations
 
-- Ad hoc analysis still relies on heuristic matching rather than trained classification.
+- Ad hoc analysis relies on heuristic keyword matching rather than trained classification. CVEs with sparse titles and no structured CVSS data may route to the generic fallback.
 - Dollar estimates are synthetic and directional, not benchmark-calibrated.
 - Scenario management and scoring weights are not yet editable through the UI.
 - No authentication or multi-user workflow exists in the MVP.
 - No persistence layer is included yet for saved analyses.
 - No PDF or slide-deck export exists for board-pack output.
+- No industry sector parameter — regulatory and crown-jewel defaults are the same for all verticals.
 
 ## Suggested Next Steps
 
-1. Move scoring weights and matcher configuration into editable config files.
-2. Add saved analyses and scenario history.
-3. Add export options such as PDF, DOCX, or executive summary slide output.
-4. Add source traceability in the UI so every narrative is tied back to evidence.
-5. Add an admin workflow for managing scenario templates and synthetic graph entities.
+1. Parse CVSS base scores and attack vectors directly from input text to replace keyword inference when structured data is available.
+2. Add an industry sector selector (financial services, healthcare, manufacturing, retail) that pre-loads appropriate profile defaults.
+3. Add "what if" profile sliders that update risk scores live without re-submitting, turning the tool into a real-time risk calculator.
+4. Add a formatted PDF export for board-pack leave-behinds.
+5. Add a session risk roll-up showing aggregate exposure across all analyses in the current session.
+6. Move scoring weights and matcher configuration into editable config files or a lightweight admin UI.

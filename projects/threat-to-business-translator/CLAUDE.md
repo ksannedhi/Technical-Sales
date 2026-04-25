@@ -69,14 +69,26 @@ backend/app/
 - **Organisation risk profile** — all translation endpoints accept profile parameters (revenue, employee count, security maturity, etc.) to contextualise output for a specific organisation.
 - **pypdf for document parsing** — PDF text extraction is handled locally; no external OCR service.
 - **uvicorn default port** — backend runs on uvicorn's default port `8000`. No `--port` flag used in the launcher.
+- **Fully deterministic** — no LLM or external API. All scoring, narrative generation, and matching is deterministic Python.
+
+## Engine internals (translator.py)
+
+Key constants:
+- `MINIMUM_MATCH_SCORE = 4` — keyword score threshold below which the generic fallback fires instead of binding to a specific template's BU/service context. Prevents sparse CVE titles (e.g. a single "cve-" match) from inheriting unrelated fictional context.
+- `FALLBACK_SIGNAL_CAP = 3` — caps `exploitability` and `threat_activity` when the fallback template fires. Template-authored values (often 4–5) reflect confirmed incidents, not a sparse CVE title.
+
+Key functions:
+- `_infer_scenario()` — scores every `SCENARIO_MATCHERS` template against the input text, picks the best match above threshold, or fires the generic fallback.
+- `_derive_signal_factors()` — adjusts `exploitability` and `threat_activity` from defaults using conditional language detection (strong: −2; moderate: −1) and confirmed severity signals (+1 each).
+- `_neutralise_fallback_context()` — replaces all template-sourced BU/service/asset/identity fields with neutral placeholders when the fallback fires. Risk scores and loss figures are preserved.
+- `_resolve_service()` — matches a customer-provided free-text service name against the domain using exact name, partial name, BU name, and `_SERVICE_KEYWORDS` synonym map.
+- `_derive_executive_trigger()` — extracts the first clean sentence (split at `.`) up to 280 chars with word-boundary truncation.
+
+`/api/analyze` accepts an optional `affected_service` form field. When provided it is resolved via `_resolve_service()` and used to override the template-matched BU/service context, while the CVE text continues to drive signal factor scoring.
 
 ## Environment variables
 
-No `.env` file required for base functionality (built-in scenarios + local processing).
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Check `translator.py` | May be needed if AI narrative generation is enabled |
+No `.env` file required. The engine is fully deterministic and offline.
 
 ## Ports
 
