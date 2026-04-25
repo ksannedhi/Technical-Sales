@@ -52,6 +52,18 @@ SEVERITY_ORDER = {
 AD_HOC_SUMMARY_LIMIT = 2000
 SCAN_REPORT_SUMMARY_LIMIT = 12000
 
+# Minimum keyword score required to bind to a specific template's BU/service context.
+# Scores below this threshold (e.g. matching only on "cve-" or a single generic token)
+# use the generic fallback instead, so sparse CVE titles don't inherit a completely
+# unrelated business context (e.g. a SOAR platform CVE matching VPN/payroll).
+MINIMUM_MATCH_SCORE = 4
+
+# When falling back to the generic template (no meaningful keyword match), cap
+# exploitability and threat_activity at this value. The template's authored values
+# (often 4-5) were written for confirmed, well-described incidents. For a sparse
+# input with no exploitability signals, inheriting max scores is unjustified.
+FALLBACK_SIGNAL_CAP = 3
+
 SCENARIO_MATCHERS = {
     "deepfake-payment-diversion": {
         "keywords": {
@@ -128,7 +140,7 @@ SCENARIO_MATCHERS = {
     "vpn-zero-day-finance": {
         "keywords": {
             "vpn gateway": 5,
-            "cve-": 3,
+            "cve-": 1,   # generic CVE prefix — tiebreaker only, not a decisive signal
             "cvss": 2,
             "remote code execution": 3,
             "vulnerable": 2,
@@ -359,9 +371,17 @@ def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
         if score > 0:
             scored_templates.append((score, scenario_id))
 
+    used_fallback = True
     if scored_templates:
         scored_templates.sort(key=lambda item: item[0], reverse=True)
-        template = _scenario_by_id(domain, scored_templates[0][1])
+        best_score, best_id = scored_templates[0]
+        if best_score >= MINIMUM_MATCH_SCORE:
+            template = _scenario_by_id(domain, best_id)
+            used_fallback = False
+        else:
+            # Best score is below threshold — keyword overlap is too weak to justify
+            # binding to that template's BU/service context. Use generic fallback.
+            template = _scenario_by_id(domain, "edr-identity-lateral")
     else:
         template = _scenario_by_id(domain, "edr-identity-lateral")
 
@@ -375,17 +395,21 @@ def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
     scenario["technical_signal"] = raw_text.strip()[:2000] or template["technical_signal"]
     scenario["executive_trigger"] = _derive_executive_trigger(raw_text, template["executive_trigger"])
 
-    # Fix: for ad hoc input, reset evidence_quality and context_completeness to
-    # conservative baselines before text-driven adjustments. Template values (often 5/5)
-    # reflect a fully-confirmed, well-documented incident scenario — not a pasted CVE
-    # advisory or SIEM alert where confirmation and asset context are unknown.
-    # exploitability and threat_activity are kept from the template (they reflect the
-    # vulnerability's inherent characteristics) and adjusted by _derive_signal_factors.
+    # For ad hoc input, reset evidence_quality and context_completeness to conservative
+    # baselines. Template values (often 5/5) reflect fully-confirmed incidents — not a
+    # pasted CVE advisory or SIEM alert where confirmation and asset context are unknown.
     ad_hoc_defaults = {
         **template["signal_factors"],
         "evidence_quality": min(template["signal_factors"]["evidence_quality"], 2),
         "context_completeness": min(template["signal_factors"]["context_completeness"], 2),
     }
+    # When falling back to the generic template (no meaningful keyword match), also cap
+    # exploitability and threat_activity. Sparse inputs — e.g. a CVE title with no
+    # attack-vector detail — give no basis for inheriting the template's high authored
+    # values, and doing so produces unjustifiably critical risk ratings.
+    if used_fallback:
+        ad_hoc_defaults["exploitability"] = min(ad_hoc_defaults["exploitability"], FALLBACK_SIGNAL_CAP)
+        ad_hoc_defaults["threat_activity"] = min(ad_hoc_defaults["threat_activity"], FALLBACK_SIGNAL_CAP)
     scenario["signal_factors"] = _derive_signal_factors(raw_text, ad_hoc_defaults)
     scenario["recommended_actions"] = template["recommended_actions"]
     return scenario
