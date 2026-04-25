@@ -104,6 +104,16 @@ SCENARIO_MATCHERS = {
             "remote code execution": 4,
             "rce": 4,
             "cve-2022-41064": 5,
+            # Windows / Active Directory infrastructure — domain controller compromise
+            # is a finance-tier blast radius event (credential store, ERP access, payroll)
+            "active directory": 5,
+            "domain controller": 5,
+            "windows server": 3,
+            "kerberos": 4,
+            "ldap": 3,
+            "ntlm": 4,
+            "sam database": 5,
+            "lsass": 5,
         },
     },
     "customer-portal-outdated-web": {
@@ -181,6 +191,16 @@ SCENARIO_MATCHERS = {
 # Example: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
 _CVSS_VECTOR_RE = re.compile(
     r"cvss:3\.\d+/av:([nalp])/ac:([lh])/pr:([nlh])/ui:([nr])",
+    re.IGNORECASE,
+)
+
+# Strips the full CVSS vector string (including any appended temporal/environmental
+# metrics) from text before keyword scoring or sentence extraction. Prevents the
+# "cvss" keyword weight in SCENARIO_MATCHERS from being triggered by the vector
+# itself, and prevents the decimal in "3.1" from acting as a sentence boundary
+# in _derive_executive_trigger.
+_CVSS_STRIP_RE = re.compile(
+    r"cvss:\d+\.\d+/[a-z0-9:/]+",
     re.IGNORECASE,
 )
 
@@ -576,7 +596,11 @@ def _analyze_scan_report(
 
 
 def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
-    text = (raw_text or "").lower()
+    # Strip CVSS vector strings before keyword scoring. The vector has already
+    # been parsed by _parse_cvss() for signal factors; leaving it in the text
+    # causes the "cvss" keyword weight in vpn-zero-day-finance to fire and
+    # override template matches that are based on actual product/technique context.
+    text = _CVSS_STRIP_RE.sub("", (raw_text or "")).lower()
     file_name = (file_name or "manual-input").lower()
     scored_templates = []
     for scenario_id, matcher in SCENARIO_MATCHERS.items():
@@ -638,7 +662,10 @@ def _infer_scenario(raw_text: str, file_name: str | None, domain: dict) -> dict:
 
 
 def _derive_executive_trigger(raw_text: str, fallback: str) -> str:
-    text = raw_text.strip()
+    # Strip CVSS vector strings before sentence splitting. The decimal in the
+    # version number (e.g. "3.1") would otherwise be treated as a sentence
+    # boundary, producing a truncated trigger like "...CVSS:3".
+    text = _CVSS_STRIP_RE.sub("", raw_text).strip()
     if not text:
         return fallback
     first_sentence = text.split(".")[0].strip()
