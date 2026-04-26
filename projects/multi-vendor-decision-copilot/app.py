@@ -191,6 +191,30 @@ def render_stack(result: dict[str, object]) -> None:
         st.caption(product["score_reason"])
 
 
+def render_category_explain(result: dict[str, object]) -> None:
+    st.subheader(f"What is {result['full_name']} ({result['category']})?")
+    st.write(result["what_it_is"])
+    problems = result.get("problems_it_solves", [])
+    if problems:
+        st.markdown("**Problems it solves**")
+        for problem in problems:
+            st.write(f"- {problem}")
+    top = result.get("top_products", [])
+    if top:
+        with st.expander("Top vendor options in this category", expanded=True):
+            rows = []
+            for product in top:
+                rows.append({
+                    "Product": product["product_name"],
+                    "Vendor": product["vendor"],
+                    "Position": _position_label(product),
+                    "Score": f"{product['score']}",
+                    "Deployment": ", ".join(product.get("deployment_models", [])),
+                    "Features": _fmt_features(product.get("features", [])),
+                })
+            st.dataframe(rows, use_container_width=True, hide_index=True)
+
+
 def render_exclusions(result: dict[str, object]) -> None:
     excluded = result.get("excluded_products", [])
     for item in excluded[:8]:
@@ -227,6 +251,8 @@ def render_history_item(item: dict[str, object], index: int) -> None:
             profile = result["vendor_profile"]
             st.write(f"Vendor: {profile['vendor']}")
             st.write(f"Categories: {', '.join(profile.get('categories', [])) or 'Not specified'}")
+        elif result["mode"] == "category_explain":
+            st.write(f"Category: {result.get('full_name', result.get('category', ''))}")
         elif result["mode"] == "comparison":
             top = result["top_recommendation"]
             st.write(f"Top comparison result: {top['product_name']} from {top['vendor']}")
@@ -282,6 +308,8 @@ if should_run and query.strip():
         render_insufficient(result)
     elif result["mode"] == "lookup":
         render_lookup(result)
+    elif result["mode"] == "category_explain":
+        render_category_explain(result)
     elif result["mode"] == "single_category":
         render_single(result)
     elif result["mode"] == "comparison":

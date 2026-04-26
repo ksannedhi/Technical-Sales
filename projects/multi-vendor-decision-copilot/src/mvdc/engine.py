@@ -107,6 +107,8 @@ class DecisionEngine:
         self.feature_matrix = self._load_json("vendor_feature_matrix.json") if (self.data_dir / "vendor_feature_matrix.json").exists() else []
         self.scoring_weights = self._load_json("scoring_weights.json") if (self.data_dir / "scoring_weights.json").exists() else {}
         self.hard_exclusions = self._load_json("hard_exclusions.json") if (self.data_dir / "hard_exclusions.json").exists() else {"rules": []}
+        raw_meta = self._load_json("categories_metadata.json") if (self.data_dir / "categories_metadata.json").exists() else []
+        self.category_metadata: dict[str, dict[str, Any]] = {item["category"]: item for item in raw_meta}
         self.products = self._normalize_products(self.raw_products)
         self.vendors = self._normalize_vendors(self.raw_vendors)
         self.vendor_names = sorted({vendor["vendor"] for vendor in self.vendors})
@@ -169,6 +171,8 @@ class DecisionEngine:
         matched_products = self._matched_products(parsed)
         if parsed.intent == "lookup":
             return self._lookup_profile(parsed)
+        if parsed.intent == "category_explain":
+            return self._explain_category(parsed)
         if parsed.intent == "comparison" and parsed.compare_targets and matched_products:
             return self._compare_products(parsed, matched_products)
         if parsed.intent == "comparison" and parsed.compare_targets and len(parsed.compare_targets) >= 2 and not matched_products:
@@ -212,7 +216,15 @@ class DecisionEngine:
         integrations = self._alias_matches(text, INTEGRATION_ALIASES)
         has_category_signal = bool(categories or problems)
         vendor_capability_hint = bool(vendors) and bool(re.search(r"\b(?:can|does)\b.+\b(?:provide|offer|support)\b", text))
-        intent = "comparison" if comparison_hint or len(compare_targets) >= 2 else "lookup" if (lookup_hint and not has_category_signal) or vendor_capability_hint else "recommendation"
+        category_explain_hint = lookup_hint and bool(categories) and not vendors and not lookup_products
+        if comparison_hint or len(compare_targets) >= 2:
+            intent = "comparison"
+        elif vendor_capability_hint or (lookup_hint and not has_category_signal):
+            intent = "lookup"
+        elif category_explain_hint:
+            intent = "category_explain"
+        else:
+            intent = "recommendation"
         return ParsedQuery(query, intent, categories, problems, vendors, lookup_products, compare_targets, unsupported, deployment, region, compliance, integrations)
 
     def _matched_products(self, parsed: ParsedQuery) -> list[dict[str, Any]]:
@@ -364,6 +376,44 @@ class DecisionEngine:
             "assumptions": ["Product lookup answers are based on explicit product names present in the dataset."],
             "data_gaps": ["Detailed product capabilities are only available for categories covered by vendor_feature_matrix.json."],
             "confidence": "medium",
+        }
+
+    def _explain_category(self, parsed: ParsedQuery) -> dict[str, Any]:
+        category = parsed.categories[0] if parsed.categories else None
+        if not category:
+            return self._insufficient(parsed, "I could not identify a specific solution category to explain.")
+        meta = self.category_metadata.get(category, {})
+        products = [p for p in self.products if category in p["categories"]]
+        top_products: list[dict[str, Any]] = []
+        if products:
+            ranked = []
+            empty_parsed = ParsedQuery("", "recommendation", [], [], [], [], [], [], None, None, [], [])
+            for product in products:
+                ranked.append({
+                    "vendor": product["vendor"],
+                    "product_name": product["product_name"],
+                    "category": category,
+                    "deployment_models": product["deployment_models"],
+                    "market_position": product.get("market_position"),
+                    "features": self.feature_lookup.get((product["vendor"].lower(), category), []),
+                    "score": self._weighted_score(empty_parsed, product, category),
+                    "score_reason": self._comparison_reason(product),
+                })
+            ranked.sort(key=lambda item: item["score"], reverse=True)
+            top_products = ranked[:3]
+        return {
+            "mode": "category_explain",
+            "query": parsed.raw_query,
+            "solution_categories": [category],
+            "category": category,
+            "full_name": meta.get("full_name", category),
+            "what_it_is": meta.get("what_it_is", ""),
+            "problems_it_solves": meta.get("problems_it_solves", []),
+            "top_products": top_products,
+            "constraints": self._constraints_dict(parsed),
+            "data_gaps": [],
+            "excluded_products": [],
+            "confidence": "high" if meta else "low",
         }
 
     def _vendor_capability_summary(

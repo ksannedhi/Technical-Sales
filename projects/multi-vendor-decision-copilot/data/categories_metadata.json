@@ -1,0 +1,188 @@
+[
+  {
+    "category": "EDR",
+    "full_name": "Endpoint Detection and Response",
+    "what_it_is": "EDR tools continuously monitor endpoints (laptops, servers, workstations) to detect, investigate, and respond to threats in real time. They record endpoint activity, alert on suspicious behavior, and allow security teams to isolate compromised devices and investigate the attack chain.",
+    "problems_it_solves": ["Ransomware and malware on endpoints", "Lateral movement after initial compromise", "Slow manual incident response", "Blind spots on unmanaged devices"]
+  },
+  {
+    "category": "XDR",
+    "full_name": "Extended Detection and Response",
+    "what_it_is": "XDR extends EDR by correlating telemetry across endpoints, networks, cloud workloads, and identity systems into a unified detection and response platform. It reduces alert fatigue by linking related events into a single incident view across all layers of the environment.",
+    "problems_it_solves": ["Siloed detection tools producing disconnected alerts", "Slow cross-domain investigations", "Attacker movement across endpoint, network, and cloud", "Analyst overload from high alert volumes"]
+  },
+  {
+    "category": "SIEM",
+    "full_name": "Security Information and Event Management",
+    "what_it_is": "SIEM platforms aggregate and correlate log and event data from across the enterprise — firewalls, endpoints, applications, cloud services — to detect threats, support compliance reporting, and enable forensic investigation. They are the central hub for security visibility in most SOC environments.",
+    "problems_it_solves": ["Lack of centralized security visibility", "Compliance reporting requirements (PCI, HIPAA, SOX)", "Detecting multi-stage attacks from disparate log sources", "Long attacker dwell time due to missed correlation"]
+  },
+  {
+    "category": "SOAR",
+    "full_name": "Security Orchestration, Automation and Response",
+    "what_it_is": "SOAR platforms automate repetitive security operations tasks — phishing triage, alert enrichment, ticket creation, containment actions — by orchestrating workflows across tools. They reduce mean time to respond (MTTR) and free analysts from manual, low-value work.",
+    "problems_it_solves": ["High analyst workload from repetitive alert triage", "Slow manual incident response workflows", "Tool fragmentation requiring manual hand-offs", "Inconsistent response procedures across the team"]
+  },
+  {
+    "category": "NDR",
+    "full_name": "Network Detection and Response",
+    "what_it_is": "NDR tools analyze raw network traffic using behavioral analytics and machine learning to detect threats that bypass signature-based controls. By inspecting east-west traffic and encrypted flows, NDR provides visibility into attacker movement that endpoint tools cannot see.",
+    "problems_it_solves": ["Insider threats and lateral movement over the network", "Encrypted traffic hiding malware communication", "IoT and OT devices that cannot run endpoint agents", "Advanced persistent threats (APT) dwelling undetected"]
+  },
+  {
+    "category": "TIP",
+    "full_name": "Threat Intelligence Platform",
+    "what_it_is": "TIP solutions aggregate, normalize, and operationalize threat intelligence from commercial feeds, open-source sources, ISACs, and internal telemetry. They help security teams prioritize threats, enrich alerts with context, and share intelligence across tools and partners.",
+    "problems_it_solves": ["Overload of raw threat feeds without context", "Slow alert enrichment requiring manual research", "No structured process for sharing intelligence with peers", "Reactive security posture without adversary insight"]
+  },
+  {
+    "category": "CNAPP",
+    "full_name": "Cloud-Native Application Protection Platform",
+    "what_it_is": "CNAPP combines CSPM (cloud misconfiguration), CWPP (workload protection), CIEM (identity entitlements), and container/application security into a single platform. It provides a unified risk view across the full cloud application lifecycle from build time to runtime.",
+    "problems_it_solves": ["Cloud misconfigurations exposing sensitive data", "Over-privileged cloud identities", "Container and Kubernetes security gaps", "Fragmented multi-tool cloud security coverage"]
+  },
+  {
+    "category": "CSPM",
+    "full_name": "Cloud Security Posture Management",
+    "what_it_is": "CSPM tools continuously assess cloud infrastructure configurations — S3 bucket policies, IAM rules, network security groups — against security benchmarks and compliance frameworks. They surface misconfigurations before attackers can exploit them.",
+    "problems_it_solves": ["Publicly exposed storage buckets and databases", "Drift from security baselines in cloud accounts", "Compliance failures in AWS, Azure, and GCP environments", "Lack of visibility into multi-cloud risk posture"]
+  },
+  {
+    "category": "CWPP",
+    "full_name": "Cloud Workload Protection Platform",
+    "what_it_is": "CWPP solutions protect cloud workloads — virtual machines, containers, serverless functions — from runtime threats. They provide vulnerability management, behavioral monitoring, and threat detection directly within cloud compute environments.",
+    "problems_it_solves": ["Runtime threats targeting containers and VMs", "Vulnerability management across ephemeral cloud workloads", "Lack of visibility into serverless function behavior", "Workloads that cannot use traditional endpoint agents"]
+  },
+  {
+    "category": "DSPM",
+    "full_name": "Data Security Posture Management",
+    "what_it_is": "DSPM tools discover and classify sensitive data wherever it lives — across cloud storage, databases, SaaS apps, and data pipelines — and continuously assess the security and access controls protecting it. They help organizations answer: where is sensitive data, who can reach it, and is it properly secured?",
+    "problems_it_solves": ["Unknown locations of sensitive and regulated data", "Excessive access to sensitive data stores", "Shadow data in cloud environments", "Compliance gaps for GDPR, HIPAA, and PCI DSS"]
+  },
+  {
+    "category": "DTDR",
+    "full_name": "Data Threat Detection and Response",
+    "what_it_is": "DTDR solutions focus on detecting and responding to threats specifically targeting sensitive data — bulk downloads, exfiltration attempts, unusual access patterns. They combine data activity monitoring with behavioral analytics to protect against insider threats and external attackers who have reached data stores.",
+    "problems_it_solves": ["Data exfiltration by insiders or compromised accounts", "Unusual or unauthorized access to sensitive databases", "Slow detection of data-focused attacks after breach", "Compliance requirements to monitor data access activity"]
+  },
+  {
+    "category": "DLP",
+    "full_name": "Data Loss Prevention",
+    "what_it_is": "DLP solutions enforce policies that prevent sensitive data from leaving the organization — blocking uploads to unauthorized cloud services, restricting email attachments, and monitoring endpoint file transfers. They combine content inspection with contextual policies to protect regulated data in motion and at rest.",
+    "problems_it_solves": ["Accidental or intentional data leakage via email, USB, or web", "Regulatory compliance for PCI, HIPAA, GDPR data handling", "Insider threat data exfiltration", "Shadow IT uploads to unsanctioned cloud services"]
+  },
+  {
+    "category": "DAM",
+    "full_name": "Database Activity Monitoring",
+    "what_it_is": "DAM solutions monitor and log all activity against databases in real time — queries, logins, schema changes, privilege escalations — independent of the database itself. They detect anomalies, enforce policies, and provide an audit trail for compliance without impacting database performance.",
+    "problems_it_solves": ["Privileged database account abuse", "SQL injection and unauthorized data access", "Compliance audit requirements (SOX, PCI, HIPAA)", "Lack of visibility into who is querying sensitive databases"]
+  },
+  {
+    "category": "WAF",
+    "full_name": "Web Application Firewall",
+    "what_it_is": "A WAF sits in front of web applications and inspects HTTP/HTTPS traffic to block common web attacks — SQL injection, cross-site scripting, CSRF, and OWASP Top 10 threats — before they reach the application. Modern WAFs also include bot management and API protection capabilities.",
+    "problems_it_solves": ["OWASP Top 10 web application attacks", "Bot-driven credential stuffing and scraping", "Zero-day application vulnerabilities before patching", "DDoS attacks targeting web layers"]
+  },
+  {
+    "category": "API Security",
+    "full_name": "API Security",
+    "what_it_is": "API security solutions discover all APIs (including shadow and zombie APIs), assess their risk, and protect them at runtime from abuse, data exposure, and injection attacks. As applications increasingly communicate over APIs, traditional WAFs lack the context to protect API-specific traffic patterns.",
+    "problems_it_solves": ["Shadow APIs exposing data without visibility", "Broken authentication on API endpoints", "Data scraping through legitimate API access", "Business logic abuse specific to API workflows"]
+  },
+  {
+    "category": "Microsegmentation",
+    "full_name": "Microsegmentation",
+    "what_it_is": "Microsegmentation applies granular, workload-level network policies that limit which systems can communicate with which — both in data centers and cloud environments. It implements zero-trust principles at the network layer, containing lateral movement even when an attacker is already inside the network.",
+    "problems_it_solves": ["Lateral movement after initial network compromise", "Overly permissive east-west traffic in flat networks", "Compliance requirements for network isolation (PCI, HIPAA)", "Lack of visibility into internal application communication flows"]
+  },
+  {
+    "category": "Identity Security",
+    "full_name": "Identity Security",
+    "what_it_is": "Identity security is a broad category covering the protection of human and machine identities across enterprise environments. It encompasses identity governance, privileged access management, multi-factor authentication, and identity threat detection — all built on the premise that identity is the new perimeter.",
+    "problems_it_solves": ["Credential theft enabling account takeover", "Over-privileged accounts and excessive access rights", "Lack of visibility into identity-based attacks", "Complex hybrid identity environments (on-prem + cloud)"]
+  },
+  {
+    "category": "IGA",
+    "full_name": "Identity Governance and Administration",
+    "what_it_is": "IGA platforms manage the full lifecycle of digital identities and their access rights — provisioning accounts when users join, updating them as roles change, and revoking access when they leave (joiner-mover-leaver). They automate access certification campaigns, enforce segregation of duties, and provide auditable evidence that users only have the access they are authorized for.",
+    "problems_it_solves": ["Orphaned accounts and access lingering after employees leave", "Access creep where users accumulate excessive rights over time", "Manual access review processes that are slow and error-prone", "Segregation of duties violations creating compliance risk", "Audit failures due to inability to prove who had access to what"]
+  },
+  {
+    "category": "CIAM",
+    "full_name": "Customer Identity and Access Management",
+    "what_it_is": "CIAM solutions manage the identities and authentication journeys of external customers — providing registration, login, MFA, consent management, and profile management at consumer scale. Unlike enterprise IAM, CIAM prioritizes user experience and handles millions of identities with high availability requirements.",
+    "problems_it_solves": ["Fragmented customer identity silos across products", "Account takeover targeting customer credentials", "Compliance with GDPR consent and data subject rights", "Poor login experience driving customer abandonment"]
+  },
+  {
+    "category": "PAM",
+    "full_name": "Privileged Access Management",
+    "what_it_is": "PAM solutions protect, control, and audit access to privileged accounts — domain admins, root accounts, service accounts, and shared credentials — that give attackers the highest-value targets in the enterprise. They enforce just-in-time access, session recording, and password vaulting to limit the blast radius of compromised credentials.",
+    "problems_it_solves": ["Compromised admin credentials enabling full network takeover", "Shared privileged accounts with no accountability trail", "Permanent standing access to production systems", "Compliance requirements to audit privileged session activity"]
+  },
+  {
+    "category": "MFA",
+    "full_name": "Multi-Factor Authentication",
+    "what_it_is": "MFA requires users to prove identity using at least two factors — something they know (password), something they have (authenticator app or hardware token), or something they are (biometrics). It is the single most effective control against credential-based attacks, blocking the vast majority of account takeover attempts.",
+    "problems_it_solves": ["Password theft and credential stuffing attacks", "Phishing attacks harvesting credentials", "Compliance mandates requiring strong authentication", "Weak passwords as the primary authentication control"]
+  },
+  {
+    "category": "Passwordless",
+    "full_name": "Passwordless Authentication",
+    "what_it_is": "Passwordless authentication eliminates the password entirely, replacing it with phishing-resistant factors such as FIDO2 passkeys, biometrics, or cryptographic device-bound credentials. It improves both security and user experience by removing the weakest authentication factor from the equation.",
+    "problems_it_solves": ["Persistent vulnerability from password reuse and phishing", "User friction from complex password requirements", "Helpdesk cost from password resets", "Compliance pressure to eliminate password-based authentication"]
+  },
+  {
+    "category": "Email Security",
+    "full_name": "Email Security",
+    "what_it_is": "Email security solutions protect against phishing, business email compromise (BEC), malware attachments, and spam — the delivery vector for the majority of enterprise breaches. Modern platforms go beyond signature-based filtering to use AI-based behavioral detection of impersonation and anomalous sender patterns.",
+    "problems_it_solves": ["Spear phishing targeting specific employees", "Business email compromise leading to wire fraud", "Malware and ransomware delivered via email attachments", "Credential harvesting through lookalike login pages"]
+  },
+  {
+    "category": "PKI",
+    "full_name": "Public Key Infrastructure",
+    "what_it_is": "PKI provides the framework of certificates and cryptographic keys that authenticates identities and encrypts communications across the enterprise — securing machine-to-machine communication, VPNs, code signing, and website TLS. PKI management platforms automate certificate lifecycle management to prevent outages from expired certificates.",
+    "problems_it_solves": ["Service outages from expired TLS certificates", "Unmanaged certificate sprawl across the enterprise", "Insecure machine-to-machine communication", "Compliance requirements for strong cryptographic identity"]
+  },
+  {
+    "category": "OT Security",
+    "full_name": "Operational Technology Security",
+    "what_it_is": "OT security solutions protect industrial control systems (ICS), SCADA systems, PLCs, and other operational technology used in manufacturing, energy, utilities, and critical infrastructure. Unlike IT environments, OT systems often run legacy protocols, cannot be patched, and require 24/7 uptime — demanding passive, non-disruptive monitoring approaches.",
+    "problems_it_solves": ["Ransomware targeting industrial operations and causing shutdowns", "IT/OT network convergence introducing IT threats into OT", "Lack of visibility into industrial device communication", "Nation-state attacks on critical infrastructure"]
+  },
+  {
+    "category": "Mobile Security",
+    "full_name": "Mobile Security",
+    "what_it_is": "Mobile security solutions protect corporate data accessed from smartphones and tablets through a combination of mobile threat defense (MTD), mobile device management (MDM), and app-level controls. They detect device compromise, enforce policies, and protect against phishing on mobile platforms.",
+    "problems_it_solves": ["Malicious apps accessing corporate data on mobile devices", "Jailbroken or rooted devices bypassing security controls", "Phishing attacks delivered via SMS and mobile browsers", "Corporate data leakage from personal devices (BYOD)"]
+  },
+  {
+    "category": "ASM",
+    "full_name": "Attack Surface Management",
+    "what_it_is": "ASM solutions continuously discover and assess an organization's external attack surface — internet-facing assets, exposed services, shadow IT, and digital supply chain — from an attacker's perspective. They identify and prioritize unknown or forgotten assets before attackers can exploit them.",
+    "problems_it_solves": ["Unknown internet-exposed assets creating blind spots", "Exposed services from shadow IT or forgotten infrastructure", "Supply chain and third-party attack surface risk", "Slow discovery of newly exposed assets from cloud changes"]
+  },
+  {
+    "category": "EASM",
+    "full_name": "External Attack Surface Management",
+    "what_it_is": "EASM specifically focuses on the externally visible attack surface — domains, subdomains, IP ranges, exposed ports, and third-party dependencies — as seen from outside the organization. It provides the attacker's view of the perimeter to help security teams prioritize remediation of the most exposed assets.",
+    "problems_it_solves": ["Subdomain takeover and dangling DNS records", "Exposed sensitive ports and services on internet-facing systems", "Third-party vendor risk introduced via the supply chain", "Continuous perimeter drift as cloud infrastructure changes"]
+  },
+  {
+    "category": "Brand Protection",
+    "full_name": "Brand Protection",
+    "what_it_is": "Brand protection solutions monitor the internet — domains, social media, mobile app stores, dark web markets — for impersonation, fake accounts, lookalike sites, and unauthorized use of corporate assets. They detect and facilitate takedowns of malicious infrastructure targeting customers and employees using the organization's brand.",
+    "problems_it_solves": ["Phishing sites impersonating the corporate brand to steal customer credentials", "Fake social media accounts conducting fraud", "Counterfeit mobile apps targeting customers", "Unauthorized use of trademarks and logos online"]
+  },
+  {
+    "category": "Data Privacy",
+    "full_name": "Data Privacy Management",
+    "what_it_is": "Data privacy management platforms help organizations comply with privacy regulations (GDPR, CCPA, LGPD) by automating data subject request fulfillment, managing consent records, mapping data flows, and assessing privacy risks. They bridge the gap between legal compliance obligations and technical data management.",
+    "problems_it_solves": ["GDPR and CCPA compliance with data subject rights requests", "Lack of visibility into personal data flows across systems", "Consent management for marketing and analytics data", "Privacy impact assessment for new products and processes"]
+  },
+  {
+    "category": "Quantum Encryption",
+    "full_name": "Quantum-Safe Encryption",
+    "what_it_is": "Quantum-safe (or post-quantum) encryption solutions replace current public-key algorithms (RSA, ECC) with cryptographic schemes designed to resist attacks from quantum computers. Organizations handling long-lived sensitive data need to begin migrating now to protect against 'harvest now, decrypt later' attacks.",
+    "problems_it_solves": ["Long-term data confidentiality against future quantum decryption", "Harvest now, decrypt later attacks by nation-state adversaries", "Cryptographic algorithm agility for post-quantum migration", "Compliance with emerging NIST post-quantum standards"]
+  }
+]
