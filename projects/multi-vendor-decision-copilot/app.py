@@ -95,15 +95,18 @@ def render_single(result: dict[str, object]) -> None:
         })
     st.subheader("Weighted Comparison")
     st.dataframe(rows, use_container_width=True, hide_index=True)
-    with st.expander("Score Breakdown — top recommendation"):
+    constraints = result.get("constraints", {})
+    has_constraints = any(constraints.get(k) for k in ("deployment", "compliance", "integrations", "region"))
+    if has_constraints:
         category = result.get("solution_categories", [None])[0]
         breakdown = engine.score_breakdown(top, category)
-        st.caption("Each bar shows the dimension's weighted contribution out of the 100-point total.")
-        for name, score in breakdown.items():
-            col_label, col_bar, col_val = st.columns([2, 5, 1])
-            col_label.write(name)
-            col_bar.progress(min(1.0, score / 100.0))
-            col_val.markdown(f"<p style='margin:0; padding-top:6px'>{score}</p>", unsafe_allow_html=True)
+        with st.expander(f"Score Breakdown — {top['vendor']} · {top['product_name']}"):
+            st.caption("Each bar shows the dimension's weighted contribution out of the 100-point total.")
+            for name, score in breakdown.items():
+                col_label, col_bar, col_val = st.columns([2, 5, 1])
+                col_label.write(name)
+                col_bar.progress(min(1.0, score / 100.0))
+                col_val.markdown(f"<p style='margin:0; padding-top:6px'>{score}</p>", unsafe_allow_html=True)
 
 
 def render_lookup(result: dict[str, object]) -> None:
