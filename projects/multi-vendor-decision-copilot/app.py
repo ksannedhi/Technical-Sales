@@ -58,13 +58,31 @@ def _position_label(product: dict[str, object]) -> str:
     )
 
 
+def _cap_first(s: str) -> str:
+    return s[0].upper() + s[1:] if s else s
+
+
+def _fmt_features(features: list[str], limit: int = 3) -> str:
+    return ", ".join(_cap_first(f) for f in features[:limit]) if features else "—"
+
+
+_DIMENSION_MAX = {
+    "Deployment Fit": 25.0,
+    "Feature Match": 20.0,
+    "Integration Fit": 15.0,
+    "Compliance Fit": 15.0,
+    "Market Position": 15.0,
+    "Cost": 5.0,
+    "Complexity": 5.0,
+}
+
+
 def render_single(result: dict[str, object]) -> None:
     top = result["top_recommendation"]
     st.subheader("Best Fit")
     position = _position_label(top)
     st.markdown(f"**{top['product_name']}** from **{top['vendor']}** &nbsp;·&nbsp; Market position: **{position}** &nbsp;·&nbsp; Score: **{top['score']} / 100**")
     st.caption(f"Confidence: {result['confidence']}")
-    st.write(top["score_reason"])
     rows = []
     for product in result["ranked_products"]:
         rows.append({
@@ -73,16 +91,21 @@ def render_single(result: dict[str, object]) -> None:
             "Position": _position_label(product),
             "Score": product["score"],
             "Deployment": ", ".join(product.get("deployment_models", [])),
-            "Features": ", ".join(product.get("features", [])[:3]) or "Limited feature data",
+            "Features": _fmt_features(product.get("features", [])),
         })
     st.subheader("Weighted Comparison")
     st.dataframe(rows, use_container_width=True, hide_index=True)
     with st.expander("Score Breakdown — top recommendation"):
         category = result.get("solution_categories", [None])[0]
         breakdown = engine.score_breakdown(top, category)
-        breakdown_rows = [{"Dimension": name, "Weighted Score": score} for name, score in breakdown.items()]
-        st.dataframe(breakdown_rows, use_container_width=True, hide_index=True)
-        st.caption("Weighted score = raw component score × dimension weight. Individual values are rounded; sum may differ by ±0.1 from the total above.")
+        header_l, header_r = st.columns([4, 1])
+        header_l.caption("Dimension")
+        header_r.caption("Score")
+        for name, score in breakdown.items():
+            col_label, col_bar, col_val = st.columns([2, 5, 1])
+            col_label.write(name)
+            col_bar.progress(min(1.0, score / _DIMENSION_MAX.get(name, 25.0)))
+            col_val.write(f"{score}")
 
 
 def render_lookup(result: dict[str, object]) -> None:
@@ -101,7 +124,7 @@ def render_lookup(result: dict[str, object]) -> None:
     st.write(f"**Regions:** {', '.join(profile.get('regions', [])) or 'Not specified'}")
     st.write(f"**Deployment Models:** {', '.join(profile.get('deployment_models', [])) or 'Not specified'}")
     if profile.get('features'):
-        st.write(f"**Known Features:** {', '.join(profile['features'])}")
+        st.write(f"**Known Features:** {_fmt_features(profile['features'], limit=6)}")
     rows = []
     for product in profile.get('products', []):
         rows.append({
@@ -124,7 +147,7 @@ def render_comparison(result: dict[str, object]) -> None:
             "Category": item["category"],
             "Score": item["score"],
             "Deployment": ", ".join(item["deployment_models"]),
-            "Features": ", ".join(item.get("features", [])[:3]) or "Limited feature data",
+            "Features": _fmt_features(item.get("features", [])),
         })
     st.subheader("Vendor Comparison")
     st.dataframe(rows, use_container_width=True, hide_index=True)
