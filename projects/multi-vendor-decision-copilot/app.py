@@ -14,6 +14,42 @@ from mvdc import DecisionEngine
 
 st.set_page_config(page_title="Multi-Vendor Decision Copilot", page_icon="shield", layout="wide")
 
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+
+/* Tighten heading spacing */
+h1 { font-size: 1.6rem !important; margin-bottom: 0.15rem !important; font-weight: 600 !important; }
+h2 { font-size: 1.15rem !important; margin-top: 0.6rem !important; margin-bottom: 0.15rem !important; font-weight: 600 !important; }
+h3 { font-size: 1rem !important; margin-top: 0.4rem !important; margin-bottom: 0.1rem !important; font-weight: 500 !important; }
+
+/* Tighten paragraph and write spacing */
+div[data-testid="stMarkdownContainer"] p { margin-bottom: 0.2rem !important; line-height: 1.5 !important; }
+div[data-testid="stMarkdownContainer"] ul { margin-top: 0.1rem !important; margin-bottom: 0.2rem !important; }
+
+/* Caption text */
+div[data-testid="stCaptionContainer"] p { font-size: 0.78rem !important; margin-bottom: 0.1rem !important; }
+
+/* Reduce spacing between stacked elements */
+div[data-testid="stVerticalBlock"] > div { gap: 0.2rem !important; }
+
+/* Alert / info box */
+div[data-testid="stAlert"] { padding: 0.5rem 0.75rem !important; margin-bottom: 0.3rem !important; }
+
+/* Expander header */
+details summary { font-size: 0.88rem !important; }
+div[data-testid="stExpander"] { margin-bottom: 0.25rem !important; }
+
+/* Divider */
+hr { margin: 0.6rem 0 !important; }
+
+/* Dataframe */
+div[data-testid="stDataFrame"] { margin-bottom: 0.3rem !important; }
+</style>
+""", unsafe_allow_html=True)
+
 
 @st.cache_resource
 def get_engine() -> DecisionEngine:
@@ -246,34 +282,26 @@ def render_history_item(item: dict[str, object], index: int) -> None:
     result = item["result"]
     title = f"{index}. {item['query']}"
     with st.expander(title):
-        st.caption(f"Mode: {result['mode']} | Confidence: {result.get('confidence', 'unknown')}")
-        if result["mode"] == "lookup":
-            profile = result["vendor_profile"]
-            st.write(f"Vendor: {profile['vendor']}")
-            st.write(f"Categories: {', '.join(profile.get('categories', [])) or 'Not specified'}")
+        if result["mode"] == "insufficient_data":
+            render_insufficient(result)
+        elif result["mode"] == "lookup":
+            render_lookup(result)
         elif result["mode"] == "category_explain":
-            st.write(f"Category: {result.get('full_name', result.get('category', ''))}")
-        elif result["mode"] == "comparison":
-            top = result["top_recommendation"]
-            st.write(f"Top comparison result: {top['product_name']} from {top['vendor']}")
+            render_category_explain(result)
         elif result["mode"] == "single_category":
-            top = result["top_recommendation"]
-            st.write(f"Best fit: {top['product_name']} from {top['vendor']}")
+            render_single(result)
+        elif result["mode"] == "comparison":
+            render_comparison(result)
         elif result["mode"] == "vendor_category":
-            top = result["top_recommendation"]
-            st.write(f"Vendor-level signal: {top['vendor']} for {top['category']}")
-        elif result["mode"] == "stack":
-            categories = result.get("solution_categories", [])
-            st.write(f"Solution stack: {', '.join(categories)}")
+            render_vendor_category(result)
         else:
-            st.write(result.get("reason", "No detail available."))
-        with st.expander("Raw Result", expanded=False):
-            st.json(result)
+            render_stack(result)
+        render_transparency(result)
 
 
 st.title("Multi-Vendor Decision Copilot")
 st.caption("Transparent cybersecurity solution recommendations based on your constraints, required capabilities, and compliance needs.")
-st.markdown("### Describe your cybersecurity need, constraints, and compliance requirements")
+st.markdown("**Describe your cybersecurity need, constraints, and compliance requirements**")
 if "pending_prompt" in st.session_state:
     st.session_state["prompt"] = st.session_state.pop("pending_prompt")
     st.session_state["auto_analyze"] = True
