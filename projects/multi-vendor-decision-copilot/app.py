@@ -52,10 +52,17 @@ def render_insufficient(result: dict[str, object]) -> None:
         st.write(f"- {sample}")
 
 
+def _position_label(product: dict[str, object]) -> str:
+    return {"leader": "Leader", "strong": "Strong", "challenger": "Challenger"}.get(
+        str(product.get("market_position") or "").lower(), "—"
+    )
+
+
 def render_single(result: dict[str, object]) -> None:
     top = result["top_recommendation"]
     st.subheader("Best Fit")
-    st.markdown(f"**{top['product_name']}** from **{top['vendor']}** scored **{top['score']} / 100**.")
+    position = _position_label(top)
+    st.markdown(f"**{top['product_name']}** from **{top['vendor']}** &nbsp;·&nbsp; Market position: **{position}** &nbsp;·&nbsp; Score: **{top['score']} / 100**")
     st.caption(f"Confidence: {result['confidence']}")
     st.write(top["score_reason"])
     rows = []
@@ -63,13 +70,19 @@ def render_single(result: dict[str, object]) -> None:
         rows.append({
             "Product": product["product_name"],
             "Vendor": product["vendor"],
+            "Position": _position_label(product),
             "Score": product["score"],
             "Deployment": ", ".join(product.get("deployment_models", [])),
             "Features": ", ".join(product.get("features", [])[:3]) or "Limited feature data",
-            "Notes": product.get("score_reason", "Limited comparison detail"),
         })
     st.subheader("Weighted Comparison")
     st.dataframe(rows, use_container_width=True, hide_index=True)
+    with st.expander("Score Breakdown — top recommendation"):
+        category = result.get("solution_categories", [None])[0]
+        breakdown = engine.score_breakdown(top, category)
+        breakdown_rows = [{"Dimension": name, "Weighted Score": score} for name, score in breakdown.items()]
+        st.dataframe(breakdown_rows, use_container_width=True, hide_index=True)
+        st.caption("Weighted score = raw component score × dimension weight. Individual values are rounded; sum may differ by ±0.1 from the total above.")
 
 
 def render_lookup(result: dict[str, object]) -> None:
@@ -107,6 +120,7 @@ def render_comparison(result: dict[str, object]) -> None:
         rows.append({
             "Vendor": item["vendor"],
             "Product": item["product_name"],
+            "Position": _position_label(item),
             "Category": item["category"],
             "Score": item["score"],
             "Deployment": ", ".join(item["deployment_models"]),
@@ -208,8 +222,11 @@ def render_history_item(item: dict[str, object], index: int) -> None:
         elif result["mode"] == "vendor_category":
             top = result["top_recommendation"]
             st.write(f"Vendor-level signal: {top['vendor']} for {top['category']}")
+        elif result["mode"] == "stack":
+            categories = result.get("solution_categories", [])
+            st.write(f"Solution stack: {', '.join(categories)}")
         else:
-            st.write(result["reason"])
+            st.write(result.get("reason", "No detail available."))
         with st.expander("Raw Result", expanded=False):
             st.json(result)
 

@@ -432,6 +432,7 @@ class DecisionEngine:
                 "product_name": product["product_name"],
                 "category": category,
                 "deployment_models": product["deployment_models"],
+                "market_position": product.get("market_position"),
                 "features": self.feature_lookup.get((product["vendor"].lower(), category), []),
                 "score": self._weighted_score(parsed, product, category),
                 "score_reason": self._comparison_reason(product),
@@ -477,6 +478,31 @@ class DecisionEngine:
         }
         score = sum(weights[name] * components[name] for name in weights)
         return round(score, 1)
+
+    def score_breakdown(self, product: dict[str, Any], category: str | None, parsed: ParsedQuery | None = None) -> dict[str, float]:
+        if parsed is None:
+            parsed = ParsedQuery("", "recommendation", [], [], [], [], [], [], None, None, [], [])
+        product = self.product_name_lookup.get(str(product.get("product_name") or "").lower(), product)
+        weights = {
+            "deployment_fit": float(self.scoring_weights.get("deployment_fit", 0.25)),
+            "feature_match": float(self.scoring_weights.get("feature_match", 0.20)),
+            "integration_fit": float(self.scoring_weights.get("integration_fit", 0.15)),
+            "compliance_fit": float(self.scoring_weights.get("compliance_fit", 0.15)),
+            "market_position": float(self.scoring_weights.get("market_position", 0.15)),
+            "cost_score": float(self.scoring_weights.get("cost_score", 0.05)),
+            "operational_complexity": float(self.scoring_weights.get("operational_complexity", 0.05)),
+        }
+        components = {
+            "Deployment Fit": self._deployment_fit(parsed, product),
+            "Feature Match": self._feature_fit(product, category),
+            "Integration Fit": self._integration_fit(parsed, product),
+            "Compliance Fit": self._compliance_fit(parsed, product),
+            "Market Position": self._market_position_fit(product),
+            "Cost": self._cost_fit(product),
+            "Complexity": self._operational_fit(product),
+        }
+        weight_list = list(weights.values())
+        return {name: round(score * weight_list[i], 1) for i, (name, score) in enumerate(components.items())}
 
     def _comparison_reason(self, product: dict[str, Any]) -> str:
         parts = []
@@ -666,6 +692,7 @@ class DecisionEngine:
                 "product_name": product["product_name"],
                 "category": category,
                 "deployment_models": product["deployment_models"],
+                "market_position": product.get("market_position"),
                 "features": self.feature_lookup.get((product["vendor"].lower(), category), []),
                 "score": self._weighted_score(parsed, product, category),
                 "score_reason": self._comparison_reason(product),
