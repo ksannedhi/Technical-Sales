@@ -4,30 +4,99 @@
     "vendors": [
       {
         "vendor": "CrowdStrike",
-        "product": "Falcon Insight XDR",
-        "features": [
-          "behavioral detection",
-          "threat hunting",
-          "managed detection"
-        ]
+        "features": ["behavioral detection", "threat hunting", "managed detection", "cloud-native agent"]
       },
       {
         "vendor": "SentinelOne",
-        "product": "Singularity Endpoint",
-        "features": [
-          "behavioral detection",
-          "rollback",
-          "autonomous remediation"
-        ]
+        "features": ["behavioral detection", "autonomous rollback", "autonomous remediation", "storyline correlation"]
       },
       {
         "vendor": "Microsoft Security",
-        "product": "Defender for Endpoint",
-        "features": [
-          "behavioral detection",
-          "integrated XDR",
-          "cloud analytics"
-        ]
+        "features": ["behavioral detection", "integrated XDR", "cloud analytics", "attack surface reduction"]
+      },
+      {
+        "vendor": "Fortinet",
+        "features": ["behavioral detection", "memory protection", "hybrid deployment", "FortiEMS integration"]
+      }
+    ]
+  },
+  {
+    "category": "XDR",
+    "vendors": [
+      {
+        "vendor": "CrowdStrike",
+        "features": ["cross-domain correlation", "managed threat hunting", "identity integration", "cloud telemetry"]
+      },
+      {
+        "vendor": "Palo Alto Networks",
+        "features": ["AI-driven analytics", "XSOAR integration", "network integration", "behavioral analytics"]
+      },
+      {
+        "vendor": "SentinelOne",
+        "features": ["cross-domain detection", "AI threat correlation", "cloud workload protection", "identity context"]
+      },
+      {
+        "vendor": "Microsoft Security",
+        "features": ["Microsoft 365 integration", "identity and email correlation", "automated investigation", "threat intelligence"]
+      },
+      {
+        "vendor": "Trend Micro",
+        "features": ["attack surface risk management", "XDR telemetry fusion", "managed detection", "email correlation"]
+      },
+      {
+        "vendor": "Cisco",
+        "features": ["Cisco ecosystem integration", "automated threat response", "risk visibility", "SecureX ribbon"]
+      }
+    ]
+  },
+  {
+    "category": "SIEM",
+    "vendors": [
+      {
+        "vendor": "Splunk",
+        "features": ["SPL query language", "threat hunting", "operational intelligence", "custom dashboards"]
+      },
+      {
+        "vendor": "IBM Security",
+        "features": ["network flow analysis", "UEBA", "asset profiling", "QRadar SOAR integration"]
+      },
+      {
+        "vendor": "Microsoft Security",
+        "features": ["cloud-native SIEM", "UEBA", "SOAR integration", "multi-cloud telemetry"]
+      }
+    ]
+  },
+  {
+    "category": "SOAR",
+    "vendors": [
+      {
+        "vendor": "Splunk",
+        "features": ["playbook automation", "case management", "threat intelligence integration", "SOC metrics"]
+      },
+      {
+        "vendor": "Palo Alto Networks",
+        "features": ["800+ integrations", "AI-driven investigation", "marketplace", "war room collaboration"]
+      },
+      {
+        "vendor": "IBM Security",
+        "features": ["incident response automation", "case management", "threat intelligence", "resilience playbooks"]
+      }
+    ]
+  },
+  {
+    "category": "NDR",
+    "vendors": [
+      {
+        "vendor": "Darktrace",
+        "features": ["AI self-learning", "autonomous response", "unsupervised ML", "email anomaly detection"]
+      },
+      {
+        "vendor": "Vectra AI",
+        "features": ["AI attack detection", "privilege attack detection", "hybrid cloud visibility", "identity threat detection"]
+      },
+      {
+        "vendor": "ExtraHop",
+        "features": ["real-time ML", "east-west traffic analysis", "encrypted traffic decryption", "cloud visibility"]
       }
     ]
   },
@@ -36,28 +105,202 @@
     "vendors": [
       {
         "vendor": "Palo Alto Networks",
-        "product": "Prisma Cloud",
-        "features": [
-          "CSPM",
-          "CWPP",
-          "CIEM"
-        ]
+        "features": ["CSPM", "CWPP", "CIEM", "code-to-cloud security"]
       },
       {
         "vendor": "Wiz",
-        "product": "Wiz Platform",
-        "features": [
-          "agentless scanning",
-          "risk prioritization"
-        ]
+        "features": ["agentless scanning", "risk prioritization", "attack path analysis", "data security posture"]
       },
       {
         "vendor": "Orca Security",
-        "product": "Orca Platform",
-        "features": [
-          "agentless scanning",
-          "cloud graph"
-        ]
+        "features": ["agentless scanning", "cloud graph", "vulnerability management", "compliance monitoring"]
+      },
+      {
+        "vendor": "Sysdig",
+        "features": ["runtime security", "container security", "Falco-based detection", "compliance"]
+      }
+    ]
+  },
+  {
+    "category": "PAM",
+    "vendors": [
+      {
+        "vendor": "CyberArk",
+        "features": ["privileged session manager", "dynamic secrets", "cloud privilege management", "zero standing privilege"]
+      },
+      {
+        "vendor": "BeyondTrust",
+        "features": ["session recording", "just-in-time access", "credential vaulting", "remote access management"]
+      },
+      {
+        "vendor": "Delinea",
+        "features": ["secrets management", "connection manager", "DevOps secrets", "cloud suite"]
+      }
+    ]
+  },
+  {
+    "category": "WAF",
+    "vendors": [
+      {
+        "vendor": "Imperva",
+        "features": ["bot management", "DDoS protection", "API protection", "attack analytics"]
+      },
+      {
+        "vendor": "Cloudflare",
+        "features": ["global anycast network", "zero-day protection", "rate limiting", "DDoS mitigation"]
+      },
+      {
+        "vendor": "Akamai",
+        "features": ["bot manager", "adaptive security engine", "API gateway protection", "client reputation"]
+      }
+    ]
+  },
+  {
+    "category": "DLP",
+    "vendors": [
+      {
+        "vendor": "Forcepoint",
+        "features": ["behavioral analytics", "policy enforcement", "endpoint DLP", "cloud DLP"]
+      },
+      {
+        "vendor": "Symantec",
+        "features": ["endpoint DLP", "network DLP", "cloud DLP", "optical character recognition"]
+      },
+      {
+        "vendor": "Microsoft Security",
+        "features": ["Microsoft 365 integration", "sensitivity labels", "insider risk management", "communication compliance"]
+      }
+    ]
+  },
+  {
+    "category": "Email Security",
+    "vendors": [
+      {
+        "vendor": "Proofpoint",
+        "features": ["threat intelligence", "email fraud protection", "security awareness training", "targeted attack protection"]
+      },
+      {
+        "vendor": "Mimecast",
+        "features": ["data loss prevention", "email archiving", "URL protection", "impersonation protection"]
+      },
+      {
+        "vendor": "Microsoft Security",
+        "features": ["safe links", "safe attachments", "attack simulation training", "anti-phishing policies"]
+      }
+    ]
+  },
+  {
+    "category": "OT Security",
+    "vendors": [
+      {
+        "vendor": "Claroty",
+        "features": ["passive discovery", "OT vulnerability management", "network segmentation", "secure remote access"]
+      },
+      {
+        "vendor": "Dragos",
+        "features": ["threat hunting", "industrial asset inventory", "incident response playbooks", "sector-specific threat intel"]
+      },
+      {
+        "vendor": "Nozomi Networks",
+        "features": ["real-time anomaly detection", "OT/IoT visibility", "vulnerability assessment", "AI-powered threat detection"]
+      },
+      {
+        "vendor": "TXOne",
+        "features": ["endpoint protection for ICS", "application whitelisting", "protocol inspection", "ruggedized deployment"]
+      }
+    ]
+  },
+  {
+    "category": "API Security",
+    "vendors": [
+      {
+        "vendor": "Wallarm",
+        "features": ["real-time API protection", "API discovery", "WAAP", "GraphQL protection"]
+      },
+      {
+        "vendor": "Salt Security",
+        "features": ["API discovery", "API posture management", "runtime attack detection", "AI-based threat detection"]
+      }
+    ]
+  },
+  {
+    "category": "ITDR",
+    "vendors": [
+      {
+        "vendor": "Microsoft Security",
+        "features": ["AD attack detection", "lateral movement detection", "BloodHound attack prevention", "UEBA for identity"]
+      },
+      {
+        "vendor": "CrowdStrike",
+        "features": ["real-time identity threat detection", "AD security posture", "Kerberos attack detection", "credential exposure monitoring"]
+      },
+      {
+        "vendor": "Silverfort",
+        "features": ["agentless identity protection", "lateral movement prevention", "Kerberoasting detection", "service account monitoring"]
+      }
+    ]
+  },
+  {
+    "category": "Microsegmentation",
+    "vendors": [
+      {
+        "vendor": "Illumio",
+        "features": ["application dependency mapping", "adaptive segmentation", "zero trust segmentation", "policy simulation"]
+      },
+      {
+        "vendor": "Akamai",
+        "features": ["micro-segmentation", "breach detection", "cloud segmentation", "software-defined perimeter"]
+      }
+    ]
+  },
+  {
+    "category": "IGA",
+    "vendors": [
+      {
+        "vendor": "SailPoint",
+        "features": ["lifecycle management", "access certification", "role management", "AI-driven access recommendations"]
+      },
+      {
+        "vendor": "Saviynt",
+        "features": ["access governance", "cloud PAM", "application access governance", "temporal access"]
+      }
+    ]
+  },
+  {
+    "category": "MFA",
+    "vendors": [
+      {
+        "vendor": "Cisco",
+        "features": ["device trust", "zero trust network access", "adaptive authentication", "endpoint visibility"]
+      },
+      {
+        "vendor": "Okta",
+        "features": ["adaptive MFA", "push notification", "biometric support", "risk-based authentication"]
+      },
+      {
+        "vendor": "Yubico",
+        "features": ["hardware FIDO2 key", "phishing-resistant", "WebAuthn", "passwordless authentication"]
+      }
+    ]
+  },
+  {
+    "category": "SASE",
+    "vendors": [
+      {
+        "vendor": "Zscaler",
+        "features": ["zero trust network access", "cloud firewall", "data loss prevention", "cloud access security broker"]
+      },
+      {
+        "vendor": "Netskope",
+        "features": ["cloud access security broker", "zero trust network access", "inline threat protection", "data loss prevention"]
+      },
+      {
+        "vendor": "Palo Alto Networks",
+        "features": ["Prisma Access", "SD-WAN", "cloud-delivered security", "autonomous digital experience"]
+      },
+      {
+        "vendor": "Cato Networks",
+        "features": ["global private backbone", "SD-WAN", "cloud-native SASE", "managed detection and response"]
       }
     ]
   }

@@ -99,11 +99,11 @@ class DecisionEngineTests(unittest.TestCase):
         self.assertEqual(result["mode"], "single_category")
         self.assertEqual(result["solution_categories"], ["OT Security"])
 
-    def test_sase_vendor_level_fallback_works(self) -> None:
+    def test_sase_recommendation_works_with_products(self) -> None:
         result = self.engine.analyze("What about SASE?")
-        self.assertEqual(result["mode"], "vendor_category")
+        self.assertEqual(result["mode"], "single_category")
         self.assertEqual(result["solution_categories"], ["SASE"])
-        self.assertGreaterEqual(len(result["ranked_vendors"]), 1)
+        self.assertGreaterEqual(len(result["ranked_products"]), 1)
 
     def test_firewall_vendor_level_fallback_works(self) -> None:
         result = self.engine.analyze("Recommend firewall solutions.")

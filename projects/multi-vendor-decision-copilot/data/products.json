@@ -62,7 +62,7 @@
   {
     "vendor": "SentinelOne",
     "product": "Singularity Endpoint",
-    "category": ["EDR"],
+    "category": ["EDR", "XDR"],
     "deployment": ["SaaS"],
     "compliance": ["SOC 2", "ISO 27001"],
     "integration_support": ["ServiceNow", "Okta", "AWS"],
@@ -448,5 +448,205 @@
     "integration_support": ["AWS", "Azure", "GCP"],
     "pricing_tier": "medium",
     "operational_complexity": "medium"
+  },
+  {
+    "vendor": "CyberArk",
+    "product": "CyberArk Privileged Access Manager",
+    "category": ["PAM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "HIPAA", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID", "AWS", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
+  },
+  {
+    "vendor": "Delinea",
+    "product": "Delinea Secret Server",
+    "category": ["PAM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["PCI DSS", "HIPAA", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Palo Alto Networks",
+    "product": "Cortex XSOAR",
+    "category": ["SOAR"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID", "AWS", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
+  },
+  {
+    "vendor": "IBM Security",
+    "product": "IBM SOAR",
+    "category": ["SOAR"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Okta", "AWS"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
+  },
+  {
+    "vendor": "Zscaler",
+    "product": "Zscaler Zero Trust Exchange",
+    "category": ["SASE"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001"],
+    "integration_support": ["Okta", "Microsoft Entra ID", "Azure", "AWS"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Netskope",
+    "product": "Netskope One",
+    "category": ["SASE"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001"],
+    "integration_support": ["Okta", "Microsoft Entra ID", "Azure", "AWS"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Cato Networks",
+    "product": "Cato SASE Cloud",
+    "category": ["SASE"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["Okta", "Microsoft Entra ID"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Claroty",
+    "product": "Claroty Platform",
+    "category": ["OT Security"],
+    "deployment": ["Hybrid"],
+    "compliance": ["ISO 27001"],
+    "integration_support": ["ServiceNow", "Splunk"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Dragos",
+    "product": "Dragos Platform",
+    "category": ["OT Security"],
+    "deployment": ["On-Prem"],
+    "compliance": ["ISO 27001"],
+    "integration_support": ["ServiceNow", "Splunk"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Nozomi Networks",
+    "product": "Nozomi Networks Guardian",
+    "category": ["OT Security"],
+    "deployment": ["Hybrid"],
+    "compliance": ["ISO 27001"],
+    "integration_support": ["ServiceNow", "Splunk"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Mimecast",
+    "product": "Mimecast Email Security",
+    "category": ["Email Security"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["Microsoft Entra ID", "Okta"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Microsoft Security",
+    "product": "Microsoft Defender for Office 365",
+    "category": ["Email Security"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["Microsoft Entra ID", "Azure", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Microsoft Security",
+    "product": "Microsoft Purview DLP",
+    "category": ["DLP"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA", "PCI DSS"],
+    "integration_support": ["Microsoft Entra ID", "Azure", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Microsoft Security",
+    "product": "Microsoft Defender XDR",
+    "category": ["XDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["Microsoft Entra ID", "Azure", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Microsoft Security",
+    "product": "Microsoft Defender for Identity",
+    "category": ["ITDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["Microsoft Entra ID", "Azure", "ServiceNow"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "CrowdStrike",
+    "product": "Falcon Identity Protection",
+    "category": ["ITDR"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001"],
+    "integration_support": ["Okta", "Microsoft Entra ID", "ServiceNow"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Salt Security",
+    "product": "Salt Security API Protection Platform",
+    "category": ["API Security"],
+    "deployment": ["SaaS"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["AWS", "Azure", "GCP"],
+    "pricing_tier": "high",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "Akamai",
+    "product": "Akamai Guardicore Segmentation",
+    "category": ["Microsegmentation"],
+    "deployment": ["Hybrid"],
+    "compliance": ["PCI DSS", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "AWS", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium"
+  },
+  {
+    "vendor": "Cisco",
+    "product": "Cisco Duo",
+    "category": ["MFA"],
+    "deployment": ["SaaS"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["Microsoft Entra ID", "Okta", "AWS", "Azure"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low"
+  },
+  {
+    "vendor": "IBM Security",
+    "product": "IBM Guardium",
+    "category": ["DAM"],
+    "deployment": ["Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "HIPAA", "SOC 2", "ISO 27001"],
+    "integration_support": ["ServiceNow", "Splunk"],
+    "pricing_tier": "high",
+    "operational_complexity": "high"
   }
 ]

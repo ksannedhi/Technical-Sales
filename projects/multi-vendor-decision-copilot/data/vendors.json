@@ -4,6 +4,7 @@
     "categories": [
       "EDR",
       "XDR",
+      "ITDR",
       "Cloud Security"
     ],
     "regions": [
@@ -16,7 +17,8 @@
       "Network Security",
       "CNAPP",
       "XDR",
-      "SASE"
+      "SASE",
+      "SOAR"
     ],
     "regions": [
       "Global"
@@ -27,8 +29,12 @@
     "categories": [
       "EDR",
       "SIEM",
+      "XDR",
       "CNAPP",
-      "Identity Security"
+      "Identity Security",
+      "ITDR",
+      "Email Security",
+      "DLP"
     ],
     "regions": [
       "Global"
@@ -39,6 +45,7 @@
     "categories": [
       "EDR",
       "XDR",
+      "ITDR",
       "Cloud Security"
     ],
     "regions": [
@@ -61,7 +68,9 @@
     "categories": [
       "Network Security",
       "XDR",
-      "SIEM"
+      "SIEM",
+      "MFA",
+      "SASE"
     ],
     "regions": [
       "Global"
@@ -154,6 +163,8 @@
     "vendor": "IBM Security",
     "categories": [
       "SIEM",
+      "SOAR",
+      "DAM",
       "Identity Security"
     ],
     "regions": [
@@ -357,7 +368,8 @@
     "vendor": "Akamai",
     "categories": [
       "WAF",
-      "DDoS Protection"
+      "DDoS Protection",
+      "Microsegmentation"
     ],
     "regions": [
       "Global"
@@ -383,11 +395,57 @@
   },
   {
     "vendor": "ExtraHop",
-    "categories": [
-      "NDR"
-    ],
-    "regions": [
-      "Global"
-    ]
+    "categories": ["NDR"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "CyberArk",
+    "categories": ["PAM"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Delinea",
+    "categories": ["PAM"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Zscaler",
+    "categories": ["SASE", "DLP"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Netskope",
+    "categories": ["SASE"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Cato Networks",
+    "categories": ["SASE"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Claroty",
+    "categories": ["OT Security"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Dragos",
+    "categories": ["OT Security"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Nozomi Networks",
+    "categories": ["OT Security"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Mimecast",
+    "categories": ["Email Security"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Salt Security",
+    "categories": ["API Security"],
+    "regions": ["Global"]
   }
 ]
