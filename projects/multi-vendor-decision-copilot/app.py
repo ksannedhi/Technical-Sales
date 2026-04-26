@@ -82,7 +82,7 @@ def render_single(result: dict[str, object]) -> None:
     st.subheader("Best Fit")
     position = _position_label(top)
     st.markdown(f"**{top['product_name']}** from **{top['vendor']}** &nbsp;·&nbsp; Market position: **{position}** &nbsp;·&nbsp; Score: **{top['score']} / 100**")
-    st.caption(f"Confidence: {result['confidence']}")
+    st.caption(f"Confidence: {result['confidence'].capitalize()}")
     rows = []
     for product in result["ranked_products"]:
         rows.append({
@@ -113,7 +113,7 @@ def render_lookup(result: dict[str, object]) -> None:
     profile = result["vendor_profile"]
     st.subheader("Vendor Profile")
     st.markdown(f"**{profile['vendor']}**")
-    st.caption(f"Confidence: {result['confidence']}")
+    st.caption(f"Confidence: {result['confidence'].capitalize()}")
     capability_summary = result.get("capability_summary")
     if capability_summary:
         st.subheader("Requested Capability Check")
@@ -181,7 +181,7 @@ def render_vendor_category(result: dict[str, object]) -> None:
 
 def render_stack(result: dict[str, object]) -> None:
     st.subheader("Recommended Solution Stack")
-    st.caption(f"Confidence: {result['confidence']}")
+    st.caption(f"Confidence: {result['confidence'].capitalize()}")
     for item in result["solution_stack"]:
         if item["status"] == "insufficient_data":
             st.warning(f"{item['category']}: {item['message']}")
@@ -274,8 +274,9 @@ if should_run and query.strip():
     if query.strip() not in examples:
         st.session_state.pop("active_example", None)
     result = engine.analyze(query.strip())
-    history_store.append({"query": query.strip(), "result": result})
-    del history_store[:-10]
+    if not history_store or history_store[-1]["query"] != query.strip():
+        history_store.append({"query": query.strip(), "result": result})
+        del history_store[:-10]
     st.markdown("---")
     if result["mode"] == "insufficient_data":
         render_insufficient(result)

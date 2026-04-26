@@ -526,10 +526,11 @@ class DecisionEngine:
     def _comparison_reason(self, product: dict[str, Any]) -> str:
         parts = []
         if product["deployment_models"]:
-            parts.append(f"deployment: {', '.join(product['deployment_models'])}")
+            parts.append(f"Deployment: {', '.join(product['deployment_models'])}")
         features = self.feature_lookup.get((product["vendor"].lower(), product["primary_category"]), [])
         if features:
-            parts.append(f"known features: {', '.join(features[:3])}")
+            capped = ", ".join(f[0].upper() + f[1:] if f else f for f in features[:3])
+            parts.append(f"Known features: {capped}")
         return "; ".join(parts) if parts else "Named product found, but detailed comparison data is limited."
 
     def _constraints_dict(self, parsed: ParsedQuery) -> dict[str, object]:
