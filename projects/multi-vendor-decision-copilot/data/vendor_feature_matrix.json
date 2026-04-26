@@ -301,6 +301,10 @@
       {
         "vendor": "Cato Networks",
         "features": ["global private backbone", "SD-WAN", "cloud-native SASE", "managed detection and response"]
+      },
+      {
+        "vendor": "Fortinet",
+        "features": ["FortiGuard security services", "ZTNA", "SD-WAN integration", "cloud-delivered firewall"]
       }
     ]
   },

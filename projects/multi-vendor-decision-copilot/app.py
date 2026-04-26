@@ -202,9 +202,16 @@ def render_lookup(result: dict[str, object]) -> None:
                 st.write(f"- {_cap_first(f)}")
         return
 
-    st.subheader("Vendor Profile")
-    st.markdown(f"**{profile['vendor']}**")
-    st.caption(f"Confidence: {result['confidence'].capitalize()}")
+    vendor_name = profile["vendor"]
+    categories = profile.get("categories", [])
+    regions = ", ".join(profile.get("regions", [])) or "Not specified"
+    deployments = ", ".join(profile.get("deployment_models", [])) or "Not specified"
+    st.subheader(vendor_name)
+    st.caption(f"Regions: {regions} · Deployment: {deployments} · Confidence: {result['confidence'].capitalize()}")
+    if categories:
+        cat_str = ", ".join(f"**{c}**" for c in categories)
+        st.markdown(f"{vendor_name} covers {cat_str}.")
+
     capability_summary = result.get("capability_summary")
     if capability_summary:
         st.subheader("Requested Capability Check")
@@ -212,21 +219,23 @@ def render_lookup(result: dict[str, object]) -> None:
             st.write(f"**{item['category']}:** {item['message']}")
             if item.get("products"):
                 st.write(f"Known products: {', '.join(item['products'])}")
-    st.write(f"**Categories:** {', '.join(profile.get('categories', [])) or 'Not specified'}")
-    st.write(f"**Regions:** {', '.join(profile.get('regions', [])) or 'Not specified'}")
-    st.write(f"**Deployment Models:** {', '.join(profile.get('deployment_models', [])) or 'Not specified'}")
-    if profile.get('features'):
-        st.write(f"**Known Features:** {_fmt_features(profile['features'], limit=6)}")
-    rows = []
-    for product in profile.get('products', []):
-        rows.append({
-            "Product": product["product_name"],
-            "Categories": ", ".join(product.get("categories", [])),
-            "Deployment": ", ".join(product.get("deployment_models", [])),
-        })
-    if rows:
-        st.subheader("Known Products")
+
+    products_list = profile.get("products", [])
+    if products_list:
+        st.subheader("Products")
+        rows = []
+        for product in products_list:
+            rows.append({
+                "Product": product["product_name"],
+                "Category": ", ".join(product.get("categories", [])),
+                "Position": _position_label(product),
+                "Deployment": ", ".join(product.get("deployment_models", [])),
+            })
         st.dataframe(rows, use_container_width=True, hide_index=True)
+
+    gaps = profile.get("category_gaps", [])
+    if gaps:
+        st.caption(f"Vendor-level coverage only (no product records): {', '.join(gaps)}")
 
 
 def render_comparison(result: dict[str, object]) -> None:

@@ -316,6 +316,8 @@ class DecisionEngine:
                     unique_features.append(feature)
                     seen.add(feature)
             capability_summary = self._vendor_capability_summary(parsed, vendor_name, vendor or {}, products)
+            vendor_categories = sorted({cat for prod in products for cat in prod["categories"]} | set((vendor or {}).get("categories", [])))
+            category_gaps = [cat for cat in (vendor or {}).get("categories", []) if not any(cat in prod["categories"] for prod in products)]
             return {
                 "mode": "lookup",
                 "query": parsed.raw_query,
@@ -323,7 +325,8 @@ class DecisionEngine:
                 "vendor": vendor_name,
                 "vendor_profile": {
                     "vendor": vendor_name,
-                    "categories": categories,
+                    "categories": vendor_categories,
+                    "category_gaps": category_gaps,
                     "regions": (vendor or {}).get("regions", []),
                     "deployment_models": deployments,
                     "products": [
@@ -331,6 +334,7 @@ class DecisionEngine:
                             "product_name": product["product_name"],
                             "categories": product["categories"],
                             "deployment_models": product.get("deployment_models", []),
+                            "market_position": product.get("market_position"),
                         }
                         for product in products
                     ],
