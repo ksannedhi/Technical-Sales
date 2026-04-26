@@ -782,16 +782,19 @@ class DecisionEngine:
         ranked.sort(key=lambda item: item["score"], reverse=True)
         if not ranked:
             return self._insufficient(parsed, f"I found the category {category}, but there are no comparable products in the current dataset that satisfy the hard constraints in your request.", [category], excluded_products=excluded)
+        cat_meta = self.category_metadata.get(category, {})
         return {
             "mode": "single_category",
             "query": parsed.raw_query,
             "interpreted_problem": parsed.problems,
             "solution_categories": [category],
+            "category_full_name": cat_meta.get("full_name", category),
+            "category_brief": cat_meta.get("what_it_is", ""),
             "constraints": self._constraints_dict(parsed),
             "top_recommendation": ranked[0],
             "ranked_products": ranked[:5],
             "excluded_products": excluded,
-            "assumptions": ["Scoring uses configured weights across deployment, available feature coverage, integrations, compliance, cost, and operational complexity when the dataset contains those fields."],
+            "assumptions": [],
             "data_gaps": self._data_gaps(parsed),
             "confidence": self._rank_confidence(ranked, parsed),
         }

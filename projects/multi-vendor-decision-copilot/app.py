@@ -150,6 +150,12 @@ _DIMENSION_MAX = {
 
 
 def render_single(result: dict[str, object]) -> None:
+    brief = result.get("category_brief", "")
+    cat_full = result.get("category_full_name", "")
+    if brief:
+        label = f"About {cat_full}" if cat_full else "About this category"
+        with st.expander(label, expanded=True):
+            st.write(brief)
     top = result["top_recommendation"]
     st.subheader("Best Fit")
     position = _position_label(top)
