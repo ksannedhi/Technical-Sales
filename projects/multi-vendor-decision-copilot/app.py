@@ -172,27 +172,12 @@ def render_exclusions(result: dict[str, object]) -> None:
 
 def render_transparency(result: dict[str, object]) -> None:
     constraints = {key: value for key, value in result.get("constraints", {}).items() if value}
-    assumptions = result.get("assumptions", [])
     data_gaps = result.get("data_gaps", [])
     excluded = result.get("excluded_products", [])
 
-    show_constraints = bool(constraints)
-    show_assumptions = bool(assumptions)
-
-    if show_constraints and show_assumptions:
-        left, right = st.columns(2)
-        with left:
-            st.markdown("**Detected Constraints**")
-            render_constraints(constraints)
-        with right:
-            st.markdown("**Assumptions**")
-            render_assumptions(assumptions)
-    elif show_constraints:
+    if constraints:
         st.markdown("**Detected Constraints**")
         render_constraints(constraints)
-    elif show_assumptions:
-        st.markdown("**Assumptions**")
-        render_assumptions(assumptions)
 
     if data_gaps:
         st.markdown("**Data Gaps**")
@@ -248,12 +233,17 @@ query = st.text_area(
 run = st.button("Analyze", type="primary", use_container_width=True)
 examples = engine.get_examples()
 example_cols = st.columns(len(examples))
+active_example = st.session_state.get("active_example", "")
 for col, sample in zip(example_cols, examples):
-    if col.button(sample, use_container_width=True):
+    is_active = sample == active_example
+    if col.button(sample, use_container_width=True, type="primary" if is_active else "secondary"):
         st.session_state["pending_prompt"] = sample
+        st.session_state["active_example"] = sample
         st.rerun()
 should_run = run or st.session_state.pop("auto_analyze", False)
 if should_run and query.strip():
+    if query.strip() not in examples:
+        st.session_state.pop("active_example", None)
     result = engine.analyze(query.strip())
     history_store.append({"query": query.strip(), "result": result})
     del history_store[:-10]

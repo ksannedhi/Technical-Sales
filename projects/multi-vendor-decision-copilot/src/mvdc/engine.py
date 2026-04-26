@@ -546,8 +546,6 @@ class DecisionEngine:
         gaps = []
         if vendor_only:
             gaps.append("Add product-level records for this category to enable more specific recommendations and comparisons.")
-        else:
-            gaps.append("Many products still lack detailed features, compliance, and integration fields in the current dataset.")
         if parsed.required_compliance:
             gaps.append("Compliance filtering is only as strong as the explicit compliance tags present on each product record.")
         if parsed.required_integrations:
