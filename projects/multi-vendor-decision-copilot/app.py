@@ -89,7 +89,7 @@ def render_single(result: dict[str, object]) -> None:
             "Product": product["product_name"],
             "Vendor": product["vendor"],
             "Position": _position_label(product),
-            "Score": product["score"],
+            "Score": f"{product['score']}",
             "Deployment": ", ".join(product.get("deployment_models", [])),
             "Features": _fmt_features(product.get("features", [])),
         })
@@ -146,7 +146,7 @@ def render_comparison(result: dict[str, object]) -> None:
             "Product": item["product_name"],
             "Position": _position_label(item),
             "Category": item["category"],
-            "Score": item["score"],
+            "Score": f"{item['score']}",
             "Deployment": ", ".join(item["deployment_models"]),
             "Features": _fmt_features(item.get("features", [])),
         })

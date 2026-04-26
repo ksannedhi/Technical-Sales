@@ -406,10 +406,26 @@ class DecisionEngine:
             "assessments": assessments,
         }
 
+    def _shared_category(self, products: list[dict[str, Any]]) -> str | None:
+        if not products:
+            return None
+        category_sets = [set(p["categories"]) for p in products]
+        shared = set.intersection(*category_sets)
+        if shared:
+            primary_counts = {cat: sum(1 for p in products if p["primary_category"] == cat) for cat in shared}
+            return max(primary_counts, key=lambda c: (primary_counts[c], list(shared).index(c)))
+        all_cats: list[str] = []
+        for p in products:
+            all_cats.extend(p["categories"])
+        counts = {cat: all_cats.count(cat) for cat in set(all_cats)}
+        best = max(counts, key=lambda c: counts[c])
+        return best if counts[best] > 1 else None
+
     def _compare_products(self, parsed: ParsedQuery, matched_products: list[dict[str, Any]]) -> dict[str, Any]:
         rows = []
         missing = []
         excluded = []
+        resolved = []
         for target in parsed.compare_targets:
             target_lc = target.lower()
             products = [product for product in matched_products if target_lc in product["product_name"].lower() or target_lc == product["vendor"].lower()]
@@ -426,7 +442,10 @@ class DecisionEngine:
                 })
                 missing.append(target)
                 continue
-            category = product["primary_category"]
+            resolved.append(product)
+        shared_category = self._shared_category(resolved)
+        for product in resolved:
+            category = shared_category or product["primary_category"]
             rows.append({
                 "vendor": product["vendor"],
                 "product_name": product["product_name"],
