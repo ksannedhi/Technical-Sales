@@ -141,6 +141,7 @@ class DecisionEngine:
                 "pricing_tier": item.get("pricing_tier"),
                 "ideal_customer_size": item.get("ideal_customer_size"),
                 "operational_complexity": item.get("operational_complexity"),
+                "market_position": item.get("market_position"),
                 "evidence": item.get("evidence", []),
             })
         return normalized
@@ -458,17 +459,19 @@ class DecisionEngine:
     def _weighted_score(self, parsed: ParsedQuery, product: dict[str, Any], category: str | None) -> float:
         weights = {
             "deployment_fit": float(self.scoring_weights.get("deployment_fit", 0.25)),
-            "feature_match": float(self.scoring_weights.get("feature_match", 0.25)),
+            "feature_match": float(self.scoring_weights.get("feature_match", 0.20)),
             "integration_fit": float(self.scoring_weights.get("integration_fit", 0.15)),
             "compliance_fit": float(self.scoring_weights.get("compliance_fit", 0.15)),
-            "cost_score": float(self.scoring_weights.get("cost_score", 0.1)),
-            "operational_complexity": float(self.scoring_weights.get("operational_complexity", 0.1)),
+            "market_position": float(self.scoring_weights.get("market_position", 0.15)),
+            "cost_score": float(self.scoring_weights.get("cost_score", 0.05)),
+            "operational_complexity": float(self.scoring_weights.get("operational_complexity", 0.05)),
         }
         components = {
             "deployment_fit": self._deployment_fit(parsed, product),
             "feature_match": self._feature_fit(product, category),
             "integration_fit": self._integration_fit(parsed, product),
             "compliance_fit": self._compliance_fit(parsed, product),
+            "market_position": self._market_position_fit(product),
             "cost_score": self._cost_fit(product),
             "operational_complexity": self._operational_fit(product),
         }
@@ -555,6 +558,11 @@ class DecisionEngine:
         available = {item.lower() for item in product.get("compliance", [])}
         matches = sum(1 for item in parsed.required_compliance if item.lower() in available)
         return round((matches / len(parsed.required_compliance)) * 100.0, 1)
+
+    def _market_position_fit(self, product: dict[str, Any]) -> float:
+        position_scores = {"leader": 100.0, "strong": 75.0, "challenger": 50.0}
+        position = str(product.get("market_position") or "").lower()
+        return position_scores.get(position, 60.0)
 
     def _cost_fit(self, product: dict[str, Any]) -> float:
         tier_scores = {"low": 90.0, "medium": 70.0, "high": 45.0}
