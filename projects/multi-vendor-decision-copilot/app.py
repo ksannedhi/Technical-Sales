@@ -16,34 +16,53 @@ st.set_page_config(page_title="Multi-Vendor Decision Copilot", page_icon="shield
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
-/* Tighten heading spacing */
-h1 { font-size: 1.6rem !important; margin-bottom: 0.15rem !important; font-weight: 600 !important; }
-h2 { font-size: 1.15rem !important; margin-top: 0.6rem !important; margin-bottom: 0.15rem !important; font-weight: 600 !important; }
-h3 { font-size: 1rem !important; margin-top: 0.4rem !important; margin-bottom: 0.1rem !important; font-weight: 500 !important; }
+/* Page padding */
+section[data-testid="stMain"] .block-container {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+}
 
-/* Tighten paragraph and write spacing */
-div[data-testid="stMarkdownContainer"] p { margin-bottom: 0.2rem !important; line-height: 1.5 !important; }
+/* Headings */
+h2 { font-size: 1.1rem !important; margin-top: 0.7rem !important; margin-bottom: 0.15rem !important; font-weight: 600 !important; }
+h3 { font-size: 0.97rem !important; margin-top: 0.4rem !important; margin-bottom: 0.1rem !important; font-weight: 500 !important; }
+
+/* Paragraph / list spacing */
+div[data-testid="stMarkdownContainer"] p { margin-bottom: 0.2rem !important; line-height: 1.55 !important; }
 div[data-testid="stMarkdownContainer"] ul { margin-top: 0.1rem !important; margin-bottom: 0.2rem !important; }
 
-/* Caption text */
-div[data-testid="stCaptionContainer"] p { font-size: 0.78rem !important; margin-bottom: 0.1rem !important; }
+/* Caption */
+div[data-testid="stCaptionContainer"] p { font-size: 0.77rem !important; margin-bottom: 0.05rem !important; color: #6b7280 !important; }
 
-/* Reduce spacing between stacked elements */
+/* Stacked element gap */
 div[data-testid="stVerticalBlock"] > div { gap: 0.2rem !important; }
 
-/* Alert / info box */
-div[data-testid="stAlert"] { padding: 0.5rem 0.75rem !important; margin-bottom: 0.3rem !important; }
+/* Text area — card style */
+textarea {
+    border-radius: 8px !important;
+    border: 1.5px solid #e5e7eb !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+    padding: 0.65rem 0.75rem !important;
+}
+textarea:focus {
+    border-color: #ff4b4b !important;
+    box-shadow: 0 0 0 3px rgba(255,75,75,0.12) !important;
+}
 
-/* Expander header */
-details summary { font-size: 0.88rem !important; }
+/* Alert / info box */
+div[data-testid="stAlert"] { padding: 0.5rem 0.75rem !important; margin-bottom: 0.3rem !important; border-radius: 6px !important; }
+
+/* Expander */
+details summary { font-size: 0.87rem !important; }
 div[data-testid="stExpander"] { margin-bottom: 0.25rem !important; }
 
 /* Divider */
-hr { margin: 0.6rem 0 !important; }
+hr { margin: 0.75rem 0 !important; border-color: #e5e7eb !important; }
 
 /* Dataframe */
 div[data-testid="stDataFrame"] { margin-bottom: 0.3rem !important; }
@@ -299,9 +318,13 @@ def render_history_item(item: dict[str, object], index: int) -> None:
         render_transparency(result)
 
 
-st.title("Multi-Vendor Decision Copilot")
-st.caption("Transparent cybersecurity solution recommendations based on your constraints, required capabilities, and compliance needs.")
-st.markdown("**Describe your cybersecurity need, constraints, and compliance requirements**")
+st.markdown("""
+<div style="padding: 0.5rem 0 1.25rem 0; border-bottom: 1.5px solid #e5e7eb; margin-bottom: 1.25rem;">
+  <p style="font-family:'Inter',sans-serif; font-size:1.45rem; font-weight:700; margin:0 0 0.25rem 0; color:#0f1117; letter-spacing:-0.02em;">Multi-Vendor Decision Copilot</p>
+  <p style="font-family:'Inter',sans-serif; font-size:0.82rem; color:#6b7280; margin:0; line-height:1.5;">Transparent cybersecurity solution recommendations based on your constraints, required capabilities, and compliance needs.</p>
+</div>
+""", unsafe_allow_html=True)
+st.markdown("<p style='font-family:Inter,sans-serif; font-size:0.88rem; font-weight:600; color:#374151; margin:0 0 0.3rem 0;'>Describe your cybersecurity need, constraints, and compliance requirements</p>", unsafe_allow_html=True)
 if "pending_prompt" in st.session_state:
     st.session_state["prompt"] = st.session_state.pop("pending_prompt")
     st.session_state["auto_analyze"] = True
