@@ -85,7 +85,7 @@ No `.env` file required — fully local, data-driven.
 - `data/vendor_feature_matrix.json` — per-category feature summaries
 - `data/scoring_weights.json` — weighted scoring configuration
 - `data/hard_exclusions.json` — hard-filtering rules
-- `docs/PROJECT_SPEC.md` — full product and behaviour spec
+- `PROJECT_SPEC.md` — full product and behaviour spec
 - `tests/` — unit tests for engine logic
 - `requirements.txt` — `streamlit` only
 
