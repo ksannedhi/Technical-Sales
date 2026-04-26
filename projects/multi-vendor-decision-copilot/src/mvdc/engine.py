@@ -709,8 +709,17 @@ class DecisionEngine:
             "excluded_products": excluded,
             "assumptions": ["Scoring uses configured weights across deployment, available feature coverage, integrations, compliance, cost, and operational complexity when the dataset contains those fields."],
             "data_gaps": self._data_gaps(parsed),
-            "confidence": "low-to-medium",
+            "confidence": self._rank_confidence(ranked, parsed),
         }
+
+    def _rank_confidence(self, ranked: list[dict[str, Any]], parsed: ParsedQuery) -> str:
+        top_position = str(ranked[0].get("market_position") or "").lower()
+        constrained = self._has_hard_constraints(parsed)
+        if top_position == "leader" and len(ranked) >= 2 and not constrained:
+            return "high"
+        if top_position in ("leader", "strong") and len(ranked) >= 2:
+            return "medium"
+        return "low-to-medium"
 
     def _build_stack(self, parsed: ParsedQuery, categories: list[str]) -> dict[str, Any]:
         stack = []
