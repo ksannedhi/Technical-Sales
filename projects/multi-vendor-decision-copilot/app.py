@@ -128,8 +128,13 @@ def render_comparison(result: dict[str, object]) -> None:
         })
     st.subheader("Vendor Comparison")
     st.dataframe(rows, use_container_width=True, hide_index=True)
-    top = result["top_recommendation"]
-    st.info(f"Top ranked option in the current dataset: {top['vendor']} via {top['product_name']}. Confidence: {result['confidence']}.")
+    comparison_results = result["comparison_results"]
+    if len(comparison_results) >= 2 and comparison_results[0]["score"] == comparison_results[1]["score"]:
+        tied = [f"{r['vendor']} ({r['product_name']})" for r in comparison_results if r["score"] == comparison_results[0]["score"]]
+        st.info(f"These options are equally matched at {comparison_results[0]['score']} / 100: {', '.join(tied)}. Review the features above to differentiate based on your specific requirements.")
+    else:
+        top = result["top_recommendation"]
+        st.info(f"Top match: **{top['vendor']}** — {top['product_name']} ({top['score']} / 100)")
     if result["missing_vendors"]:
         st.warning(f"Could not fully compare: {', '.join(result['missing_vendors'])}")
 
@@ -261,8 +266,6 @@ if should_run and query.strip():
     else:
         render_stack(result)
     render_transparency(result)
-    with st.expander("Raw Engine Output"):
-        st.json(result)
 elif should_run:
     st.warning("Enter a customer query to analyze.")
 
