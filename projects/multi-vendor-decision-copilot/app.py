@@ -274,7 +274,7 @@ if should_run and query.strip():
     if query.strip() not in examples:
         st.session_state.pop("active_example", None)
     result = engine.analyze(query.strip())
-    if not history_store or history_store[-1]["query"] != query.strip():
+    if not any(h["query"] == query.strip() for h in history_store):
         history_store.append({"query": query.strip(), "result": result})
         del history_store[:-10]
     st.markdown("---")
