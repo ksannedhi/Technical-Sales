@@ -184,5 +184,23 @@
     "full_name": "Quantum-Safe Encryption",
     "what_it_is": "Quantum-safe (or post-quantum) encryption solutions replace current public-key algorithms (RSA, ECC) with cryptographic schemes designed to resist attacks from quantum computers. Organizations handling long-lived sensitive data need to begin migrating now to protect against 'harvest now, decrypt later' attacks.",
     "problems_it_solves": ["Long-term data confidentiality against future quantum decryption", "Harvest now, decrypt later attacks by nation-state adversaries", "Cryptographic algorithm agility for post-quantum migration", "Compliance with emerging NIST post-quantum standards"]
+  },
+  {
+    "category": "Firewall",
+    "full_name": "Next-Generation Firewall (NGFW)",
+    "what_it_is": "Next-generation firewalls inspect network traffic at the application layer, going far beyond traditional port/protocol filtering. They combine stateful inspection, deep packet inspection, intrusion prevention (IPS), application awareness, user identity integration, and TLS decryption into a single platform. Modern NGFWs are deployed at network perimeters, in data centers, and as cloud-native instances to enforce zero-trust segmentation policies.",
+    "problems_it_solves": ["Uncontrolled application usage and shadow IT traversing the network", "Encrypted threats hiding in TLS/HTTPS traffic", "Lateral movement between network segments", "Compliance requirements for network traffic logging and access control", "Advanced persistent threats bypassing legacy stateful firewalls"]
+  },
+  {
+    "category": "SASE",
+    "full_name": "Secure Access Service Edge",
+    "what_it_is": "SASE converges wide-area networking (SD-WAN) and cloud-delivered security services — including SWG, CASB, ZTNA, and FWaaS — into a single cloud-native architecture. Rather than backhauling remote user and branch traffic to a data center firewall, SASE enforces security policy at the cloud edge closest to the user, improving both security and performance for distributed workforces.",
+    "problems_it_solves": ["Slow, unreliable VPN performance for remote and hybrid workforces", "Security policy gaps as users access cloud apps directly without inspection", "Complex multi-vendor security stacks with inconsistent policy enforcement", "Lack of zero-trust network access for third-party and contractor users", "Branch office connectivity and security managed through separate tools"]
+  },
+  {
+    "category": "ITDR",
+    "full_name": "Identity Threat Detection and Response",
+    "what_it_is": "ITDR solutions detect and respond to attacks targeting identity infrastructure — Active Directory, Entra ID, Okta, and other identity providers. They monitor for credential attacks (pass-the-hash, Kerberoasting, Golden Ticket), privilege escalation, and account compromise in real time, filling the gap that EDR and SIEM leave around identity-layer threats.",
+    "problems_it_solves": ["Active Directory attacks such as DCSync, Kerberoasting, and Golden Ticket forgery", "Credential stuffing and password spraying against identity providers", "Privilege escalation via identity misconfigurations", "Delayed detection of identity-based lateral movement", "Blind spots in SIEM/EDR coverage of Active Directory event logs"]
   }
 ]

@@ -383,6 +383,11 @@ class DecisionEngine:
         if not category:
             return self._insufficient(parsed, "I could not identify a specific solution category to explain.")
         meta = self.category_metadata.get(category, {})
+        if not meta:
+            products = [p for p in self.products if category in p["categories"]]
+            if products:
+                return self._rank_category(parsed, category, products)
+            return self._insufficient(parsed, f"I recognised '{category}' as a known category but do not have a description or product data for it yet.")
         products = [p for p in self.products if category in p["categories"]]
         top_products: list[dict[str, Any]] = []
         if products:
