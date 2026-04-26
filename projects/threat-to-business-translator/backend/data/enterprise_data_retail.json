@@ -1,0 +1,285 @@
+{
+    "business_units": [
+        { "id": "ecommerce",       "name": "E-commerce",          "annual_revenue_musd": 95,  "executive_owner": "Chief Digital Officer" },
+        { "id": "store-ops",       "name": "Store Operations",    "annual_revenue_musd": 75,  "executive_owner": "Chief Retail Officer" },
+        { "id": "supply-chain",    "name": "Supply Chain",        "annual_revenue_musd": 55,  "executive_owner": "VP Supply Chain" },
+        { "id": "customer-loyalty","name": "Customer Loyalty",    "annual_revenue_musd": 25,  "executive_owner": "Chief Marketing Officer" }
+    ],
+    "business_services": [
+        {
+            "id": "ecommerce-platform",
+            "name": "E-commerce Platform",
+            "business_unit_id": "ecommerce",
+            "business_unit": "E-commerce",
+            "service_owner": "VP of Digital Commerce",
+            "criticality": 5, "data_sensitivity": 4, "user_scale": 5, "revenue_dependency": 5,
+            "estimated_people_affected": 280000,
+            "key_dependencies": ["CDN and load balancers", "Product catalogue API", "Payment gateway integration"]
+        },
+        {
+            "id": "payment-processing",
+            "name": "Payment Processing",
+            "business_unit_id": "ecommerce",
+            "business_unit": "E-commerce",
+            "service_owner": "Director of Payment Operations",
+            "criticality": 5, "data_sensitivity": 5, "user_scale": 5, "revenue_dependency": 5,
+            "estimated_people_affected": 280000,
+            "key_dependencies": ["Payment gateway", "PCI-DSS tokenisation vault", "Fraud detection engine"]
+        },
+        {
+            "id": "pos-network",
+            "name": "Point-of-Sale (POS) Network",
+            "business_unit_id": "store-ops",
+            "business_unit": "Store Operations",
+            "service_owner": "Director of Retail Technology",
+            "criticality": 5, "data_sensitivity": 4, "user_scale": 4, "revenue_dependency": 5,
+            "estimated_people_affected": 12000,
+            "key_dependencies": ["POS terminals", "Store network connectivity", "Inventory sync"]
+        },
+        {
+            "id": "order-fulfillment",
+            "name": "Order Fulfillment & Logistics",
+            "business_unit_id": "supply-chain",
+            "business_unit": "Supply Chain",
+            "service_owner": "Head of Fulfillment Operations",
+            "criticality": 4, "data_sensitivity": 3, "user_scale": 3, "revenue_dependency": 4,
+            "estimated_people_affected": 8500,
+            "key_dependencies": ["Warehouse management system", "Carrier API integrations", "Last-mile tracking"]
+        },
+        {
+            "id": "loyalty-platform",
+            "name": "Customer Loyalty Platform",
+            "business_unit_id": "customer-loyalty",
+            "business_unit": "Customer Loyalty",
+            "service_owner": "VP of Customer Engagement",
+            "criticality": 3, "data_sensitivity": 4, "user_scale": 5, "revenue_dependency": 3,
+            "estimated_people_affected": 5200000,
+            "key_dependencies": ["Points ledger", "CRM integration", "Mobile app backend"]
+        },
+        {
+            "id": "inventory-management",
+            "name": "Inventory Management System",
+            "business_unit_id": "supply-chain",
+            "business_unit": "Supply Chain",
+            "service_owner": "Director of Supply Chain Systems",
+            "criticality": 4, "data_sensitivity": 3, "user_scale": 3, "revenue_dependency": 4,
+            "estimated_people_affected": 3800,
+            "key_dependencies": ["ERP integration", "Barcode and RFID systems", "Supplier feeds"]
+        }
+    ],
+    "assets": [
+        { "id": "ecommerce-web",       "name": "ecommerce-web",       "service_id": "ecommerce-platform",  "asset_type": "E-commerce web application",     "criticality": "high",   "internet_exposed": true,  "control_ids": ["waf-edge", "patch-sla-web", "cdn-protection"] },
+        { "id": "payment-gateway",     "name": "payment-gateway",     "service_id": "payment-processing",  "asset_type": "Payment gateway integration",    "criticality": "high",   "internet_exposed": true,  "control_ids": ["pci-tokenisation", "patch-sla-edge", "mfa-remote"] },
+        { "id": "pos-terminals",       "name": "pos-terminals",       "service_id": "pos-network",          "asset_type": "POS terminal network",           "criticality": "high",   "internet_exposed": false, "control_ids": ["patch-sla-server", "segmentation-prod"] },
+        { "id": "fulfillment-wms",     "name": "fulfillment-wms",     "service_id": "order-fulfillment",   "asset_type": "Warehouse management system",    "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "segmentation-prod"] },
+        { "id": "loyalty-db",          "name": "loyalty-db",          "service_id": "loyalty-platform",    "asset_type": "Customer loyalty database",      "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "database-hardening"] },
+        { "id": "inventory-db",        "name": "inventory-db",        "service_id": "inventory-management","asset_type": "Inventory database server",       "criticality": "medium", "internet_exposed": false, "control_ids": ["backup-core", "database-hardening"] }
+    ],
+    "identities": [
+        { "id": "ecomm-admin",     "name": "Ravi Kapoor (E-commerce Admin)",     "role": "E-commerce Platform Administrator",  "privilege_level": "high" },
+        { "id": "payment-ops",     "name": "Sofia Marcello (Payment Ops)",       "role": "Payment Operations Lead",            "privilege_level": "high" },
+        { "id": "store-svc-acct",  "name": "svc-pos-sync",                       "role": "POS Service Account",                "privilege_level": "medium" },
+        { "id": "loyalty-svc",     "name": "svc-loyalty-api",                    "role": "Loyalty API Service Account",        "privilege_level": "medium" }
+    ],
+    "controls": [
+        { "id": "waf-edge",           "name": "Web application firewall",              "status": "partial",  "effectiveness": 64 },
+        { "id": "patch-sla-web",      "name": "Web tier patch SLA",                    "status": "partial",  "effectiveness": 58 },
+        { "id": "patch-sla-edge",     "name": "Edge patch SLA",                        "status": "weak",     "effectiveness": 38 },
+        { "id": "patch-sla-server",   "name": "Server patch SLA",                      "status": "weak",     "effectiveness": 42 },
+        { "id": "mfa-remote",         "name": "MFA for remote access",                 "status": "partial",  "effectiveness": 60 },
+        { "id": "segmentation-prod",  "name": "Production network segmentation",       "status": "strong",   "effectiveness": 78 },
+        { "id": "backup-core",        "name": "Core backup and restore",               "status": "strong",   "effectiveness": 85 },
+        { "id": "database-hardening", "name": "Database hardening baseline",           "status": "partial",  "effectiveness": 52 },
+        { "id": "pci-tokenisation",   "name": "PCI-DSS tokenisation and encryption",   "status": "strong",   "effectiveness": 88 },
+        { "id": "cdn-protection",     "name": "CDN-level DDoS and bot protection",     "status": "partial",  "effectiveness": 65 },
+        { "id": "edr-endpoint",       "name": "Endpoint detection and response",       "status": "partial",  "effectiveness": 56 }
+    ],
+    "scenarios": [
+        {
+            "id": "saas-account-takeover",
+            "name": "Credential attack on e-commerce accounts enabling fraud and data access",
+            "category": "SaaS / account",
+            "service_id": "ecommerce-platform",
+            "primary_asset_id": "ecommerce-web",
+            "asset_ids": ["ecommerce-web", "loyalty-db"],
+            "identity_ids": ["ecomm-admin"],
+            "library_visible": true,
+            "technical_signal": "Credential stuffing and account takeover attacks are targeting the e-commerce platform at scale, enabling fraudulent orders, loyalty point theft, and access to stored payment methods.",
+            "executive_trigger": "Account takeover attacks at scale on the e-commerce platform enabling fraud",
+            "signal_factors": { "exploitability": 4, "threat_activity": 5, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Enable adaptive authentication and rate limiting on login endpoints immediately.",
+                "Force password resets for accounts showing compromise indicators.",
+                "Audit recent orders and loyalty transactions from compromised accounts for fraud.",
+                "Notify customer communications team to prepare breach advisory if customer data was accessed."
+            ]
+        },
+        {
+            "id": "api-exposure",
+            "name": "Payment or loyalty API credential exposure enabling financial fraud",
+            "category": "API / credential",
+            "service_id": "payment-processing",
+            "primary_asset_id": "payment-gateway",
+            "asset_ids": ["payment-gateway", "loyalty-db"],
+            "identity_ids": ["payment-ops"],
+            "library_visible": true,
+            "technical_signal": "API keys or service credentials for the payment gateway or loyalty platform are exposed in a public code repository or application response, creating the risk of fraudulent payment initiation or loyalty fraud.",
+            "executive_trigger": "Exposed payment or loyalty API credentials enabling financial fraud risk",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Rotate all exposed API keys and payment gateway credentials immediately.",
+                "Audit payment and loyalty API transaction logs for unauthorised activity.",
+                "Implement secrets scanning in all CI/CD and source control workflows.",
+                "Notify the payment provider and loyalty platform vendor of the credential exposure."
+            ]
+        },
+        {
+            "id": "ransomware-endpoint",
+            "name": "Ransomware outbreak threatening e-commerce and warehouse operations",
+            "category": "Ransomware / endpoint",
+            "service_id": "order-fulfillment",
+            "primary_asset_id": "fulfillment-wms",
+            "asset_ids": ["fulfillment-wms", "ecommerce-web"],
+            "identity_ids": ["ecomm-admin"],
+            "library_visible": true,
+            "technical_signal": "Ransomware has encrypted warehouse management and e-commerce backend systems, halting order processing and fulfillment operations during a peak trading period.",
+            "executive_trigger": "Ransomware encryption halting order fulfillment and e-commerce operations",
+            "signal_factors": { "exploitability": 4, "threat_activity": 5, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Isolate affected warehouse and e-commerce systems immediately.",
+                "Activate manual order processing contingency and notify logistics partners.",
+                "Engage ransomware incident response retainer.",
+                "Issue trading impact advisory to executive leadership and board."
+            ]
+        },
+        {
+            "id": "database-open-exposure",
+            "name": "Customer loyalty database exposed without authentication",
+            "category": "Database / data exposure",
+            "service_id": "loyalty-platform",
+            "primary_asset_id": "loyalty-db",
+            "asset_ids": ["loyalty-db"],
+            "identity_ids": [],
+            "technical_signal": "The customer loyalty database containing personal details, purchase history, and loyalty point balances is accessible without authentication, exposing millions of customer records.",
+            "executive_trigger": "An unauthenticated customer loyalty database exposing millions of records",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 5, "context_completeness": 4 },
+            "recommended_actions": [
+                "Enforce authentication on the loyalty database and block unauthenticated access immediately.",
+                "Audit access logs for signs of mass data extraction.",
+                "Initiate breach notification assessment under applicable data protection regulations.",
+                "Notify the CMO and legal team — customer loyalty exposure is a reputational event."
+            ]
+        },
+        {
+            "id": "customer-portal-outdated-web",
+            "name": "Outdated e-commerce web application expanding customer-facing attack surface",
+            "category": "Web / application exposure",
+            "service_id": "ecommerce-platform",
+            "primary_asset_id": "ecommerce-web",
+            "asset_ids": ["ecommerce-web"],
+            "identity_ids": [],
+            "technical_signal": "The e-commerce web application is running an outdated software version with known exploitable vulnerabilities, increasing risk of skimming, injection, or session hijacking against customers.",
+            "executive_trigger": "An outdated e-commerce web application with known vulnerabilities at customer scale",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Upgrade the e-commerce platform to a supported version on an urgent timeline.",
+                "Review WAF rules and strengthen bot protection during the vulnerability window.",
+                "Monitor for web skimming indicators in client-side JavaScript.",
+                "Notify the CDO and legal team of the customer-facing exposure."
+            ]
+        },
+        {
+            "id": "edr-identity-lateral",
+            "name": "Privileged identity compromise with access to payment and customer data",
+            "category": "EDR / identity",
+            "service_id": "payment-processing",
+            "primary_asset_id": "payment-gateway",
+            "asset_ids": ["payment-gateway", "loyalty-db"],
+            "identity_ids": ["payment-ops"],
+            "technical_signal": "An administrator account with access to payment gateway configuration and customer loyalty data shows signs of compromise, with anomalous access patterns to financial and personal data stores.",
+            "executive_trigger": "A compromised privileged account with access to payment and customer data",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Disable compromised accounts and revoke access to payment and loyalty systems immediately.",
+                "Audit recent administrative actions against payment gateway and loyalty database.",
+                "Notify legal and compliance teams for PCI-DSS breach assessment.",
+                "Issue executive update on potential customer data exposure scope."
+            ]
+        },
+        {
+            "id": "cloud-storage-regulated-data",
+            "name": "Cloud misconfiguration exposing customer purchase and personal data",
+            "category": "Cloud / data exposure",
+            "service_id": "loyalty-platform",
+            "primary_asset_id": "loyalty-db",
+            "asset_ids": ["loyalty-db"],
+            "identity_ids": ["loyalty-svc"],
+            "library_visible": false,
+            "technical_signal": "A cloud storage bucket used for loyalty analytics exports is publicly accessible, exposing customer purchase history, personal details, and loyalty account data.",
+            "executive_trigger": "A cloud misconfiguration exposing customer purchase and loyalty data",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 5, "context_completeness": 4 },
+            "recommended_actions": [
+                "Remove public access to the cloud storage bucket immediately.",
+                "Audit access logs for signs of customer data extraction.",
+                "Initiate breach notification assessment and notify the CMO and legal team.",
+                "Review cloud storage access controls across all analytics pipelines."
+            ]
+        },
+        {
+            "id": "supplier-ransomware-chain",
+            "name": "Supplier connectivity compromise disrupting inventory replenishment",
+            "category": "Third-party / operations",
+            "service_id": "inventory-management",
+            "primary_asset_id": "inventory-db",
+            "asset_ids": ["inventory-db", "fulfillment-wms"],
+            "identity_ids": [],
+            "library_visible": false,
+            "technical_signal": "A ransomware event at a key supplier or logistics partner has disrupted inbound inventory feeds and carrier integrations, threatening stock availability and order fulfillment SLAs.",
+            "executive_trigger": "A third-party compromise disrupting inventory feeds and order fulfillment",
+            "signal_factors": { "exploitability": 3, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+            "recommended_actions": [
+                "Suspend automated supplier data feeds and switch to manual inventory reconciliation.",
+                "Activate contingency sourcing and notify logistics partners of expected delays.",
+                "Communicate trading impact risk to executive leadership.",
+                "Assess customer SLA obligations for delivery commitments at risk."
+            ]
+        },
+        {
+            "id": "finance-sql-server-rce",
+            "name": "POS or inventory database vulnerability threatening transaction integrity",
+            "category": "CVE / database",
+            "service_id": "pos-network",
+            "primary_asset_id": "pos-terminals",
+            "asset_ids": ["pos-terminals"],
+            "identity_ids": ["store-svc-acct"],
+            "library_visible": false,
+            "technical_signal": "A critical database or server vulnerability affecting the POS backend or inventory management system could allow remote code execution, threatening payment card data and transaction integrity.",
+            "executive_trigger": "A critical vulnerability on the POS or inventory database system",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch the affected POS or inventory database on an emergency timeline.",
+                "Restrict database access to authorised POS systems only.",
+                "Audit recent transaction logs for signs of payment card data access.",
+                "Notify PCI-DSS compliance team and payment provider of the vulnerability."
+            ]
+        },
+        {
+            "id": "vpn-zero-day-finance",
+            "name": "Remote access zero-day exposing store and warehouse management networks",
+            "category": "CVE / exposure",
+            "service_id": "order-fulfillment",
+            "primary_asset_id": "fulfillment-wms",
+            "asset_ids": ["fulfillment-wms"],
+            "identity_ids": ["ecomm-admin"],
+            "library_visible": false,
+            "technical_signal": "A critical vulnerability in the VPN or remote access gateway used by store IT staff and warehouse managers has been identified with active exploitation.",
+            "executive_trigger": "A remotely exploitable vulnerability on the store and warehouse remote access gateway",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch or isolate the remote access gateway within 24 hours.",
+                "Force credential reset for store IT and warehouse administrator accounts.",
+                "Increase monitoring on store network traffic for lateral movement indicators."
+            ]
+        }
+    ]
+}

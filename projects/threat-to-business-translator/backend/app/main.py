@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pypdf import PdfReader
 
 from .models import TranslationResponse
-from .services.data_loader import list_scenario_cards
+from .services.data_loader import list_scenario_cards, list_sectors
 from .services.translator import analyze_raw_input, default_profile, translate_scenario
 
 
@@ -60,14 +60,20 @@ def get_default_profile() -> dict[str, dict]:
     return {"profile": default_profile()}
 
 
+@app.get("/api/sectors")
+def get_sectors() -> dict[str, list[dict]]:
+    return {"sectors": list_sectors()}
+
+
 @app.get("/api/scenarios")
-def list_scenarios() -> dict[str, list[dict]]:
-    return {"scenarios": list_scenario_cards()}
+def list_scenarios(sector: str = Query(default="financial-services")) -> dict[str, list[dict]]:
+    return {"scenarios": list_scenario_cards(sector)}
 
 
 @app.get("/api/translate/{scenario_id}", response_model=TranslationResponse)
 def translate(
     scenario_id: str,
+    sector: str = Query(default="financial-services"),
     annual_revenue_musd: int = Query(default=250),
     employee_count: int = Query(default=5000),
     internet_exposure: int = Query(default=4),
@@ -83,7 +89,7 @@ def translate(
         regulatory_sensitivity,
         crown_jewel_dependency,
     )
-    result = translate_scenario(scenario_id, profile)
+    result = translate_scenario(scenario_id, profile, sector=sector)
     if result is None:
         raise HTTPException(status_code=404, detail="Scenario not found")
     return TranslationResponse.model_validate(result)
@@ -94,6 +100,7 @@ async def analyze(
     raw_text: str = Form(default=""),
     source_file: UploadFile | None = File(default=None),
     affected_service: str = Form(default=""),
+    sector: str = Form(default="financial-services"),
     annual_revenue_musd: int = Form(default=250),
     employee_count: int = Form(default=5000),
     internet_exposure: int = Form(default=4),
@@ -124,5 +131,6 @@ async def analyze(
         file_name=file_name,
         profile=profile,
         affected_service=affected_service.strip() or None,
+        sector=sector,
     )
     return TranslationResponse.model_validate(result)

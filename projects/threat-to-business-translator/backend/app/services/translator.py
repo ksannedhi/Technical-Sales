@@ -4,7 +4,7 @@ import re
 from collections import Counter
 from copy import deepcopy
 
-from .data_loader import get_scenario_bundle, load_domain
+from .data_loader import get_scenario_bundle, load_domain, list_sectors
 
 
 # Legacy 1-D label map — kept for reference.
@@ -65,6 +65,7 @@ MINIMUM_MATCH_SCORE = 4
 FALLBACK_SIGNAL_CAP = 3
 
 SCENARIO_MATCHERS = {
+    # --- Existing matchers ---
     "deepfake-payment-diversion": {
         "keywords": {
             "deepfake": 4,
@@ -184,6 +185,172 @@ SCENARIO_MATCHERS = {
             "partner vpn": 3,
         },
     },
+    # --- New matchers ---
+    "ransomware-endpoint": {
+        "keywords": {
+            "lockbit": 5,
+            "blackcat": 5,
+            "alphv": 5,
+            "ryuk": 5,
+            "conti": 5,
+            "file encryption": 4,
+            "encrypted files": 4,
+            "ransom note": 5,
+            "double extortion": 5,
+            "ransomware attack": 5,
+            "malware": 2,
+            "endpoint compromise": 3,
+            "workstation": 2,
+        },
+    },
+    "cloud-workload-rce": {
+        "keywords": {
+            "vmware": 4,
+            "esxi": 5,
+            "vsphere": 5,
+            "vcenter": 5,
+            "container escape": 5,
+            "kubernetes": 4,
+            "k8s": 4,
+            "docker": 3,
+            "hypervisor": 4,
+            "vm escape": 5,
+            "cloud instance": 3,
+            "virtual machine": 3,
+        },
+    },
+    "identity-provider-compromise": {
+        "keywords": {
+            "okta": 5,
+            "azure ad": 5,
+            "entra id": 5,
+            "saml": 4,
+            "sso": 3,
+            "single sign-on": 4,
+            "identity provider": 5,
+            "token forgery": 5,
+            "idp": 4,
+            "federated identity": 4,
+            "oauth": 3,
+            "openid connect": 4,
+        },
+    },
+    "email-platform-compromise": {
+        "keywords": {
+            "exchange server": 5,
+            "proxylogon": 5,
+            "proxyshell": 5,
+            "proxynotshell": 5,
+            "m365": 4,
+            "microsoft 365": 4,
+            "office 365": 4,
+            "business email compromise": 5,
+            "bec": 4,
+            "mail server": 3,
+            "outlook web access": 4,
+            "owa": 3,
+            "email gateway": 3,
+        },
+    },
+    "api-exposure": {
+        "keywords": {
+            "api key": 5,
+            "hardcoded credential": 5,
+            "hardcoded secret": 5,
+            "bearer token": 4,
+            "jwt": 4,
+            "graphql": 3,
+            "exposed api": 4,
+            "api secret": 5,
+            "broken authentication": 4,
+            "idor": 4,
+            "insecure direct object": 4,
+            "bola": 4,
+            "owasp api": 4,
+        },
+    },
+    "network-device-rce": {
+        "keywords": {
+            "cisco": 4,
+            "juniper": 4,
+            "ios xe": 5,
+            "ios xr": 5,
+            "junos": 5,
+            "cisco catalyst": 5,
+            "cisco asr": 5,
+            "cisco nexus": 5,
+            "network device": 3,
+            "router": 3,
+            "switch": 2,
+            "core network": 3,
+            "network infrastructure": 3,
+        },
+    },
+    "ot-scada-attack": {
+        "keywords": {
+            "scada": 5,
+            "ics": 4,
+            "plc": 5,
+            "modbus": 5,
+            "dnp3": 5,
+            "historian": 4,
+            "hmi": 4,
+            "industrial control": 5,
+            "operational technology": 5,
+            "ot network": 5,
+            "purdue model": 4,
+            "process control": 4,
+            "factory floor": 3,
+        },
+    },
+    "database-open-exposure": {
+        "keywords": {
+            "mongodb": 5,
+            "elasticsearch": 5,
+            "redis": 4,
+            "port 27017": 5,
+            "port 9200": 5,
+            "open database": 5,
+            "unauthenticated database": 5,
+            "exposed database": 4,
+            "nosql": 3,
+            "database exposed": 4,
+            "publicly accessible database": 5,
+        },
+    },
+    "saas-account-takeover": {
+        "keywords": {
+            "credential stuffing": 5,
+            "password spray": 5,
+            "account takeover": 5,
+            "ato": 4,
+            "brute force": 3,
+            "stolen credentials": 4,
+            "phishing": 3,
+            "mfa bypass": 4,
+            "session hijack": 4,
+            "cookie theft": 4,
+            "credential breach": 4,
+        },
+    },
+    "cicd-pipeline-compromise": {
+        "keywords": {
+            "jenkins": 5,
+            "github actions": 5,
+            "gitlab ci": 5,
+            "ci/cd": 4,
+            "cicd": 4,
+            "dependency confusion": 5,
+            "supply chain attack": 4,
+            "solarwinds": 5,
+            "xz utils": 5,
+            "malicious package": 4,
+            "build pipeline": 4,
+            "software supply chain": 5,
+            "npm package": 3,
+            "pypi": 3,
+        },
+    },
 }
 
 
@@ -232,11 +399,12 @@ def normalize_profile(profile: dict | None) -> dict:
     return merged
 
 
-def translate_scenario(scenario_id: str, profile: dict | None = None) -> dict | None:
-    bundle = get_scenario_bundle(scenario_id)
+def translate_scenario(scenario_id: str, profile: dict | None = None, sector: str = "financial-services") -> dict | None:
+    domain = load_domain(sector)
+    bundle = get_scenario_bundle(scenario_id, domain)
     if bundle is None:
         return None
-    return _build_report(bundle, normalize_profile(profile))
+    return _build_report(bundle, normalize_profile(profile), domain=domain)
 
 
 def analyze_raw_input(
@@ -244,8 +412,9 @@ def analyze_raw_input(
     file_name: str | None = None,
     profile: dict | None = None,
     affected_service: str | None = None,
+    sector: str = "financial-services",
 ) -> dict:
-    domain = load_domain()
+    domain = load_domain(sector)
     org_profile = normalize_profile(profile)
     parsed_findings = _parse_scan_report(raw_text)
     if len(parsed_findings) >= 2:
@@ -433,7 +602,7 @@ def _analyze_single_input(
         scenario["_used_fallback"] = False
 
     bundle = _bundle_for_inferred_scenario(scenario, domain)
-    report = _build_report(bundle, org_profile)
+    report = _build_report(bundle, org_profile, domain=domain)
     report["scenario_name"] = scenario["name"]
     report["scenario_id"] = scenario["id"]
     report["technical_summary"] = raw_text.strip()[:AD_HOC_SUMMARY_LIMIT]
@@ -1031,7 +1200,13 @@ def _scenario_by_id(domain: dict, scenario_id: str) -> dict:
     for item in domain["scenarios"]:
         if item["id"] == scenario_id:
             return item
-    raise KeyError(f"Scenario {scenario_id} not found")
+    # Sector domain files don't need to be exhaustive. If the matched template ID
+    # doesn't exist in this domain, fall back to the generic identity scenario rather
+    # than raising. This keeps new matchers working even on older domain files.
+    for item in domain["scenarios"]:
+        if item["id"] == "edr-identity-lateral":
+            return item
+    return domain["scenarios"][0]
 
 
 def _bundle_for_inferred_scenario(scenario: dict, domain: dict) -> dict:
@@ -1063,7 +1238,7 @@ def _bundle_for_inferred_scenario(scenario: dict, domain: dict) -> dict:
     }
 
 
-def _build_report(bundle: dict, profile: dict) -> dict:
+def _build_report(bundle: dict, profile: dict, domain: dict | None = None) -> dict:
     scenario = bundle["scenario"]
     service = bundle["service"]
     business_unit = bundle["business_unit"]
@@ -1076,7 +1251,8 @@ def _build_report(bundle: dict, profile: dict) -> dict:
     # Using the BU's share of the fictional enterprise total as a structural weight
     # against the customer's org revenue avoids inflating BU-scoped incidents to
     # full company scale.
-    domain = load_domain()
+    if domain is None:
+        domain = load_domain()
     total_bu_revenue = sum(bu["annual_revenue_musd"] for bu in domain["business_units"])
     bu_proportion = business_unit["annual_revenue_musd"] / total_bu_revenue
 

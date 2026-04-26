@@ -1,0 +1,245 @@
+{
+    "business_units": [
+        { "id": "production",    "name": "Production Operations", "annual_revenue_musd": 110, "executive_owner": "Chief Operations Officer" },
+        { "id": "engineering",   "name": "Engineering & R&D",     "annual_revenue_musd": 45,  "executive_owner": "Chief Engineering Officer" },
+        { "id": "supply-chain",  "name": "Supply Chain",          "annual_revenue_musd": 70,  "executive_owner": "VP Supply Chain" },
+        { "id": "corporate-it",  "name": "Corporate IT",          "annual_revenue_musd": 25,  "executive_owner": "CIO" }
+    ],
+    "business_services": [
+        {
+            "id": "mes-platform",
+            "name": "Manufacturing Execution System (MES)",
+            "business_unit_id": "production",
+            "business_unit": "Production Operations",
+            "service_owner": "Director of Operations Technology",
+            "criticality": 5, "data_sensitivity": 3, "user_scale": 4, "revenue_dependency": 5,
+            "estimated_people_affected": 6500,
+            "key_dependencies": ["PLC network", "SCADA historian", "ERP integration layer"]
+        },
+        {
+            "id": "ics-scada",
+            "name": "ICS/SCADA Process Control Platform",
+            "business_unit_id": "production",
+            "business_unit": "Production Operations",
+            "service_owner": "OT Security Manager",
+            "criticality": 5, "data_sensitivity": 3, "user_scale": 3, "revenue_dependency": 5,
+            "estimated_people_affected": 3200,
+            "key_dependencies": ["PLCs and HMIs", "Historian server", "OT/IT boundary firewall"]
+        },
+        {
+            "id": "plm-system",
+            "name": "Product Lifecycle Management (PLM)",
+            "business_unit_id": "engineering",
+            "business_unit": "Engineering & R&D",
+            "service_owner": "VP of Engineering Systems",
+            "criticality": 4, "data_sensitivity": 5, "user_scale": 3, "revenue_dependency": 3,
+            "estimated_people_affected": 2800,
+            "key_dependencies": ["CAD/CAM integration", "IP repository", "Supplier collaboration portal"]
+        },
+        {
+            "id": "erp-platform",
+            "name": "Enterprise Resource Planning (ERP)",
+            "business_unit_id": "corporate-it",
+            "business_unit": "Corporate IT",
+            "service_owner": "Director of Enterprise Applications",
+            "criticality": 5, "data_sensitivity": 4, "user_scale": 4, "revenue_dependency": 5,
+            "estimated_people_affected": 9000,
+            "key_dependencies": ["Finance module", "Procurement module", "HR integration"]
+        },
+        {
+            "id": "remote-plant-access",
+            "name": "Remote Plant Access Gateway",
+            "business_unit_id": "production",
+            "business_unit": "Production Operations",
+            "service_owner": "OT Network Manager",
+            "criticality": 4, "data_sensitivity": 3, "user_scale": 3, "revenue_dependency": 4,
+            "estimated_people_affected": 1800,
+            "key_dependencies": ["Jump server", "MFA gateway", "Vendor remote access controls"]
+        },
+        {
+            "id": "supplier-logistics-hub",
+            "name": "Supplier & Logistics Integration Hub",
+            "business_unit_id": "supply-chain",
+            "business_unit": "Supply Chain",
+            "service_owner": "Head of Supply Chain Systems",
+            "criticality": 4, "data_sensitivity": 3, "user_scale": 3, "revenue_dependency": 4,
+            "estimated_people_affected": 2400,
+            "key_dependencies": ["EDI gateway", "3PL integration", "Inventory management system"]
+        }
+    ],
+    "assets": [
+        { "id": "mes-app-server",     "name": "mes-app-server",     "service_id": "mes-platform",       "asset_type": "MES application server",       "criticality": "high",   "internet_exposed": false, "control_ids": ["segmentation-prod", "backup-core", "patch-sla-server"] },
+        { "id": "scada-historian",    "name": "scada-historian",    "service_id": "ics-scada",           "asset_type": "SCADA historian server",        "criticality": "high",   "internet_exposed": false, "control_ids": ["segmentation-prod", "patch-sla-server"] },
+        { "id": "hmi-workstation",    "name": "hmi-workstation",    "service_id": "ics-scada",           "asset_type": "Operator HMI workstation",      "criticality": "high",   "internet_exposed": false, "control_ids": ["edr-endpoint", "segmentation-prod"] },
+        { "id": "plm-server",         "name": "plm-server",         "service_id": "plm-system",          "asset_type": "PLM application server",        "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "patch-sla-server", "database-hardening"] },
+        { "id": "erp-app-server",     "name": "erp-app-server",     "service_id": "erp-platform",        "asset_type": "ERP application server",        "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "patch-sla-server", "segmentation-prod"] },
+        { "id": "remote-access-gw",   "name": "remote-access-gw",   "service_id": "remote-plant-access", "asset_type": "Remote access gateway",         "criticality": "high",   "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-edge", "edr-gateway"] },
+        { "id": "supplier-vpn-hub",   "name": "supplier-vpn-hub",   "service_id": "supplier-logistics-hub","asset_type": "Supplier connectivity gateway","criticality": "medium", "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-edge"] }
+    ],
+    "identities": [
+        { "id": "ot-admin",         "name": "Marco Ferretti (OT Administrator)",   "role": "OT Systems Administrator",      "privilege_level": "high" },
+        { "id": "plant-engineer",   "name": "Amir Hosseini (Plant Engineer)",      "role": "Senior Process Engineer",       "privilege_level": "medium" },
+        { "id": "it-sysadmin",      "name": "Jessica Park (IT Sysadmin)",          "role": "Infrastructure Administrator",  "privilege_level": "high" },
+        { "id": "vendor-remote",    "name": "vendor-remote-access",                "role": "Third-party Service Account",   "privilege_level": "medium" }
+    ],
+    "controls": [
+        { "id": "mfa-remote",         "name": "MFA for remote access",                  "status": "partial",  "effectiveness": 58 },
+        { "id": "patch-sla-edge",     "name": "Edge patch SLA",                         "status": "weak",     "effectiveness": 35 },
+        { "id": "patch-sla-server",   "name": "Server patch SLA",                       "status": "weak",     "effectiveness": 40 },
+        { "id": "segmentation-prod",  "name": "OT/IT network segmentation",             "status": "partial",  "effectiveness": 60 },
+        { "id": "backup-core",        "name": "Core backup and restore",                "status": "strong",   "effectiveness": 82 },
+        { "id": "database-hardening", "name": "Database hardening baseline",            "status": "partial",  "effectiveness": 52 },
+        { "id": "edr-endpoint",       "name": "Endpoint detection and response (IT)",   "status": "partial",  "effectiveness": 56 },
+        { "id": "edr-gateway",        "name": "Gateway telemetry coverage",             "status": "weak",     "effectiveness": 41 }
+    ],
+    "scenarios": [
+        {
+            "id": "ot-scada-attack",
+            "name": "OT/SCADA attack halting production and threatening operational safety",
+            "category": "OT / SCADA",
+            "service_id": "ics-scada",
+            "primary_asset_id": "scada-historian",
+            "asset_ids": ["scada-historian", "hmi-workstation"],
+            "identity_ids": ["ot-admin"],
+            "library_visible": true,
+            "technical_signal": "A cyber attack targeting the SCADA historian and HMI workstations has disrupted process control visibility, forcing operators to manual fallback procedures and risking production line safety.",
+            "executive_trigger": "A cyber attack on the SCADA process control platform with production shutdown risk",
+            "signal_factors": { "exploitability": 3, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Initiate OT incident response and activate manual production fallback procedures immediately.",
+                "Isolate affected SCADA network segments and notify plant safety officers.",
+                "Engage OT security specialists for forensic integrity assessment of ICS systems.",
+                "Issue production continuity advisory to executive leadership with estimated restart timeline."
+            ]
+        },
+        {
+            "id": "ransomware-endpoint",
+            "name": "Ransomware outbreak encrypting plant IT systems and threatening production",
+            "category": "Ransomware / endpoint",
+            "service_id": "mes-platform",
+            "primary_asset_id": "mes-app-server",
+            "asset_ids": ["mes-app-server", "erp-app-server"],
+            "identity_ids": ["it-sysadmin"],
+            "library_visible": true,
+            "technical_signal": "Ransomware has encrypted MES and ERP servers, halting production scheduling and order management workflows across the plant.",
+            "executive_trigger": "Active ransomware encryption on production IT systems threatening manufacturing continuity",
+            "signal_factors": { "exploitability": 4, "threat_activity": 5, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Isolate encrypted systems from the OT network immediately to prevent spread to PLCs.",
+                "Activate manual production scheduling and paper-based order tracking as contingency.",
+                "Engage ransomware incident response retainer and notify executive leadership.",
+                "Assess backup integrity for MES and ERP and provide restoration ETA to operations."
+            ]
+        },
+        {
+            "id": "supplier-ransomware-chain",
+            "name": "Supplier compromise disrupting raw material logistics",
+            "category": "Third-party / operations",
+            "service_id": "supplier-logistics-hub",
+            "primary_asset_id": "supplier-vpn-hub",
+            "asset_ids": ["supplier-vpn-hub"],
+            "identity_ids": ["vendor-remote"],
+            "technical_signal": "A ransomware attack at a key raw material supplier has disrupted inbound logistics and EDI connectivity, threatening production line continuity.",
+            "executive_trigger": "A third-party ransomware event disrupting inbound supply chain logistics",
+            "signal_factors": { "exploitability": 3, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+            "recommended_actions": [
+                "Suspend supplier EDI connectivity pending integrity confirmation.",
+                "Activate contingency sourcing plans and assess safety stock runway.",
+                "Notify production planning of material shortage risk and estimated impact window.",
+                "Issue supply chain advisory to COO and board with financial exposure estimate."
+            ]
+        },
+        {
+            "id": "edr-identity-lateral",
+            "name": "Privileged identity compromise with lateral movement toward OT systems",
+            "category": "EDR / identity",
+            "service_id": "remote-plant-access",
+            "primary_asset_id": "remote-access-gw",
+            "asset_ids": ["remote-access-gw", "mes-app-server"],
+            "identity_ids": ["ot-admin"],
+            "technical_signal": "EDR and identity telemetry show suspicious activity from an OT administrator account following a phishing event, with lateral movement attempts detected toward the MES and plant control network.",
+            "executive_trigger": "A compromised OT administrator identity with lateral movement toward plant control systems",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Disable compromised OT accounts and revoke all active plant access sessions.",
+                "Isolate the remote access gateway and audit inbound connections from the previous 72 hours.",
+                "Notify plant operations management of potential production system integrity risk.",
+                "Brief COO and CISO on lateral movement scope and production continuity exposure."
+            ]
+        },
+        {
+            "id": "vpn-zero-day-finance",
+            "name": "Remote plant access gateway zero-day threatening production network",
+            "category": "CVE / exposure",
+            "service_id": "remote-plant-access",
+            "primary_asset_id": "remote-access-gw",
+            "asset_ids": ["remote-access-gw"],
+            "identity_ids": ["ot-admin"],
+            "technical_signal": "A critical vulnerability in the remote access gateway used for plant maintenance and vendor support has been identified with active exploitation reported, threatening the integrity of the OT/IT boundary.",
+            "executive_trigger": "A remotely exploitable vulnerability on the plant remote access gateway",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Patch or disable the remote access gateway within 24 hours.",
+                "Suspend all vendor remote access pending gateway integrity confirmation.",
+                "Review inbound connection logs for signs of prior exploitation.",
+                "Notify COO and plant management of potential OT network exposure."
+            ]
+        },
+        {
+            "id": "finance-sql-server-rce",
+            "name": "ERP database vulnerability threatening financial and production data",
+            "category": "CVE / database",
+            "service_id": "erp-platform",
+            "primary_asset_id": "erp-app-server",
+            "asset_ids": ["erp-app-server"],
+            "identity_ids": ["it-sysadmin"],
+            "library_visible": false,
+            "technical_signal": "A critical SQL Server or Active Directory vulnerability on the ERP backend threatens the integrity of financial records, production orders, and procurement data.",
+            "executive_trigger": "A critical database or directory vulnerability affecting the ERP platform",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch the affected ERP database or directory server on an emergency timeline.",
+                "Restrict privileged administrative access to the ERP tier during remediation.",
+                "Assess exposure of financial reporting and procurement workflows."
+            ]
+        },
+        {
+            "id": "cloud-storage-regulated-data",
+            "name": "PLM intellectual property exposure via cloud misconfiguration",
+            "category": "Cloud / data exposure",
+            "service_id": "plm-system",
+            "primary_asset_id": "plm-server",
+            "asset_ids": ["plm-server"],
+            "identity_ids": ["plant-engineer"],
+            "library_visible": false,
+            "technical_signal": "A cloud storage misconfiguration has exposed PLM design files, CAD drawings, or proprietary manufacturing process data to the public internet.",
+            "executive_trigger": "A cloud misconfiguration exposing proprietary engineering and product design data",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Remove public access to the engineering data repository immediately.",
+                "Audit access logs for signs of competitive intelligence extraction.",
+                "Notify engineering leadership and legal of potential IP exposure.",
+                "Assess contractual obligations with customers or partners for data protection."
+            ]
+        },
+        {
+            "id": "network-device-rce",
+            "name": "Core network device vulnerability threatening OT/IT connectivity",
+            "category": "Network / infrastructure",
+            "service_id": "remote-plant-access",
+            "primary_asset_id": "remote-access-gw",
+            "asset_ids": ["remote-access-gw"],
+            "identity_ids": ["it-sysadmin"],
+            "library_visible": false,
+            "technical_signal": "A critical vulnerability in a core network device (router or switch) threatens the integrity of the OT/IT boundary and the connectivity of production plant systems.",
+            "executive_trigger": "A critical vulnerability on a core network device at the OT/IT boundary",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Apply vendor patch or isolate the affected network device from production traffic.",
+                "Audit network device configurations for signs of tampering.",
+                "Validate OT/IT segmentation boundaries remain intact.",
+                "Notify network operations and plant management of connectivity risk."
+            ]
+        }
+    ]
+}

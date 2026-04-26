@@ -1,0 +1,315 @@
+{
+    "business_units": [
+        { "id": "clinical-ops",    "name": "Clinical Operations",  "annual_revenue_musd": 85,  "executive_owner": "Chief Medical Officer" },
+        { "id": "patient-svcs",    "name": "Patient Services",     "annual_revenue_musd": 60,  "executive_owner": "Chief Patient Experience Officer" },
+        { "id": "health-it",       "name": "Health IT",            "annual_revenue_musd": 30,  "executive_owner": "CIO" },
+        { "id": "research",        "name": "Research & Trials",    "annual_revenue_musd": 25,  "executive_owner": "Chief Research Officer" }
+    ],
+    "business_services": [
+        {
+            "id": "ehr-platform",
+            "name": "Electronic Health Record (EHR) Platform",
+            "business_unit_id": "clinical-ops",
+            "business_unit": "Clinical Operations",
+            "service_owner": "Director of Clinical Systems",
+            "criticality": 5, "data_sensitivity": 5, "user_scale": 5, "revenue_dependency": 5,
+            "estimated_people_affected": 22000,
+            "key_dependencies": ["Clinical workstations", "Identity federation", "HL7/FHIR integration layer"]
+        },
+        {
+            "id": "patient-portal",
+            "name": "Patient Portal",
+            "business_unit_id": "patient-svcs",
+            "business_unit": "Patient Services",
+            "service_owner": "VP of Digital Patient Experience",
+            "criticality": 4, "data_sensitivity": 5, "user_scale": 5, "revenue_dependency": 3,
+            "estimated_people_affected": 95000,
+            "key_dependencies": ["Identity provider", "Appointment scheduling API", "Insurance eligibility API"]
+        },
+        {
+            "id": "clinical-imaging",
+            "name": "Clinical Imaging (PACS/RIS)",
+            "business_unit_id": "clinical-ops",
+            "business_unit": "Clinical Operations",
+            "service_owner": "Director of Radiology Informatics",
+            "criticality": 5, "data_sensitivity": 5, "user_scale": 3, "revenue_dependency": 4,
+            "estimated_people_affected": 4500,
+            "key_dependencies": ["DICOM storage", "Radiology workstations", "Modality integration gateway"]
+        },
+        {
+            "id": "medical-device-network",
+            "name": "Connected Medical Device Network",
+            "business_unit_id": "clinical-ops",
+            "business_unit": "Clinical Operations",
+            "service_owner": "Biomedical Engineering Manager",
+            "criticality": 5, "data_sensitivity": 4, "user_scale": 4, "revenue_dependency": 4,
+            "estimated_people_affected": 8000,
+            "key_dependencies": ["Biomedical device management platform", "Clinical network segmentation", "Patch management for embedded OS"]
+        },
+        {
+            "id": "claims-processing",
+            "name": "Insurance Claims Processing",
+            "business_unit_id": "patient-svcs",
+            "business_unit": "Patient Services",
+            "service_owner": "Director of Revenue Cycle",
+            "criticality": 4, "data_sensitivity": 4, "user_scale": 3, "revenue_dependency": 5,
+            "estimated_people_affected": 3200,
+            "key_dependencies": ["Clearinghouse connectivity", "EDI 837/835 integration", "Payer portals"]
+        },
+        {
+            "id": "research-data-platform",
+            "name": "Clinical Research Data Platform",
+            "business_unit_id": "research",
+            "business_unit": "Research & Trials",
+            "service_owner": "Head of Research Informatics",
+            "criticality": 4, "data_sensitivity": 5, "user_scale": 2, "revenue_dependency": 3,
+            "estimated_people_affected": 1200,
+            "key_dependencies": ["IRB-approved data repositories", "De-identification pipeline", "Sponsor data transfer portal"]
+        }
+    ],
+    "assets": [
+        { "id": "ehr-app-server",        "name": "ehr-app-server",         "service_id": "ehr-platform",         "asset_type": "Application server",              "criticality": "high",   "internet_exposed": false, "control_ids": ["patch-sla-server", "segmentation-prod", "backup-core"] },
+        { "id": "ehr-db-cluster",        "name": "ehr-db-cluster",         "service_id": "ehr-platform",         "asset_type": "Clinical database cluster",       "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "database-hardening", "segmentation-prod"] },
+        { "id": "patient-portal-web",    "name": "patient-portal-web",     "service_id": "patient-portal",       "asset_type": "Patient-facing web application",  "criticality": "high",   "internet_exposed": true,  "control_ids": ["waf-edge", "patch-sla-web", "mfa-remote"] },
+        { "id": "idp-server",            "name": "idp-server",             "service_id": "patient-portal",       "asset_type": "Identity provider",               "criticality": "high",   "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-server"] },
+        { "id": "pacs-server",           "name": "pacs-server",            "service_id": "clinical-imaging",     "asset_type": "PACS imaging server",             "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "segmentation-prod"] },
+        { "id": "medical-device-mgmt",   "name": "medical-device-mgmt",   "service_id": "medical-device-network","asset_type": "Device management platform",     "criticality": "high",   "internet_exposed": false, "control_ids": ["segmentation-prod", "patch-sla-server"] },
+        { "id": "claims-gateway",        "name": "claims-gateway",         "service_id": "claims-processing",   "asset_type": "EDI claims gateway",              "criticality": "medium", "internet_exposed": true,  "control_ids": ["patch-sla-edge", "mfa-remote"] },
+        { "id": "research-data-store",   "name": "research-data-store",   "service_id": "research-data-platform","asset_type": "Research data repository",       "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "cloud-dlp", "database-hardening"] }
+    ],
+    "identities": [
+        { "id": "admin-clinician",    "name": "Dr. Sarah Okonkwo (EHR Admin)", "role": "Clinical Systems Administrator", "privilege_level": "high" },
+        { "id": "svc-hl7-bridge",     "name": "svc-hl7-bridge",                "role": "Integration Service Account",    "privilege_level": "medium" },
+        { "id": "radiology-admin",    "name": "Thomas Nguyen (Radiology IT)",  "role": "Radiology Systems Lead",         "privilege_level": "high" },
+        { "id": "research-analyst",   "name": "Dr. Priya Sharma (Research)",   "role": "Senior Research Informatics Analyst", "privilege_level": "medium" }
+    ],
+    "controls": [
+        { "id": "mfa-remote",          "name": "MFA for remote access",                    "status": "partial",  "effectiveness": 62 },
+        { "id": "patch-sla-edge",      "name": "Edge patch SLA",                           "status": "weak",     "effectiveness": 38 },
+        { "id": "patch-sla-server",    "name": "Server patch SLA",                         "status": "weak",     "effectiveness": 43 },
+        { "id": "patch-sla-web",       "name": "Web tier patch SLA",                       "status": "partial",  "effectiveness": 58 },
+        { "id": "segmentation-prod",   "name": "Clinical network segmentation",            "status": "partial",  "effectiveness": 61 },
+        { "id": "backup-core",         "name": "Core backup and restore",                  "status": "strong",   "effectiveness": 85 },
+        { "id": "database-hardening",  "name": "Database hardening baseline",              "status": "partial",  "effectiveness": 55 },
+        { "id": "waf-edge",            "name": "Web application firewall",                 "status": "partial",  "effectiveness": 61 },
+        { "id": "cloud-dlp",           "name": "Cloud data loss prevention",               "status": "weak",     "effectiveness": 36 },
+        { "id": "edr-endpoint",        "name": "Endpoint detection and response",          "status": "partial",  "effectiveness": 59 }
+    ],
+    "scenarios": [
+        {
+            "id": "vpn-zero-day-finance",
+            "name": "Internet-facing remote access zero-day threatening EHR connectivity",
+            "category": "CVE / exposure",
+            "service_id": "ehr-platform",
+            "primary_asset_id": "ehr-app-server",
+            "asset_ids": ["ehr-app-server", "ehr-db-cluster"],
+            "identity_ids": ["admin-clinician"],
+            "technical_signal": "A critical remote code execution vulnerability in the VPN or remote access gateway used by clinical staff to access the EHR has been identified with active exploitation reported.",
+            "executive_trigger": "A remotely exploitable vulnerability on the clinical remote access gateway",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Patch or isolate the VPN gateway within 24 hours to protect EHR access paths.",
+                "Force credential reset for all clinical staff with active remote sessions.",
+                "Notify clinical leadership of potential impact to remote care delivery."
+            ]
+        },
+        {
+            "id": "edr-identity-lateral",
+            "name": "Privileged identity compromise with lateral movement into clinical systems",
+            "category": "EDR / identity",
+            "service_id": "ehr-platform",
+            "primary_asset_id": "ehr-app-server",
+            "asset_ids": ["ehr-app-server", "ehr-db-cluster"],
+            "identity_ids": ["admin-clinician"],
+            "technical_signal": "EDR telemetry shows suspicious PowerShell activity on a clinical administrator workstation followed by anomalous access to EHR databases and patient record exports.",
+            "executive_trigger": "A likely compromise of a privileged clinical identity with access to patient records",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Disable compromised accounts and revoke active EHR sessions immediately.",
+                "Audit patient record access logs for signs of unauthorised export.",
+                "Notify privacy officer and legal team for HIPAA breach assessment."
+            ]
+        },
+        {
+            "id": "cloud-storage-regulated-data",
+            "name": "Cloud misconfiguration exposing patient health information",
+            "category": "Cloud / data exposure",
+            "service_id": "research-data-platform",
+            "primary_asset_id": "research-data-store",
+            "asset_ids": ["research-data-store"],
+            "identity_ids": ["research-analyst"],
+            "technical_signal": "A cloud storage repository used for clinical research data exports has been found publicly accessible, exposing de-identified and potentially re-identifiable patient records.",
+            "executive_trigger": "A cloud misconfiguration exposing clinical research data to the public internet",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 5, "context_completeness": 4 },
+            "recommended_actions": [
+                "Remove public access to the research data repository immediately.",
+                "Assess whether the exposed data includes re-identifiable patient records.",
+                "Notify privacy officer and initiate HIPAA breach assessment within 24 hours."
+            ]
+        },
+        {
+            "id": "ransomware-endpoint",
+            "name": "Ransomware outbreak threatening clinical operations and patient care continuity",
+            "category": "Ransomware / endpoint",
+            "service_id": "ehr-platform",
+            "primary_asset_id": "ehr-app-server",
+            "asset_ids": ["ehr-app-server", "ehr-db-cluster"],
+            "identity_ids": ["admin-clinician"],
+            "library_visible": true,
+            "technical_signal": "Ransomware has been detected encrypting clinical workstations and application servers, threatening continuity of EHR access and patient care operations.",
+            "executive_trigger": "Active ransomware encryption detected on clinical systems threatening patient care",
+            "signal_factors": { "exploitability": 4, "threat_activity": 5, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Activate downtime procedures and switch to paper-based workflows for patient care immediately.",
+                "Isolate affected clinical systems from the network to contain lateral spread.",
+                "Engage ransomware incident response retainer and notify hospital leadership.",
+                "Assess backup integrity and estimate EHR restoration timeline for executive briefing."
+            ]
+        },
+        {
+            "id": "identity-provider-compromise",
+            "name": "Identity provider compromise enabling access to all clinical applications",
+            "category": "Identity / SSO",
+            "service_id": "patient-portal",
+            "primary_asset_id": "idp-server",
+            "asset_ids": ["idp-server", "patient-portal-web"],
+            "identity_ids": ["admin-clinician"],
+            "technical_signal": "The hospital identity provider has been compromised, potentially enabling an attacker to forge authentication tokens and access the EHR, patient portal, and clinical imaging system without valid credentials.",
+            "executive_trigger": "A compromise of the centralised identity provider enabling unauthorised access to clinical applications",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+            "recommended_actions": [
+                "Revoke all active SSO sessions across clinical applications immediately.",
+                "Rotate identity provider signing keys and audit recent authentication events.",
+                "Notify clinical application owners to begin compromise scope assessment.",
+                "Prepare HIPAA breach notification for potential patient data exposure."
+            ]
+        },
+        {
+            "id": "email-platform-compromise",
+            "name": "Email platform compromise exposing clinical communications",
+            "category": "Email / collaboration",
+            "service_id": "patient-portal",
+            "primary_asset_id": "patient-portal-web",
+            "asset_ids": ["patient-portal-web"],
+            "identity_ids": ["admin-clinician"],
+            "technical_signal": "The healthcare organisation's email platform has been compromised, exposing internal clinical communications, patient appointment data, and potentially PHI transmitted by email.",
+            "executive_trigger": "A compromise of the clinical email platform exposing protected health information",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch the email platform and reset credentials for all impacted accounts.",
+                "Audit email audit logs for signs of PHI exfiltration or forwarding rule tampering.",
+                "Notify privacy officer to assess HIPAA notification obligations.",
+                "Issue internal communication advisory on the risk of email-based impersonation."
+            ]
+        },
+        {
+            "id": "api-exposure",
+            "name": "Patient portal API credential exposure enabling data access",
+            "category": "API / credential",
+            "service_id": "patient-portal",
+            "primary_asset_id": "patient-portal-web",
+            "asset_ids": ["patient-portal-web"],
+            "identity_ids": [],
+            "technical_signal": "API keys or bearer tokens for the patient portal or clinical integration API are exposed, potentially granting access to patient appointment data, health records, or insurance eligibility responses.",
+            "executive_trigger": "Exposed API credentials enabling unauthorised access to patient-facing services",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Rotate all exposed API keys and bearer tokens immediately.",
+                "Audit API access logs for signs of unauthorised patient data queries.",
+                "Implement secrets scanning in integration pipelines.",
+                "Notify privacy officer of potential PHI exposure via API access."
+            ]
+        },
+        {
+            "id": "database-open-exposure",
+            "name": "Unauthenticated clinical database exposure threatening patient data",
+            "category": "Database / data exposure",
+            "service_id": "research-data-platform",
+            "primary_asset_id": "research-data-store",
+            "asset_ids": ["research-data-store"],
+            "identity_ids": [],
+            "technical_signal": "A clinical or research database instance is accessible without authentication, exposing patient health information, trial data, or operational records.",
+            "executive_trigger": "An unauthenticated clinical database exposed to the network",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 5, "context_completeness": 3 },
+            "recommended_actions": [
+                "Enforce authentication on the database and block unauthenticated access immediately.",
+                "Audit query logs for signs of data extraction.",
+                "Launch HIPAA breach assessment with privacy officer and legal.",
+                "Prepare patient notification plan if PHI exposure is confirmed."
+            ]
+        },
+        {
+            "id": "ot-scada-attack",
+            "name": "Medical device network attack threatening patient safety systems",
+            "category": "OT / Medical Device",
+            "service_id": "medical-device-network",
+            "primary_asset_id": "medical-device-mgmt",
+            "asset_ids": ["medical-device-mgmt"],
+            "identity_ids": [],
+            "library_visible": true,
+            "technical_signal": "A cyber attack targeting the connected medical device network threatens the integrity of infusion pumps, patient monitoring systems, or other critical care devices.",
+            "executive_trigger": "A cyber attack on connected medical devices with patient safety implications",
+            "signal_factors": { "exploitability": 3, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+            "recommended_actions": [
+                "Isolate affected medical device network segments and notify clinical engineering immediately.",
+                "Notify the CMO and patient safety officer of potential device integrity risk.",
+                "Engage biomedical engineering for device integrity assessment.",
+                "Notify device vendors and consider FDA reportable medical device cybersecurity event."
+            ]
+        },
+        {
+            "id": "saas-account-takeover",
+            "name": "Credential attack on clinical SaaS applications compromising patient access",
+            "category": "SaaS / account",
+            "service_id": "patient-portal",
+            "primary_asset_id": "patient-portal-web",
+            "asset_ids": ["patient-portal-web"],
+            "identity_ids": ["admin-clinician"],
+            "technical_signal": "Credential stuffing or password spraying attacks are resulting in account takeover against the patient portal or clinical SaaS applications, potentially exposing patient health records.",
+            "executive_trigger": "Account takeover attacks on patient-facing and clinical SaaS applications",
+            "signal_factors": { "exploitability": 3, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+            "recommended_actions": [
+                "Force password resets and enforce MFA on all affected patient and clinical accounts.",
+                "Block suspicious source IP ranges and implement adaptive authentication.",
+                "Audit recently accessed patient records for unauthorised access.",
+                "Notify privacy officer and assess HIPAA reportability of account takeover incidents."
+            ]
+        },
+        {
+            "id": "finance-sql-server-rce",
+            "name": "Database server vulnerability threatening clinical data integrity",
+            "category": "CVE / database",
+            "service_id": "ehr-platform",
+            "primary_asset_id": "ehr-db-cluster",
+            "asset_ids": ["ehr-db-cluster"],
+            "identity_ids": ["admin-clinician"],
+            "library_visible": false,
+            "technical_signal": "A critical vulnerability in the EHR database server allows remote code execution, threatening the integrity of patient health records and clinical workflow data.",
+            "executive_trigger": "A critical database vulnerability on the EHR backend",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch or isolate the affected database server on an emergency timeline.",
+                "Audit recent EHR data access for signs of unauthorised modification.",
+                "Notify CMO and privacy officer of potential patient data integrity risk."
+            ]
+        },
+        {
+            "id": "customer-portal-outdated-web",
+            "name": "Outdated patient portal software expanding the attack surface",
+            "category": "Web / application exposure",
+            "service_id": "patient-portal",
+            "primary_asset_id": "patient-portal-web",
+            "asset_ids": ["patient-portal-web"],
+            "identity_ids": [],
+            "library_visible": false,
+            "technical_signal": "The patient portal is running an outdated web server version with known vulnerabilities, increasing attack surface for patient-facing services.",
+            "executive_trigger": "An outdated internet-facing patient portal web server",
+            "signal_factors": { "exploitability": 3, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Upgrade the patient portal to a supported software version urgently.",
+                "Review WAF coverage for the patient-facing web tier.",
+                "Monitor for web exploitation attempts until patching is complete."
+            ]
+        }
+    ]
+}

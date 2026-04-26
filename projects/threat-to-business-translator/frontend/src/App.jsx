@@ -33,7 +33,17 @@ function slugify(value) {
     .slice(0, 80);
 }
 
+const DEFAULT_SECTORS = [
+  { id: "financial-services", label: "Financial Services" },
+  { id: "healthcare",         label: "Healthcare" },
+  { id: "manufacturing",      label: "Manufacturing" },
+  { id: "retail",             label: "Retail" },
+  { id: "technology",         label: "Technology" },
+];
+
 export default function App() {
+  const [sectors, setSectors] = useState(DEFAULT_SECTORS);
+  const [sector, setSector] = useState("financial-services");
   const [scenarios, setScenarios] = useState([]);
   const [selectedId, setSelectedId] = useState("");
   const [report, setReport] = useState(null);
@@ -49,49 +59,50 @@ export default function App() {
 
   useEffect(() => {
     async function bootstrap() {
-      let loadedScenarios = [];
+      try {
+        const sectorsResponse = await fetch(`${API_BASE}/api/sectors`);
+        if (sectorsResponse.ok) {
+          const sectorsPayload = await sectorsResponse.json();
+          if (sectorsPayload.sectors?.length) setSectors(sectorsPayload.sectors);
+        }
+      } catch (_) { /* keep defaults */ }
 
       try {
-        const scenarioResponse = await fetch(`${API_BASE}/api/scenarios`);
-        if (!scenarioResponse.ok) {
-          throw new Error("Scenario library request failed");
+        const profileResponse = await fetch(`${API_BASE}/api/default-profile`);
+        if (profileResponse.ok) {
+          const profilePayload = await profileResponse.json();
+          if (profilePayload.profile) setProfile(profilePayload.profile);
         }
+      } catch (_) {
+        setProfile(DEFAULT_PROFILE);
+      }
+    }
+    bootstrap();
+  }, []);
+
+  useEffect(() => {
+    async function loadScenarios() {
+      let loadedScenarios = [];
+      try {
+        const scenarioResponse = await fetch(`${API_BASE}/api/scenarios?sector=${sector}`);
+        if (!scenarioResponse.ok) throw new Error("Scenario library request failed");
         const scenarioPayload = await scenarioResponse.json();
         loadedScenarios = scenarioPayload.scenarios ?? [];
         setScenarios(loadedScenarios);
         setScenarioLoadError(loadedScenarios.length === 0 ? "No scenarios were returned by the API." : "");
         if (loadedScenarios.length > 0) {
-          setSelectedId((current) => current || loadedScenarios[0].id);
+          setSelectedId(loadedScenarios[0].id);
+          setReport(null);
         }
-      } catch (loadError) {
+      } catch (_) {
         setScenarioLoadError("Unable to load the scenario library. Make sure the backend has been restarted.");
       }
-
-      try {
-        const profileResponse = await fetch(`${API_BASE}/api/default-profile`);
-        if (!profileResponse.ok) {
-          throw new Error("Profile request failed");
-        }
-        const profilePayload = await profileResponse.json();
-        if (profilePayload.profile) {
-          setProfile(profilePayload.profile);
-        }
-      } catch (loadError) {
-        setProfile(DEFAULT_PROFILE);
-        if (loadedScenarios.length === 0) {
-          setError("The backend may still be running an older version. Restart it and reload the page.");
-        }
-      }
     }
-
-    bootstrap();
-  }, []);
+    loadScenarios();
+  }, [sector]);
 
   useEffect(() => {
-    if (!selectedId) {
-      return;
-    }
-
+    if (!selectedId) return;
     loadScenario(selectedId, false);
   }, [selectedId]);
 
@@ -100,11 +111,9 @@ export default function App() {
       setLoading(true);
       setError("");
       const params = withCustomProfile ? new URLSearchParams(profileToParams(profile)) : new URLSearchParams();
-      const suffix = params.toString() ? `?${params}` : "";
-      const response = await fetch(`${API_BASE}/api/translate/${scenarioId}${suffix}`);
-      if (!response.ok) {
-        throw new Error("Failed to load report");
-      }
+      params.set("sector", sector);
+      const response = await fetch(`${API_BASE}/api/translate/${scenarioId}?${params}`);
+      if (!response.ok) throw new Error("Failed to load report");
       setReport(await response.json());
       setReportMode("scenario");
     } catch (loadError) {
@@ -121,6 +130,7 @@ export default function App() {
       setError("");
       const formData = new FormData();
       formData.append("raw_text", rawText);
+      formData.append("sector", sector);
       if (sourceFile) {
         formData.append("source_file", sourceFile);
       }
@@ -274,12 +284,33 @@ export default function App() {
         <div className="hero-meta">
           <p className="eyebrow">Threat-to-Business Translator</p>
           <p className="hero-copy">
-            The five built-in scenarios are ready out of the box. Customer-specific inputs are
+            Select the customer&apos;s industry sector to load sector-appropriate scenarios. Customer-specific inputs are
             optional and can be applied only when you want to tailor the outcome.
           </p>
         </div>
         <div className="hero-title-wrap">
           <h1>Translate CVEs, SOC alerts, and scan reports into executive impact.</h1>
+        </div>
+      </section>
+
+      <section className="sector-bar">
+        <div className="sector-bar-inner">
+          <label className="sector-label" htmlFor="sectorSelect">
+            Customer industry sector
+          </label>
+          <select
+            id="sectorSelect"
+            className="sector-select"
+            value={sector}
+            onChange={(event) => setSector(event.target.value)}
+          >
+            {sectors.map((s) => (
+              <option key={s.id} value={s.id}>{s.label}</option>
+            ))}
+          </select>
+          <p className="sector-hint">
+            Sets the business context for scenario outcomes and ad hoc analysis. The scenario library updates when you change sector.
+          </p>
         </div>
       </section>
 
@@ -389,7 +420,7 @@ export default function App() {
       <section className="workspace">
         <aside className="scenario-list">
           <div className="section-label">Scenario Library</div>
-          <p className="support-copy">Select any of the five scenarios to restore its built-in outcome.</p>
+          <p className="support-copy">Select a scenario to restore its built-in outcome for the chosen sector.</p>
           {scenarioLoadError ? <p className="inline-warning">{scenarioLoadError}</p> : null}
           {scenarios.map((scenario) => (
             <button

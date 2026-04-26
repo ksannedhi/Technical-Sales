@@ -609,6 +609,196 @@
                                                       "Review WAF coverage and internet-exposed application routes.",
                                                       "Increase monitoring for web exploitation attempts until the version gap is removed."
                                                   ]
+                      },
+                      {
+                          "id":  "ransomware-endpoint",
+                          "name":  "Ransomware outbreak threatening endpoint and customer operations",
+                          "category":  "Ransomware / endpoint",
+                          "service_id":  "customer-support-platform",
+                          "primary_asset_id":  "admin-workstation-44",
+                          "asset_ids":  [ "admin-workstation-44", "support-crm-prod" ],
+                          "identity_ids":  [ "admin-rpatel" ],
+                          "library_visible":  false,
+                          "technical_signal":  "Ransomware activity detected on endpoint workstations with evidence of file encryption and lateral spread toward customer-facing systems.",
+                          "executive_trigger":  "Active ransomware encryption detected on business endpoints",
+                          "signal_factors":  { "exploitability": 4, "threat_activity": 5, "evidence_quality": 4, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Isolate affected endpoints from the network immediately to contain lateral spread.",
+                              "Activate incident response plan and engage ransomware response retainer.",
+                              "Assess backup integrity and prepare for potential restore operations.",
+                              "Notify executive leadership of potential operational disruption timeline."
+                          ]
+                      },
+                      {
+                          "id":  "cloud-workload-rce",
+                          "name":  "Cloud hypervisor or container escape threatening workload integrity",
+                          "category":  "Cloud / workload",
+                          "service_id":  "customer-onboarding-analytics",
+                          "primary_asset_id":  "analytics-bucket-public",
+                          "asset_ids":  [ "analytics-bucket-public" ],
+                          "identity_ids":  [ "svc-onboarding-analytics" ],
+                          "library_visible":  false,
+                          "technical_signal":  "A critical vulnerability in the virtualisation or container platform allows an attacker to escape isolation boundaries and access host-level resources or adjacent workloads.",
+                          "executive_trigger":  "A hypervisor or container escape vulnerability exposing cloud workloads",
+                          "signal_factors":  { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Apply vendor patch or mitigation for the hypervisor or container runtime vulnerability immediately.",
+                              "Audit workloads sharing affected host infrastructure for signs of compromise.",
+                              "Review cloud workload isolation boundaries and enforce least-privilege workload identities.",
+                              "Escalate to cloud security and engineering leadership for containment scope assessment."
+                          ]
+                      },
+                      {
+                          "id":  "identity-provider-compromise",
+                          "name":  "Identity provider compromise enabling broad authentication bypass",
+                          "category":  "Identity / SSO",
+                          "service_id":  "customer-support-platform",
+                          "primary_asset_id":  "support-crm-prod",
+                          "asset_ids":  [ "support-crm-prod", "admin-workstation-44" ],
+                          "identity_ids":  [ "admin-rpatel" ],
+                          "library_visible":  false,
+                          "technical_signal":  "Indicators suggest the organisation's identity provider or SSO platform has been compromised, potentially allowing an attacker to forge authentication tokens and access any federated application.",
+                          "executive_trigger":  "A compromise of the centralised identity provider affecting all federated applications",
+                          "signal_factors":  { "exploitability": 5, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Revoke all active SSO sessions and force reauthentication across federated applications.",
+                              "Rotate identity provider signing keys and audit recent authentication logs for anomalous access.",
+                              "Notify application owners of all federated services and begin compromise scope review.",
+                              "Engage identity provider vendor support and security team immediately."
+                          ]
+                      },
+                      {
+                          "id":  "email-platform-compromise",
+                          "name":  "Email platform compromise enabling data access and impersonation",
+                          "category":  "Email / collaboration",
+                          "service_id":  "customer-support-platform",
+                          "primary_asset_id":  "support-crm-prod",
+                          "asset_ids":  [ "support-crm-prod" ],
+                          "identity_ids":  [ "admin-rpatel" ],
+                          "library_visible":  false,
+                          "technical_signal":  "A vulnerability or compromise of the email platform allows attacker access to mailboxes, calendar data, and internal communications, with potential for impersonation of senior staff.",
+                          "executive_trigger":  "A compromise of the corporate email platform affecting internal communications",
+                          "signal_factors":  { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Apply emergency patch or disable exploited email platform functionality.",
+                              "Audit recently accessed mailboxes for signs of exfiltration or forwarding rule tampering.",
+                              "Reset credentials for all accounts with active email access and enforce MFA.",
+                              "Issue executive advisory on the risk of email impersonation in pending communications."
+                          ]
+                      },
+                      {
+                          "id":  "api-exposure",
+                          "name":  "API credential exposure enabling unauthorised data access",
+                          "category":  "API / credential",
+                          "service_id":  "customer-portal-experience",
+                          "primary_asset_id":  "customer-portal-web-01",
+                          "asset_ids":  [ "customer-portal-web-01" ],
+                          "identity_ids":  [],
+                          "library_visible":  false,
+                          "technical_signal":  "API keys, bearer tokens, or service credentials are exposed in source repositories or application responses, granting unauthorised actors access to backend services or customer data.",
+                          "executive_trigger":  "Exposed API credentials enabling unauthorised access to customer-facing services",
+                          "signal_factors":  { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Rotate all exposed API keys, bearer tokens, and service credentials immediately.",
+                              "Audit API access logs for signs of prior exploitation using the compromised credentials.",
+                              "Implement secrets scanning in CI/CD pipelines to prevent future credential leakage.",
+                              "Review API authentication controls and enforce token expiry and scope restrictions."
+                          ]
+                      },
+                      {
+                          "id":  "network-device-rce",
+                          "name":  "Core network device compromise threatening connectivity and segmentation",
+                          "category":  "Network / infrastructure",
+                          "service_id":  "payroll-processing",
+                          "primary_asset_id":  "vpn-gateway-01",
+                          "asset_ids":  [ "vpn-gateway-01" ],
+                          "identity_ids":  [ "admin-rpatel" ],
+                          "library_visible":  false,
+                          "technical_signal":  "A critical vulnerability in a core network device such as a router or switch allows remote code execution or full device compromise, threatening network segmentation and connectivity.",
+                          "executive_trigger":  "A critical vulnerability on a core network device threatening infrastructure integrity",
+                          "signal_factors":  { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Apply vendor emergency patch or isolate the affected network device from production traffic.",
+                              "Audit network device configurations and access control lists for signs of tampering.",
+                              "Validate network segmentation boundaries and review adjacent device integrity.",
+                              "Notify network operations and security leadership of connectivity risk scope."
+                          ]
+                      },
+                      {
+                          "id":  "ot-scada-attack",
+                          "name":  "OT/SCADA attack threatening operational and physical process continuity",
+                          "category":  "OT / SCADA",
+                          "service_id":  "supplier-fulfillment-hub",
+                          "primary_asset_id":  "warehouse-scheduler",
+                          "asset_ids":  [ "warehouse-scheduler", "supplier-vpn-hub" ],
+                          "identity_ids":  [ "partner-edi-sync" ],
+                          "library_visible":  false,
+                          "technical_signal":  "An attack targeting industrial control systems, SCADA platforms, or OT network components threatens physical process integrity and operational continuity.",
+                          "executive_trigger":  "A cyber attack on operational technology systems threatening physical process continuity",
+                          "signal_factors":  { "exploitability": 3, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Isolate affected OT network segments and initiate manual fallback procedures where possible.",
+                              "Notify plant operations leadership and safety teams of potential process disruption.",
+                              "Engage OT security specialists for forensic assessment of ICS/SCADA platform integrity.",
+                              "Issue leadership update on production continuity risk and estimated recovery timeline."
+                          ]
+                      },
+                      {
+                          "id":  "database-open-exposure",
+                          "name":  "Unauthenticated database exposure enabling data exfiltration",
+                          "category":  "Database / data exposure",
+                          "service_id":  "finance-data-platform",
+                          "primary_asset_id":  "finance-db-sql-01",
+                          "asset_ids":  [ "finance-db-sql-01" ],
+                          "identity_ids":  [],
+                          "library_visible":  false,
+                          "technical_signal":  "A database instance is exposed to the internet without authentication, allowing any actor to query or exfiltrate the full dataset.",
+                          "executive_trigger":  "An unauthenticated database exposed to the internet",
+                          "signal_factors":  { "exploitability": 5, "threat_activity": 4, "evidence_quality": 5, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Block public access to the database immediately and enforce authentication.",
+                              "Audit access logs for signs of unauthorised queries or data extraction.",
+                              "Launch a data breach assessment to determine whether sensitive data was accessed.",
+                              "Notify legal and privacy teams for regulatory impact assessment."
+                          ]
+                      },
+                      {
+                          "id":  "saas-account-takeover",
+                          "name":  "SaaS account takeover via credential attack enabling data access",
+                          "category":  "SaaS / account",
+                          "service_id":  "customer-support-platform",
+                          "primary_asset_id":  "support-crm-prod",
+                          "asset_ids":  [ "support-crm-prod" ],
+                          "identity_ids":  [ "admin-rpatel" ],
+                          "library_visible":  false,
+                          "technical_signal":  "Credential stuffing, password spraying, or phishing attacks are resulting in account takeover against cloud or SaaS-hosted business applications.",
+                          "executive_trigger":  "Account takeover activity targeting cloud business applications",
+                          "signal_factors":  { "exploitability": 3, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Force password resets and MFA enrollment for accounts showing compromise indicators.",
+                              "Block suspicious IP ranges and implement adaptive authentication for affected applications.",
+                              "Audit recently accessed data within compromised accounts for exfiltration risk.",
+                              "Notify affected customers or employees if personal data may have been accessed."
+                          ]
+                      },
+                      {
+                          "id":  "cicd-pipeline-compromise",
+                          "name":  "CI/CD pipeline compromise introducing malicious code into production",
+                          "category":  "CI/CD / supply chain",
+                          "service_id":  "customer-portal-experience",
+                          "primary_asset_id":  "customer-portal-web-01",
+                          "asset_ids":  [ "customer-portal-web-01" ],
+                          "identity_ids":  [],
+                          "library_visible":  false,
+                          "technical_signal":  "A compromise of the software build pipeline, dependency manager, or CI/CD platform allows an attacker to inject malicious code into production deployments.",
+                          "executive_trigger":  "A compromised software build pipeline with potential for malicious code in production",
+                          "signal_factors":  { "exploitability": 4, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+                          "recommended_actions":  [
+                              "Halt production deployments from affected pipelines pending integrity review.",
+                              "Audit recent pipeline runs and produced artefacts for signs of tampering.",
+                              "Rotate pipeline credentials and review third-party dependency integrity.",
+                              "Notify engineering leadership of potential production code integrity risk."
+                          ]
                       }
                   ]
 }

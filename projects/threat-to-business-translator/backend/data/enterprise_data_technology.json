@@ -1,0 +1,304 @@
+{
+    "business_units": [
+        { "id": "product-eng",     "name": "Product Engineering",  "annual_revenue_musd": 90,  "executive_owner": "Chief Product Officer" },
+        { "id": "platform",        "name": "Platform & SRE",       "annual_revenue_musd": 65,  "executive_owner": "VP Engineering" },
+        { "id": "customer-success","name": "Customer Success",     "annual_revenue_musd": 45,  "executive_owner": "Chief Customer Officer" },
+        { "id": "corporate-it",    "name": "Corporate IT",         "annual_revenue_musd": 20,  "executive_owner": "CIO" }
+    ],
+    "business_services": [
+        {
+            "id": "saas-platform",
+            "name": "SaaS Product Platform",
+            "business_unit_id": "product-eng",
+            "business_unit": "Product Engineering",
+            "service_owner": "VP of Product Engineering",
+            "criticality": 5, "data_sensitivity": 5, "user_scale": 5, "revenue_dependency": 5,
+            "estimated_people_affected": 185000,
+            "key_dependencies": ["Cloud infrastructure", "Identity provider", "API gateway"]
+        },
+        {
+            "id": "customer-data-pipeline",
+            "name": "Customer Data Pipeline",
+            "business_unit_id": "platform",
+            "business_unit": "Platform & SRE",
+            "service_owner": "Director of Data Platform",
+            "criticality": 4, "data_sensitivity": 5, "user_scale": 4, "revenue_dependency": 4,
+            "estimated_people_affected": 185000,
+            "key_dependencies": ["Data lake", "ETL pipelines", "Analytics delivery layer"]
+        },
+        {
+            "id": "cloud-infrastructure",
+            "name": "Cloud Infrastructure & Compute",
+            "business_unit_id": "platform",
+            "business_unit": "Platform & SRE",
+            "service_owner": "Head of Cloud Operations",
+            "criticality": 5, "data_sensitivity": 4, "user_scale": 4, "revenue_dependency": 5,
+            "estimated_people_affected": 185000,
+            "key_dependencies": ["Cloud accounts and VPCs", "Kubernetes clusters", "Container registries"]
+        },
+        {
+            "id": "developer-cicd",
+            "name": "Developer Platform & CI/CD",
+            "business_unit_id": "product-eng",
+            "business_unit": "Product Engineering",
+            "service_owner": "Head of Developer Experience",
+            "criticality": 4, "data_sensitivity": 4, "user_scale": 3, "revenue_dependency": 4,
+            "estimated_people_affected": 2400,
+            "key_dependencies": ["Source control", "Build pipelines", "Artefact registry", "Deployment automation"]
+        },
+        {
+            "id": "iam-platform",
+            "name": "Identity & Access Management Platform",
+            "business_unit_id": "platform",
+            "business_unit": "Platform & SRE",
+            "service_owner": "Director of Security Engineering",
+            "criticality": 5, "data_sensitivity": 4, "user_scale": 5, "revenue_dependency": 5,
+            "estimated_people_affected": 185000,
+            "key_dependencies": ["Identity provider", "SSO federation", "SCIM provisioning"]
+        },
+        {
+            "id": "support-platform",
+            "name": "Customer Support Platform",
+            "business_unit_id": "customer-success",
+            "business_unit": "Customer Success",
+            "service_owner": "VP of Customer Success",
+            "criticality": 3, "data_sensitivity": 4, "user_scale": 4, "revenue_dependency": 3,
+            "estimated_people_affected": 185000,
+            "key_dependencies": ["CRM", "Ticketing system", "Customer identity lookup"]
+        }
+    ],
+    "assets": [
+        { "id": "saas-app-cluster",    "name": "saas-app-cluster",    "service_id": "saas-platform",        "asset_type": "Application server cluster",        "criticality": "high",   "internet_exposed": true,  "control_ids": ["waf-edge", "patch-sla-server", "cloud-cspm"] },
+        { "id": "data-lake",           "name": "data-lake",           "service_id": "customer-data-pipeline","asset_type": "Cloud data lake",                   "criticality": "high",   "internet_exposed": false, "control_ids": ["cloud-dlp", "cloud-cspm", "backup-core"] },
+        { "id": "k8s-cluster",         "name": "k8s-cluster",         "service_id": "cloud-infrastructure",  "asset_type": "Kubernetes production cluster",     "criticality": "high",   "internet_exposed": false, "control_ids": ["cloud-cspm", "segmentation-prod", "patch-sla-server"] },
+        { "id": "container-registry",  "name": "container-registry",  "service_id": "developer-cicd",        "asset_type": "Container image registry",          "criticality": "high",   "internet_exposed": false, "control_ids": ["patch-sla-server", "mfa-remote"] },
+        { "id": "ci-pipeline",         "name": "ci-pipeline",         "service_id": "developer-cicd",        "asset_type": "CI/CD pipeline infrastructure",     "criticality": "high",   "internet_exposed": false, "control_ids": ["mfa-remote", "patch-sla-server"] },
+        { "id": "idp-server",          "name": "idp-server",          "service_id": "iam-platform",          "asset_type": "Identity provider",                 "criticality": "high",   "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-server", "edr-endpoint"] },
+        { "id": "support-crm",         "name": "support-crm",         "service_id": "support-platform",      "asset_type": "Customer support CRM",              "criticality": "medium", "internet_exposed": true,  "control_ids": ["mfa-remote", "waf-edge"] }
+    ],
+    "identities": [
+        { "id": "sre-admin",       "name": "Elena Vasquez (SRE Lead)",        "role": "Site Reliability Engineer Lead",   "privilege_level": "high" },
+        { "id": "devops-eng",      "name": "Kwame Boateng (DevOps Engineer)",  "role": "Senior DevOps Engineer",           "privilege_level": "high" },
+        { "id": "security-eng",    "name": "Mei Lin (Security Engineer)",      "role": "Product Security Engineer",        "privilege_level": "high" },
+        { "id": "svc-cicd",        "name": "svc-cicd-runner",                  "role": "CI/CD Service Account",            "privilege_level": "high" },
+        { "id": "svc-data",        "name": "svc-data-pipeline",                "role": "Data Pipeline Service Account",    "privilege_level": "medium" }
+    ],
+    "controls": [
+        { "id": "mfa-remote",         "name": "MFA for remote and admin access",       "status": "strong",   "effectiveness": 80 },
+        { "id": "patch-sla-server",   "name": "Server and container patch SLA",        "status": "partial",  "effectiveness": 62 },
+        { "id": "waf-edge",           "name": "Web application firewall",              "status": "strong",   "effectiveness": 74 },
+        { "id": "segmentation-prod",  "name": "Production network segmentation",       "status": "strong",   "effectiveness": 82 },
+        { "id": "backup-core",        "name": "Core backup and restore",               "status": "strong",   "effectiveness": 88 },
+        { "id": "cloud-dlp",          "name": "Cloud data loss prevention",            "status": "partial",  "effectiveness": 55 },
+        { "id": "cloud-cspm",         "name": "Cloud security posture management",     "status": "partial",  "effectiveness": 66 },
+        { "id": "edr-endpoint",       "name": "Endpoint detection and response",       "status": "strong",   "effectiveness": 75 }
+    ],
+    "scenarios": [
+        {
+            "id": "cicd-pipeline-compromise",
+            "name": "CI/CD pipeline compromise introducing malicious code into production",
+            "category": "CI/CD / supply chain",
+            "service_id": "developer-cicd",
+            "primary_asset_id": "ci-pipeline",
+            "asset_ids": ["ci-pipeline", "container-registry", "saas-app-cluster"],
+            "identity_ids": ["svc-cicd", "devops-eng"],
+            "library_visible": true,
+            "technical_signal": "A compromise of the CI/CD pipeline or a malicious dependency injection has resulted in tampered build artefacts being deployed to production, potentially introducing backdoors or data-harvesting code into the SaaS platform.",
+            "executive_trigger": "A compromised software build pipeline with potential backdoor code deployed to production",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Halt all production deployments from affected pipelines immediately pending artefact integrity review.",
+                "Audit recent pipeline runs and deployed container images for signs of tampering.",
+                "Rotate all CI/CD service account credentials and pipeline secrets.",
+                "Notify engineering leadership and prepare customer communication if production code integrity is confirmed compromised."
+            ]
+        },
+        {
+            "id": "cloud-workload-rce",
+            "name": "Cloud hypervisor or Kubernetes escape threatening SaaS workload integrity",
+            "category": "Cloud / workload",
+            "service_id": "cloud-infrastructure",
+            "primary_asset_id": "k8s-cluster",
+            "asset_ids": ["k8s-cluster", "saas-app-cluster"],
+            "identity_ids": ["sre-admin"],
+            "library_visible": true,
+            "technical_signal": "A critical container escape or Kubernetes privilege escalation vulnerability allows an attacker to break out of workload isolation and access host-level compute or adjacent customer workloads.",
+            "executive_trigger": "A container or hypervisor escape vulnerability exposing SaaS tenant workload isolation",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Apply patch or implement Kubernetes admission policy mitigations immediately.",
+                "Audit workloads sharing affected nodes for signs of cross-tenant access.",
+                "Review cloud workload isolation boundaries and enforce least-privilege pod security.",
+                "Assess whether SaaS customer data isolation has been compromised — prepare customer advisory."
+            ]
+        },
+        {
+            "id": "identity-provider-compromise",
+            "name": "Identity provider compromise enabling broad customer and admin access bypass",
+            "category": "Identity / SSO",
+            "service_id": "iam-platform",
+            "primary_asset_id": "idp-server",
+            "asset_ids": ["idp-server", "saas-app-cluster"],
+            "identity_ids": ["security-eng"],
+            "library_visible": true,
+            "technical_signal": "The organisation's identity provider has been compromised, potentially allowing an attacker to forge authentication tokens and access any federated application including the SaaS platform, developer tooling, and cloud consoles.",
+            "executive_trigger": "A compromise of the centralised identity provider affecting all customer and admin access",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 4 },
+            "recommended_actions": [
+                "Revoke all active SSO sessions across all federated applications immediately.",
+                "Rotate identity provider signing keys and audit recent authentication events.",
+                "Notify customer-facing application teams and assess customer data exposure scope.",
+                "Issue customer advisory if authentication bypass could have accessed tenant data."
+            ]
+        },
+        {
+            "id": "api-exposure",
+            "name": "SaaS platform API credential exposure enabling customer data access",
+            "category": "API / credential",
+            "service_id": "saas-platform",
+            "primary_asset_id": "saas-app-cluster",
+            "asset_ids": ["saas-app-cluster", "data-lake"],
+            "identity_ids": ["svc-data"],
+            "library_visible": true,
+            "technical_signal": "API keys or service tokens for the SaaS platform are exposed in a public repository or build log, granting potential access to customer data or the ability to perform privileged API operations.",
+            "executive_trigger": "Exposed SaaS platform API credentials with access to customer data",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Rotate all exposed API keys and service tokens immediately.",
+                "Audit API access logs for unauthorised operations using the compromised credentials.",
+                "Implement secrets scanning across all repositories and build pipelines.",
+                "Prepare customer advisory if their data may have been accessible via exposed credentials."
+            ]
+        },
+        {
+            "id": "cloud-storage-regulated-data",
+            "name": "Cloud data lake misconfiguration exposing customer data",
+            "category": "Cloud / data exposure",
+            "service_id": "customer-data-pipeline",
+            "primary_asset_id": "data-lake",
+            "asset_ids": ["data-lake"],
+            "identity_ids": ["svc-data"],
+            "technical_signal": "A cloud storage or data lake misconfiguration has made customer analytics data or operational metrics publicly accessible, exposing potentially sensitive customer records.",
+            "executive_trigger": "A cloud data lake misconfiguration exposing customer data",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 5, "context_completeness": 4 },
+            "recommended_actions": [
+                "Remove public access to the data lake bucket immediately.",
+                "Audit access logs for signs of customer data extraction.",
+                "Notify the CPO and legal team for breach assessment and customer notification planning.",
+                "Review cloud storage access controls across all data pipeline outputs."
+            ]
+        },
+        {
+            "id": "edr-identity-lateral",
+            "name": "Privileged engineer identity compromise with access to production cloud",
+            "category": "EDR / identity",
+            "service_id": "cloud-infrastructure",
+            "primary_asset_id": "k8s-cluster",
+            "asset_ids": ["k8s-cluster", "data-lake"],
+            "identity_ids": ["sre-admin"],
+            "technical_signal": "EDR and cloud audit logs show anomalous activity from an SRE administrator account, with lateral movement attempts toward production Kubernetes clusters and the customer data lake.",
+            "executive_trigger": "A compromised SRE identity with access to production cloud infrastructure and customer data",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 4 },
+            "recommended_actions": [
+                "Revoke all active cloud console and Kubernetes sessions for the compromised account.",
+                "Audit cloud audit logs for signs of data access or configuration changes.",
+                "Notify engineering leadership and assess customer data exposure scope.",
+                "Review just-in-time access controls and least-privilege policies for SRE accounts."
+            ]
+        },
+        {
+            "id": "ransomware-endpoint",
+            "name": "Ransomware outbreak targeting engineering and infrastructure systems",
+            "category": "Ransomware / endpoint",
+            "service_id": "developer-cicd",
+            "primary_asset_id": "ci-pipeline",
+            "asset_ids": ["ci-pipeline", "container-registry"],
+            "identity_ids": ["devops-eng"],
+            "library_visible": false,
+            "technical_signal": "Ransomware has encrypted engineering workstations and CI/CD infrastructure, threatening the build pipeline and potentially injecting tampered code into deployment workflows.",
+            "executive_trigger": "Ransomware on engineering infrastructure threatening the software delivery pipeline",
+            "signal_factors": { "exploitability": 4, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Halt all production deployments and isolate encrypted engineering systems.",
+                "Audit build artefacts from the window prior to isolation for tampering.",
+                "Engage ransomware incident response retainer and notify engineering leadership.",
+                "Assess customer SLA impact if production deployments and hotfixes are blocked."
+            ]
+        },
+        {
+            "id": "saas-account-takeover",
+            "name": "Customer admin account takeover on the SaaS platform",
+            "category": "SaaS / account",
+            "service_id": "saas-platform",
+            "primary_asset_id": "saas-app-cluster",
+            "asset_ids": ["saas-app-cluster"],
+            "identity_ids": ["sre-admin"],
+            "library_visible": false,
+            "technical_signal": "Credential stuffing or phishing attacks are resulting in account takeover of customer administrator accounts on the SaaS platform, enabling access to tenant data and configuration.",
+            "executive_trigger": "Account takeover of customer admin accounts on the SaaS platform",
+            "signal_factors": { "exploitability": 3, "threat_activity": 4, "evidence_quality": 3, "context_completeness": 3 },
+            "recommended_actions": [
+                "Force password resets and enforce MFA for all affected customer accounts.",
+                "Implement adaptive authentication and anomalous login detection.",
+                "Audit tenant data access from compromised accounts.",
+                "Notify affected customers of the account compromise and recommended actions."
+            ]
+        },
+        {
+            "id": "email-platform-compromise",
+            "name": "Corporate email platform compromise exposing customer and deal communications",
+            "category": "Email / collaboration",
+            "service_id": "support-platform",
+            "primary_asset_id": "support-crm",
+            "asset_ids": ["support-crm"],
+            "identity_ids": ["sre-admin"],
+            "library_visible": false,
+            "technical_signal": "The corporate email platform has been compromised, exposing internal engineering discussions, customer deal communications, and support ticket data.",
+            "executive_trigger": "A compromise of the corporate email platform exposing customer and engineering communications",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch the email platform and reset credentials for impacted accounts.",
+                "Audit email logs for signs of exfiltration or forwarding rule tampering.",
+                "Notify legal and executive leadership of potential customer data exposure via email.",
+                "Issue internal communication advisory on impersonation risk."
+            ]
+        },
+        {
+            "id": "vpn-zero-day-finance",
+            "name": "Remote access zero-day exposing corporate and cloud console access",
+            "category": "CVE / exposure",
+            "service_id": "iam-platform",
+            "primary_asset_id": "idp-server",
+            "asset_ids": ["idp-server"],
+            "identity_ids": ["sre-admin"],
+            "library_visible": false,
+            "technical_signal": "A critical vulnerability in the VPN or remote access gateway used by engineering and SRE teams has been identified, potentially allowing an attacker to gain access to cloud consoles and production infrastructure.",
+            "executive_trigger": "A remotely exploitable vulnerability on the engineering remote access gateway",
+            "signal_factors": { "exploitability": 5, "threat_activity": 4, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch or disable the remote access gateway within 24 hours.",
+                "Force credential reset for all engineering and SRE accounts with active remote sessions.",
+                "Audit cloud console access logs for signs of exploitation.",
+                "Notify platform and engineering leadership of infrastructure access risk."
+            ]
+        },
+        {
+            "id": "finance-sql-server-rce",
+            "name": "Data pipeline database vulnerability threatening customer data integrity",
+            "category": "CVE / database",
+            "service_id": "customer-data-pipeline",
+            "primary_asset_id": "data-lake",
+            "asset_ids": ["data-lake"],
+            "identity_ids": ["svc-data"],
+            "library_visible": false,
+            "technical_signal": "A critical vulnerability in the data pipeline database or Active Directory integration allows remote code execution, threatening the integrity of customer analytics data.",
+            "executive_trigger": "A critical database vulnerability affecting the customer data pipeline",
+            "signal_factors": { "exploitability": 5, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Patch the affected database or directory server on an emergency timeline.",
+                "Audit data pipeline outputs for signs of tampering or exfiltration.",
+                "Notify the CPO and legal team of potential customer data integrity exposure."
+            ]
+        }
+    ]
+}
