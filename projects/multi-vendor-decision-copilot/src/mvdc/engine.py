@@ -337,8 +337,8 @@ class DecisionEngine:
                     "features": unique_features[:6],
                 },
                 "capability_summary": capability_summary,
-                "assumptions": ["Vendor lookup answers are based on vendor and product records explicitly present in the dataset."],
-                "data_gaps": ["Detailed product capabilities are only available for categories covered by vendor_feature_matrix.json."],
+                "assumptions": [],
+                "data_gaps": [],
                 "confidence": "medium" if products else "low",
             }
 
@@ -373,8 +373,8 @@ class DecisionEngine:
                 "features": unique_features[:6],
             },
             "capability_summary": None,
-            "assumptions": ["Product lookup answers are based on explicit product names present in the dataset."],
-            "data_gaps": ["Detailed product capabilities are only available for categories covered by vendor_feature_matrix.json."],
+            "assumptions": [],
+            "data_gaps": [],
             "confidence": "medium",
         }
 
@@ -617,10 +617,8 @@ class DecisionEngine:
             f"Compare QRadar SIEM against Splunk Enterprise Security for the {region}.",
         ]
 
-    def _data_gaps(self, parsed: ParsedQuery, vendor_only: bool = False) -> list[str]:
+    def _data_gaps(self, parsed: ParsedQuery) -> list[str]:
         gaps = []
-        if vendor_only:
-            gaps.append("Add product-level records for this category to enable more specific recommendations and comparisons.")
         if parsed.required_compliance:
             gaps.append("Compliance filtering is only as strong as the explicit compliance tags present on each product record.")
         if parsed.required_integrations:
@@ -742,7 +740,7 @@ class DecisionEngine:
             "ranked_vendors": rows,
             "excluded_products": [],
             "assumptions": ["This answer is vendor-level because the dataset has category coverage for vendors but no product records for this category."],
-            "data_gaps": self._data_gaps(parsed, vendor_only=True),
+            "data_gaps": self._data_gaps(parsed),
             "confidence": "low-to-medium",
         }
 
