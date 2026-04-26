@@ -98,14 +98,12 @@ def render_single(result: dict[str, object]) -> None:
     with st.expander("Score Breakdown — top recommendation"):
         category = result.get("solution_categories", [None])[0]
         breakdown = engine.score_breakdown(top, category)
-        header_l, header_r = st.columns([4, 1])
-        header_l.caption("Dimension")
-        header_r.caption("Score")
+        st.caption("Each bar shows the dimension's weighted contribution out of the 100-point total.")
         for name, score in breakdown.items():
             col_label, col_bar, col_val = st.columns([2, 5, 1])
             col_label.write(name)
-            col_bar.progress(min(1.0, score / _DIMENSION_MAX.get(name, 25.0)))
-            col_val.write(f"{score}")
+            col_bar.progress(min(1.0, score / 100.0))
+            col_val.markdown(f"<p style='margin:0; padding-top:6px'>{score}</p>", unsafe_allow_html=True)
 
 
 def render_lookup(result: dict[str, object]) -> None:
