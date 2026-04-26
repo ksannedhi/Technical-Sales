@@ -343,21 +343,28 @@ class DecisionEngine:
             }
 
         product_name = parsed.lookup_products[0]
-        product = next(product for product in self.products if product["product_name"] == product_name)
+        product = next(p for p in self.products if p["product_name"] == product_name)
         features = []
         for category in product["categories"]:
             features.extend(self.feature_lookup.get((product["vendor"].lower(), category), []))
-        unique_features = []
-        seen = set()
+        unique_features: list[str] = []
+        seen: set[str] = set()
         for feature in features:
             if feature not in seen:
                 unique_features.append(feature)
                 seen.add(feature)
+        primary_category = product.get("primary_category") or (product["categories"][0] if product["categories"] else None)
+        category_meta = self.category_metadata.get(primary_category, {}) if primary_category else {}
         return {
             "mode": "lookup",
             "query": parsed.raw_query,
             "lookup_type": "product",
             "vendor": product["vendor"],
+            "product_name": product_name,
+            "market_position": product.get("market_position"),
+            "primary_category": primary_category,
+            "category_full_name": category_meta.get("full_name", primary_category),
+            "category_what_it_is": category_meta.get("what_it_is", ""),
             "vendor_profile": {
                 "vendor": product["vendor"],
                 "categories": product["categories"],
@@ -370,7 +377,7 @@ class DecisionEngine:
                         "deployment_models": product.get("deployment_models", []),
                     }
                 ],
-                "features": unique_features[:6],
+                "features": unique_features[:8],
             },
             "capability_summary": None,
             "assumptions": [],

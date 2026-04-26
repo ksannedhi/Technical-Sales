@@ -166,6 +166,24 @@ def render_single(result: dict[str, object]) -> None:
 
 def render_lookup(result: dict[str, object]) -> None:
     profile = result["vendor_profile"]
+    if result.get("lookup_type") == "product":
+        product_name = result.get("product_name", "")
+        vendor = profile["vendor"]
+        position = _position_label({"market_position": result.get("market_position")})
+        cat_full = result.get("category_full_name") or result.get("primary_category") or ""
+        cat_what = result.get("category_what_it_is", "")
+        deployment = ", ".join(profile.get("deployment_models", [])) or "Not specified"
+        st.subheader(product_name)
+        st.caption(f"By **{vendor}** · {cat_full} · {position} · {deployment} · Confidence: {result['confidence'].capitalize()}")
+        if cat_what:
+            st.markdown(f"*{cat_what}*")
+        features = profile.get("features", [])
+        if features:
+            st.markdown("**Key capabilities**")
+            for f in features:
+                st.write(f"- {_cap_first(f)}")
+        return
+
     st.subheader("Vendor Profile")
     st.markdown(f"**{profile['vendor']}**")
     st.caption(f"Confidence: {result['confidence'].capitalize()}")
