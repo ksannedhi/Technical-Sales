@@ -713,5 +713,60 @@
     "pricing_tier": "high",
     "operational_complexity": "high",
     "market_position": "leader"
+  },
+  {
+    "vendor": "Palo Alto Networks",
+    "product": "PA-Series NGFW",
+    "category": ["Firewall"],
+    "deployment": ["On-Prem", "Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["ServiceNow", "Okta", "Microsoft Entra ID", "AWS", "Azure", "GCP"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium",
+    "market_position": "leader"
+  },
+  {
+    "vendor": "Fortinet",
+    "product": "FortiGate NGFW",
+    "category": ["Firewall"],
+    "deployment": ["On-Prem", "Hybrid", "SaaS"],
+    "compliance": ["FedRAMP", "PCI DSS", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["ServiceNow", "Microsoft Entra ID", "AWS", "Azure"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium",
+    "market_position": "leader"
+  },
+  {
+    "vendor": "Check Point",
+    "product": "Quantum NGFW",
+    "category": ["Firewall"],
+    "deployment": ["On-Prem", "Hybrid"],
+    "compliance": ["PCI DSS", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["ServiceNow", "Microsoft Entra ID", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium",
+    "market_position": "leader"
+  },
+  {
+    "vendor": "Cisco",
+    "product": "Cisco Secure Firewall",
+    "category": ["Firewall"],
+    "deployment": ["On-Prem", "Hybrid"],
+    "compliance": ["FedRAMP", "PCI DSS", "SOC 2", "ISO 27001", "HIPAA"],
+    "integration_support": ["ServiceNow", "Microsoft Entra ID", "AWS", "Azure"],
+    "pricing_tier": "high",
+    "operational_complexity": "high",
+    "market_position": "strong"
+  },
+  {
+    "vendor": "Sophos",
+    "product": "Sophos XGS Firewall",
+    "category": ["Firewall"],
+    "deployment": ["On-Prem", "Hybrid"],
+    "compliance": ["SOC 2", "ISO 27001"],
+    "integration_support": ["Microsoft Entra ID", "Azure"],
+    "pricing_tier": "medium",
+    "operational_complexity": "low",
+    "market_position": "challenger"
   }
 ]

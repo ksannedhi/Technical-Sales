@@ -303,5 +303,30 @@
         "features": ["global private backbone", "SD-WAN", "cloud-native SASE", "managed detection and response"]
       }
     ]
+  },
+  {
+    "category": "Firewall",
+    "vendors": [
+      {
+        "vendor": "Palo Alto Networks",
+        "features": ["App-ID application control", "URL filtering", "IPS", "TLS inspection", "WildFire threat prevention"]
+      },
+      {
+        "vendor": "Fortinet",
+        "features": ["FortiOS security fabric", "SSL inspection", "IPS", "SD-WAN integration", "AI-powered threat detection"]
+      },
+      {
+        "vendor": "Check Point",
+        "features": ["unified threat management", "ThreatCloud AI", "IPS", "application control", "zero-day sandboxing"]
+      },
+      {
+        "vendor": "Cisco",
+        "features": ["Snort IPS", "application visibility", "encrypted traffic analytics", "Talos threat intelligence", "integrated AMP"]
+      },
+      {
+        "vendor": "Sophos",
+        "features": ["Xstream architecture", "TLS inspection", "synchronized security", "SD-WAN", "zero-touch deployment"]
+      }
+    ]
   }
 ]

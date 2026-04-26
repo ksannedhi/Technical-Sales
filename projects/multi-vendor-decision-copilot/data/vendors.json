@@ -18,7 +18,8 @@
       "CNAPP",
       "XDR",
       "SASE",
-      "SOAR"
+      "SOAR",
+      "Firewall"
     ],
     "regions": [
       "Global"
@@ -70,7 +71,8 @@
       "XDR",
       "SIEM",
       "MFA",
-      "SASE"
+      "SASE",
+      "Firewall"
     ],
     "regions": [
       "Global"
@@ -446,6 +448,11 @@
   {
     "vendor": "Salt Security",
     "categories": ["API Security"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Check Point",
+    "categories": ["Firewall", "Network Security"],
     "regions": ["Global"]
   }
 ]

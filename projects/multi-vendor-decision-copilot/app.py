@@ -173,7 +173,7 @@ def render_vendor_category(result: dict[str, object]) -> None:
             "Vendor": item["vendor"],
             "Category": item["category"],
             "Regions": ", ".join(item.get("regions", [])) or "Not specified",
-            "Score": item["score"],
+            "Score": f"{item['score']}",
             "Notes": item["score_reason"],
         })
     st.dataframe(rows, use_container_width=True, hide_index=True)
