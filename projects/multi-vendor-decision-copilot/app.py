@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -117,6 +118,22 @@ def _cap_first(s: str) -> str:
     return s[0].upper() + s[1:] if s else s
 
 
+def _product_description(product_name: str, cat_abbr: str, cat_what: str) -> str:
+    """Build 'Prisma Cloud is a CNAPP solution that combines...' from the category description."""
+    if not cat_what:
+        return ""
+    m = re.match(
+        rf"^{re.escape(cat_abbr)}\s*(?:tools?|platforms?|solutions?|systems?|products?)?\s+",
+        cat_what, re.IGNORECASE,
+    )
+    if m:
+        remainder = cat_what[m.end():]
+        verb = remainder[0].lower() + remainder[1:] if remainder else remainder
+        article = "an" if cat_abbr and cat_abbr[0].upper() in "AEIOU" else "a"
+        return f"{product_name} is {article} {cat_abbr} solution that {verb}"
+    return f"{product_name} is a {cat_abbr} product. {cat_what}"
+
+
 def _fmt_features(features: list[str], limit: int = 3) -> str:
     return ", ".join(_cap_first(f) for f in features[:limit]) if features else "—"
 
@@ -170,13 +187,14 @@ def render_lookup(result: dict[str, object]) -> None:
         product_name = result.get("product_name", "")
         vendor = profile["vendor"]
         position = _position_label({"market_position": result.get("market_position")})
-        cat_full = result.get("category_full_name") or result.get("primary_category") or ""
+        cat_abbr = result.get("primary_category") or ""
         cat_what = result.get("category_what_it_is", "")
         deployment = ", ".join(profile.get("deployment_models", [])) or "Not specified"
         st.subheader(product_name)
-        st.caption(f"By **{vendor}** · {cat_full} · {position} · {deployment} · Confidence: {result['confidence'].capitalize()}")
+        st.caption(f"By **{vendor}** · {position} · {deployment} · Confidence: {result['confidence'].capitalize()}")
         if cat_what:
-            st.markdown(f"*{cat_what}*")
+            description = _product_description(product_name, cat_abbr, cat_what)
+            st.write(description)
         features = profile.get("features", [])
         if features:
             st.markdown("**Key capabilities**")
