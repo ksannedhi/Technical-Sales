@@ -91,8 +91,12 @@ export default function App() {
         setScenarios(loadedScenarios);
         setScenarioLoadError(loadedScenarios.length === 0 ? "No scenarios were returned by the API." : "");
         if (loadedScenarios.length > 0) {
-          setSelectedId(loadedScenarios[0].id);
+          const firstId = loadedScenarios[0].id;
+          setSelectedId(firstId);
           setReport(null);
+          // Always load the first scenario when sector changes — the selectedId effect
+          // won't fire if the first scenario ID happens to match the previous selection.
+          await loadScenario(firstId, false);
         }
       } catch (_) {
         setScenarioLoadError("Unable to load the scenario library. Make sure the backend has been restarted.");
@@ -100,11 +104,6 @@ export default function App() {
     }
     loadScenarios();
   }, [sector]);
-
-  useEffect(() => {
-    if (!selectedId) return;
-    loadScenario(selectedId, false);
-  }, [selectedId]);
 
   async function loadScenario(scenarioId, withCustomProfile) {
     try {
@@ -426,7 +425,7 @@ export default function App() {
             <button
               key={scenario.id}
               className={scenario.id === selectedId ? "scenario-card active" : "scenario-card"}
-              onClick={() => setSelectedId(scenario.id)}
+              onClick={() => { setSelectedId(scenario.id); loadScenario(scenario.id, useCustomProfile); }}
               type="button"
             >
               <span className="scenario-category">{scenario.category}</span>
