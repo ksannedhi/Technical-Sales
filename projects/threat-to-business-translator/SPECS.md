@@ -27,19 +27,20 @@ Security teams usually receive technical evidence in forms that are not directly
 
 ## Current MVP Scope
 
+### Industry sector selection
+
+The application supports five industry sectors, each backed by its own synthetic enterprise graph:
+- **Financial Services** (default) — banking, payments, wealth management
+- **Healthcare** — EHR platforms, patient portals, clinical imaging, medical device networks
+- **Manufacturing** — MES, ICS/SCADA, PLM, ERP, OT/IT boundary
+- **Retail** — e-commerce, POS networks, payment processing, loyalty platforms
+- **Technology** — SaaS platforms, CI/CD pipelines, cloud infrastructure, IAM
+
+Selecting a sector loads sector-appropriate business units, services, assets, identities, controls, and scenario library. All three translation endpoints (`/api/scenarios`, `/api/translate`, `/api/analyze`) accept a `sector` parameter.
+
 ### Built-in scenario library
 
-The application includes five visible synthetic scenarios:
-1. Internet-facing VPN zero-day threatening payroll operations
-2. Privileged identity compromise with lateral movement into customer support
-3. Cloud misconfiguration exposing regulated customer records
-4. Supplier connectivity compromise disrupting fulfillment operations
-5. Deepfake executive impersonation targeting urgent payment approval
-
-The backend also includes additional hidden scenario patterns used to classify uploaded scan findings such as:
-- weak administrator authentication
-- SQL Server remote code execution
-- outdated internet-facing web servers
+The application includes sector-specific visible synthetic scenarios per sector (5–7 library-visible scenarios per sector). The backend maintains 18 keyword-weighted SCENARIO_MATCHERS templates that classify ad hoc input across all sectors.
 
 Each scenario is tied to a synthetic enterprise graph made up of:
 - business units
@@ -146,6 +147,22 @@ If the user does not apply custom assumptions, the app uses built-in defaults.
 - A Windows launcher starts backend and frontend together.
 - The launcher handles first-run dependency installation when possible.
 
+### FR12. Industry sector selection
+- The user can select an industry sector from a dropdown in the UI (Financial Services, Healthcare, Manufacturing, Retail, Technology).
+- Changing sector reloads the scenario library with sector-appropriate scenarios.
+- The selected scenario resets to the first visible scenario in the new sector when sector changes.
+- All backend endpoints accept a `sector` parameter; the default is `financial-services`.
+- Each sector maps to a dedicated domain JSON file. The 18 SCENARIO_MATCHERS templates are shared across all sectors; `_scenario_by_id()` uses a resilient fallback chain so new matcher IDs work gracefully even if a domain file has not yet added a matching scenario stub.
+
+### FR13. Executive report readability
+- The Overall Risk value must be displayed as a color-coded badge (Critical/High/Moderate/Low).
+- The Board Brief must be displayed in the report below the executive summary.
+- The Technical Input section must be collapsed by default to reduce noise during demos.
+- Recommended Actions must appear at the top of the detail grid, before findings and exposure bars.
+- Overall Risk and Likely Loss metric cards must be visually featured (larger, accent-bordered) to draw attention to the headline numbers.
+- Exposure bars must include a qualitative tone label (Critical/High/Moderate/Low) alongside the percentage.
+- The report context banner must carry a left-border color accent matching the risk level.
+
 ## Non-Functional Requirements
 
 ### NFR1. Explainability
@@ -179,22 +196,24 @@ The current synthetic graph should be replaceable later with real-world sources 
 
 ### Backend
 - FastAPI
-- synthetic enterprise graph stored in JSON
+- five sector-specific synthetic enterprise graphs stored in JSON (`enterprise_data*.json`)
 - deterministic enrichment and scoring engine
-- weighted scenario template matching for ad hoc analysis
+- 18-template weighted SCENARIO_MATCHERS for ad hoc classification across all sectors
+- resilient `_scenario_by_id()` lookup with edr-identity-lateral fallback
 - CVSS v3 score and vector parser for authoritative exploitability
 - scan-report parsing and roll-up logic
+- sector parameter threaded through all translation and analysis call paths
 
 ### Data model
 
-The synthetic graph currently includes:
+Each sector's synthetic graph includes:
 - business units
 - business services
 - assets
 - identities
 - controls
-- visible scenarios
-- hidden classifier-only scenario patterns
+- library-visible scenarios
+- hidden classifier-only scenario stubs (used by SCENARIO_MATCHERS for ad hoc analysis)
 
 ## Current API Surface
 
@@ -206,19 +225,24 @@ Basic health check.
 
 Returns the default organization profile used for assumptions.
 
+### `GET /api/sectors`
+
+Returns the list of available industry sectors (id + label pairs).
+
 ### `GET /api/scenarios`
 
 Returns the visible built-in scenario cards for the left-hand scenario library.
+Optional `sector` query parameter selects the sector domain (default: `financial-services`).
 
 ### `GET /api/translate/{scenario_id}`
 
 Returns the translated report for a selected built-in scenario.
-Optional query parameters allow profile customization.
+Optional `sector` query parameter and profile customization parameters accepted.
 
 ### `POST /api/analyze`
 
 Accepts pasted text and/or uploaded file input.
-Optional form parameters allow profile customization.
+Optional `sector` form field and profile customization parameters accepted.
 Returns:
 - a single ad hoc report for simple input
 - a scan-report roll-up with finding summaries for multi-finding uploads
@@ -227,8 +251,19 @@ Returns:
 
 The intended reading order is:
 1. hero band: what the product does
-2. optional input strip: customer-specific tailoring
-3. main workspace: scenario library on the left, translated outcome on the right
+2. sector bar: industry selector (Financial Services / Healthcare / Manufacturing / Retail / Technology)
+3. optional input strip: customer-specific tailoring (collapsed by default to reduce demo noise)
+4. main workspace: scenario library on the left, translated outcome on the right
+
+Report panel reading order:
+1. report context banner (left-border accent matches risk level)
+2. headline + executive summary + board brief
+3. metric cards: Overall Risk (featured, color-coded badge) → Likely Loss (featured) → Likelihood / Impact / Urgency / Confidence
+4. recommended actions (full-width, top of detail grid)
+5. parsed findings
+6. exposure profile / risk reduction
+7. business context / impact band
+8. active assumptions / control posture / scoring rationale
 
 ## Known Limitations
 
@@ -238,12 +273,11 @@ The intended reading order is:
 - No authentication or multi-user workflow exists in the MVP.
 - No persistence layer is included yet for saved analyses.
 - No PDF or slide-deck export exists for board-pack output.
-- No industry sector parameter — regulatory and crown-jewel defaults are the same for all verticals.
 
 ## Suggested Next Steps
 
-1. Add an industry sector selector (financial services, healthcare, manufacturing, retail) that pre-loads appropriate profile defaults.
-2. Add "what if" profile sliders that update risk scores live without re-submitting, turning the tool into a real-time risk calculator.
-3. Add a formatted PDF export for board-pack leave-behinds.
-4. Add a session risk roll-up showing aggregate exposure across all analyses in the current session.
-5. Move scoring weights and matcher configuration into editable config files or a lightweight admin UI.
+1. Add "what if" profile sliders that update risk scores live without re-submitting, turning the tool into a real-time risk calculator.
+2. Add a formatted PDF export for board-pack leave-behinds.
+3. Add a session risk roll-up showing aggregate exposure across all analyses in the current session.
+4. Move scoring weights and matcher configuration into editable config files or a lightweight admin UI.
+5. Add a sixth sector (government / public sector) with appropriate BUs, services, and scenarios.

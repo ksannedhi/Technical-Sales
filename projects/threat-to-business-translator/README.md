@@ -13,9 +13,20 @@ Security evidence is usually technical, fragmented, and difficult to communicate
 
 ## Current capabilities
 
+### Industry sector selector
+
+The app includes five industry sectors, each with its own synthetic enterprise graph and scenario library:
+- Financial Services (default)
+- Healthcare
+- Manufacturing
+- Retail
+- Technology
+
+Changing sector instantly reloads the scenario library with sector-appropriate business units, services, assets, and recommended actions.
+
 ### Scenario library
 
-The app includes five built-in synthetic scenarios that can be explored without any customer input.
+Each sector includes several built-in synthetic scenarios that can be explored without any customer input.
 
 ### Optional customer-specific analysis
 
@@ -49,12 +60,12 @@ Users can optionally apply assumptions such as:
 Each report currently includes:
 - leadership headline
 - executive summary
-- business context
-- impact band
-- risk reduction if fixed
-- exposure profile bars
-- scoring rationale
+- board brief (condensed one-paragraph board-level framing)
 - recommended actions
+- business context and impact band
+- risk reduction if fixed
+- exposure profile bars with qualitative tone labels
+- scoring rationale
 - downloadable markdown export
 
 ### Scan report workflow
@@ -135,9 +146,10 @@ VITE_API_URL=http://127.0.0.1:8000
 
 - `GET /health`
 - `GET /api/default-profile`
-- `GET /api/scenarios`
-- `GET /api/translate/{scenario_id}`
-- `POST /api/analyze`
+- `GET /api/sectors`
+- `GET /api/scenarios` — accepts `?sector=` query param
+- `GET /api/translate/{scenario_id}` — accepts `?sector=` query param
+- `POST /api/analyze` — accepts `sector` form field
 
 ## Documentation
 
