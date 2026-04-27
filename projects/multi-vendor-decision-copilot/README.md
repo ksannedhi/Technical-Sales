@@ -13,7 +13,9 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 - Displays vendor profiles with per-product market position and flags categories with no product records
 - Recognizes supported categories even when only vendor metadata exists
 - Handles vendor capability questions such as `Can Varonis provide DSPM?` with a category-aware summary
-- Falls back to honest `insufficient_data` responses when the dataset cannot support a reliable answer
+- Infers compliance requirements from industry context (bank → PCI DSS, hospital → HIPAA) and surfaces them transparently without hard-excluding on inference
+- Interprets data residency and sovereignty language as an on-prem deployment constraint, correctly excluding SaaS-only products
+- Falls back to honest `insufficient_data` responses when the dataset cannot support a reliable answer, with distinct messaging for constraint failures vs unknown categories
 
 ## Documentation
 
@@ -65,7 +67,8 @@ Seven weighted dimensions scored 0–100, producing a total score out of 100:
 - Active example button is highlighted in the primary color
 - Session history is shared across tabs for the current process and clears when the app restarts
 - Expanding a session history entry re-renders the full result, not a JSON dump
-- Data Gaps section only appears when compliance or integration filtering is active
+- Data Gaps section appears when compliance, integration, or inferred compliance is active
+- `insufficient_data` responses distinguish constraint failures (all products excluded) from unknown categories — only unknown categories show the supported-categories list
 
 ## Run
 

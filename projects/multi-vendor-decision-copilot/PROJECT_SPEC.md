@@ -18,10 +18,12 @@ The system must:
 - explain cybersecurity categories and products from the dataset before recommending vendors
 - provide transparent recommendations based on local structured data
 - score products across seven weighted dimensions (deployment, features, integrations, compliance, market position, cost, complexity)
+- infer compliance requirements from industry context (e.g. banking → PCI DSS) and surface them transparently without conflating them with explicit hard constraints
+- interpret data residency and sovereignty language as an on-prem deployment requirement
 - show contextual category briefs before vendor tables so users understand what they are evaluating
 - support product-level comparison when explicit product records exist
 - support vendor-level recommendations when category coverage exists but product coverage does not
-- return `insufficient_data` when the dataset cannot support a reliable answer
+- return `insufficient_data` when the dataset cannot support a reliable answer, with a reason code that distinguishes constraint failure from unknown category
 
 The system must not:
 - fabricate product records, vendor capabilities, or comparison outcomes
@@ -122,12 +124,13 @@ Expected behavior:
 - flag categories with insufficient data inline
 
 ### 4.8 Insufficient Data
-Used when the query cannot be supported reliably.
+Used when the query cannot be supported reliably. Three distinct sub-cases with different rendering:
 
-Expected behavior:
-- explain why the answer is unavailable
-- show supported categories
-- suggest alternative prompts
+| `reason_code` | Cause | UI behaviour |
+|---|---|---|
+| `constraint_excluded` | Category found, all products eliminated by hard constraints | State the category is supported; explain constraints eliminated all options; suggest relaxing them. Do NOT show the supported-categories list. |
+| `missing_products` | Named comparison targets not in dataset | State which products are missing. Do NOT show the supported-categories list. |
+| `unknown_category` | Query could not be resolved to any category or vendor | Show supported categories and suggested alternative prompts. |
 
 ## 5. Canonical Response Modes
 
@@ -145,6 +148,8 @@ Every engine response returns one of these modes:
 
 ### 5.1 Shared Fields
 All responses include when applicable: `mode`, `query`, `confidence`, `data_gaps`, `constraints`, `excluded_products`.
+
+The `constraints` object always includes `inferred_compliance` (list of compliance tags derived from industry context) alongside `deployment`, `region`, `compliance`, and `integrations`. Inferred tags are displayed separately in the UI and affect scoring but do not trigger hard exclusions.
 
 ### 5.2 Category Explain Response
 Fields: `mode`, `query`, `solution_categories`, `category`, `full_name`, `what_it_is`, `problems_it_solves`, `top_products`, `confidence`
@@ -169,7 +174,7 @@ Fields: `mode`, `query`, `solution_categories`, `constraints`, `top_recommendati
 Fields: `mode`, `query`, `solution_categories`, `constraints`, `solution_stack`, `excluded_products`, `data_gaps`, `confidence`
 
 ### 5.8 Insufficient-Data Response
-Fields: `mode`, `query`, `reason`, `solution_categories`, `supported_categories`, `suggested_queries`, `excluded_products`, `confidence`
+Fields: `mode`, `query`, `reason`, `reason_code`, `solution_categories`, `supported_categories`, `suggested_queries`, `excluded_products`, `confidence`
 
 ## 6. Intent Resolution Rules
 
@@ -180,6 +185,28 @@ Priority order:
 4. `recommendation` / `stack` — category or problem signal without lookup trigger
 5. `insufficient_data` — no category, vendor, or product can be resolved
 
+### 6.1 Constraint Extraction
+
+Beyond category and vendor detection, `parse_query` extracts constraints from natural language:
+
+| Signal | Extracted as |
+|---|---|
+| `on-prem`, `on prem` | `required_deployment = "On-Prem"` |
+| `data residency`, `data sovereignty`, `data localisation`, `in-country data` | `required_deployment = "On-Prem"` |
+| `hybrid` | `required_deployment = "Hybrid"` |
+| `saas` | `required_deployment = "SaaS"` |
+| `gcc`, `middle east`, `saudi`, `uae` | `required_region = "Middle East"` |
+| Explicit compliance terms (FedRAMP, HIPAA, PCI DSS, SOC 2, ISO 27001) | `required_compliance` |
+| Industry terms → compliance inference | `inferred_compliance` (scoring only, not hard exclusions) |
+
+Industry → compliance inference map:
+
+| Industry terms | Inferred tag |
+|---|---|
+| bank, banking, financial institution, fintech | PCI DSS |
+| healthcare, hospital, clinic, medical, health system | HIPAA |
+| federal government, government agency, DoD | FedRAMP |
+
 ## 7. Scoring Model
 
 Seven weighted dimensions, each scored 0–100:
@@ -189,7 +216,7 @@ Seven weighted dimensions, each scored 0–100:
 | Deployment Fit | 25% | Exact match=100, partial=85 (Hybrid for On-Prem request), mismatch=25, unconstrained=60 |
 | Feature Match | 20% | 50 base + 10 per feature in matrix, capped at 100; 45 if no matrix entry; 40 if no category |
 | Integration Fit | 15% | Fraction of required integrations found on the product |
-| Compliance Fit | 15% | Fraction of required compliance tags found on the product |
+| Compliance Fit | 15% | Fraction of required + inferred compliance tags found on the product; inferred tags score the same as explicit for ranking but do not trigger hard exclusions |
 | Market Position | 15% | Leader=100, Strong=75, Challenger=50, unknown=60 |
 | Cost | 5% | Low=90, Medium=70, High=45, unknown=50 |
 | Operational Complexity | 5% | Low=90, Medium=70, High=45, unknown=50 |
@@ -246,12 +273,12 @@ Rules in `hard_exclusions.json` that, when active, eliminate a product before sc
 | `comparison` | Vendor Comparison table → top match or tied callout → missing vendor warning |
 | `vendor_category` | Vendor-Level Recommendations table |
 | `stack` | Per-category product recommendation with inline insufficient-data warnings |
-| `insufficient_data` | Reason → detected categories → supported categories → suggested queries |
+| `insufficient_data` | Branches on `reason_code`: `constraint_excluded` → category name + constraint relaxation suggestion (no category list); `missing_products` → missing names only; `unknown_category` → supported categories + suggested prompts |
 
 ### 10.3 Transparency Section
 Shown after every result when applicable:
-- Detected Constraints (deployment, region, compliance, integrations)
-- Data Gaps (only when compliance or integration filtering is active)
+- Detected Constraints (deployment, region, compliance, integrations, and inferred compliance labelled separately as "Compliance — inferred from industry context")
+- Data Gaps (only when compliance, integration, or inferred compliance is active)
 - Excluded Products expander
 
 ## 11. Testing Requirements
@@ -259,9 +286,10 @@ Shown after every result when applicable:
 Automated tests in `tests/test_engine.py` cover:
 - intent resolution for all modes
 - lookup behavior for vendors and products
-- named comparison safety (missing products return insufficient_data)
+- named comparison safety (missing products return `reason_code = missing_products`)
 - recommendation routing by category
 - hard exclusion filtering
+- constraint-excluded path returns `reason_code = constraint_excluded`
 - confidence level assignment
 - score breakdown correctness
 - region-constraint routing

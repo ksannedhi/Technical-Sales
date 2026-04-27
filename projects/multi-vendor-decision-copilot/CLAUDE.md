@@ -87,12 +87,15 @@ Market position values: `leader` = 100, `strong` = 75, `challenger` = 50.
 ## Key design decisions
 
 - **No external AI API** — all logic is deterministic and data-driven.
-- **`category_explain` mode** — "Explain IGA"-style queries explain the category (from `categories_metadata.json`) then show top products, rather than jumping straight to a vendor table.
+- **`category_explain` mode** — "Explain IGA"-style queries explain the category (from `categories_metadata.json`) then show top products, rather than jumping straight to a vendor table. Applies active constraints (deployment, region, etc.) when scoring and filtering the top-3 display.
 - **Product lookup** — "What is Prisma Cloud?" opens with a product-specific sentence built from category metadata, then lists key capabilities.
-- **Vendor profile** — shows per-product market position, flags categories with vendor coverage but no product records (`category_gaps`).
+- **Vendor profile** — products ranked by market position (Leader → Strong → Challenger) then weighted score. Flags categories with vendor coverage but no product records (`category_gaps`).
 - **Category brief in single_category** — an expandable "About {Category}" section appears before the vendor table so users understand what they are evaluating.
+- **Industry compliance inference** — industry terms in the query infer compliance tags into `inferred_compliance` (separate from `required_compliance`). Inferred tags affect scoring (compliance fit dimension) but never trigger hard exclusions. Map: bank/banking/fintech → PCI DSS; healthcare/hospital/clinic → HIPAA; federal government/government agency/DoD → FedRAMP.
+- **Data residency → On-Prem** — phrases like "data residency", "data sovereignty", "in-country data" set `required_deployment = "On-Prem"`, triggering hard exclusion of SaaS-only products.
+- **`insufficient_data` reason codes** — `constraint_excluded` (category found, all products filtered), `missing_products` (named targets not in dataset), `unknown_category` (default). UI renders each differently: only `unknown_category` shows the supported-categories list.
 - **Score breakdown** — expander shown when the query includes hard constraints (deployment, compliance, integrations, region).
-- **Data Gaps** — only shown when compliance or integration filtering is active; internal implementation messages are suppressed.
+- **Data Gaps** — shown when compliance, integration, or inferred compliance is active.
 - **`@st.cache_resource` for engine** — `DecisionEngine` loads all JSON once and is reused across reruns.
 - **PYTHONPATH=src** — required for `mvdc` module import. `start.cmd` sets this automatically.
 
