@@ -607,6 +607,157 @@ select {
   line-height: 1.5;
 }
 
+/* ── Risk badge (Overall Risk value in metrics row) ── */
+.risk-badge-critical,
+.risk-badge-high,
+.risk-badge-moderate,
+.risk-badge-low {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.risk-badge-critical {
+  background: rgba(220, 38, 38, 0.18);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.38);
+}
+
+.risk-badge-high {
+  background: rgba(234, 88, 12, 0.18);
+  color: #fdba74;
+  border: 1px solid rgba(234, 88, 12, 0.38);
+}
+
+.risk-badge-moderate {
+  background: rgba(202, 138, 4, 0.18);
+  color: #fde68a;
+  border: 1px solid rgba(202, 138, 4, 0.38);
+}
+
+.risk-badge-low {
+  background: rgba(22, 163, 74, 0.18);
+  color: #86efac;
+  border: 1px solid rgba(22, 163, 74, 0.38);
+}
+
+/* ── Risk accent on the report context banner ── */
+.report-context-banner.risk-critical { border-left: 3px solid #ef4444; }
+.report-context-banner.risk-high     { border-left: 3px solid #f97316; }
+.report-context-banner.risk-moderate { border-left: 3px solid #eab308; }
+.report-context-banner.risk-low      { border-left: 3px solid #22c55e; }
+
+/* ── Featured metric card (Overall Risk + Likely Loss) ── */
+.metric-card-featured {
+  background: rgba(20, 36, 68, 0.72);
+  border-color: rgba(134, 183, 255, 0.22);
+}
+
+.metric-card-featured .metric-label {
+  font-size: 0.8rem;
+}
+
+.metric-card-featured .metric-value {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.4rem;
+  color: var(--accent-strong);
+}
+
+/* ── Board brief inside headline card ── */
+.board-brief {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--divider);
+}
+
+.board-brief p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 6px 0 0;
+}
+
+/* ── Technical input — collapsed by default ── */
+.technical-summary-card {
+  cursor: default;
+}
+
+.technical-summary-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  padding: 0;
+  user-select: none;
+}
+
+.technical-summary-toggle::-webkit-details-marker { display: none; }
+.technical-summary-toggle::marker { display: none; }
+
+.technical-summary-toggle .section-label {
+  margin: 0;
+  pointer-events: none;
+}
+
+.toggle-hint {
+  color: var(--muted);
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+details[open] .toggle-hint {
+  opacity: 0;
+}
+
+/* ── Recommended Actions — full-width panel with numbered list ── */
+.panel-actions {
+  grid-column: 1 / -1;
+}
+
+.action-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 24px;
+}
+
+.action-list li {
+  color: var(--muted);
+  line-height: 1.55;
+  padding: 4px 0;
+}
+
+/* ── Exposure bar — qualitative tone label ── */
+.exposure-value-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.exposure-tone-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.tone-critical { color: #fca5a5; }
+.tone-high     { color: #fdba74; }
+.tone-medium   { color: #fde68a; }
+.tone-low      { color: #86efac; }
+
+/* ── Scan rollup full-width ── */
+.panel-full {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 1200px) {
   .hero-band,
   .workspace,
@@ -645,6 +796,10 @@ select {
   .metrics-grid,
   .detail-grid,
   .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-list {
     grid-template-columns: 1fr;
   }
 

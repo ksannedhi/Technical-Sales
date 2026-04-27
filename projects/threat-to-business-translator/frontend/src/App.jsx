@@ -441,7 +441,7 @@ export default function App() {
           {error ? <div className="error-banner">{error}</div> : null}
           {report ? (
             <>
-              <div className={reportMode !== "scenario" ? "report-context-banner ad-hoc" : "report-context-banner"}>
+              <div className={`report-context-banner${reportMode !== "scenario" ? " ad-hoc" : ""} risk-${report.risk_assessment.overall_risk}`}>
                 <div>
                   <p className="section-label">{reportMode === "scanReport" ? "Scan Report Analysis" : reportMode === "adHoc" ? "Ad Hoc Analysis" : "Scenario Outcome"}</p>
                   <strong>{report.scenario_name}</strong>
@@ -467,6 +467,12 @@ export default function App() {
                 <p className="section-label">Leadership Headline</p>
                 <h2>{report.leadership_output.headline}</h2>
                 <p>{report.leadership_output.executive_summary}</p>
+                {report.leadership_output.board_brief ? (
+                  <div className="board-brief">
+                    <p className="section-label">Board Brief</p>
+                    <p>{report.leadership_output.board_brief}</p>
+                  </div>
+                ) : null}
               </div>
 
               {report.report_rollup ? (
@@ -487,23 +493,34 @@ export default function App() {
                 </div>
               ) : null}
 
-              <div className="technical-summary-card">
-                <p className="section-label">Technical Input</p>
+              <details className="technical-summary-card">
+                <summary className="technical-summary-toggle">
+                  <span className="section-label">Technical Input</span>
+                  <span className="toggle-hint">click to expand</span>
+                </summary>
                 <pre className="technical-summary-text">{report.technical_summary}</pre>
-              </div>
+              </details>
 
               <div className="metrics-grid">
-                <MetricCard label="Overall Risk" value={report.risk_assessment.overall_risk} />
+                <MetricCard label="Overall Risk" value={report.risk_assessment.overall_risk} tone={report.risk_assessment.overall_risk} featured />
+                <MetricCard label="Likely Loss" value={formatCurrency(report.business_impact.impact_band.likely_usd)} featured />
                 <MetricCard label="Likelihood" value={`${report.risk_assessment.likelihood}/5`} />
                 <MetricCard label="Impact" value={`${report.risk_assessment.impact}/5`} />
                 <MetricCard label="Urgency" value={`${report.risk_assessment.urgency}/5`} />
                 <MetricCard label="Confidence" value={`${Math.round(report.risk_assessment.confidence * 100)}%`} />
-                <MetricCard label="Likely Loss" value={formatCurrency(report.business_impact.impact_band.likely_usd)} />
               </div>
 
               <div className="detail-grid">
+                <Panel title="Recommended Actions" className="panel-actions">
+                  <ol className="action-list">
+                    {report.leadership_output.recommended_actions.map((action) => (
+                      <li key={action}>{action}</li>
+                    ))}
+                  </ol>
+                </Panel>
+
                 {report.finding_summaries?.length ? (
-                  <Panel title="Parsed Findings">
+                  <Panel title="Parsed Findings" className="panel-full">
                     <div className="finding-list">
                       {report.finding_summaries.map((finding) => (
                         <article className="finding-card" key={finding.finding_id}>
@@ -544,6 +561,14 @@ export default function App() {
                   <p>Impacted identities: {report.business_context.impacted_identities.join(", ")}</p>
                 </Panel>
 
+                <Panel title="Impact Band">
+                  <p>Low: {formatCurrency(report.business_impact.impact_band.low_usd)}</p>
+                  <p>Likely: {formatCurrency(report.business_impact.impact_band.likely_usd)}</p>
+                  <p>High: {formatCurrency(report.business_impact.impact_band.high_usd)}</p>
+                  <p>Downtime: {report.business_impact.impact_band.downtime_hours} hours</p>
+                  <p>People affected: {report.business_impact.impact_band.people_affected.toLocaleString()}</p>
+                </Panel>
+
                 <Panel title="Active Assumptions">
                   <p>Annual revenue: {formatCurrency(report.organization_profile.annual_revenue_musd * 1000000)}</p>
                   <p>Employee count: {report.organization_profile.employee_count.toLocaleString()}</p>
@@ -553,23 +578,9 @@ export default function App() {
                   <p>Crown jewel dependency: {report.organization_profile.crown_jewel_dependency}/5</p>
                 </Panel>
 
-                <Panel title="Impact Band">
-                  <p>Low: {formatCurrency(report.business_impact.impact_band.low_usd)}</p>
-                  <p>Likely: {formatCurrency(report.business_impact.impact_band.likely_usd)}</p>
-                  <p>High: {formatCurrency(report.business_impact.impact_band.high_usd)}</p>
-                  <p>Downtime: {report.business_impact.impact_band.downtime_hours} hours</p>
-                  <p>People affected: {report.business_impact.impact_band.people_affected.toLocaleString()}</p>
-                </Panel>
-
                 <Panel title="Control Posture">
                   {report.business_context.control_posture.map((item) => (
                     <p key={item}>{item}</p>
-                  ))}
-                </Panel>
-
-                <Panel title="Recommended Actions">
-                  {report.leadership_output.recommended_actions.map((action) => (
-                    <p key={action}>{action}</p>
                   ))}
                 </Panel>
 
@@ -608,18 +619,21 @@ function ProfileField({ label, children }) {
   );
 }
 
-function MetricCard({ label, value }) {
+function MetricCard({ label, value, tone, featured }) {
   return (
-    <article className="metric-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <article className={`metric-card${featured ? " metric-card-featured" : ""}`}>
+      <span className="metric-label">{label}</span>
+      {tone
+        ? <strong className={`risk-badge risk-badge-${tone}`}>{value}</strong>
+        : <strong className="metric-value">{value}</strong>
+      }
     </article>
   );
 }
 
-function Panel({ title, children }) {
+function Panel({ title, children, className }) {
   return (
-    <article className="panel">
+    <article className={className ? `panel ${className}` : "panel"}>
       <p className="section-label">{title}</p>
       {children}
     </article>
@@ -628,11 +642,15 @@ function Panel({ title, children }) {
 
 function ExposureBar({ label, value }) {
   const tone = value >= 80 ? "critical" : value >= 60 ? "high" : value >= 40 ? "medium" : "low";
+  const toneLabel = value >= 80 ? "Critical" : value >= 60 ? "High" : value >= 40 ? "Moderate" : "Low";
   return (
     <div className="exposure-row">
       <div className="exposure-meta">
         <span>{label}</span>
-        <strong>{value}%</strong>
+        <div className="exposure-value-group">
+          <span className={`exposure-tone-label tone-${tone}`}>{toneLabel}</span>
+          <strong>{value}%</strong>
+        </div>
       </div>
       <div className="exposure-track">
         <div className={`exposure-fill ${tone}`} style={{ width: `${value}%` }} />
