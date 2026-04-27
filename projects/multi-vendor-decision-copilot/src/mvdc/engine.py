@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -79,6 +79,19 @@ INTEGRATION_ALIASES = {
     "Azure": ["azure"],
     "GCP": ["gcp", "google cloud"],
 }
+INDUSTRY_MAP = {
+    "banking": ["bank", "banking", "financial institution", "fintech"],
+    "healthcare": ["healthcare", "hospital", "clinic", "medical", "health system"],
+    "federal": ["federal government", "government agency", "dod", "department of defense"],
+}
+INDUSTRY_COMPLIANCE_INFERENCES: dict[str, list[str]] = {
+    "banking": ["PCI DSS"],
+    "healthcare": ["HIPAA"],
+    "federal": ["FedRAMP"],
+}
+DATA_RESIDENCY_TERMS = [
+    "data residency", "data sovereignty", "data localisation", "data localization", "in-country data",
+]
 
 
 @dataclass
@@ -95,6 +108,7 @@ class ParsedQuery:
     required_region: str | None
     required_compliance: list[str]
     required_integrations: list[str]
+    inferred_compliance: list[str] = field(default_factory=list)
 
 
 class DecisionEngine:
@@ -210,10 +224,22 @@ class DecisionEngine:
         categories = self._alias_matches(text, CATEGORY_ALIASES)
         problems = self._alias_matches(text, PROBLEM_ALIASES)
         unsupported = self._alias_matches(text, UNSUPPORTED_HINTS)
-        deployment = "On-Prem" if any(token in text for token in ["on-prem", "on prem"]) else "Hybrid" if "hybrid" in text else "SaaS" if "saas" in text else None
+        data_residency_hint = any(self._contains_alias(text, term) for term in DATA_RESIDENCY_TERMS)
+        deployment = (
+            "On-Prem" if any(token in text for token in ["on-prem", "on prem"]) or data_residency_hint
+            else "Hybrid" if "hybrid" in text
+            else "SaaS" if "saas" in text
+            else None
+        )
         region = next((name for name, aliases in REGION_ALIASES.items() if any(alias in text for alias in aliases)), None)
         compliance = self._alias_matches(text, COMPLIANCE_ALIASES)
         integrations = self._alias_matches(text, INTEGRATION_ALIASES)
+        industries = self._alias_matches(text, INDUSTRY_MAP)
+        inferred_compliance: list[str] = []
+        for industry in industries:
+            for tag in INDUSTRY_COMPLIANCE_INFERENCES.get(industry, []):
+                if tag not in compliance and tag not in inferred_compliance:
+                    inferred_compliance.append(tag)
         has_category_signal = bool(categories or problems)
         vendor_capability_hint = bool(vendors) and bool(re.search(r"\b(?:can|does)\b.+\b(?:provide|offer|support)\b", text))
         category_explain_hint = lookup_hint and bool(categories) and not vendors and not lookup_products
@@ -225,7 +251,7 @@ class DecisionEngine:
             intent = "category_explain"
         else:
             intent = "recommendation"
-        return ParsedQuery(query, intent, categories, problems, vendors, lookup_products, compare_targets, unsupported, deployment, region, compliance, integrations)
+        return ParsedQuery(query, intent, categories, problems, vendors, lookup_products, compare_targets, unsupported, deployment, region, compliance, integrations, inferred_compliance)
 
     def _matched_products(self, parsed: ParsedQuery) -> list[dict[str, Any]]:
         matches = []
@@ -621,6 +647,7 @@ class DecisionEngine:
             "region": parsed.required_region,
             "compliance": parsed.required_compliance,
             "integrations": parsed.required_integrations,
+            "inferred_compliance": parsed.inferred_compliance,
         }
 
     def _has_hard_constraints(self, parsed: ParsedQuery) -> bool:
@@ -650,6 +677,9 @@ class DecisionEngine:
             gaps.append("Compliance filtering is only as strong as the explicit compliance tags present on each product record.")
         if parsed.required_integrations:
             gaps.append("Integration filtering is only as strong as the explicit integration metadata present on each product record.")
+        if parsed.inferred_compliance:
+            tags = ", ".join(parsed.inferred_compliance)
+            gaps.append(f"Compliance tags ({tags}) were inferred from industry context and affect scoring but do not trigger hard exclusions.")
         return gaps
 
     def _deployment_fit(self, parsed: ParsedQuery, product: dict[str, Any]) -> float:
@@ -677,11 +707,14 @@ class DecisionEngine:
         return round((matches / len(parsed.required_integrations)) * 100.0, 1)
 
     def _compliance_fit(self, parsed: ParsedQuery, product: dict[str, Any]) -> float:
-        if not parsed.required_compliance:
+        explicit = parsed.required_compliance
+        inferred = [c for c in parsed.inferred_compliance if c not in explicit]
+        all_compliance = explicit + inferred
+        if not all_compliance:
             return 60.0
         available = {item.lower() for item in product.get("compliance", [])}
-        matches = sum(1 for item in parsed.required_compliance if item.lower() in available)
-        return round((matches / len(parsed.required_compliance)) * 100.0, 1)
+        matches = sum(1 for item in all_compliance if item.lower() in available)
+        return round((matches / len(all_compliance)) * 100.0, 1)
 
     def _market_position_fit(self, product: dict[str, Any]) -> float:
         position_scores = {"leader": 100.0, "strong": 75.0, "challenger": 50.0}

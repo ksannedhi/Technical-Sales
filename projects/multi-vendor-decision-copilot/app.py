@@ -86,11 +86,20 @@ history_store = get_shared_history()
 
 
 def render_constraints(constraints: dict[str, object]) -> None:
-    active = {key: value for key, value in constraints.items() if value}
-    for key, value in active.items():
+    label_map = {
+        "deployment": "Deployment",
+        "region": "Region",
+        "compliance": "Compliance",
+        "integrations": "Integrations",
+        "inferred_compliance": "Compliance — inferred from industry context",
+    }
+    for key, value in constraints.items():
+        if not value:
+            continue
         if isinstance(value, list):
             value = ", ".join(str(item) for item in value)
-        st.write(f"**{key.replace('_', ' ').title()}:** {value}")
+        label = label_map.get(key, key.replace("_", " ").title())
+        st.write(f"**{label}:** {value}")
 
 
 def render_assumptions(items: list[str]) -> None:
