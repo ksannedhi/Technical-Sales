@@ -912,8 +912,9 @@ class DecisionEngine:
 
     def get_examples(self) -> list[str]:
         return [
-            "Compare QRadar SIEM against Splunk Enterprise Security.",
-            "Recommend CNAPP options for a cloud security program.",
+            "Explain what IGA is.",
+            "What does Palo Alto Networks make?",
             "Compare Falcon Insight XDR against Cortex XDR.",
-            "Recommend identity protection tools for privileged access use cases.",
+            "Recommend SIEM for a bank with FedRAMP and on-prem deployment.",
+            "How can I secure my manufacturing plant from OT threats?",
         ]
