@@ -4,15 +4,15 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Commands
 
-**Start the app:**
+**Start the app (Windows):**
 ```bash
-python -m streamlit run app.py  # http://localhost:8501
+start.cmd
 ```
 
-**With PYTHONPATH explicitly set (if imports fail):**
+**Or directly:**
 ```bash
 set PYTHONPATH=src
-python -m streamlit run app.py
+python -m streamlit run app.py  # http://localhost:8501
 ```
 
 **Run tests:**
@@ -28,66 +28,111 @@ pip install -r requirements.txt  # streamlit only
 
 ## Architecture
 
-A **Streamlit-based cybersecurity vendor recommendation copilot** that maps customer problems to tool categories, compares products, and handles honest `insufficient_data` responses when the local dataset can't support a reliable answer. Entirely local — no external AI API.
+A **Streamlit-based cybersecurity vendor recommendation copilot** — fully offline, no external AI API. Maps customer problems to tool categories, explains categories and products, compares vendors, and returns honest `insufficient_data` when the dataset can't support a reliable answer.
 
 ```
-app.py                          Streamlit UI — prompt input, response rendering, session history
+app.py                              Streamlit UI — prompt, rendering, session history
         ↓
-src/mvdc.py                     DecisionEngine — intent classification + response generation
+src/mvdc/engine.py                  DecisionEngine — intent classification + all response builders
         ↓
-data/products.json              Primary product recommendation dataset
-data/vendors.json               Vendor lookup and vendor-level category fallback
-data/vendor_feature_matrix.json Feature summaries for selected categories
-data/scoring_weights.json       Weighted scoring model configuration
-data/hard_exclusions.json       Hard-filtering rules
+data/products.json                  Primary product dataset (70+ products)
+data/vendors.json                   Vendor profiles and category coverage
+data/categories_metadata.json       Plain-English descriptions for all 34 categories
+data/vendor_feature_matrix.json     Per-vendor, per-category feature summaries
+data/scoring_weights.json           Weighted scoring model configuration
+data/hard_exclusions.json           Hard-filtering rules
+data/categories.json                Supported category list
+data/problem_to_tool_mapping.json   Problem-phrase → category mapping
 ```
 
-**Session history** is stored in a `@st.cache_resource` list — shared across browser tabs for the current process and resets when the app restarts.
-
-## Key design decisions
-
-- **No external AI API** — all recommendation and comparison logic is deterministic, rule-based, and data-driven. No OpenAI, no Anthropic. Fully offline.
-- **Streamlit for UI** — chosen for rapid iteration; no separate frontend build step.
-- **`@st.cache_resource` for engine** — `DecisionEngine` is instantiated once and reused across reruns to avoid reloading all JSON data files on every interaction.
-- **Transparent constraint handling** — when data is insufficient, the engine explicitly returns `insufficient_data` rather than hallucinating an answer.
-- **PYTHONPATH=src** — all `src/` imports require this. Streamlit's working directory is the project root, so `src/` must be on the path.
+Session history is stored in a `@st.cache_resource` list — shared across browser tabs for the current process, resets on restart.
 
 ## Supported intents
 
-| Intent | Example |
-|--------|---------|
-| `lookup` | `Tell me about Varonis` / `You know Cortex?` |
-| `comparison` | `Compare QRadar SIEM against Splunk Enterprise Security` |
-| `single_category` | `Recommend CNAPP options` |
-| `vendor_category` | `What about SASE from Palo Alto?` |
-| `insufficient_data` | Explicit fallback when dataset can't support a reliable answer |
+| Intent | Trigger | Example |
+|---|---|---|
+| `category_explain` | explain/what-is + category, no vendor | `Explain IGA`, `What is SIEM?` |
+| `lookup` (vendor) | vendor name, no category signal | `Tell me about Varonis`, `What Fortinet makes?` |
+| `lookup` (product) | product name with what-is trigger | `What is Prisma Cloud?` |
+| `comparison` | compare/vs/against + two named targets | `Compare QRadar SIEM against Splunk` |
+| `single_category` | category or problem signal, no lookup trigger | `Recommend CNAPP options` |
+| `vendor_category` | category exists in vendor data but no products | fallback |
+| `stack` | multiple categories resolved from one query | `Recommend EDR and SIEM tools` |
+| `insufficient_data` | dataset cannot support a reliable answer | explicit fallback |
 
-## Environment variables
+## Intent resolution priority
 
-No `.env` file required — fully local, data-driven.
+1. `comparison` — explicit compare trigger or 2+ named targets
+2. `lookup` — named vendor + no category signal, or vendor capability question
+3. `category_explain` — explain/what-is trigger + known category + no vendor named
+4. `recommendation` / `stack` — category or problem signal
+5. `insufficient_data` — nothing resolved
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PYTHONPATH` | must be `src` | Required for `mvdc` module import |
+## Scoring model
+
+Seven weighted dimensions, each 0–100:
+
+| Dimension | Weight |
+|---|---|
+| Deployment Fit | 25% |
+| Feature Match | 20% |
+| Integration Fit | 15% |
+| Compliance Fit | 15% |
+| Market Position | 15% |
+| Cost | 5% |
+| Operational Complexity | 5% |
+
+Market position values: `leader` = 100, `strong` = 75, `challenger` = 50.
+
+## Key design decisions
+
+- **No external AI API** — all logic is deterministic and data-driven.
+- **`category_explain` mode** — "Explain IGA"-style queries explain the category (from `categories_metadata.json`) then show top products, rather than jumping straight to a vendor table.
+- **Product lookup** — "What is Prisma Cloud?" opens with a product-specific sentence built from category metadata, then lists key capabilities.
+- **Vendor profile** — shows per-product market position, flags categories with vendor coverage but no product records (`category_gaps`).
+- **Category brief in single_category** — an expandable "About {Category}" section appears before the vendor table so users understand what they are evaluating.
+- **Score breakdown** — expander shown when the query includes hard constraints (deployment, compliance, integrations, region).
+- **Data Gaps** — only shown when compliance or integration filtering is active; internal implementation messages are suppressed.
+- **`@st.cache_resource` for engine** — `DecisionEngine` loads all JSON once and is reused across reruns.
+- **PYTHONPATH=src** — required for `mvdc` module import. `start.cmd` sets this automatically.
+
+## Key project files
+
+| File | Role |
+|---|---|
+| `app.py` | Streamlit UI — all rendering functions, CSS injection, session history |
+| `src/mvdc/engine.py` | `DecisionEngine` — parse_query, all intent handlers, scoring |
+| `src/mvdc/__init__.py` | Package export |
+| `data/products.json` | Primary product dataset |
+| `data/vendors.json` | Vendor profiles |
+| `data/categories_metadata.json` | Category descriptions (what it is, problems it solves) |
+| `data/vendor_feature_matrix.json` | Per-vendor feature lists per category |
+| `data/scoring_weights.json` | Scoring weight configuration |
+| `data/hard_exclusions.json` | Hard-filtering rules |
+| `tests/test_engine.py` | Unit tests |
+| `start.cmd` | Windows one-click launcher |
+| `PROJECT_SPEC.md` | Full product and behaviour spec |
+
+## Adding a new category
+
+1. Add the category name to `data/categories.json`
+2. Add aliases to `CATEGORY_ALIASES` in `engine.py`
+3. Add a metadata entry to `data/categories_metadata.json` (full_name, what_it_is, problems_it_solves)
+4. Add product records to `data/products.json`
+5. Add feature entries to `data/vendor_feature_matrix.json`
+6. Add vendor entries to `data/vendors.json` if new vendors are involved
+
+## Adding a new product
+
+1. Add a record to `data/products.json` with: vendor, product, category (list), deployment, compliance, integration_support, pricing_tier, operational_complexity, market_position
+2. Add the vendor to `data/vendors.json` if not already present
+3. Add feature entries to `data/vendor_feature_matrix.json` for the relevant category
 
 ## Ports
 
 | Service | Port |
-|---------|------|
-| Streamlit app | `8501` (Streamlit default) |
-
-## Key project files
-
-- `app.py` — Streamlit UI, session history, prompt handling
-- `src/mvdc.py` — `DecisionEngine`: intent classification, scoring, response generation
-- `data/products.json` — product recommendation dataset
-- `data/vendors.json` — vendor profiles and category mappings
-- `data/vendor_feature_matrix.json` — per-category feature summaries
-- `data/scoring_weights.json` — weighted scoring configuration
-- `data/hard_exclusions.json` — hard-filtering rules
-- `PROJECT_SPEC.md` — full product and behaviour spec
-- `tests/` — unit tests for engine logic
-- `requirements.txt` — `streamlit` only
+|---|---|
+| Streamlit app | 8501 |
 
 ## Non-goals
 
