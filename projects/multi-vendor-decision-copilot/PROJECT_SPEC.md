@@ -269,12 +269,10 @@ Automated tests in `tests/test_engine.py` cover:
 ## 12. Known Gaps and Next Steps
 
 ### Data
-- Compliance, integration, and pricing metadata is incomplete for some products
-- Some minor categories exist only at vendor level with no product records
+- Integration metadata is missing for one product: Stellar (TXOne Networks / OT Security)
+- 25 vendor-category pairs across 15 vendors have no product records (e.g. Cisco SIEM, CrowdStrike Cloud Security, Varonis Data Security, Zscaler DLP, Yubico Passwordless); these fall back to `vendor_category` advisory mode
 
 ### Product
-- Category-explain mode does not yet adapt its description to the user's specific constraint context
-- Vendor lookup does not yet score or rank products — the table is unordered
 - No persistent history across app restarts
 
 ## 13. Key Files

@@ -318,6 +318,14 @@ class DecisionEngine:
             capability_summary = self._vendor_capability_summary(parsed, vendor_name, vendor or {}, products)
             vendor_categories = sorted({cat for prod in products for cat in prod["categories"]} | set((vendor or {}).get("categories", [])))
             category_gaps = [cat for cat in (vendor or {}).get("categories", []) if not any(cat in prod["categories"] for prod in products)]
+            position_order = {"leader": 0, "strong": 1, "challenger": 2}
+            sorted_products = sorted(
+                products,
+                key=lambda p: (
+                    position_order.get(str(p.get("market_position") or "").lower(), 3),
+                    -self._weighted_score(parsed, p, p.get("primary_category")),
+                ),
+            )
             return {
                 "mode": "lookup",
                 "query": parsed.raw_query,
@@ -336,7 +344,7 @@ class DecisionEngine:
                             "deployment_models": product.get("deployment_models", []),
                             "market_position": product.get("market_position"),
                         }
-                        for product in products
+                        for product in sorted_products
                     ],
                     "features": unique_features[:6],
                 },
@@ -401,10 +409,18 @@ class DecisionEngine:
             return self._insufficient(parsed, f"I recognised '{category}' as a known category but do not have a description or product data for it yet.")
         products = [p for p in self.products if category in p["categories"]]
         top_products: list[dict[str, Any]] = []
+        excluded: list[dict[str, Any]] = []
         if products:
             ranked = []
-            empty_parsed = ParsedQuery("", "recommendation", [], [], [], [], [], [], None, None, [], [])
             for product in products:
+                exclusion_reasons = self._exclusion_reasons(parsed, product)
+                if exclusion_reasons:
+                    excluded.append({
+                        "vendor": product["vendor"],
+                        "product_name": product["product_name"],
+                        "reasons": exclusion_reasons,
+                    })
+                    continue
                 ranked.append({
                     "vendor": product["vendor"],
                     "product_name": product["product_name"],
@@ -412,7 +428,7 @@ class DecisionEngine:
                     "deployment_models": product["deployment_models"],
                     "market_position": product.get("market_position"),
                     "features": self.feature_lookup.get((product["vendor"].lower(), category), []),
-                    "score": self._weighted_score(empty_parsed, product, category),
+                    "score": self._weighted_score(parsed, product, category),
                     "score_reason": self._comparison_reason(product),
                 })
             ranked.sort(key=lambda item: item["score"], reverse=True)
@@ -427,8 +443,8 @@ class DecisionEngine:
             "problems_it_solves": meta.get("problems_it_solves", []),
             "top_products": top_products,
             "constraints": self._constraints_dict(parsed),
-            "data_gaps": [],
-            "excluded_products": [],
+            "data_gaps": self._data_gaps(parsed),
+            "excluded_products": excluded,
             "confidence": "high" if meta else "low",
         }
 
