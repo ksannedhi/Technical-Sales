@@ -1,24 +1,27 @@
-# Multi-Vendor Decision Copilot Spec
+# Multi-Vendor Decision Copilot — Product Spec
 
 ## 1. Purpose
 
 Multi-Vendor Decision Copilot is a customer-facing cybersecurity recommendation application that helps users:
-- understand a cybersecurity category or vendor
-- compare named products or vendors
-- get vendor or product recommendations for a security problem or solution category
+
+- understand what a cybersecurity category or specific product is, in plain English
+- compare named products or vendors side by side with transparent scoring
+- get ranked vendor or product recommendations for a security problem or category
 - see transparent limits when the dataset cannot support a reliable answer
 
-The product is designed to prefer honesty over false precision.
+The product is designed to prefer honesty over false precision. It is fully offline and deterministic — no external AI API.
 
 ## 2. Product Goals
 
 The system must:
 - translate natural-language cybersecurity questions into a supported intent
+- explain cybersecurity categories and products from the dataset before recommending vendors
 - provide transparent recommendations based on local structured data
+- score products across seven weighted dimensions (deployment, features, integrations, compliance, market position, cost, complexity)
+- show contextual category briefs before vendor tables so users understand what they are evaluating
 - support product-level comparison when explicit product records exist
 - support vendor-level recommendations when category coverage exists but product coverage does not
-- support vendor and product lookup queries
-- say `insufficient_data` when the dataset does not support a reliable answer
+- return `insufficient_data` when the dataset cannot support a reliable answer
 
 The system must not:
 - fabricate product records, vendor capabilities, or comparison outcomes
@@ -27,70 +30,99 @@ The system must not:
 
 ## 3. Primary Users
 
-Primary users:
-- customer-facing buyers evaluating cybersecurity solutions
-- solution architects and presales teams guiding customers
-- security leaders exploring categories, vendors, and product fit
+- Customer-facing buyers evaluating cybersecurity solutions
+- Solution architects and presales teams guiding customers
+- Security leaders exploring categories, vendors, and product fit
 
 ## 4. Core Query Intents
 
-The application currently supports five intents.
+The application supports eight intents.
 
-### 4.1 Lookup
-Used when the user asks about a specific vendor or product.
+### 4.1 Category Explain
+Used when the user asks what a category is, without naming a vendor.
+
+Examples:
+- `Explain IGA`
+- `What is SIEM?`
+- `Tell me about XDR`
+- `Describe PAM`
+
+Expected behavior:
+- identify the category from the query
+- display the category full name, plain-English description, and problems it solves
+- show the top 3 products in an expandable table
+
+### 4.2 Lookup — Vendor
+Used when the user asks about a specific vendor.
 
 Examples:
 - `Tell me about Varonis`
-- `You know Cortex?`
-- `What does Varonis do?`
-- `What is Prisma Cloud?`
+- `What Fortinet makes?`
+- `You know CrowdStrike?`
 
 Expected behavior:
-- return vendor or product profile
-- include categories, known products, deployment models, regions, and known features if available
-- when a vendor-specific capability question names a supported category, include a category support summary based on product and vendor metadata
+- show vendor name, covered categories, regions, and deployment models as headline metadata
+- generate a plain-English intro sentence listing the vendor's categories
+- show all known products with market position and deployment
+- flag categories in vendor metadata that have no product records
 
-### 4.2 Comparison
-Used when the user compares named products or vendors.
+### 4.3 Lookup — Product
+Used when the user asks about a specific product.
+
+Examples:
+- `What is Prisma Cloud?`
+- `Tell me about FortiGate NGFW`
+
+Expected behavior:
+- show the product name as headline with vendor, market position, and deployment as caption
+- open with a product-specific sentence: `{Product} is a {CATEGORY} solution that {description}`
+- list key capabilities as bullet points
+
+### 4.4 Comparison
+Used when the user compares named products or vendors explicitly.
 
 Examples:
 - `Compare QRadar SIEM against Splunk Enterprise Security`
 - `Compare Falcon Insight XDR against Cortex XDR`
 
 Expected behavior:
-- compare only named products or vendors that exist in the dataset
-- return `insufficient_data` if one or more named items are missing
-- do not silently switch to a generic recommendation
+- compare only named items that exist in the dataset
+- resolve shared category across compared products for consistent scoring
+- return `insufficient_data` if any named item is missing or excluded by hard constraints
+- never silently switch to a generic recommendation
 
-### 4.3 Single-Category Recommendation
-Used when the user asks for recommendations in a supported category with product records.
+### 4.5 Single-Category Recommendation
+Used when the user asks for recommendations in a supported category.
 
 Examples:
-- `Recommend CNAPP options for cloud security`
-- `What about data security?`
-- `Recommend OT security solutions`
+- `Recommend CNAPP options for a cloud security program`
+- `How can I secure my manufacturing plant from OT threats?`
+- `Any vendor recommendations for a firewall?`
 
 Expected behavior:
 - map the query to one primary supported category
-- rank matching product records
-- show top recommendation and ranked products
+- display an expanded category brief (plain-English description) before the vendor table
+- rank matching product records by weighted score
+- show top recommendation and up to five ranked products with position, score, deployment, and features
+- show score breakdown expander when hard constraints are active
 
-### 4.4 Vendor-Category Recommendation
+### 4.6 Vendor-Category Recommendation
 Used when a category exists in vendor metadata but has no product records.
-
-Examples:
-- `What about SASE?`
 
 Expected behavior:
 - return vendor-level advisory recommendations only
-- clearly state that product-level records are not yet available
+- confidence is capped at `low-to-medium`
 
-### 4.5 Insufficient Data
+### 4.7 Stack
+Used when the query spans more than one solution category.
+
+Expected behavior:
+- evaluate each category independently
+- return a solution stack with one recommended product per category
+- flag categories with insufficient data inline
+
+### 4.8 Insufficient Data
 Used when the query cannot be supported reliably.
-
-Examples:
-- `Compare FortiSIEM against QRadar SIEM` when `FortiSIEM` is missing
-- unsupported or unmapped categories with no product or vendor coverage
 
 Expected behavior:
 - explain why the answer is unavailable
@@ -99,207 +131,158 @@ Expected behavior:
 
 ## 5. Canonical Response Modes
 
-Every engine response must return one of these modes:
-- `lookup`
-- `comparison`
-- `single_category`
-- `vendor_category`
-- `insufficient_data`
+Every engine response returns one of these modes:
+
+| Mode | Description |
+|---|---|
+| `category_explain` | Category description with top products |
+| `lookup` | Vendor or product profile |
+| `comparison` | Side-by-side named product comparison |
+| `single_category` | Ranked products for one category |
+| `vendor_category` | Vendor-level advisory when no product records exist |
+| `stack` | Multi-category solution stack |
+| `insufficient_data` | Cannot answer reliably |
 
 ### 5.1 Shared Fields
-All responses should include when applicable:
-- `mode`
-- `query`
-- `confidence`
-- `assumptions`
-- `data_gaps`
+All responses include when applicable: `mode`, `query`, `confidence`, `data_gaps`, `constraints`, `excluded_products`.
 
-### 5.2 Lookup Response
-Fields:
-- `mode`
-- `query`
-- `lookup_type` as `vendor` or `product`
-- `vendor`
-- `vendor_profile`
-- `capability_summary`
-- `assumptions`
-- `data_gaps`
-- `confidence`
+### 5.2 Category Explain Response
+Fields: `mode`, `query`, `solution_categories`, `category`, `full_name`, `what_it_is`, `problems_it_solves`, `top_products`, `confidence`
 
-### 5.3 Comparison Response
-Fields:
-- `mode`
-- `query`
-- `interpreted_problem`
-- `solution_categories`
-- `constraints`
-- `comparison_results`
-- `missing_vendors`
-- `top_recommendation`
-- `excluded_products`
-- `assumptions`
-- `data_gaps`
-- `confidence`
+### 5.3 Lookup Response
+Fields: `mode`, `query`, `lookup_type` (`vendor` or `product`), `vendor`, `vendor_profile`, `capability_summary`, `confidence`
 
-### 5.4 Single-Category Response
-Fields:
-- `mode`
-- `query`
-- `interpreted_problem`
-- `solution_categories`
-- `constraints`
-- `top_recommendation`
-- `ranked_products`
-- `excluded_products`
-- `assumptions`
-- `data_gaps`
-- `confidence`
+Product lookup adds: `product_name`, `market_position`, `primary_category`, `category_full_name`, `category_what_it_is`
 
-### 5.5 Vendor-Category Response
-Fields:
-- `mode`
-- `query`
-- `interpreted_problem`
-- `solution_categories`
-- `constraints`
-- `top_recommendation`
-- `ranked_vendors`
-- `excluded_products`
-- `assumptions`
-- `data_gaps`
-- `confidence`
+Vendor profile includes: `categories`, `category_gaps`, `regions`, `deployment_models`, `products` (with `market_position`), `features`
 
-### 5.6 Insufficient-Data Response
-Fields:
-- `mode`
-- `query`
-- `interpreted_problem`
-- `solution_categories`
-- `constraints`
-- `reason`
-- `excluded_products`
-- `supported_categories`
-- `suggested_queries`
-- `assumptions`
-- `data_gaps`
-- `confidence`
+### 5.4 Comparison Response
+Fields: `mode`, `query`, `solution_categories`, `constraints`, `comparison_results`, `missing_vendors`, `top_recommendation`, `excluded_products`, `data_gaps`, `confidence`
+
+### 5.5 Single-Category Response
+Fields: `mode`, `query`, `solution_categories`, `category_full_name`, `category_brief`, `constraints`, `top_recommendation`, `ranked_products`, `excluded_products`, `data_gaps`, `confidence`
+
+### 5.6 Vendor-Category Response
+Fields: `mode`, `query`, `solution_categories`, `constraints`, `top_recommendation`, `ranked_vendors`, `data_gaps`, `confidence`
+
+### 5.7 Stack Response
+Fields: `mode`, `query`, `solution_categories`, `constraints`, `solution_stack`, `excluded_products`, `data_gaps`, `confidence`
+
+### 5.8 Insufficient-Data Response
+Fields: `mode`, `query`, `reason`, `solution_categories`, `supported_categories`, `suggested_queries`, `excluded_products`, `confidence`
 
 ## 6. Intent Resolution Rules
 
-Intent resolution priority:
-1. comparison
-2. lookup
-3. recommendation
-4. insufficient data
+Priority order:
+1. `comparison` — explicit comparison trigger words or two or more named targets
+2. `lookup` — named vendor with no category signal, or vendor capability question
+3. `category_explain` — explain/describe/what-is trigger + known category + no vendor named
+4. `recommendation` / `stack` — category or problem signal without lookup trigger
+5. `insufficient_data` — no category, vendor, or product can be resolved
 
-Rules:
-- if the query explicitly compares two or more named items, use `comparison`
-- if the query asks about a named vendor or product and no category/problem intent dominates, use `lookup`
-- if the query maps to a supported category or problem, prefer recommendation over lookup
-- if the dataset lacks the named items required for a comparison, return `insufficient_data`
+## 7. Scoring Model
 
-## 7. Recommendation Rules
+Seven weighted dimensions, each scored 0–100:
 
-### 7.1 Product-Level Recommendation
-Use when product records exist for the resolved category.
+| Dimension | Weight | Scoring basis |
+|---|---|---|
+| Deployment Fit | 25% | Exact match=100, partial=85 (Hybrid for On-Prem request), mismatch=25, unconstrained=60 |
+| Feature Match | 20% | 50 base + 10 per feature in matrix, capped at 100; 45 if no matrix entry; 40 if no category |
+| Integration Fit | 15% | Fraction of required integrations found on the product |
+| Compliance Fit | 15% | Fraction of required compliance tags found on the product |
+| Market Position | 15% | Leader=100, Strong=75, Challenger=50, unknown=60 |
+| Cost | 5% | Low=90, Medium=70, High=45, unknown=50 |
+| Operational Complexity | 5% | Low=90, Medium=70, High=45, unknown=50 |
 
-### 7.2 Vendor-Level Recommendation
-Use when:
-- the category is supported by vendor metadata
-- but product records are not available for that category
-
-### 7.3 Safety Rules
-The system must:
-- never invent missing products
-- never compare a missing named product to an available one as if the comparison were complete
-- never present a generic fallback as a valid answer to a named-product query
+Confidence levels:
+- `high`: top product is Leader, two or more ranked products, no hard constraints
+- `medium`: top product is Leader or Strong, two or more ranked products
+- `low-to-medium`: otherwise
 
 ## 8. Data Sources
 
-Current local files in `data/`:
-- `vendors.json`
-- `products.json`
-- `categories.json`
-- `problem_to_tool_mapping.json`
-- `vendor_feature_matrix.json`
-- `scoring_weights.json`
-- `hard_exclusions.json`
+Local files in `data/`:
 
-### 8.1 Data Reality
-Current strengths:
-- named vendor coverage
-- named product coverage for some major categories
-- some category-level vendor coverage beyond product records
+| File | Purpose |
+|---|---|
+| `products.json` | 70+ product records with categories, deployment, compliance, integrations, pricing, complexity, market position |
+| `vendors.json` | Vendor category coverage and regional availability |
+| `categories.json` | Supported category list |
+| `categories_metadata.json` | Plain-English descriptions for 34 categories including full name, what it is, and problems it solves |
+| `vendor_feature_matrix.json` | Per-vendor, per-category feature summaries |
+| `scoring_weights.json` | Weighted scoring model configuration |
+| `hard_exclusions.json` | Hard-filtering rules applied before scoring |
+| `problem_to_tool_mapping.json` | Problem-phrase to category mapping |
 
-Current weaknesses:
-- sparse feature coverage
-- limited product attributes beyond name, category, and deployment
-- incomplete category coverage
-- inconsistent depth across categories
+## 9. Hard Exclusion Rules
 
-## 9. Known Functional Gaps
+Rules in `hard_exclusions.json` that, when active, eliminate a product before scoring:
 
-The following gaps remain:
-- many categories still lack product-level depth
-- some categories exist only at vendor level
-- comparison quality is limited where feature matrices are sparse
-- compliance, integrations, pricing, and operations metadata are still incomplete in the final dataset
-- the frontend is a prototype and should be treated as such
+| Rule | Condition |
+|---|---|
+| `exclude_if_required_onprem_and_product_saas_only` | On-Prem required, product is SaaS-only |
+| `exclude_if_required_compliance_missing` | Product lacks one or more required compliance tags |
+| `exclude_if_product_not_available_in_region` | Vendor not tagged for required region |
+| `exclude_if_required_integration_missing` | Product lacks one or more required integrations |
 
 ## 10. UI Requirements
 
-The UI should include:
-- application title and short descriptor
-- prompt area
-- analyze button above prompt suggestions
-- example prompts below the analyze button
-- one-click sample prompts that trigger analysis immediately
-- adaptive rendering based on response mode
-- session history for the current running app session
-- transparency section for assumptions, gaps, exclusions, and constraints when available
+### 10.1 Page Structure
+- Custom HTML header with bottom border separating title from input area
+- Text area with border, shadow, and focus ring
+- Analyze button (primary, full width)
+- Example prompt buttons below Analyze; active button shown in primary color
+- Results section rendered below a divider
+- Session history with expandable items that re-render full results
 
-Rendering by mode:
-- `lookup`: vendor/product profile
-- `comparison`: side-by-side comparison table
-- `single_category`: ranked products and best fit
-- `vendor_category`: ranked vendor-level recommendations with explicit caveat
-- `insufficient_data`: reason, supported categories, and suggested prompts
+### 10.2 Rendering by Mode
+
+| Mode | Rendering |
+|---|---|
+| `category_explain` | Category full name as heading → plain-English description → problems list → top products table (expandable) |
+| `lookup` (vendor) | Vendor name as heading → categories intro sentence → products table with Position column → category gaps footnote |
+| `lookup` (product) | Product name as heading → vendor/position/deployment caption → `Product is a CATEGORY solution that...` sentence → key capabilities list |
+| `single_category` | Category brief expander (open by default) → Best Fit headline → Weighted Comparison table → Score Breakdown when constraints active |
+| `comparison` | Vendor Comparison table → top match or tied callout → missing vendor warning |
+| `vendor_category` | Vendor-Level Recommendations table |
+| `stack` | Per-category product recommendation with inline insufficient-data warnings |
+| `insufficient_data` | Reason → detected categories → supported categories → suggested queries |
+
+### 10.3 Transparency Section
+Shown after every result when applicable:
+- Detected Constraints (deployment, region, compliance, integrations)
+- Data Gaps (only when compliance or integration filtering is active)
+- Excluded Products expander
 
 ## 11. Testing Requirements
 
-The project should include automated tests for intent resolution, lookup behavior, named comparison safety, recommendation routing, and insufficient-data fallbacks.
+Automated tests in `tests/test_engine.py` cover:
+- intent resolution for all modes
+- lookup behavior for vendors and products
+- named comparison safety (missing products return insufficient_data)
+- recommendation routing by category
+- hard exclusion filtering
+- confidence level assignment
+- score breakdown correctness
+- region-constraint routing
 
-## 12. Recommended Next Steps
+## 12. Known Gaps and Next Steps
 
-### 12.1 Data
-Add product records for:
-- SASE products
-- IGA products
-- more SIEM, XDR, CNAPP, PAM, WAF, DSPM, and OT Security products
+### Data
+- Compliance, integration, and pricing metadata is incomplete for some products
+- Some minor categories exist only at vendor level with no product records
 
-Add richer fields for:
-- compliance
-- integrations
-- strengths
-- weaknesses
-- ideal customer
-- deployment notes
-- evidence sources
+### Product
+- Category-explain mode does not yet adapt its description to the user's specific constraint context
+- Vendor lookup does not yet score or rank products — the table is unordered
+- No persistent history across app restarts
 
-### 12.2 Product
-Move toward:
-- normalized canonical schema across all datasets
-- stronger explanation generation
-- category-specific comparison criteria
-- production-ready frontend and backend architecture
+## 13. Key Files
 
-## 13. Current Implementation Location
-
-Project root:
-- `.`
-
-Key files:
-- `app.py`
-- `src/mvdc/engine.py`
-- `tests/test_engine.py`
-- `data/*.json`
+| File | Role |
+|---|---|
+| `app.py` | Streamlit UI — prompt handling, result rendering, session history |
+| `src/mvdc/engine.py` | `DecisionEngine` — intent parsing, scoring, all response builders |
+| `data/*.json` | All structured data |
+| `tests/test_engine.py` | Unit tests |
+| `start.cmd` | Windows one-click launcher |

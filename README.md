@@ -40,10 +40,10 @@ Docs: `projects/security-tools-mapping-navigator/README.md`
 
 ### Multi-Vendor Decision Copilot
 - Path: `projects/multi-vendor-decision-copilot`
-- Purpose: conversational cybersecurity copilot for vendor lookup, product comparison, category recommendations, and transparent constraint handling.
+- Purpose: conversational cybersecurity copilot that explains categories and products in plain English, compares named vendors with weighted scoring, and gives ranked recommendations — fully offline, no AI API.
 - Quick launch (Windows):
 ```
-cd projects/multi-vendor-decision-copilot && python -m streamlit run app.py
+cd projects/multi-vendor-decision-copilot && start.cmd
 ```
 Docs: `projects/multi-vendor-decision-copilot/README.md`
 

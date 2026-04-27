@@ -1,15 +1,19 @@
 # Multi-Vendor Decision Copilot
 
-Customer-facing cybersecurity recommendation app with transparent filtering, weighted scoring, and explicit data-gap handling.
+Customer-facing cybersecurity recommendation app with transparent filtering, weighted scoring, and category-aware explanations. Fully offline — no external AI API.
 
 ## What It Does
 
+- Explains what a cybersecurity category is before recommending vendors (`Explain IGA`, `What is SASE?`)
+- Explains specific products in plain English (`What is Prisma Cloud?`)
 - Maps customer problems to supported cybersecurity tool categories
-- Supports vendor lookup, product lookup, named comparison, product recommendations, and vendor-level category recommendations
-- Recognizes supported categories even when only vendor metadata exists, such as `SASE` and `Firewall`
-- Handles vendor capability questions such as `Can Varonis provide DSPM?` with a category-aware lookup summary
+- Supports vendor lookup, product lookup, named comparison, category recommendations, and solution stacks
+- Scores products across seven weighted dimensions: deployment fit, feature match, integration fit, compliance fit, market position, cost, and operational complexity
+- Shows a contextual brief about the category before vendor recommendations
+- Displays vendor profiles with per-product market position and flags categories with no product records
+- Recognizes supported categories even when only vendor metadata exists
+- Handles vendor capability questions such as `Can Varonis provide DSPM?` with a category-aware summary
 - Falls back to honest `insufficient_data` responses when the dataset cannot support a reliable answer
-- Uses transparent assumptions, confidence labels, and data-gap messaging
 
 ## Documentation
 
@@ -17,36 +21,63 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 
 ## Supported Intents
 
-- `lookup`: vendor and product profile questions such as `Tell me about Varonis` or `You know Cortex?`
-- `comparison`: named product comparisons such as `Compare QRadar SIEM against Splunk Enterprise Security`
-- `single_category`: product recommendations in supported categories such as `Recommend CNAPP options`
-- `vendor_category`: vendor-level category guidance when vendors exist but product records do not, such as `What about SASE?`
-- `insufficient_data`: explicit fallback when the current dataset is not enough to answer honestly
+| Intent | Example |
+|---|---|
+| `category_explain` | `Explain IGA`, `What is SIEM?`, `Tell me about XDR` |
+| `lookup` — vendor | `Tell me about Varonis`, `What Fortinet makes?` |
+| `lookup` — product | `What is Prisma Cloud?` |
+| `comparison` | `Compare QRadar SIEM against Splunk Enterprise Security` |
+| `single_category` | `Recommend CNAPP options for a cloud security program` |
+| `vendor_category` | Vendor-level advisory when product records are absent |
+| `stack` | Multi-category queries that span more than one solution area |
+| `insufficient_data` | Explicit fallback when the dataset cannot answer reliably |
 
-## Dataset Assumptions
+## Dataset
 
-- The app reads the local JSON files in `data/`
-- `products.json` is the main product recommendation dataset
-- `vendors.json` supports vendor lookup and vendor-level category fallback
-- `vendor_feature_matrix.json` enriches selected categories with feature summaries
-- `scoring_weights.json` controls the weighted scoring model
-- `hard_exclusions.json` controls which hard-filtering rules are active
-- Product and category coverage are still uneven, so outputs should be treated as advisory
+| File | Purpose |
+|---|---|
+| `data/products.json` | Primary product recommendation dataset (70+ products) |
+| `data/vendors.json` | Vendor profiles and category mappings |
+| `data/categories.json` | Supported category list |
+| `data/categories_metadata.json` | Plain-English descriptions for all 34 categories |
+| `data/vendor_feature_matrix.json` | Per-vendor, per-category feature summaries |
+| `data/scoring_weights.json` | Weighted scoring model configuration |
+| `data/hard_exclusions.json` | Hard-filtering rules (deployment, compliance, region, integration) |
+| `data/problem_to_tool_mapping.json` | Problem-phrase to category mapping |
+
+## Scoring Model
+
+Seven weighted dimensions scored 0–100, producing a total score out of 100:
+
+| Dimension | Weight |
+|---|---|
+| Deployment Fit | 25% |
+| Feature Match | 20% |
+| Integration Fit | 15% |
+| Compliance Fit | 15% |
+| Market Position | 15% |
+| Cost | 5% |
+| Operational Complexity | 5% |
 
 ## UI Notes
 
-- Clicking a sample prompt runs analysis immediately without requiring a second click on `Analyze`
-- Session history is shared across tabs for the current running app process and clears when the app restarts
+- Clicking a sample prompt runs analysis immediately without a second click on `Analyze`
+- Active example button is highlighted in the primary color
+- Session history is shared across tabs for the current process and clears when the app restarts
+- Expanding a session history entry re-renders the full result, not a JSON dump
+- Data Gaps section only appears when compliance or integration filtering is active
 
 ## Run
 
-```powershell
+```bash
 python -m streamlit run app.py
 ```
 
-## Verify
+Or use `start.cmd` on Windows.
 
-```powershell
-$env:PYTHONPATH="src"
+## Test
+
+```bash
+set PYTHONPATH=src
 python -m unittest discover -s tests
 ```
