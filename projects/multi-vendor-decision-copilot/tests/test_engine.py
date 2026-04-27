@@ -165,7 +165,7 @@ class DecisionEngineTests(unittest.TestCase):
             self.assertEqual(result["mode"], "insufficient_data")
             self.assertEqual(result["solution_categories"], ["SIEM"])
             self.assertGreaterEqual(len(result["excluded_products"]), 1)
-            self.assertIn("hard constraints", result["reason"])
+            self.assertEqual(result.get("reason_code"), "constraint_excluded")
         finally:
             shutil.rmtree(data_dir, ignore_errors=True)
 

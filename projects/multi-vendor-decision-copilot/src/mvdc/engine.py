@@ -190,7 +190,7 @@ class DecisionEngine:
         if parsed.intent == "comparison" and parsed.compare_targets and matched_products:
             return self._compare_products(parsed, matched_products)
         if parsed.intent == "comparison" and parsed.compare_targets and len(parsed.compare_targets) >= 2 and not matched_products:
-            return self._insufficient(parsed, self._missing_comparison_reason(parsed, parsed.compare_targets))
+            return self._insufficient(parsed, self._missing_comparison_reason(parsed, parsed.compare_targets), reason_code="missing_products")
         categories = self._resolve_categories(parsed)
         if not categories:
             if parsed.required_region and not (parsed.vendors or parsed.lookup_products):
@@ -565,9 +565,9 @@ class DecisionEngine:
                 "score_reason": self._comparison_reason(product),
             })
         if not rows:
-            return self._insufficient(parsed, self._missing_comparison_reason(parsed, parsed.compare_targets), excluded_products=excluded)
+            return self._insufficient(parsed, self._missing_comparison_reason(parsed, parsed.compare_targets), excluded_products=excluded, reason_code="missing_products")
         if missing:
-            return self._insufficient(parsed, self._missing_comparison_reason(parsed, missing), excluded_products=excluded)
+            return self._insufficient(parsed, self._missing_comparison_reason(parsed, missing), excluded_products=excluded, reason_code="missing_products")
         rows.sort(key=lambda item: item["score"], reverse=True)
         return {
             "mode": "comparison",
@@ -830,7 +830,7 @@ class DecisionEngine:
             })
         ranked.sort(key=lambda item: item["score"], reverse=True)
         if not ranked:
-            return self._insufficient(parsed, f"I found the category {category}, but there are no comparable products in the current dataset that satisfy the hard constraints in your request.", [category], excluded_products=excluded)
+            return self._insufficient(parsed, f"I found the category {category}, but no products in the current dataset satisfy the active constraints.", [category], excluded_products=excluded, reason_code="constraint_excluded")
         cat_meta = self.category_metadata.get(category, {})
         return {
             "mode": "single_category",
@@ -943,7 +943,7 @@ class DecisionEngine:
                 cleaned.append(item)
         return cleaned[:4]
 
-    def _insufficient(self, parsed: ParsedQuery, reason: str, categories: list[str] | None = None, excluded_products: list[dict[str, Any]] | None = None, suggested_queries: list[str] | None = None) -> dict[str, Any]:
+    def _insufficient(self, parsed: ParsedQuery, reason: str, categories: list[str] | None = None, excluded_products: list[dict[str, Any]] | None = None, suggested_queries: list[str] | None = None, reason_code: str = "unknown_category") -> dict[str, Any]:
         return {
             "mode": "insufficient_data",
             "query": parsed.raw_query,
@@ -951,6 +951,7 @@ class DecisionEngine:
             "solution_categories": categories or [],
             "constraints": self._constraints_dict(parsed),
             "reason": reason,
+            "reason_code": reason_code,
             "excluded_products": excluded_products or [],
             "supported_categories": self.supported_categories,
             "suggested_queries": suggested_queries or self.get_examples(),

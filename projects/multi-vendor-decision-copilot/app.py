@@ -109,12 +109,23 @@ def render_assumptions(items: list[str]) -> None:
 
 def render_insufficient(result: dict[str, object]) -> None:
     st.warning(result["reason"])
-    if result["solution_categories"]:
-        st.write(f"Detected categories: {', '.join(result['solution_categories'])}")
-    st.write(f"**Currently supported categories:** {', '.join(result['supported_categories'])}")
-    st.write("**Try one of these instead:**")
-    for sample in result["suggested_queries"][:3]:
-        st.write(f"- {sample}")
+    reason_code = result.get("reason_code", "unknown_category")
+    if reason_code == "constraint_excluded":
+        cats = result.get("solution_categories", [])
+        if cats:
+            st.write(f"**Category:** {', '.join(cats)} is supported — but all products were eliminated by the active constraints.")
+        st.write("**Suggestions:** relax or remove one of the constraints shown below and try again.")
+    elif reason_code == "missing_products":
+        cats = result.get("solution_categories", [])
+        if cats:
+            st.write(f"Detected categories: {', '.join(cats)}")
+    else:
+        if result["solution_categories"]:
+            st.write(f"Detected categories: {', '.join(result['solution_categories'])}")
+        st.write(f"**Currently supported categories:** {', '.join(result['supported_categories'])}")
+        st.write("**Try one of these instead:**")
+        for sample in result["suggested_queries"][:3]:
+            st.write(f"- {sample}")
 
 
 def _position_label(product: dict[str, object]) -> str:
