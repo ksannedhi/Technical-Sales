@@ -159,15 +159,29 @@ Posture options per domain: `not-implemented`, `partial`, `full`, `not-assessed`
 
 ### 5.6 Roadmap
 
-The harmonisation results and posture map are sent to Claude to generate a prioritised roadmap. Prioritisation logic:
+The harmonisation results and posture map are sent to Claude to generate a prioritised roadmap.
+
+**Gap type classification** — each domain gap is classified before action language is written:
+
+| Gap type | Condition | Action language |
+|---|---|---|
+| Implementation gap | posture = not-implemented or not-assessed | "Implement X", "Deploy Y", "Establish Z" |
+| Partial gap | posture = partial | "Extend X to cover Y", "Enhance A to include B" |
+| Compliance alignment gap | posture = full + coverage partial/not-addressed | "Map existing X to [framework]", "Evidence compliance by formalising Z" |
+
+**Prioritisation logic** (framework weight × posture):
 
 | Condition | Priority |
 |---|---|
-| Mandatory framework + not-implemented | Immediate |
-| Mandatory framework + partial | Short-term |
-| Contractual framework + not-implemented | Short-term |
-| Contractual framework + partial | Medium-term |
-| Voluntary framework (any posture) | Planned |
+| Mandatory + not-implemented or not-assessed | Immediate |
+| Mandatory + partial | Short-term |
+| Mandatory + full (compliance alignment gap) | Short-term |
+| Contractual + not-implemented or not-assessed | Short-term |
+| Contractual + partial | Medium-term |
+| Contractual + full (compliance alignment gap) | Medium-term |
+| Voluntary (any posture) | Planned |
+
+Full-posture domains never count toward `criticalGaps`. Executive summary language switches from "critical gaps / implement" to "compliance alignment gaps / map existing controls" when all posture ratings are full.
 
 Each roadmap item includes: rank, priority, weighted score, mandatory framework gaps, recommended actions (3–5), estimated effort, and quick wins (1–2 things achievable in under 2 weeks).
 
@@ -242,13 +256,21 @@ A custom `runWithConcurrency(items, 2, fn)` function limits simultaneous Claude 
 |---|---|
 | Intake / framework recommendation | 2500 |
 | Domain harmonisation (per domain) | 2000 |
-| Roadmap | 6000 |
+| Roadmap | 8192 |
 | Custom framework extraction | 3000 |
 | Change tracker | 4000 |
 
 ### 7.4 Response Parsing
 
-All Claude calls use a hardened `parseClaudeJSON()` function that attempts four extraction strategies in order: `<r>` tags, `<result>` tags, fenced JSON code block, bare JSON from first `{`. This prevents failures when the model omits the opening tag on long responses.
+All Claude calls use a hardened `parseClaudeJSON()` function that attempts five extraction strategies in order:
+
+1. `<r>…</r>` tags (primary format)
+2. `<result>…</result>` tags
+3. Fenced JSON code block (` ```json … ``` `)
+4. Bare JSON starting from first `{` (complete response without tags)
+5. **Truncation recovery**: if a `<r>` tag is found but no closing tag (response cut mid-string), extracts all complete `roadmapItems` up to the last valid `}` and returns a partial result with a user-visible warning rather than throwing
+
+Strategy 5 guards against future token-limit regressions without losing the user's partially-generated roadmap.
 
 ## 8. Custom Framework Ingestion
 
@@ -373,7 +395,7 @@ The Anthropic API enforces a tokens-per-minute limit on standard tiers. The conc
 
 ### Roadmap Token Budget
 
-The roadmap prompt covers 24 domains × N frameworks worth of coverage data. The prompt uses a compact one-line-per-domain format and max_tokens is set to 6000 to avoid truncation. If additional frameworks are added in future, this budget may need revisiting.
+The roadmap prompt covers 24 domains × N frameworks of coverage data in compact one-line-per-domain format. Each roadmap item averages ~300 output tokens; a full 24-item roadmap with executive summary requires ~7,400 tokens. `max_tokens` is set to **8192** (the model maximum for `claude-haiku-4-5`). The previous value of 6000 caused truncation mid-response, stranding the closing `</r>` tag outside the token window and failing every parse fallback. If new frameworks or significantly longer action descriptions increase output size, consider splitting the roadmap into two calls (immediate/short-term in call 1, medium-term/planned in call 2).
 
 ### Custom Framework Quality
 
@@ -402,7 +424,11 @@ The project currently includes:
 - parallel domain harmonisation via SSE stream with concurrency limiter (max 2) and 429 retry backoff
 - in-memory harmonisation cache with per-domain invalidation on framework selection change
 - posture assessment gate requiring all 24 domains to be rated before roadmap generation
-- weighted roadmap generation with mandatory/contractual/voluntary priority logic
+- posture selections persisted to parent state in real-time via `onPostureChange` callback, surviving Back navigation and component unmount/remount
+- weighted roadmap generation with mandatory/contractual/voluntary × posture priority matrix
+- gap type classification in roadmap: IMPLEMENTATION GAP / PARTIAL GAP / COMPLIANCE ALIGNMENT GAP — action language and priority differ per type
+- full-posture executive summary uses "compliance alignment gaps / map existing controls" language, never "critical gaps / implement"
+- `criticalGaps` counter excludes full-posture domains
 - Excel export via ExcelJS
 - PDF export via Puppeteer with HTML escaping and Buffer compatibility
 - custom framework ingestion via PDF upload with extraction preview
@@ -411,7 +437,9 @@ The project currently includes:
 - PDPL-KSA (Saudi PDPL, Royal Decree M/19/2021) as the 13th built-in framework
 - KUWAIT-NBCC (NCSC Decision No. 2 of 2026) as the 14th built-in framework
 - Information Exchange & Gateway Security as the 24th control domain
-- hardened Claude JSON parser with 4-fallback extraction strategy
+- hardened Claude JSON parser with 5-fallback extraction strategy including truncation recovery
+- roadmap `max_tokens` raised to 8192 (model max) — fixes truncation on 24-domain runs
+- progress bar timer updated to "30–90 seconds" reflecting concurrency-2 design
 - Windows single-click launcher with automatic Chromium download
 
 ## 19. Future Enhancements
