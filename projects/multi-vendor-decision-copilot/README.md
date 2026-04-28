@@ -13,6 +13,7 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 - Displays vendor profiles with per-product market position and flags categories with no product records
 - Recognizes supported categories even when only vendor metadata exists
 - Handles vendor capability questions such as `Can Varonis provide DSPM?` with a category-aware summary
+- Covers GRC platforms, Data Privacy management, and Human Risk Management alongside core security categories
 - Infers compliance requirements from industry context (bank → PCI DSS, hospital → HIPAA) and surfaces them transparently without hard-excluding on inference
 - Interprets data residency and sovereignty language as an on-prem deployment constraint, correctly excluding SaaS-only products
 - Falls back to honest `insufficient_data` responses when the dataset cannot support a reliable answer, with distinct messaging for constraint failures vs unknown categories
@@ -38,10 +39,10 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 
 | File | Purpose |
 |---|---|
-| `data/products.json` | Primary product recommendation dataset (70+ products) |
+| `data/products.json` | Primary product recommendation dataset (85+ products) |
 | `data/vendors.json` | Vendor profiles and category mappings |
 | `data/categories.json` | Supported category list |
-| `data/categories_metadata.json` | Plain-English descriptions for all 34 categories |
+| `data/categories_metadata.json` | Plain-English descriptions for all 36 categories |
 | `data/vendor_feature_matrix.json` | Per-vendor, per-category feature summaries |
 | `data/scoring_weights.json` | Weighted scoring model configuration |
 | `data/hard_exclusions.json` | Hard-filtering rules (deployment, compliance, region, integration) |

@@ -232,10 +232,10 @@ Local files in `data/`:
 
 | File | Purpose |
 |---|---|
-| `products.json` | 70+ product records with categories, deployment, compliance, integrations, pricing, complexity, market position |
+| `products.json` | 85+ product records with categories, deployment, compliance, integrations, pricing, complexity, market position |
 | `vendors.json` | Vendor category coverage and regional availability |
 | `categories.json` | Supported category list |
-| `categories_metadata.json` | Plain-English descriptions for 34 categories including full name, what it is, and problems it solves |
+| `categories_metadata.json` | Plain-English descriptions for 36 categories including full name, what it is, and problems it solves |
 | `vendor_feature_matrix.json` | Per-vendor, per-category feature summaries |
 | `scoring_weights.json` | Weighted scoring model configuration |
 | `hard_exclusions.json` | Hard-filtering rules applied before scoring |
