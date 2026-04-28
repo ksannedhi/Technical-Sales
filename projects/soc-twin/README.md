@@ -148,4 +148,4 @@ Auto-ticket fires on the first high/critical event in each chain (~25–35 s aft
 
 ## Documentation
 
-- Full product spec: [SOC_Twin_Field_SKU_v1_SPEC.md](docs/SOC_Twin_Field_SKU_v1_SPEC.md)
+- Full product spec: [SOC_Twin_Field_SKU_v1_SPEC.md](SOC_Twin_Field_SKU_v1_SPEC.md)
