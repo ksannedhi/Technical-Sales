@@ -4,19 +4,39 @@
     "vendors": [
       {
         "vendor": "CrowdStrike",
-        "features": ["behavioral detection", "threat hunting", "managed detection", "cloud-native agent"]
+        "features": [
+          "behavioral detection",
+          "threat hunting",
+          "managed detection",
+          "cloud-native agent"
+        ]
       },
       {
         "vendor": "SentinelOne",
-        "features": ["behavioral detection", "autonomous rollback", "autonomous remediation", "storyline correlation"]
+        "features": [
+          "behavioral detection",
+          "autonomous rollback",
+          "autonomous remediation",
+          "storyline correlation"
+        ]
       },
       {
         "vendor": "Microsoft Security",
-        "features": ["behavioral detection", "integrated XDR", "cloud analytics", "attack surface reduction"]
+        "features": [
+          "behavioral detection",
+          "integrated XDR",
+          "cloud analytics",
+          "attack surface reduction"
+        ]
       },
       {
         "vendor": "Fortinet",
-        "features": ["behavioral detection", "memory protection", "hybrid deployment", "FortiEMS integration"]
+        "features": [
+          "behavioral detection",
+          "memory protection",
+          "hybrid deployment",
+          "FortiEMS integration"
+        ]
       }
     ]
   },
@@ -25,27 +45,57 @@
     "vendors": [
       {
         "vendor": "CrowdStrike",
-        "features": ["cross-domain correlation", "managed threat hunting", "identity integration", "cloud telemetry"]
+        "features": [
+          "cross-domain correlation",
+          "managed threat hunting",
+          "identity integration",
+          "cloud telemetry"
+        ]
       },
       {
         "vendor": "Palo Alto Networks",
-        "features": ["AI-driven analytics", "XSOAR integration", "network integration", "behavioral analytics"]
+        "features": [
+          "AI-driven analytics",
+          "XSOAR integration",
+          "network integration",
+          "behavioral analytics"
+        ]
       },
       {
         "vendor": "SentinelOne",
-        "features": ["cross-domain detection", "AI threat correlation", "cloud workload protection", "identity context"]
+        "features": [
+          "cross-domain detection",
+          "AI threat correlation",
+          "cloud workload protection",
+          "identity context"
+        ]
       },
       {
         "vendor": "Microsoft Security",
-        "features": ["Microsoft 365 integration", "identity and email correlation", "automated investigation", "threat intelligence"]
+        "features": [
+          "Microsoft 365 integration",
+          "identity and email correlation",
+          "automated investigation",
+          "threat intelligence"
+        ]
       },
       {
         "vendor": "Trend Micro",
-        "features": ["attack surface risk management", "XDR telemetry fusion", "managed detection", "email correlation"]
+        "features": [
+          "attack surface risk management",
+          "XDR telemetry fusion",
+          "managed detection",
+          "email correlation"
+        ]
       },
       {
         "vendor": "Cisco",
-        "features": ["Cisco ecosystem integration", "automated threat response", "risk visibility", "SecureX ribbon"]
+        "features": [
+          "Cisco ecosystem integration",
+          "automated threat response",
+          "risk visibility",
+          "SecureX ribbon"
+        ]
       }
     ]
   },
@@ -54,15 +104,30 @@
     "vendors": [
       {
         "vendor": "Splunk",
-        "features": ["SPL query language", "threat hunting", "operational intelligence", "custom dashboards"]
+        "features": [
+          "SPL query language",
+          "threat hunting",
+          "operational intelligence",
+          "custom dashboards"
+        ]
       },
       {
         "vendor": "IBM Security",
-        "features": ["network flow analysis", "UEBA", "asset profiling", "QRadar SOAR integration"]
+        "features": [
+          "network flow analysis",
+          "UEBA",
+          "asset profiling",
+          "QRadar SOAR integration"
+        ]
       },
       {
         "vendor": "Microsoft Security",
-        "features": ["cloud-native SIEM", "UEBA", "SOAR integration", "multi-cloud telemetry"]
+        "features": [
+          "cloud-native SIEM",
+          "UEBA",
+          "SOAR integration",
+          "multi-cloud telemetry"
+        ]
       }
     ]
   },
@@ -71,15 +136,30 @@
     "vendors": [
       {
         "vendor": "Splunk",
-        "features": ["playbook automation", "case management", "threat intelligence integration", "SOC metrics"]
+        "features": [
+          "playbook automation",
+          "case management",
+          "threat intelligence integration",
+          "SOC metrics"
+        ]
       },
       {
         "vendor": "Palo Alto Networks",
-        "features": ["800+ integrations", "AI-driven investigation", "marketplace", "war room collaboration"]
+        "features": [
+          "800+ integrations",
+          "AI-driven investigation",
+          "marketplace",
+          "war room collaboration"
+        ]
       },
       {
         "vendor": "IBM Security",
-        "features": ["incident response automation", "case management", "threat intelligence", "resilience playbooks"]
+        "features": [
+          "incident response automation",
+          "case management",
+          "threat intelligence",
+          "resilience playbooks"
+        ]
       }
     ]
   },
@@ -88,15 +168,30 @@
     "vendors": [
       {
         "vendor": "Darktrace",
-        "features": ["AI self-learning", "autonomous response", "unsupervised ML", "email anomaly detection"]
+        "features": [
+          "AI self-learning",
+          "autonomous response",
+          "unsupervised ML",
+          "email anomaly detection"
+        ]
       },
       {
         "vendor": "Vectra AI",
-        "features": ["AI attack detection", "privilege attack detection", "hybrid cloud visibility", "identity threat detection"]
+        "features": [
+          "AI attack detection",
+          "privilege attack detection",
+          "hybrid cloud visibility",
+          "identity threat detection"
+        ]
       },
       {
         "vendor": "ExtraHop",
-        "features": ["real-time ML", "east-west traffic analysis", "encrypted traffic decryption", "cloud visibility"]
+        "features": [
+          "real-time ML",
+          "east-west traffic analysis",
+          "encrypted traffic decryption",
+          "cloud visibility"
+        ]
       }
     ]
   },
@@ -105,19 +200,39 @@
     "vendors": [
       {
         "vendor": "Palo Alto Networks",
-        "features": ["CSPM", "CWPP", "CIEM", "code-to-cloud security"]
+        "features": [
+          "CSPM",
+          "CWPP",
+          "CIEM",
+          "code-to-cloud security"
+        ]
       },
       {
         "vendor": "Wiz",
-        "features": ["agentless scanning", "risk prioritization", "attack path analysis", "data security posture"]
+        "features": [
+          "agentless scanning",
+          "risk prioritization",
+          "attack path analysis",
+          "data security posture"
+        ]
       },
       {
         "vendor": "Orca Security",
-        "features": ["agentless scanning", "cloud graph", "vulnerability management", "compliance monitoring"]
+        "features": [
+          "agentless scanning",
+          "cloud graph",
+          "vulnerability management",
+          "compliance monitoring"
+        ]
       },
       {
         "vendor": "Sysdig",
-        "features": ["runtime security", "container security", "Falco-based detection", "compliance"]
+        "features": [
+          "runtime security",
+          "container security",
+          "Falco-based detection",
+          "compliance"
+        ]
       }
     ]
   },
@@ -126,15 +241,30 @@
     "vendors": [
       {
         "vendor": "CyberArk",
-        "features": ["privileged session manager", "dynamic secrets", "cloud privilege management", "zero standing privilege"]
+        "features": [
+          "privileged session manager",
+          "dynamic secrets",
+          "cloud privilege management",
+          "zero standing privilege"
+        ]
       },
       {
         "vendor": "BeyondTrust",
-        "features": ["session recording", "just-in-time access", "credential vaulting", "remote access management"]
+        "features": [
+          "session recording",
+          "just-in-time access",
+          "credential vaulting",
+          "remote access management"
+        ]
       },
       {
         "vendor": "Delinea",
-        "features": ["secrets management", "connection manager", "DevOps secrets", "cloud suite"]
+        "features": [
+          "secrets management",
+          "connection manager",
+          "DevOps secrets",
+          "cloud suite"
+        ]
       }
     ]
   },
@@ -143,15 +273,30 @@
     "vendors": [
       {
         "vendor": "Imperva",
-        "features": ["bot management", "DDoS protection", "API protection", "attack analytics"]
+        "features": [
+          "bot management",
+          "DDoS protection",
+          "API protection",
+          "attack analytics"
+        ]
       },
       {
         "vendor": "Cloudflare",
-        "features": ["global anycast network", "zero-day protection", "rate limiting", "DDoS mitigation"]
+        "features": [
+          "global anycast network",
+          "zero-day protection",
+          "rate limiting",
+          "DDoS mitigation"
+        ]
       },
       {
         "vendor": "Akamai",
-        "features": ["bot manager", "adaptive security engine", "API gateway protection", "client reputation"]
+        "features": [
+          "bot manager",
+          "adaptive security engine",
+          "API gateway protection",
+          "client reputation"
+        ]
       }
     ]
   },
@@ -160,15 +305,30 @@
     "vendors": [
       {
         "vendor": "Forcepoint",
-        "features": ["behavioral analytics", "policy enforcement", "endpoint DLP", "cloud DLP"]
+        "features": [
+          "behavioral analytics",
+          "policy enforcement",
+          "endpoint DLP",
+          "cloud DLP"
+        ]
       },
       {
         "vendor": "Symantec",
-        "features": ["endpoint DLP", "network DLP", "cloud DLP", "optical character recognition"]
+        "features": [
+          "endpoint DLP",
+          "network DLP",
+          "cloud DLP",
+          "optical character recognition"
+        ]
       },
       {
         "vendor": "Microsoft Security",
-        "features": ["Microsoft 365 integration", "sensitivity labels", "insider risk management", "communication compliance"]
+        "features": [
+          "Microsoft 365 integration",
+          "sensitivity labels",
+          "insider risk management",
+          "communication compliance"
+        ]
       }
     ]
   },
@@ -177,15 +337,30 @@
     "vendors": [
       {
         "vendor": "Proofpoint",
-        "features": ["threat intelligence", "email fraud protection", "security awareness training", "targeted attack protection"]
+        "features": [
+          "threat intelligence",
+          "email fraud protection",
+          "security awareness training",
+          "targeted attack protection"
+        ]
       },
       {
         "vendor": "Mimecast",
-        "features": ["data loss prevention", "email archiving", "URL protection", "impersonation protection"]
+        "features": [
+          "data loss prevention",
+          "email archiving",
+          "URL protection",
+          "impersonation protection"
+        ]
       },
       {
         "vendor": "Microsoft Security",
-        "features": ["safe links", "safe attachments", "attack simulation training", "anti-phishing policies"]
+        "features": [
+          "safe links",
+          "safe attachments",
+          "attack simulation training",
+          "anti-phishing policies"
+        ]
       }
     ]
   },
@@ -194,19 +369,39 @@
     "vendors": [
       {
         "vendor": "Claroty",
-        "features": ["passive discovery", "OT vulnerability management", "network segmentation", "secure remote access"]
+        "features": [
+          "passive discovery",
+          "OT vulnerability management",
+          "network segmentation",
+          "secure remote access"
+        ]
       },
       {
         "vendor": "Dragos",
-        "features": ["threat hunting", "industrial asset inventory", "incident response playbooks", "sector-specific threat intel"]
+        "features": [
+          "threat hunting",
+          "industrial asset inventory",
+          "incident response playbooks",
+          "sector-specific threat intel"
+        ]
       },
       {
         "vendor": "Nozomi Networks",
-        "features": ["real-time anomaly detection", "OT/IoT visibility", "vulnerability assessment", "AI-powered threat detection"]
+        "features": [
+          "real-time anomaly detection",
+          "OT/IoT visibility",
+          "vulnerability assessment",
+          "AI-powered threat detection"
+        ]
       },
       {
         "vendor": "TXOne",
-        "features": ["endpoint protection for ICS", "application whitelisting", "protocol inspection", "ruggedized deployment"]
+        "features": [
+          "endpoint protection for ICS",
+          "application whitelisting",
+          "protocol inspection",
+          "ruggedized deployment"
+        ]
       }
     ]
   },
@@ -215,11 +410,21 @@
     "vendors": [
       {
         "vendor": "Wallarm",
-        "features": ["real-time API protection", "API discovery", "WAAP", "GraphQL protection"]
+        "features": [
+          "real-time API protection",
+          "API discovery",
+          "WAAP",
+          "GraphQL protection"
+        ]
       },
       {
         "vendor": "Salt Security",
-        "features": ["API discovery", "API posture management", "runtime attack detection", "AI-based threat detection"]
+        "features": [
+          "API discovery",
+          "API posture management",
+          "runtime attack detection",
+          "AI-based threat detection"
+        ]
       }
     ]
   },
@@ -228,15 +433,30 @@
     "vendors": [
       {
         "vendor": "Microsoft Security",
-        "features": ["AD attack detection", "lateral movement detection", "BloodHound attack prevention", "UEBA for identity"]
+        "features": [
+          "AD attack detection",
+          "lateral movement detection",
+          "BloodHound attack prevention",
+          "UEBA for identity"
+        ]
       },
       {
         "vendor": "CrowdStrike",
-        "features": ["real-time identity threat detection", "AD security posture", "Kerberos attack detection", "credential exposure monitoring"]
+        "features": [
+          "real-time identity threat detection",
+          "AD security posture",
+          "Kerberos attack detection",
+          "credential exposure monitoring"
+        ]
       },
       {
         "vendor": "Silverfort",
-        "features": ["agentless identity protection", "lateral movement prevention", "Kerberoasting detection", "service account monitoring"]
+        "features": [
+          "agentless identity protection",
+          "lateral movement prevention",
+          "Kerberoasting detection",
+          "service account monitoring"
+        ]
       }
     ]
   },
@@ -245,11 +465,21 @@
     "vendors": [
       {
         "vendor": "Illumio",
-        "features": ["application dependency mapping", "adaptive segmentation", "zero trust segmentation", "policy simulation"]
+        "features": [
+          "application dependency mapping",
+          "adaptive segmentation",
+          "zero trust segmentation",
+          "policy simulation"
+        ]
       },
       {
         "vendor": "Akamai",
-        "features": ["micro-segmentation", "breach detection", "cloud segmentation", "software-defined perimeter"]
+        "features": [
+          "micro-segmentation",
+          "breach detection",
+          "cloud segmentation",
+          "software-defined perimeter"
+        ]
       }
     ]
   },
@@ -258,11 +488,21 @@
     "vendors": [
       {
         "vendor": "SailPoint",
-        "features": ["lifecycle management", "access certification", "role management", "AI-driven access recommendations"]
+        "features": [
+          "lifecycle management",
+          "access certification",
+          "role management",
+          "AI-driven access recommendations"
+        ]
       },
       {
         "vendor": "Saviynt",
-        "features": ["access governance", "cloud PAM", "application access governance", "temporal access"]
+        "features": [
+          "access governance",
+          "cloud PAM",
+          "application access governance",
+          "temporal access"
+        ]
       }
     ]
   },
@@ -271,15 +511,30 @@
     "vendors": [
       {
         "vendor": "Cisco",
-        "features": ["device trust", "zero trust network access", "adaptive authentication", "endpoint visibility"]
+        "features": [
+          "device trust",
+          "zero trust network access",
+          "adaptive authentication",
+          "endpoint visibility"
+        ]
       },
       {
         "vendor": "Okta",
-        "features": ["adaptive MFA", "push notification", "biometric support", "risk-based authentication"]
+        "features": [
+          "adaptive MFA",
+          "push notification",
+          "biometric support",
+          "risk-based authentication"
+        ]
       },
       {
         "vendor": "Yubico",
-        "features": ["hardware FIDO2 key", "phishing-resistant", "WebAuthn", "passwordless authentication"]
+        "features": [
+          "hardware FIDO2 key",
+          "phishing-resistant",
+          "WebAuthn",
+          "passwordless authentication"
+        ]
       }
     ]
   },
@@ -288,23 +543,48 @@
     "vendors": [
       {
         "vendor": "Zscaler",
-        "features": ["zero trust network access", "cloud firewall", "data loss prevention", "cloud access security broker"]
+        "features": [
+          "zero trust network access",
+          "cloud firewall",
+          "data loss prevention",
+          "cloud access security broker"
+        ]
       },
       {
         "vendor": "Netskope",
-        "features": ["cloud access security broker", "zero trust network access", "inline threat protection", "data loss prevention"]
+        "features": [
+          "cloud access security broker",
+          "zero trust network access",
+          "inline threat protection",
+          "data loss prevention"
+        ]
       },
       {
         "vendor": "Palo Alto Networks",
-        "features": ["Prisma Access", "SD-WAN", "cloud-delivered security", "autonomous digital experience"]
+        "features": [
+          "Prisma Access",
+          "SD-WAN",
+          "cloud-delivered security",
+          "autonomous digital experience"
+        ]
       },
       {
         "vendor": "Cato Networks",
-        "features": ["global private backbone", "SD-WAN", "cloud-native SASE", "managed detection and response"]
+        "features": [
+          "global private backbone",
+          "SD-WAN",
+          "cloud-native SASE",
+          "managed detection and response"
+        ]
       },
       {
         "vendor": "Fortinet",
-        "features": ["FortiGuard security services", "ZTNA", "SD-WAN integration", "cloud-delivered firewall"]
+        "features": [
+          "FortiGuard security services",
+          "ZTNA",
+          "SD-WAN integration",
+          "cloud-delivered firewall"
+        ]
       }
     ]
   },
@@ -313,23 +593,218 @@
     "vendors": [
       {
         "vendor": "Palo Alto Networks",
-        "features": ["App-ID application control", "URL filtering", "IPS", "TLS inspection", "WildFire threat prevention"]
+        "features": [
+          "App-ID application control",
+          "URL filtering",
+          "IPS",
+          "TLS inspection",
+          "WildFire threat prevention"
+        ]
       },
       {
         "vendor": "Fortinet",
-        "features": ["FortiOS security fabric", "SSL inspection", "IPS", "SD-WAN integration", "AI-powered threat detection"]
+        "features": [
+          "FortiOS security fabric",
+          "SSL inspection",
+          "IPS",
+          "SD-WAN integration",
+          "AI-powered threat detection"
+        ]
       },
       {
         "vendor": "Check Point",
-        "features": ["unified threat management", "ThreatCloud AI", "IPS", "application control", "zero-day sandboxing"]
+        "features": [
+          "unified threat management",
+          "ThreatCloud AI",
+          "IPS",
+          "application control",
+          "zero-day sandboxing"
+        ]
       },
       {
         "vendor": "Cisco",
-        "features": ["Snort IPS", "application visibility", "encrypted traffic analytics", "Talos threat intelligence", "integrated AMP"]
+        "features": [
+          "Snort IPS",
+          "application visibility",
+          "encrypted traffic analytics",
+          "Talos threat intelligence",
+          "integrated AMP"
+        ]
       },
       {
         "vendor": "Sophos",
-        "features": ["Xstream architecture", "TLS inspection", "synchronized security", "SD-WAN", "zero-touch deployment"]
+        "features": [
+          "Xstream architecture",
+          "TLS inspection",
+          "synchronized security",
+          "SD-WAN",
+          "zero-touch deployment"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "GRC",
+    "vendors": [
+      {
+        "vendor": "ServiceNow",
+        "features": [
+          "Integrated risk management",
+          "Policy and compliance automation",
+          "Audit management",
+          "Third-party risk management",
+          "Business continuity planning"
+        ]
+      },
+      {
+        "vendor": "RSA Security",
+        "features": [
+          "Risk quantification",
+          "Audit and compliance management",
+          "Regulatory change management",
+          "Vendor risk management",
+          "Incident and loss event tracking"
+        ]
+      },
+      {
+        "vendor": "MetricStream",
+        "features": [
+          "Enterprise risk management",
+          "Compliance management",
+          "Audit management",
+          "Issue and action tracking",
+          "Regulatory intelligence"
+        ]
+      },
+      {
+        "vendor": "IBM Security",
+        "features": [
+          "Financial controls management",
+          "Regulatory compliance reporting",
+          "Risk and control self-assessment",
+          "Operational risk management",
+          "Policy lifecycle management"
+        ]
+      },
+      {
+        "vendor": "OneTrust",
+        "features": [
+          "IT and security risk management",
+          "Vendor risk assessment",
+          "Policy management",
+          "Compliance programme management",
+          "Automated risk scoring"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Data Privacy",
+    "vendors": [
+      {
+        "vendor": "BigID",
+        "features": [
+          "Data discovery and classification",
+          "Data subject request automation",
+          "Consent management",
+          "Privacy risk assessment",
+          "Regulatory reporting"
+        ]
+      },
+      {
+        "vendor": "OneTrust",
+        "features": [
+          "DSAR automation",
+          "Consent and preference management",
+          "Data mapping and inventory",
+          "Privacy impact assessments",
+          "Vendor privacy risk management"
+        ]
+      },
+      {
+        "vendor": "TrustArc",
+        "features": [
+          "Privacy compliance programme management",
+          "Cookie consent management",
+          "Data subject rights fulfilment",
+          "Vendor assessment automation",
+          "Regulatory coverage across 50+ frameworks"
+        ]
+      },
+      {
+        "vendor": "Securiti",
+        "features": [
+          "AI-powered data discovery",
+          "Automated DSAR fulfilment",
+          "Consent management",
+          "Privacy risk intelligence",
+          "Cross-cloud data flow mapping"
+        ]
+      },
+      {
+        "vendor": "DataGrail",
+        "features": [
+          "Real-time data mapping",
+          "Automated data subject request routing",
+          "Consent tracking",
+          "Vendor privacy signal monitoring",
+          "Integration-first architecture"
+        ]
+      }
+    ]
+  },
+  {
+    "category": "Human Risk Management",
+    "vendors": [
+      {
+        "vendor": "KnowBe4",
+        "features": [
+          "Phishing simulation",
+          "Security awareness training library",
+          "Behavioural risk scoring",
+          "Automated training enrolment",
+          "Reporting and compliance dashboards"
+        ]
+      },
+      {
+        "vendor": "Proofpoint",
+        "features": [
+          "Adaptive learning journeys",
+          "Phishing simulation",
+          "Very attacked people identification",
+          "Risk-based training assignment",
+          "Compliance reporting"
+        ]
+      },
+      {
+        "vendor": "Mimecast",
+        "features": [
+          "Phishing simulation",
+          "Awareness training content",
+          "Risk scoring per user",
+          "Integration with email security telemetry",
+          "Manager-level risk dashboards"
+        ]
+      },
+      {
+        "vendor": "Hoxhunt",
+        "features": [
+          "Gamified phishing simulation",
+          "Adaptive microlearning",
+          "Human risk score per employee",
+          "Threat-feed driven simulation scenarios",
+          "Manager and CISO dashboards"
+        ]
+      },
+      {
+        "vendor": "CybSafe",
+        "features": [
+          "Behavioural science-based training",
+          "Human risk score (SebDB)",
+          "Phishing simulation",
+          "Culture and behaviour analytics",
+          "Evidence-based risk reduction metrics"
+        ]
       }
     ]
   }

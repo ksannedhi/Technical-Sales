@@ -167,7 +167,8 @@
       "SIEM",
       "SOAR",
       "DAM",
-      "Identity Security"
+      "Identity Security",
+      "GRC"
     ],
     "regions": [
       "Global"
@@ -350,7 +351,8 @@
   {
     "vendor": "Proofpoint",
     "categories": [
-      "Email Security"
+      "Email Security",
+      "Human Risk Management"
     ],
     "regions": [
       "Global"
@@ -397,62 +399,204 @@
   },
   {
     "vendor": "ExtraHop",
-    "categories": ["NDR"],
-    "regions": ["Global"]
+    "categories": [
+      "NDR"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "CyberArk",
-    "categories": ["PAM"],
-    "regions": ["Global"]
+    "categories": [
+      "PAM"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Delinea",
-    "categories": ["PAM"],
-    "regions": ["Global"]
+    "categories": [
+      "PAM"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Zscaler",
-    "categories": ["SASE", "DLP"],
-    "regions": ["Global"]
+    "categories": [
+      "SASE",
+      "DLP"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Netskope",
-    "categories": ["SASE"],
-    "regions": ["Global"]
+    "categories": [
+      "SASE"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Cato Networks",
-    "categories": ["SASE"],
-    "regions": ["Global"]
+    "categories": [
+      "SASE"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Claroty",
-    "categories": ["OT Security"],
-    "regions": ["Global"]
+    "categories": [
+      "OT Security"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Dragos",
-    "categories": ["OT Security"],
-    "regions": ["Global"]
+    "categories": [
+      "OT Security"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Nozomi Networks",
-    "categories": ["OT Security"],
-    "regions": ["Global"]
+    "categories": [
+      "OT Security"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Mimecast",
-    "categories": ["Email Security"],
-    "regions": ["Global"]
+    "categories": [
+      "Email Security",
+      "Human Risk Management"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Salt Security",
-    "categories": ["API Security"],
-    "regions": ["Global"]
+    "categories": [
+      "API Security"
+    ],
+    "regions": [
+      "Global"
+    ]
   },
   {
     "vendor": "Check Point",
-    "categories": ["Firewall", "Network Security"],
-    "regions": ["Global"]
+    "categories": [
+      "Firewall",
+      "Network Security"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "ServiceNow",
+    "categories": [
+      "GRC"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "RSA Security",
+    "categories": [
+      "GRC"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "MetricStream",
+    "categories": [
+      "GRC"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "OneTrust",
+    "categories": [
+      "GRC",
+      "Data Privacy"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "TrustArc",
+    "categories": [
+      "Data Privacy"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Securiti",
+    "categories": [
+      "Data Privacy"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "DataGrail",
+    "categories": [
+      "Data Privacy"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "KnowBe4",
+    "categories": [
+      "Human Risk Management"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "Hoxhunt",
+    "categories": [
+      "Human Risk Management"
+    ],
+    "regions": [
+      "Global"
+    ]
+  },
+  {
+    "vendor": "CybSafe",
+    "categories": [
+      "Human Risk Management"
+    ],
+    "regions": [
+      "Global"
+    ]
   }
 ]

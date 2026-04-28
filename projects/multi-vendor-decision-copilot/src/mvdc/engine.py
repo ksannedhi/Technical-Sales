@@ -24,7 +24,10 @@ PROBLEM_ALIASES = {
     "identity_protection": ["identity protection", "identity security", "pam", "mfa", "passwordless", "itdr"],
     "identity_governance": ["identity governance", "iga", "access review", "access certification", "joiner mover leaver", "segregation of duties", "birthright access"],
     "api_security": ["api security", "waf", "web application firewall", "apis", "api abuse", "api exposure", "api attack", "secure our api"],
-    "data_security": ["data security", "dspm", "dlp", "data loss prevention", "data privacy", "data leakage", "sensitive data", "protect our data", "prevent data loss"],
+    "data_security": ["data security", "dspm", "dlp", "data loss prevention", "data leakage", "sensitive data", "protect our data", "prevent data loss"],
+    "data_privacy": ["gdpr compliance", "ccpa compliance", "privacy regulation", "data subject requests", "consent management", "privacy impact assessment", "data privacy"],
+    "governance_risk": ["risk register", "audit management", "compliance management", "policy management", "third-party risk", "vendor risk management", "grc platform", "risk and compliance"],
+    "human_risk": ["security awareness", "phishing simulation", "awareness training", "human risk", "employee risk", "behaviour risk", "security culture"],
     "network_visibility": ["network visibility", "ndr", "siem", "security visibility", "qradar", "splunk", "fortisiem", "forisiem"],
     "email_protection": ["email security", "email protection", "phishing", "stop phishing", "email threats", "email attack", "email threat"],
     "mobile_security": ["mobile security", "mobile threat"],
@@ -35,7 +38,10 @@ CATEGORY_ALIASES = {
     "ASM": ["asm", "easm", "attack surface management", "external attack surface management"],
     "CNAPP": ["cnapp", "cspm", "cwpp", "cloud security posture", "cloud workload protection"],
     "DLP": ["dlp"],
-    "DSPM": ["dspm", "data security posture", "data privacy"],
+    "DSPM": ["dspm", "data security posture"],
+    "Data Privacy": ["data privacy", "gdpr", "ccpa", "lgpd", "privacy management", "consent management", "dsar", "data subject rights", "privacy compliance"],
+    "GRC": ["grc", "governance risk compliance", "governance risk and compliance", "integrated risk management", "enterprise risk management", "audit and compliance"],
+    "Human Risk Management": ["human risk management", "hrm", "security awareness training", "phishing simulation", "awareness training", "security culture", "human risk"],
     "CIAM": ["ciam", "customer identity", "customer identity and access management", "consumer identity"],
     "DAM": ["dam", "database activity monitoring", "database monitoring", "db activity monitoring"],
     "EDR": ["edr"],
@@ -270,7 +276,9 @@ class DecisionEngine:
         return unique
 
     def _lookup_products(self, text: str) -> list[str]:
-        ignore_tokens = {"cloud", "data", "platform", "security", "enterprise", "identity"}
+        ignore_tokens = {"cloud", "data", "platform", "security", "enterprise", "identity",
+                         "management", "awareness", "training", "risk", "human", "program",
+                         "intelligence", "protection", "detection", "response", "analytics"}
         query_tokens = set(re.findall(r"[a-z0-9]+", text.lower()))
         matches = []
         for product_name in self.product_names:

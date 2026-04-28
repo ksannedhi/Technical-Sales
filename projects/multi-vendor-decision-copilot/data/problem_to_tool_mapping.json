@@ -28,5 +28,14 @@
   ],
   "mobile_security": [
     "Mobile Security"
+  ],
+  "data_privacy": [
+    "Data Privacy"
+  ],
+  "governance_risk": [
+    "GRC"
+  ],
+  "human_risk": [
+    "Human Risk Management"
   ]
 }
