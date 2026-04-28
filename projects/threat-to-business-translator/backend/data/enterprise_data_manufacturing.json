@@ -240,6 +240,25 @@
                 "Validate OT/IT segmentation boundaries remain intact.",
                 "Notify network operations and plant management of connectivity risk."
             ]
+        },
+        {
+            "id": "api-exposure",
+            "name": "API or application endpoint vulnerability exposing manufacturing systems",
+            "category": "API / application exposure",
+            "service_id": "supplier-logistics-hub",
+            "primary_asset_id": "supplier-vpn-hub",
+            "asset_ids": ["supplier-vpn-hub"],
+            "identity_ids": ["it-sysadmin"],
+            "library_visible": false,
+            "technical_signal": "A vulnerability in an API or application endpoint used by manufacturing or supply chain systems creates a path for unauthenticated access to operational data or system controls.",
+            "executive_trigger": "An API or application vulnerability exposing manufacturing or supply chain systems",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Apply vendor patch or disable the affected API endpoint until remediation is confirmed.",
+                "Audit API access logs for signs of unauthorised data access or enumeration.",
+                "Review internet exposure of affected manufacturing or supply chain APIs.",
+                "Notify supply chain and operations leadership of potential data exposure."
+            ]
         }
     ]
 }

@@ -267,6 +267,19 @@ SCENARIO_MATCHERS = {
             "insecure direct object": 4,
             "bola": 4,
             "owasp api": 4,
+            "path traversal": 5,
+            "directory traversal": 5,
+            "lfi": 5,
+            "local file inclusion": 5,
+            "ssrf": 5,
+            "server-side request forgery": 5,
+            "arbitrary file read": 5,
+            "arbitrary file": 4,
+            "read arbitrary": 4,
+            "cluster api": 4,
+            "api endpoint": 3,
+            "unauthenticated access": 4,
+            "without authentication": 4,
         },
     },
     "network-device-rce": {
@@ -422,21 +435,39 @@ def analyze_raw_input(
     return _analyze_single_input(raw_text, file_name, org_profile, domain, affected_service=affected_service)
 
 
-# Keyword map used by _resolve_service() to match customer free-text against
-# known service IDs. Each list covers common names, abbreviations, and related
-# concepts a customer might type when asked "which service does this affect?"
-_SERVICE_KEYWORDS: dict[str, list[str]] = {
-    "payroll-processing":           ["payroll", "salary", "wages", "hr", "human resources", "hris", "people ops"],
-    "customer-support-platform":    ["customer support", "support platform", "crm", "helpdesk", "help desk",
-                                     "service desk", "contact centre", "contact center"],
-    "customer-onboarding-analytics":["onboarding", "kyc", "know your customer", "analytics", "customer analytics",
-                                     "data analytics", "identity verification"],
-    "supplier-fulfillment-hub":     ["supplier", "supply chain", "fulfillment", "fulfilment", "logistics",
-                                     "procurement", "vendor management", "warehouse"],
-    "finance-data-platform":        ["finance data", "financial data", "erp", "accounting", "finance platform",
-                                     "general ledger", "gl", "financial reporting", "treasury"],
-    "customer-portal-experience":   ["customer portal", "portal", "digital banking", "online banking",
-                                     "web portal", "self-service", "internet banking"],
+# Concept-based keyword map used by _resolve_service() Step 4.
+# Keys are short concept terms that appear in domain service names or IDs across
+# all sectors. Values are the customer input synonyms that map to each concept.
+# _resolve_service() searches the live domain's services for a name/ID containing
+# the concept term — so this map works for any sector without hardcoding service IDs.
+_SERVICE_CONCEPT_KEYWORDS: dict[str, list[str]] = {
+    "payroll":    ["payroll", "salary", "wages", "hr", "human resources", "hris", "people ops"],
+    "support":    ["customer support", "support platform", "helpdesk", "help desk",
+                   "service desk", "contact centre", "contact center", "crm"],
+    "onboarding": ["onboarding", "kyc", "know your customer", "identity verification"],
+    "analytics":  ["analytics", "customer analytics", "data analytics", "data platform"],
+    "logistics":  ["logistics", "shipment", "shipments", "shipping", "delivery", "fulfillment",
+                   "fulfilment", "supply chain", "procurement", "warehouse", "3pl",
+                   "order management", "vendor management"],
+    "portal":     ["portal", "digital banking", "online banking", "web portal",
+                   "self-service", "internet banking", "patient portal", "customer portal"],
+    "finance":    ["finance", "financial", "accounting", "general ledger", "treasury",
+                   "financial reporting", "revenue cycle", "claims"],
+    "erp":        ["erp", "enterprise resource planning"],
+    "ehr":        ["ehr", "electronic health record", "clinical record", "epic", "cerner"],
+    "imaging":    ["imaging", "pacs", "radiology", "ris", "dicom"],
+    "scada":      ["scada", "ics", "industrial control", "process control", "plc", "hmi"],
+    "mes":        ["mes", "manufacturing execution"],
+    "plm":        ["plm", "product lifecycle", "cad", "cam", "engineering design"],
+    "research":   ["research", "clinical research", "clinical trial", "irb", "trial data"],
+    "ecommerce":  ["ecommerce", "e-commerce", "online store", "storefront", "shop", "checkout"],
+    "pos":        ["pos", "point of sale", "store operations", "point-of-sale", "register"],
+    "loyalty":    ["loyalty", "rewards", "membership", "points program"],
+    "inventory":  ["inventory", "stock", "warehouse management", "wms"],
+    "cicd":       ["ci/cd", "cicd", "pipeline", "build pipeline", "devops", "deployment"],
+    "iam":        ["iam", "identity", "access management", "sso", "authentication platform"],
+    "cloud":      ["cloud infrastructure", "cloud platform", "aws", "azure", "gcp", "iaas"],
+    "saas":       ["saas platform", "product platform", "application platform"],
 }
 
 _FALLBACK_RECOMMENDED_ACTIONS = [
@@ -558,10 +589,15 @@ def _resolve_service(text: str, domain: dict) -> dict | None:
             if bu_services:
                 return max(bu_services, key=lambda s: s["criticality"])
 
-    # 4. Keyword map
-    for service_id, keywords in _SERVICE_KEYWORDS.items():
-        if any(kw in text_lower for kw in keywords):
-            return services.get(service_id)
+    # 4. Concept keyword map — sector-agnostic.
+    # Finds the first domain service whose name or ID contains the matched concept term.
+    # This avoids hardcoding financial-services service IDs that don't exist in other domains.
+    for concept, synonyms in _SERVICE_CONCEPT_KEYWORDS.items():
+        if any(syn in text_lower for syn in synonyms):
+            concept_lower = concept.lower()
+            for svc in domain["business_services"]:
+                if concept_lower in svc["name"].lower() or concept_lower in svc["id"]:
+                    return svc
 
     return None
 
