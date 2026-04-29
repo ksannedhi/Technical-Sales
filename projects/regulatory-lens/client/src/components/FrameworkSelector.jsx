@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const COVERAGE_STYLE = {
   'full':          { bg: '#E1F5EE', color: '#0F6E56', label: 'Full' },
@@ -78,13 +78,36 @@ const ALL_FRAMEWORKS = [
 const WEIGHT_OPTS = ['mandatory', 'contractual', 'voluntary'];
 
 export default function FrameworkSelector({ recommended, initialSelected, initialWeights, onStart, onBack }) {
-  const [selected,    setSelected]    = useState(initialSelected || []);
-  const [weights,     setWeights]     = useState(initialWeights  || {});
-  const [customFWs,   setCustomFWs]   = useState([]);
-  const [uploadFile,  setUploadFile]  = useState(null);
-  const [uploadName,  setUploadName]  = useState('');
-  const [uploading,   setUploading]   = useState(false);
-  const [uploadError, setUploadError] = useState(null);
+  const [selected,       setSelected]       = useState(initialSelected || []);
+  const [weights,        setWeights]        = useState(initialWeights  || {});
+  const [customFWs,      setCustomFWs]      = useState([]);
+  const [uploadFile,     setUploadFile]     = useState(null);
+  const [uploadName,     setUploadName]     = useState('');
+  const [uploading,      setUploading]      = useState(false);
+  const [uploadError,    setUploadError]    = useState(null);
+  const [lostCustomIds,  setLostCustomIds]  = useState([]);
+
+  // On mount: fetch live custom framework list from server and detect any that were
+  // lost since the last session (e.g. server restart clears in-memory store).
+  useEffect(() => {
+    const prevCustomIds = (initialSelected || []).filter(id => id.startsWith('CUSTOM-'));
+    if (prevCustomIds.length === 0) return;
+
+    fetch('/api/frameworks/custom')
+      .then(r => r.json())
+      .then(live => {
+        const liveIds = new Set(live.map(f => f.frameworkId));
+        const lost = prevCustomIds.filter(id => !liveIds.has(id));
+        if (lost.length > 0) {
+          setLostCustomIds(lost);
+          // Remove the missing IDs from selection so harmonisation doesn't request phantoms
+          setSelected(prev => prev.filter(id => !lost.includes(id)));
+        }
+        // Restore any custom frameworks still alive in the server store
+        if (live.length > 0) setCustomFWs(live);
+      })
+      .catch(() => {}); // non-fatal
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggleFw(id) {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -148,6 +171,12 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
       <div className="step-label">Step 2 of 5 — Framework selection</div>
       <h2 className="step-title">Select active frameworks</h2>
       <p className="step-sub">Recommended frameworks are pre-selected. Adjust as needed, then assign regulatory weight.</p>
+
+      {lostCustomIds.length > 0 && (
+        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', color: '#991B1B' }}>
+          ⚠ {lostCustomIds.length} custom framework{lostCustomIds.length !== 1 ? 's were' : ' was'} lost after a server restart and {lostCustomIds.length !== 1 ? 'have' : 'has'} been removed from your selection. Please re-upload the PDF{lostCustomIds.length !== 1 ? 's' : ''} to include {lostCustomIds.length !== 1 ? 'them' : 'it'} in the analysis.
+        </div>
+      )}
 
       {recommended?.length > 0 && (
         <div className="disclaimer-box" style={{ marginBottom: '16px' }}>

@@ -64,13 +64,19 @@ const MAX_RETRIES = 4;
 const RETRY_BASE_MS  = 2000;  // base for 500/529 (2s, 4s, 8s …)
 const RATE_LIMIT_MS  = 15000; // base for 429 (15s, 30s, 60s …) — TPM window is 60s
 
-async function callClaude(system, userMessage, maxTokens = 1500) {
+async function callClaude(system, userMessage, maxTokens = 1500, abortSignal = null) {
   let lastError;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    // Combine per-call timeout with optional caller-supplied abort signal
+    const timeoutSignal = AbortSignal.timeout(90_000);
+    const signal = abortSignal
+      ? AbortSignal.any([timeoutSignal, abortSignal])
+      : timeoutSignal;
+
     const res = await fetch(API_URL, {
       method: 'POST',
-      signal: AbortSignal.timeout(90_000),
+      signal,
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
@@ -143,12 +149,13 @@ function getFrameworkControlTexts(domain, customFrameworks = {}) {
 }
 
 // ── Concurrency limiter — max N Claude calls in flight at once ───────────────
-async function runWithConcurrency(items, concurrency, fn) {
+async function runWithConcurrency(items, concurrency, fn, abortSignal = null) {
   const results = new Array(items.length);
   let index = 0;
 
   async function worker() {
     while (index < items.length) {
+      if (abortSignal?.aborted) break;  // stop picking up new work if client disconnected
       const i = index++;
       results[i] = await fn(items[i], i);
     }
@@ -160,7 +167,7 @@ async function runWithConcurrency(items, concurrency, fn) {
 }
 
 // ── Run harmonisation for all selected domains with bounded concurrency ───────
-export async function runHarmonisation(selectedFrameworkIds, onDomainComplete, customFrameworks = {}) {
+export async function runHarmonisation(selectedFrameworkIds, onDomainComplete, customFrameworks = {}, abortSignal = null) {
   const domains = taxonomy.domains;
 
   let completed = 0;
@@ -191,7 +198,7 @@ export async function runHarmonisation(selectedFrameworkIds, onDomainComplete, c
       } else {
         const frameworkControlTexts = getFrameworkControlTexts(domainWithCustom, customFrameworks);
         const prompt = buildDomainPrompt(domainWithCustom, selectedFrameworkIds, frameworkControlTexts);
-        const raw    = await callClaude(HARMONISE_SYSTEM, prompt, 2000);
+        const raw    = await callClaude(HARMONISE_SYSTEM, prompt, 2000, abortSignal);
         const parsed = parseClaudeJSON(raw);
 
         result = {
@@ -219,7 +226,7 @@ export async function runHarmonisation(selectedFrameworkIds, onDomainComplete, c
         )
       };
     }
-  });
+  }, abortSignal);
 
   for (const r of domainResults) {
     if (r) results.push(r);

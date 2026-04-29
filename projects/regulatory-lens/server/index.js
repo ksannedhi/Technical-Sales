@@ -114,13 +114,21 @@ app.get('/api/harmonise/stream', async (req, res) => {
 
   const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
+  // Abort in-flight Claude calls when the client disconnects (tab close, Back, New analysis)
+  const abortController = new AbortController();
+  req.on('close', () => {
+    abortController.abort();
+    console.log('[/harmonise/stream] Client disconnected — aborting remaining domain calls');
+  });
+
   try {
     const results = await runHarmonisation(
       [...standardFrameworks, ...Object.keys(activeCustom)],
       (completed, total, domainLabel) => {
         send({ type: 'progress', completed, total, domainLabel });
       },
-      activeCustom
+      activeCustom,
+      abortController.signal
     );
     send({ type: 'complete', results });
     res.end();
