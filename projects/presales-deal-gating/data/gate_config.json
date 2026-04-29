@@ -1,8 +1,8 @@
 {
   "weights": {
-    "Requirements": 0.35,
-    "Architecture": 0.4,
-    "Proposal": 0.25
+    "Requirements": 0.45,
+    "Architecture": 0.25,
+    "Proposal": 0.30
   },
   "score_thresholds": {
     "gate_pass": 80,
@@ -23,8 +23,7 @@
     "scope_penalty": 8
   },
   "architecture": {
-    "baseline": 68,
-    "missing_baseline": 10,
+    "baseline": 62,
     "ha_bonus": 8,
     "dr_bonus": 8,
     "air_gap_conflict_penalty": 30,

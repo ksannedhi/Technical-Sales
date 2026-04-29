@@ -76,8 +76,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             "deal_package_path": "",
             "requirements": "",
             "requirements_path": "",
-            "architecture": "",
-            "architecture_path": "",
             "proposal": "",
             "proposal_path": "",
             "supporting_context": "",
@@ -98,8 +96,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "deal_package_path": "",
                 "requirements": "",
                 "requirements_path": "",
-                "architecture": "",
-                "architecture_path": "",
                 "proposal": "",
                 "proposal_path": "",
                 "supporting_context": "",
@@ -115,8 +111,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         "deal_package_path": "",
         "requirements": "",
         "requirements_path": "",
-        "architecture": "",
-        "architecture_path": "",
         "proposal": "",
         "proposal_path": "",
         "supporting_context": "",
@@ -137,8 +131,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             "deal_package_path": "",
             "requirements": "",
             "requirements_path": "",
-            "architecture": "",
-            "architecture_path": "",
             "proposal": "",
             "proposal_path": "",
             "supporting_context": "",
@@ -159,8 +151,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "deal_package_path": "",
                 "requirements": "",
                 "requirements_path": "",
-                "architecture": "",
-                "architecture_path": "",
                 "proposal": "",
                 "proposal_path": "",
                 "supporting_context": "",
@@ -176,8 +166,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         state["deal_package_path"] = (form.get("deal_package_path") or "").strip()
         state["requirements"] = (form.get("requirements") or "").strip()
         state["requirements_path"] = (form.get("requirements_path") or "").strip()
-        state["architecture"] = (form.get("architecture") or "").strip()
-        state["architecture_path"] = (form.get("architecture_path") or "").strip()
         state["proposal"] = (form.get("proposal") or "").strip()
         state["proposal_path"] = (form.get("proposal_path") or "").strip()
         state["supporting_context"] = (form.get("supporting_context") or "").strip()
@@ -192,13 +180,11 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
 
     artifacts = {
         "requirements": (form.get("requirements") or state["requirements"]).strip(),
-        "architecture": (form.get("architecture") or state["architecture"]).strip(),
         "proposal": (form.get("proposal") or state["proposal"]).strip(),
         "supporting_context": (form.get("supporting_context") or state["supporting_context"]).strip(),
     }
     state["deal_package_path"] = (form.get("deal_package_path") or "").strip()
     state["requirements_path"] = (form.get("requirements_path") or "").strip()
-    state["architecture_path"] = (form.get("architecture_path") or "").strip()
     state["proposal_path"] = (form.get("proposal_path") or "").strip()
     state["supporting_path"] = (form.get("supporting_path") or "").strip()
 
@@ -210,7 +196,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
 
     for key, target in [
         ("requirements_path", "requirements"),
-        ("architecture_path", "architecture"),
         ("proposal_path", "proposal"),
         ("supporting_path", "supporting_context"),
     ]:
@@ -226,7 +211,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             artifacts[key] = merge_text(value, artifacts.get(key, ""))
         state["messages"].append(f"Loaded deal ZIP: {deal_zip['filename']}")
 
-    for key in ["requirements_file", "architecture_file", "proposal_file", "supporting_file"]:
+    for key in ["requirements_file", "proposal_file", "supporting_file"]:
         upload = form.get(key)
         if isinstance(upload, dict) and upload.get("filename"):
             extraction_started = time.time()
@@ -249,8 +234,6 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     state["deal_package_path"] = ""
     state["requirements"] = ""
     state["requirements_path"] = ""
-    state["architecture"] = ""
-    state["architecture_path"] = ""
     state["proposal"] = ""
     state["proposal_path"] = ""
     state["supporting_context"] = ""
@@ -323,7 +306,6 @@ def render_page(state: dict[str, object]) -> str:
           <p class="selected-review-note">Scroll down for more details.</p>
         </section>
         """
-        raw_payload = escape(json.dumps(result, indent=2))
         result_html = f"""
         <section class="panel">
           <div class="result-header">
@@ -361,10 +343,6 @@ def render_page(state: dict[str, object]) -> str:
               </ul>
             </div>
           </div>
-          <details>
-            <summary>Raw payload</summary>
-            <pre>{raw_payload}</pre>
-          </details>
         </section>
         """
 
@@ -466,19 +444,14 @@ def render_page(state: dict[str, object]) -> str:
             <input name="requirements_file" type="file" accept=".txt,.md,.docx,.pdf">
             <input name="requirements_path" type="text" placeholder="Or paste a local requirements file path" value="{escape(state['requirements_path'])}">
 
-            <label for="architecture">Architecture Notes</label>
-            <textarea id="architecture" name="architecture">{escape(state['architecture'])}</textarea>
-            <label>Optional architecture upload</label>
-            <input name="architecture_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
-            <input name="architecture_path" type="text" placeholder="Or paste a local architecture file path" value="{escape(state['architecture_path'])}">
-
             <label for="proposal">Proposal / SOW Summary</label>
             <textarea id="proposal" name="proposal">{escape(state['proposal'])}</textarea>
             <label>Optional proposal upload</label>
             <input name="proposal_file" type="file" accept=".txt,.md,.docx,.pdf">
             <input name="proposal_path" type="text" placeholder="Or paste a local proposal file path" value="{escape(state['proposal_path'])}">
 
-            <label for="supporting_context">Supporting Notes / Diagrams</label>
+            <label for="supporting_context">Discovery Notes &amp; Supporting Context</label>
+            <p class="hint" style="margin:4px 0 8px">Paste meeting notes, call summaries, sizing worksheets, or any context that does not fit the formal requirements or proposal docs. Architecture signals found here (HA, DR, integrations, constraints) will supplement the requirements gate and inform the architecture assessment.</p>
             <textarea id="supporting_context" name="supporting_context">{escape(state['supporting_context'])}</textarea>
             <label>Optional supporting upload</label>
             <input name="supporting_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
@@ -487,7 +460,7 @@ def render_page(state: dict[str, object]) -> str:
             <div class="package-upload">
               <div class="package-kicker">Fastest Path On This Laptop</div>
               <label>Upload one deal package ZIP</label>
-              <p class="hint">Use this when you already have the deal artifacts together. One ZIP can replace the individual uploads for requirements, architecture, proposal, and supporting notes.</p>
+              <p class="hint">Use this when you already have the deal artifacts together. One ZIP can replace the individual uploads for requirements, proposal, and supporting notes.</p>
               <input name="deal_zip" type="file" accept=".zip">
               <div class="local-path-box">
                 <label for="deal_package_path">Or paste a local folder or ZIP path</label>
@@ -511,7 +484,7 @@ def render_page(state: dict[str, object]) -> str:
             <h2>About This App</h2>
             <ul>
               <li>Upload or paste presales inputs and get a readiness review in one place.</li>
-              <li>The app evaluates requirements, architecture, proposal quality, and supporting notes together.</li>
+              <li>The app evaluates requirements, proposal quality, and discovery notes together — architecture signals are extracted from across all inputs.</li>
               <li>It highlights missing artifacts, contradictions, weak assumptions, and technical delivery risks.</li>
               <li>It gives weighted gate scores plus follow-up questions to help improve the submission.</li>
             </ul>
@@ -762,7 +735,7 @@ def load_text_from_local_path(path_text: str, messages: list[str]) -> str:
 
 
 def load_artifacts_from_local_package_path(path_text: str, messages: list[str]) -> dict[str, str]:
-    empty = {"requirements": "", "architecture": "", "proposal": "", "supporting_context": ""}
+    empty = {"requirements": "", "proposal": "", "supporting_context": ""}
     try:
         package_path = Path(path_text.strip().strip('"'))
     except Exception:

@@ -13,7 +13,7 @@ The app is designed to help a user:
 - preserve reviews in a session-level left-side deal history
 - download findings for follow-up or sharing
 
-The app is intentionally `soft-gating`. It does not block progression automatically and does not generate missing deliverables.
+This MVP is intentionally a `soft-gating` app. It does not block progression automatically and does not generate missing deliverables.
 
 ## Primary Goal
 
@@ -91,7 +91,7 @@ The result area should display:
 
 ### Gate Areas
 
-The app scores three gates:
+The MVP scores three gates:
 
 - `Requirements`
 - `Architecture`
@@ -167,7 +167,7 @@ Checks include:
 
 ### Supported Inputs
 
-The app currently supports:
+The MVP currently supports:
 
 - `.txt`
 - `.md`
@@ -246,7 +246,7 @@ The `Download Findings` action should export a plain-text summary containing:
 
 ## Current Non-Goals
 
-The app does not currently include:
+The MVP does not currently include:
 
 - autonomous multi-agent orchestration
 - document generation

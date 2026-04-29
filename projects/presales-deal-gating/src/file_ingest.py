@@ -17,9 +17,9 @@ from xml.etree import ElementTree as ET
 SUPPORTED_TEXT_EXTENSIONS = {".txt", ".md"}
 SUPPORTED_EXTENSIONS = {".txt", ".md", ".docx", ".pptx", ".pdf", ".zip"}
 NS = {"a": "http://schemas.openxmlformats.org/drawingml/2006/main"}
-MAX_PDF_BYTES = 4_000_000
-MAX_PDF_PAGES = 15
-PDF_TIMEOUT_SECONDS = 4
+MAX_PDF_BYTES = 20_000_000   # 20 MB — typical RFP/proposal PDFs can be 10–20 MB
+MAX_PDF_PAGES = 40           # first 40 pages covers most proposals and RFPs
+PDF_TIMEOUT_SECONDS = 20     # subprocess startup + pypdf import takes 1–3 s on Windows
 MAX_CACHE_ENTRIES = 64
 EXTRACTION_CACHE: OrderedDict[str, str] = OrderedDict()
 
@@ -115,14 +115,14 @@ def extract_pdf(source: str | Path | io.BytesIO, suffix_hint: str = ".pdf") -> s
     if isinstance(source, io.BytesIO):
         payload = source.getvalue()
         if len(payload) > MAX_PDF_BYTES:
-            return "[PDF too large for fast local review]"
+            return "[PDF too large — convert to DOCX or paste text directly]"
     if isinstance(source, (str, Path)):
         try:
             payload = Path(source).read_bytes()
         except OSError:
             return f"[Could not parse {suffix_hint} file]"
         if len(payload) > MAX_PDF_BYTES:
-            return "[PDF too large for fast local review]"
+            return "[PDF too large — convert to DOCX or paste text directly]"
 
     if not payload:
         return f"[Could not parse {suffix_hint} file]"
@@ -131,15 +131,43 @@ def extract_pdf(source: str | Path | io.BytesIO, suffix_hint: str = ".pdf") -> s
 
 def extract_pdf_bytes(payload: bytes, suffix_hint: str = ".pdf") -> str:
     if len(payload) > MAX_PDF_BYTES:
-        return "[PDF too large for fast local review]"
+        mb = MAX_PDF_BYTES // 1_000_000
+        return f"[PDF exceeds {mb} MB limit — convert to DOCX or paste text directly]"
+    # Fast path: use pypdf in-process if available (avoids subprocess startup cost)
+    try:
+        return _extract_pdf_inprocess(payload)
+    except ModuleNotFoundError:
+        pass  # pypdf not importable — fall through to subprocess
+    except Exception:
+        pass  # unexpected parse error — subprocess may handle it differently
+    # Subprocess fallback: crash-isolated, slightly slower
     try:
         return _extract_pdf_via_subprocess(payload)
     except ModuleNotFoundError:
         return "[PDF parsing unavailable: install pypdf]"
     except subprocess.TimeoutExpired:
-        return "[PDF parsing timed out for local review]"
+        return "[PDF parsing timed out — try a shorter document or convert to DOCX]"
     except Exception:
         return f"[Could not parse {suffix_hint} file]"
+
+
+def _extract_pdf_inprocess(payload: bytes) -> str:
+    """Extract PDF text using pypdf directly in the current process (fast path)."""
+    try:
+        from pypdf import PdfReader  # type: ignore[import]
+    except ModuleNotFoundError:
+        raise
+    logging.getLogger("pypdf").setLevel(logging.ERROR)
+    reader = PdfReader(io.BytesIO(payload))
+    pages: list[str] = []
+    for index, page in enumerate(reader.pages):
+        if index >= MAX_PDF_PAGES:
+            break
+        pages.append(page.extract_text() or "")
+    text = "\n\n".join(pages).strip()
+    if len(reader.pages) > MAX_PDF_PAGES:
+        text += f"\n\n[Only the first {MAX_PDF_PAGES} of {len(reader.pages)} pages were reviewed]"
+    return text
 
 
 def _extract_pdf_via_subprocess(payload: bytes) -> str:
@@ -167,8 +195,6 @@ def assign_text_to_bucket(name: str, text: str, artifacts: dict[str, str]) -> No
         return
     if "requirement" in lower_name or "discovery" in lower_name or "rfp" in lower_name:
         artifacts["requirements"] = combine_text(artifacts["requirements"], clean)
-    elif "architect" in lower_name:
-        artifacts["architecture"] = combine_text(artifacts["architecture"], clean)
     elif "proposal" in lower_name or "sow" in lower_name:
         artifacts["proposal"] = combine_text(artifacts["proposal"], clean)
     else:
@@ -182,7 +208,6 @@ def combine_text(existing: str, new_text: str) -> str:
 def blank_artifacts() -> dict[str, str]:
     return {
         "requirements": "",
-        "architecture": "",
         "proposal": "",
         "supporting_context": "",
     }

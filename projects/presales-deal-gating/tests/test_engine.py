@@ -9,7 +9,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from file_ingest import EXTRACTION_CACHE, MAX_CACHE_ENTRIES, cache_put, extract_text_from_path, load_artifacts_from_zip
-from presales_gate_engine import PresalesGateEngine
+from pdg_mvp import PresalesGateEngine
 
 
 class GateEngineTests(unittest.TestCase):
@@ -38,7 +38,7 @@ class GateEngineTests(unittest.TestCase):
         self.assertIn("air-gapped", messages.lower())
 
     def test_missing_inputs_raise_questions(self) -> None:
-        result = self.engine.analyze("empty", {"requirements": "", "architecture": "", "proposal": ""})
+        result = self.engine.analyze("empty", {"requirements": "", "proposal": ""})
         self.assertTrue(result.missing_artifacts)
         self.assertTrue(result.clarifying_questions)
 
@@ -68,7 +68,7 @@ class GateEngineTests(unittest.TestCase):
         artifacts = load_artifacts_from_zip(zip_path)
         self.assertIn("1 TB/day", artifacts["requirements"])
         self.assertIn("Timeline", artifacts["proposal"])
-        self.assertIn("graph LR", artifacts["architecture"])
+        self.assertIn("graph LR", artifacts["supporting_context"])
         self.assertIn("Log sources list incomplete", artifacts["supporting_context"])
 
     def test_solution_family_questions_become_more_specific(self) -> None:
@@ -76,9 +76,8 @@ class GateEngineTests(unittest.TestCase):
             "firewall renewal",
             {
                 "requirements": "Customer needs firewall renewal for internet edge and VPN access across branches.",
-                "architecture": "Firewall HA pair is proposed at the perimeter with branch connectivity.",
                 "proposal": "Phased firewall migration plan with deliverables and timeline.",
-                "supporting_context": "",
+                "supporting_context": "Firewall HA pair is proposed at the perimeter with branch connectivity.",
             },
         )
         joined_questions = " ".join(result.clarifying_questions).lower()
@@ -89,7 +88,6 @@ class GateEngineTests(unittest.TestCase):
             "crown prince",
             {
                 "requirements": "RFP covers load balancer Barracuda license, Palo Alto firewall license, WAF F5 license, and FortiGate firewall license renewal.",
-                "architecture": "",
                 "proposal": "Technical proposal for load balancer, firewall, and WAF renewal with phased delivery and assumptions.",
                 "supporting_context": "",
             },
@@ -109,9 +107,8 @@ class GateEngineTests(unittest.TestCase):
                     "AD enrichment, phased onboarding for 12 log sources, architecture review, and delivery scope "
                     "across primary and DR sites with named integrations and timeline expectations."
                 ),
-                "architecture": "HA cluster across two sites with DR failover and identity integration.",
                 "proposal": "Phased plan with deliverables, timeline, and executive summary.",
-                "supporting_context": "",
+                "supporting_context": "HA cluster across two sites with DR failover and identity integration.",
             },
         )
         requirement_messages = " ".join(

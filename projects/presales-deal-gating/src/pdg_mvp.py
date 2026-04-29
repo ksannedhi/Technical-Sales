@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Iterable
 
 
-SECTION_NAMES = ("requirements", "proposal")
+SECTION_NAMES = ("requirements", "architecture", "proposal")
 
 OUTCOME_TO_LABEL = {
     "PASS": "PASS",
@@ -42,9 +42,9 @@ KEYWORDS = {
 
 DEFAULT_GATE_CONFIG = {
     "weights": {
-        "Requirements": 0.45,
-        "Architecture": 0.25,
-        "Proposal": 0.30,
+        "Requirements": 0.35,
+        "Architecture": 0.40,
+        "Proposal": 0.25,
     },
     "score_thresholds": {
         "gate_pass": 80,
@@ -65,7 +65,8 @@ DEFAULT_GATE_CONFIG = {
         "scope_penalty": 8,
     },
     "architecture": {
-        "baseline": 62,
+        "baseline": 68,
+        "missing_baseline": 10,
         "ha_bonus": 8,
         "dr_bonus": 8,
         "air_gap_conflict_penalty": 30,
@@ -207,8 +208,8 @@ POSITIVE_SIGNALS = [
     ("Quantified sizing is present", "requirements", "log_volume"),
     ("Retention requirement is defined", "requirements", "retention"),
     ("Identity/integration detail is present", "requirements", "identity"),
-    ("HA or clustering detail is present in the deal package", "architecture", "ha"),
-    ("DR or failover detail is present in the deal package", "architecture", "dr"),
+    ("Architecture includes HA or clustering detail", "architecture", "ha"),
+    ("Architecture includes DR/failover detail", "architecture", "dr"),
     ("Proposal includes phased delivery or timeline detail", "proposal", "timeline"),
     ("Proposal references business or executive value", "proposal", "business_outcome"),
     ("Proposal includes BoM or commercial structure cues", "proposal", "bom"),
@@ -375,9 +376,9 @@ class PresalesGateEngine:
             strengths,
             clarifying_questions,
         )
-        architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, findings, strengths, clarifying_questions)
-        proposal_score = self._proposal_gate(normalized["requirements"], normalized["proposal"], supporting_context, findings, strengths, clarifying_questions)
-        self._cross_document_checks(normalized["requirements"], normalized["proposal"], supporting_context, findings, clarifying_questions)
+        architecture_score = self._architecture_gate(normalized, supporting_context, findings, strengths, clarifying_questions)
+        proposal_score = self._proposal_gate(normalized, supporting_context, findings, strengths, clarifying_questions)
+        self._cross_document_checks(normalized, supporting_context, findings, clarifying_questions)
         self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions)
 
         for missing in missing_artifacts:
@@ -390,7 +391,7 @@ class PresalesGateEngine:
 
         gate_scores = {
             "Requirements": clamp_score(requirements_score - len(missing_artifacts) * 5),
-            "Architecture": clamp_score(architecture_score),
+            "Architecture": clamp_score(architecture_score - (10 if "architecture" in missing_artifacts else 0)),
             "Proposal": clamp_score(proposal_score - (10 if "proposal" in missing_artifacts else 0)),
         }
         gate_statuses = {gate: status_from_score(score) for gate, score in gate_scores.items()}
@@ -421,22 +422,14 @@ class PresalesGateEngine:
         return result
 
     def _detect_solution_families(self, artifacts: dict[str, str], supporting_context: str) -> list[str]:
-        requirements = artifacts.get("requirements", "")
-        proposal = artifacts.get("proposal", "")
-        combined = f"{requirements} {supporting_context} {proposal}"
+        combined = " ".join([artifacts.get(section, "") for section in SECTION_NAMES] + [supporting_context])
         family_scores: list[tuple[int, str]] = []
         for family, keywords in SOLUTION_FAMILY_KEYWORDS.items():
-            # Require at least one hit in the requirements/RFP to consider a family in scope.
-            # This prevents vendor credential boilerplate in the proposal from triggering
-            # solution families unrelated to the actual deal.
-            req_hits = sum(1 for kw in keywords if _keyword_match(requirements, kw))
-            if req_hits == 0:
-                continue
-            total_hits = sum(1 for kw in keywords if _keyword_match(combined, kw))
-            if total_hits >= 2:
-                family_scores.append((total_hits, family))
+            score = sum(1 for keyword in keywords if keyword in combined)
+            if score > 0:
+                family_scores.append((score, family))
         family_scores.sort(reverse=True)
-        return [family for _, family in family_scores][:2]
+        return [family for score, family in family_scores if score >= 2][:2]
 
     def _solution_family_questions(
         self,
@@ -450,12 +443,10 @@ class PresalesGateEngine:
             family_questions = SOLUTION_FAMILY_QUESTIONS.get(family, [])
             if not family_questions:
                 continue
-            # For SIEM: if log volume is already defined, skip the sizing question
-            # and surface the higher-level retention and use-case questions instead.
-            if family == "siem_log_mgmt" and has_any(combined, KEYWORDS["log_volume"]):
-                questions.extend(family_questions[1:3])
-            else:
+            if family == "siem_log_mgmt" and not has_any(combined, KEYWORDS["log_volume"]):
                 questions.extend(family_questions[:2])
+                continue
+            questions.extend(family_questions[:2])
 
     def _requirements_gate(
         self,
@@ -476,125 +467,114 @@ class PresalesGateEngine:
         if observability_sensitive:
             if has_any(requirements, KEYWORDS["log_volume"]):
                 score += gate_config["log_volume_bonus"]
-            elif has_any(supporting_context, KEYWORDS["log_volume"]):
-                score += gate_config["log_volume_bonus"] // 2
             else:
                 findings.append(make_finding("Requirements", "medium", "Sizing input is missing or unclear, especially log volume or ingestion rate.", "log volume"))
                 questions.append("What is the expected daily ingestion or event volume?")
 
             if has_any(requirements, KEYWORDS["retention"]):
                 score += gate_config["retention_bonus"]
-            elif has_any(supporting_context, KEYWORDS["retention"]):
-                score += gate_config["retention_bonus"] // 2
             else:
                 findings.append(make_finding("Requirements", "medium", "Retention requirement is not clearly stated.", "retention"))
                 questions.append("What retention period is required?")
 
         if has_any(requirements, KEYWORDS["identity"]):
             score += gate_config["identity_bonus"]
-        elif has_any(supporting_context, KEYWORDS["identity"]):
-            score += gate_config["identity_bonus"] // 2
         else:
             findings.append(make_finding("Requirements", "medium", "Identity or core integration dependencies are not clearly defined.", "identity"))
             questions.append("Which identity systems and core integrations must be supported?")
 
         if has_any(requirements, KEYWORDS["compliance"]):
             score += gate_config["compliance_bonus"]
-        elif has_any(supporting_context, KEYWORDS["compliance"]):
-            score += gate_config["compliance_bonus"] // 2
-        elif has_word(requirements, "government") or has_word(requirements, "bank"):
+        elif "government" in requirements or "bank" in requirements:
             findings.append(make_finding("Requirements", "medium", "Compliance driver is implied but not made explicit.", "compliance"))
 
         if vague_language(requirements, self.config):
             score -= gate_config["vague_penalty"]
             findings.append(make_finding("Requirements", "high", "Requirements are too vague for a reliable design review.", "vague"))
 
-        # Only check discovery notes for uncertainty markers — formal RFPs routinely use
-        # "incomplete" and "unclear" in procurement boilerplate (e.g. "right to reject
-        # incomplete proposals"), which is not a discovery gap indicator.
-        if any(has_word(supporting_context, token) for token in ["tbd", "not confirmed", "unclear", "incomplete"]):
+        if any(token in requirements or token in supporting_context for token in ["tbd", "not confirmed", "unclear", "incomplete"]):
             score -= gate_config["unclear_penalty"]
             findings.append(make_finding("Requirements", "medium", "Critical discovery inputs are still uncertain or incomplete.", "unclear"))
 
-        scope_terms = self._scope_terms(solution_families)
-        if not any(token in requirements for token in scope_terms) and not any(token in supporting_context for token in scope_terms):
+        if not any(token in requirements for token in self._scope_terms(solution_families)):
             score -= gate_config["scope_penalty"]
             findings.append(make_finding("Requirements", "medium", "Scope boundaries are weak or missing.", "scope"))
             questions.append("What assets, users, and environments are in scope?")
 
         for message, section, tag in POSITIVE_SIGNALS[:4]:
-            if section == "requirements" and (has_any(requirements, KEYWORDS[tag]) or has_any(supporting_context, KEYWORDS[tag])):
+            if section == "requirements" and has_any(requirements, KEYWORDS[tag]):
                 strengths.append(message)
 
         return clamp_score(score)
 
     def _architecture_gate(
         self,
-        requirements: str,
+        artifacts: dict[str, str],
         supporting_context: str,
         findings: list[dict[str, str]],
         strengths: list[str],
         questions: list[str],
     ) -> int:
+        architecture = artifacts["architecture"]
+        requirements = artifacts["requirements"]
         gate_config = self.config["architecture"]
-        combined = f"{requirements} {supporting_context}".strip()
-        score = gate_config["baseline"]
+        score = gate_config["baseline"] if architecture else gate_config["missing_baseline"]
+        if not architecture:
+            questions.append("Can you provide architecture notes or a text description of the design?")
+            return score
 
-        if has_any(combined, KEYWORDS["ha"]):
+        if has_any(architecture, KEYWORDS["ha"]):
             score += gate_config["ha_bonus"]
         else:
             findings.append(make_finding("Architecture", "high", "High availability design is missing or unclear.", "ha"))
             questions.append("How is high availability handled across collectors, nodes, or sites?")
 
-        if has_any(combined, KEYWORDS["dr"]) or has_any(combined, KEYWORDS["failover"]):
+        if has_any(architecture, KEYWORDS["dr"]) or has_any(architecture, KEYWORDS["failover"]):
             score += gate_config["dr_bonus"]
         else:
             findings.append(make_finding("Architecture", "medium", "DR or failover design is not defined.", "dr"))
 
-        if has_any(requirements, KEYWORDS["air_gap"]) and has_any(combined, KEYWORDS["cloud"]):
+        if has_any(requirements, KEYWORDS["air_gap"]) and has_any(architecture, KEYWORDS["cloud"]):
             score -= gate_config["air_gap_conflict_penalty"]
             findings.append(make_finding("Architecture", "high", "Architecture conflicts with an air-gapped or no-cloud requirement.", "air-gapped"))
 
-        # Alignment checks: only penalise when discovery notes exist but don't address the requirement
-        has_discovery_notes = len(supporting_context.strip()) > 50
-
-        if has_any(requirements, KEYWORDS["latency"]) and has_discovery_notes and not has_any(supporting_context, KEYWORDS["latency"]):
+        if has_any(requirements, KEYWORDS["latency"]) and not has_any(architecture, KEYWORDS["latency"]):
             score -= gate_config["latency_penalty"]
-            findings.append(make_finding("Architecture", "medium", "Low-latency requirement is present but latency handling is not described in discovery notes.", "latency"))
+            findings.append(make_finding("Architecture", "medium", "Low-latency requirement is present but latency handling is not described.", "latency"))
 
-        if has_any(requirements, KEYWORDS["identity"]) and has_discovery_notes and not has_any(supporting_context, KEYWORDS["identity"]):
+        if has_any(requirements, KEYWORDS["identity"]) and not has_any(architecture, KEYWORDS["identity"]):
             score -= gate_config["identity_penalty"]
-            findings.append(make_finding("Architecture", "medium", "Identity integration is required but not addressed in discovery notes.", "identity"))
+            findings.append(make_finding("Architecture", "medium", "Required identity or core integrations are not reflected in the design.", "identity"))
 
-        if has_any(requirements, KEYWORDS["cloud"]) and has_discovery_notes and not has_any(supporting_context, KEYWORDS["cloud"]):
+        if has_any(requirements, KEYWORDS["cloud"]) and not has_any(architecture, KEYWORDS["cloud"]):
             score -= gate_config["cloud_penalty"]
-            findings.append(make_finding("Architecture", "medium", "Cloud ingestion or controls are required but not addressed in discovery notes.", "cloud"))
+            findings.append(make_finding("Architecture", "medium", "Cloud ingestion path or cloud controls are not clearly addressed.", "cloud"))
 
-        if has_word(combined, "single node"):
+        if "single node" in architecture:
             score -= gate_config["single_node_penalty"]
             findings.append(make_finding("Architecture", "medium", "Single-node architecture creates resilience risk for production use.", "single node"))
 
-        # Restrict uncertainty checks to discovery notes — RFP documents commonly use
-        # "unclear" in procurement clauses that have nothing to do with design gaps.
-        if any(has_word(supporting_context, token) for token in ["unclear", "not confirmed", "api access not confirmed"]):
+        if any(token in architecture or token in supporting_context for token in ["unclear", "not confirmed", "api access not confirmed"]):
             score -= gate_config["api_penalty"]
             findings.append(make_finding("Architecture", "medium", "Architecture depends on unresolved integration or API assumptions.", "api"))
 
         for message, section, tag in POSITIVE_SIGNALS:
-            if section == "architecture" and has_any(combined, KEYWORDS[tag]):
+            if section == "architecture" and has_any(architecture, KEYWORDS[tag]):
                 strengths.append(message)
 
         return clamp_score(score)
 
     def _proposal_gate(
         self,
-        requirements: str,
-        proposal: str,
+        artifacts: dict[str, str],
         supporting_context: str,
         findings: list[dict[str, str]],
         strengths: list[str],
         questions: list[str],
     ) -> int:
+        proposal = artifacts["proposal"]
+        requirements = artifacts["requirements"]
+        architecture = artifacts["architecture"]
         gate_config = self.config["proposal"]
         score = gate_config["baseline"] if proposal else gate_config["missing_baseline"]
         if not proposal:
@@ -603,33 +583,25 @@ class PresalesGateEngine:
 
         if has_any(proposal, KEYWORDS["timeline"]):
             score += gate_config["timeline_bonus"]
-        elif has_any(supporting_context, KEYWORDS["timeline"]):
-            score += gate_config["timeline_bonus"] // 2
         else:
             findings.append(make_finding("Proposal", "medium", "Timeline or phased delivery plan is missing.", "timeline"))
 
         if has_any(proposal, KEYWORDS["business_outcome"]):
             score += gate_config["business_bonus"]
-        elif has_any(supporting_context, KEYWORDS["business_outcome"]):
-            score += gate_config["business_bonus"] // 2
         else:
             findings.append(make_finding("Proposal", "low", "Proposal focuses on solution delivery but not business value.", "business"))
 
-        # "generic malware", "generic threats" etc. are valid cybersecurity terms; only
-        # flag when "generic" qualifies the solution or approach itself.
-        if has_word(proposal, "generic solution") or has_word(proposal, "generic approach") or has_word(proposal, "generic template"):
+        if "generic" in proposal:
             score -= gate_config["generic_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal content appears generic and not tailored to the deal.", "generic"))
 
-        # FIX: was `token in proposal or supporting_context` — OR binds tighter, making
-        # the condition always truthy when supporting_context is non-empty.
-        if any(has_word(proposal, token) or has_word(supporting_context, token) for token in ["assumed", "tbd", "check policy"]):
+        if any(token in proposal or supporting_context for token in ["assumed", "tbd", "check policy"]):
             score -= gate_config["assumption_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal relies on unresolved assumptions that should be surfaced before customer submission.", "assumption"))
 
-        if has_any(requirements, KEYWORDS["air_gap"]) and has_word(proposal, "conflict"):
+        if has_any(requirements, KEYWORDS["air_gap"]) and "conflict" in proposal:
             score += gate_config["conflict_bonus"]
-        elif has_any(requirements, KEYWORDS["air_gap"]) and has_any(supporting_context, KEYWORDS["cloud"]):
+        elif has_any(requirements, KEYWORDS["air_gap"]) and has_any(architecture, KEYWORDS["cloud"]):
             score -= gate_config["conflict_penalty"]
             findings.append(make_finding("Proposal", "high", "Proposal does not address a major requirement-architecture conflict.", "conflict"))
 
@@ -637,7 +609,7 @@ class PresalesGateEngine:
             score -= gate_config["latency_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal does not mention SLA or latency commitments for a latency-sensitive deal.", "sla"))
 
-        if not any(has_word(proposal, token) for token in ["deliverables", "scope", "bom", "plan", "phases", "dashboard", "playbook", "summary"]):
+        if not any(token in proposal for token in ["deliverables", "scope", "bom", "plan", "phases", "dashboard", "playbook", "summary"]):
             score -= gate_config["deliverables_penalty"]
             findings.append(make_finding("Proposal", "medium", "Scope or explicit deliverables are not clearly stated.", "deliverables"))
 
@@ -649,12 +621,14 @@ class PresalesGateEngine:
 
     def _cross_document_checks(
         self,
-        requirements: str,
-        proposal: str,
+        artifacts: dict[str, str],
         supporting_context: str,
         findings: list[dict[str, str]],
         questions: list[str],
     ) -> None:
+        requirements = artifacts["requirements"]
+        architecture = artifacts["architecture"]
+        proposal = artifacts["proposal"]
         volume_values = [
             value
             for value in [
@@ -668,11 +642,8 @@ class PresalesGateEngine:
             findings.append(make_finding("Cross-check", "high", "Documented log-volume assumptions are inconsistent across artifacts.", "log volume"))
             questions.append("Which ingestion estimate is authoritative for sizing and proposal commitments?")
 
-        if has_word(requirements, "air-gapped") and has_word(proposal, "cloud"):
+        if "air-gapped" in requirements and "cloud" in proposal:
             findings.append(make_finding("Cross-check", "high", "Proposal language still references cloud dependencies for an air-gapped deal.", "conflict"))
-
-        if has_word(requirements, "air-gapped") and has_word(supporting_context, "cloud"):
-            findings.append(make_finding("Cross-check", "high", "Discovery notes reference cloud components for an air-gapped deal.", "conflict"))
 
         if "log sources list incomplete" in supporting_context:
             findings.append(make_finding("Cross-check", "medium", "Supporting notes indicate source inventory is incomplete, which weakens sizing and scope confidence.", "sources"))
@@ -690,26 +661,8 @@ def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().lower())
 
 
-# Short alphabetic/numeric keywords (≤4 chars, e.g. "ha", "dr", "soc", "siem") need
-# whole-word matching to prevent false substring hits such as "ha" matching "hardware"
-# or "dr" matching "address". Longer / compound keywords use plain substring matching
-# so plurals and hyphenated forms are still caught naturally.
-_SHORT_ALPHA_RE = re.compile(r"^[a-z0-9]{1,4}$")
-
-
-def _keyword_match(text: str, kw: str) -> bool:
-    if _SHORT_ALPHA_RE.match(kw):
-        return bool(re.search(r"\b" + kw + r"\b", text))
-    return kw in text
-
-
 def has_any(text: str, keywords: list[str]) -> bool:
-    return any(_keyword_match(text, kw) for kw in keywords)
-
-
-def has_word(text: str, term: str) -> bool:
-    """Single-term equivalent of has_any. Use for direct one-off keyword checks."""
-    return _keyword_match(text, term)
+    return any(keyword in text for keyword in keywords)
 
 
 def vague_language(text: str, config: dict[str, object]) -> bool:
@@ -720,10 +673,10 @@ def vague_language(text: str, config: dict[str, object]) -> bool:
     structure_terms = settings["structure_terms"]
     detail_terms = settings["detail_terms"]
     word_count = len(text.split())
-    structure_hits = sum(1 for term in structure_terms if _keyword_match(text, term))
-    detail_hits = sum(1 for term in detail_terms if _keyword_match(text, term))
+    structure_hits = sum(1 for term in structure_terms if term in text)
+    detail_hits = sum(1 for term in detail_terms if term in text)
     has_digit = bool(re.search(r"\d", text))
-    has_vague_term = any(_keyword_match(text, term) for term in vague_terms)
+    has_vague_term = any(term in text for term in vague_terms)
     if word_count < minimum_words and detail_hits < minimum_detail_signals and structure_hits < 2 and not has_digit:
         return True
     if has_vague_term and detail_hits < minimum_detail_signals and structure_hits < 2:
