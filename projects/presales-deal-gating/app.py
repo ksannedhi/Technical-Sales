@@ -23,9 +23,6 @@ from presales_gate_engine import PresalesGateEngine
 
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("PORT", 8020))
-SUPPORTED_STANDARD_FORMATS = [".txt", ".md", ".docx", ".pptx", ".pdf", ".zip"]
-UNSUPPORTED_STANDARD_FORMATS = [".xlsx", ".xls", ".csv", ".json", ".doc", ".ppt", ".rtf", ".html"]
-PDF_SUPPORT_NOTE = ".pdf is supported for text-based PDFs only; scanned or image-heavy PDFs are not fully supported yet."
 
 engine = PresalesGateEngine(ROOT / "data")
 SESSION_REVIEWS: list[dict[str, object]] = []
@@ -409,6 +406,25 @@ def render_page(state: dict[str, object]) -> str:
     .local-path-box {{ margin: 14px 0 0; padding: 14px; border: 1px dashed #c9893f; border-radius: 12px; background: rgba(255,255,255,0.5); }}
     .local-path-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
     .local-path-box input[type="text"] {{ margin-bottom: 8px; }}
+    .info-gates {{ display: grid; gap: 8px; margin-bottom: 4px; }}
+    .info-gate {{ background: #f3ebe0; border-radius: 10px; padding: 10px 12px; }}
+    .info-gate .hint {{ margin: 4px 0 0; font-size: 0.88rem; }}
+    .info-gate-header {{ display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.93rem; }}
+    .gate-weight {{ background: rgba(138,75,22,0.12); color: #6d3d0d; border-radius: 999px; padding: 2px 9px; font-size: 0.82rem; font-weight: 700; }}
+    .score-bands {{ display: grid; gap: 5px; margin-top: 12px; }}
+    .band {{ display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 9px; font-weight: 600; font-size: 0.88rem; }}
+    .band-score {{ font-variant-numeric: tabular-nums; font-weight: 700; min-width: 38px; }}
+    .band-pass {{ background: #e6f4ec; color: #265c3a; }}
+    .band-risk {{ background: #fef5d4; color: #7a5400; }}
+    .band-rework {{ background: #fdeaea; color: #872020; }}
+    .info-where {{ display: grid; gap: 11px; }}
+    .info-where-item {{ border-left: 3px solid #c9893f; padding-left: 10px; }}
+    .info-where-label {{ font-weight: 700; font-size: 0.91rem; margin-bottom: 2px; }}
+    .info-where-item .hint {{ margin: 3px 0 0; font-size: 0.88rem; }}
+    .format-table {{ border-collapse: collapse; width: 100%; }}
+    .format-table td {{ padding: 4px 6px; vertical-align: top; font-size: 0.88rem; line-height: 1.4; }}
+    .fmt-ok {{ color: #265c3a; font-weight: 700; width: 16px; padding-right: 8px; }}
+    .fmt-no {{ color: #872020; font-weight: 700; width: 16px; padding-right: 8px; }}
     .modal-backdrop {{ position: fixed; inset: 0; background: rgba(24, 32, 40, 0.45); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 20; }}
     .modal-backdrop.open {{ display: flex; }}
     .modal-card {{ width: min(460px, 100%); background: #fffdf8; border: 1px solid #d8cfc2; border-radius: 16px; box-shadow: 0 18px 40px rgba(24, 32, 40, 0.18); padding: 18px; }}
@@ -477,17 +493,52 @@ def render_page(state: dict[str, object]) -> str:
         </div>
         <div>
           <section class="panel">
-            <h2>Format Support</h2>
-            <p class="hint">Supported now: {escape(", ".join(SUPPORTED_STANDARD_FORMATS))}<br>Not supported yet: {escape(", ".join(UNSUPPORTED_STANDARD_FORMATS))}<br>{escape(PDF_SUPPORT_NOTE)}</p>
+            <h2>Score Reference</h2>
+            <div class="info-gates">
+              <div class="info-gate">
+                <div class="info-gate-header"><span>Requirements</span><span class="gate-weight">45%</span></div>
+                <p class="hint">Scope clarity, sizing, retention, integrations, and discovery completeness.</p>
+              </div>
+              <div class="info-gate">
+                <div class="info-gate-header"><span>Architecture</span><span class="gate-weight">25%</span></div>
+                <p class="hint">HA/DR coverage, design constraints, and technical alignment with requirements.</p>
+              </div>
+              <div class="info-gate">
+                <div class="info-gate-header"><span>Proposal</span><span class="gate-weight">30%</span></div>
+                <p class="hint">Deliverable scope, timeline, assumptions, and executive readiness.</p>
+              </div>
+            </div>
+            <div class="score-bands">
+              <div class="band band-pass"><span class="band-score">80–100</span><span>PASS — ready to proceed</span></div>
+              <div class="band band-risk"><span class="band-score">60–79</span><span>PASS WITH RISK — review gaps first</span></div>
+              <div class="band band-rework"><span class="band-score">0–59</span><span>REWORK — material blockers found</span></div>
+            </div>
           </section>
           <section class="panel">
-            <h2>About This App</h2>
-            <ul>
-              <li>Upload or paste presales inputs and get a readiness review in one place.</li>
-              <li>The app evaluates requirements, proposal quality, and discovery notes together — architecture signals are extracted from across all inputs.</li>
-              <li>It highlights missing artifacts, contradictions, weak assumptions, and technical delivery risks.</li>
-              <li>It gives weighted gate scores plus follow-up questions to help improve the submission.</li>
-            </ul>
+            <h2>What Goes Where</h2>
+            <div class="info-where">
+              <div class="info-where-item">
+                <div class="info-where-label">Requirements / Discovery Notes</div>
+                <p class="hint">RFPs, scope documents, customer discovery notes, data sheets — what the customer needs and why.</p>
+              </div>
+              <div class="info-where-item">
+                <div class="info-where-label">Proposal / SOW</div>
+                <p class="hint">Technical proposals, statements of work, solution summaries, or deliverable outlines.</p>
+              </div>
+              <div class="info-where-item">
+                <div class="info-where-label">Supporting Context</div>
+                <p class="hint">Meeting notes, call summaries, sizing worksheets. HA, DR, and integration signals here count toward the architecture assessment.</p>
+              </div>
+            </div>
+          </section>
+          <section class="panel">
+            <h2>File Formats</h2>
+            <table class="format-table">
+              <tr><td class="fmt-ok">✓</td><td>.txt &nbsp; .md &nbsp; .docx &nbsp; .pptx &nbsp; .zip</td></tr>
+              <tr><td class="fmt-ok">✓</td><td>.pdf — text-based only; scanned or image-heavy PDFs extract poorly</td></tr>
+              <tr><td class="fmt-no">✗</td><td>.xlsx &nbsp; .xls &nbsp; .csv &nbsp; .json &nbsp; .doc &nbsp; .ppt &nbsp; .rtf &nbsp; .html</td></tr>
+            </table>
+            <p class="hint" style="margin-top:12px">💡 Tip: drop all deal artifacts into a folder, zip it, and upload as a deal package for the fastest path.</p>
           </section>
         </div>
       </div>
@@ -623,16 +674,16 @@ def upload_warning(filename: str, text: str) -> str:
     lower = filename.lower()
     if not lower.endswith(".pdf"):
         return ""
-    if text.startswith("[PDF too large for fast local review]"):
-        return f"'{filename}' is large for fast local review. If you have the same document in .docx, upload the .docx version for better extraction speed and quality."
-    if text.startswith("[PDF parsing timed out for local review]"):
-        return f"'{filename}' took too long to parse for local review. If you have the same document in .docx, upload the .docx version for better extraction speed and reliability."
+    if text.startswith("[PDF too large"):
+        return f"'{filename}' exceeds the size limit. Upload the .docx version instead, or paste the text directly into the form."
+    if text.startswith("[PDF parsing timed out"):
+        return f"'{filename}' took too long to parse. Upload the .docx version instead for better reliability."
     if text.startswith("[PDF parsing unavailable") or text.startswith("[Could not parse"):
-        return f"PDF ingestion was limited for '{filename}'. If you have the same document in .docx, upload the .docx version for better extraction."
+        return f"PDF extraction was not available for '{filename}'. Upload the .docx version for best results."
     if "Only the first" in text:
-        return f"'{filename}' was only partially reviewed for speed. If you need full-document fidelity, prefer uploading a .docx version when available."
+        return f"'{filename}' was partially reviewed — only the first pages were read. Upload the .docx version if full-document coverage is needed."
     if len(text.strip()) < 120:
-        return f"'{filename}' produced very little extractable text. If this PDF is scanned or image-heavy, prefer uploading a .docx version when available."
+        return f"'{filename}' produced very little extractable text. If this is a scanned or image-heavy PDF, upload the .docx version instead."
     return ""
 
 
