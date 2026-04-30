@@ -445,7 +445,7 @@ def render_page(state: dict[str, object]) -> str:
             <label for="supporting_context">Discovery Notes &amp; Supporting Context</label>
             <p class="hint" style="margin:4px 0 8px">Paste meeting notes, call summaries, sizing worksheets, or any context that does not fit the formal requirements or proposal docs. Architecture signals found here (HA, DR, integrations, constraints) will supplement the requirements gate and inform the architecture assessment.</p>
             <textarea id="supporting_context" name="supporting_context">{escape(state['supporting_context'])}</textarea>
-            <label>Optional supporting upload</label>
+            <label>Optional supporting context upload</label>
             <input name="supporting_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
 
             <div class="package-upload">
