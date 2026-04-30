@@ -723,9 +723,9 @@ class PresalesGateEngine:
             score -= gate_config["generic_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal content appears generic and not tailored to the deal.", "generic"))
 
-        # FIX: was `token in proposal or supporting_context` — OR binds tighter, making
-        # the condition always truthy when supporting_context is non-empty.
-        if any(has_word(proposal, token) or has_word(supporting_context, token) for token in ["assumed", "tbd", "check policy"]):
+        # "assumed" alone is too broad — it fires on biographical text ("assumed the role").
+        # "assumed that" is specific to technical assumption statements in proposals/SOWs.
+        if any(has_word(proposal, token) or has_word(supporting_context, token) for token in ["assumed that", "tbd", "check policy"]):
             score -= gate_config["assumption_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal relies on unresolved assumptions that should be surfaced before customer submission.", "assumption"))
 
