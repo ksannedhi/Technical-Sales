@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+
+# Runtime database — recreated on first run, not a source artefact
+data/analyses.db
+
+# Local Claude Code tooling
+.claude/
+
+# Generated test artefacts
+tests/_generated/
+
+# Environment overrides
+.env
+.env.*
+!.env.example

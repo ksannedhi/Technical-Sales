@@ -9,7 +9,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from file_ingest import EXTRACTION_CACHE, MAX_CACHE_ENTRIES, cache_put, extract_text_from_path, load_artifacts_from_zip
-from pdg_mvp import PresalesGateEngine
+from presales_gate_engine import PresalesGateEngine
 
 
 class GateEngineTests(unittest.TestCase):

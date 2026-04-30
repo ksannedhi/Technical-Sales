@@ -25,7 +25,7 @@ python -m unittest discover -s tests
 
 **Verify syntax:**
 ```bash
-python -m py_compile app.py src\pdg_mvp.py src\file_ingest.py tests\test_engine.py
+python -m py_compile app.py src\presales_gate_engine.py src\file_ingest.py tests\test_engine.py
 ```
 
 ## Architecture
