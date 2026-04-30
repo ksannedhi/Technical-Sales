@@ -1,0 +1,25 @@
+### Technical Proposal — CrowdStrike Falcon Deployment
+
+Scope: Deploy CrowdStrike Falcon Prevent + Insight EDR across all bank endpoints and servers.
+Deliverables:
+- Falcon sensor deployment via GPO and SCCM
+- AD group policy integration for endpoint classification
+- Detection and prevention policy baselines
+- Carbon Black agent removal script and validation (assumed — pending decommission schedule)
+- Pilot report and go/no-go recommendation
+- Executive summary and board-ready risk reduction metrics
+
+Timeline: 12 weeks
+- Phase 1 (Weeks 1-2): Pilot deployment on 200 endpoints, tuning
+- Phase 2 (Weeks 3-8): Full workstation rollout by department
+- Phase 3 (Weeks 9-11): Server rollout with change management
+- Phase 4 (Week 12): Documentation, handover, CBK compliance report
+
+Assumptions:
+- Carbon Black decommission timeline to be agreed with customer IT operations
+- SCCM packaging approved by customer before Phase 2
+- MDR SLA terms confirmed with partner before go-live
+
+Business value:
+Replaces legacy signature-based AV with AI-driven EDR, reducing mean time to detect
+from days to minutes and meeting CBK IT governance requirements.

@@ -1,0 +1,6 @@
+Discovery call notes — Endpoint Refresh:
+- Carbon Black decommission plan not yet confirmed — customer IT ops team needs sign-off
+- AD structure confirmed: 4 OUs mapped to endpoint policy groups
+- Server rollout needs change management approval — not yet scheduled
+- MDR partner SLA terms tbd — being negotiated separately
+- No HA requirement for management plane — cloud-hosted Falcon console

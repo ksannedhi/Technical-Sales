@@ -7,8 +7,8 @@
   "score_thresholds": {
     "gate_pass": 80,
     "gate_review": 60,
-    "overall_pass": 82,
-    "overall_pass_with_risk": 62,
+    "overall_pass": 78,
+    "overall_pass_with_risk": 60,
     "overall_rework": 45
   },
   "requirements": {
@@ -18,12 +18,12 @@
     "retention_bonus": 5,
     "identity_bonus": 5,
     "compliance_bonus": 4,
-    "vague_penalty": 10,
+    "vague_penalty": 8,
     "unclear_penalty": 6,
-    "scope_penalty": 8
+    "scope_penalty": 6
   },
   "architecture": {
-    "baseline": 62,
+    "baseline": 65,
     "ha_bonus": 8,
     "dr_bonus": 8,
     "air_gap_conflict_penalty": 30,
@@ -47,38 +47,32 @@
   },
   "vague_language": {
     "terms": [
-      "improve visibility",
-      "generic",
       "some endpoints",
       "standard deployment",
-      "improve security"
+      "to be determined",
+      "basic security",
+      "general security"
     ],
-    "minimum_words": 40,
-    "minimum_detail_signals": 3,
+    "minimum_words": 60,
+    "minimum_detail_signals": 2,
     "structure_terms": [
       "scope",
       "requirements",
       "deliverables",
       "timeline",
       "integrations",
-      "architecture"
+      "architecture",
+      "objectives",
+      "environment",
+      "deployment"
     ],
     "detail_terms": [
-      "tb/day",
-      "gb/day",
-      "retention",
-      "ad",
-      "entra",
-      "identity",
-      "integration",
-      "vpn",
-      "waf",
-      "firewall",
-      "load balancer",
-      "ha",
-      "dr",
-      "phase",
-      "sla"
+      "tb/day", "gb/day", "retention", "ad", "entra", "identity", "integration",
+      "vpn", "waf", "firewall", "load balancer", "ha", "dr", "phase", "sla",
+      "endpoint", "server", "user", "site", "throughput", "bandwidth", "eps",
+      "log source", "collector", "node", "cluster", "policy", "signature",
+      "inspection", "intrusion", "segmentation", "encryption", "certificate",
+      "authentication", "authorization", "privilege", "mfa", "sso"
     ]
   }
 }

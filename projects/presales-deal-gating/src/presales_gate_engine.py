@@ -31,7 +31,7 @@ KEYWORDS = {
     "retention": ["retention", "90-day", "1-year", "365 day"],
     "identity": ["ad", "o365", "entra", "identity", "iam", "hr"],
     "compliance": ["compliance", "cbk", "nist", "iso", "regulatory"],
-    "air_gap": ["air-gapped", "air gapped", "no cloud"],
+    "air_gap": ["air-gapped", "air gapped", "no internet", "disconnected network"],
     "cloud": ["cloud", "saas", "aws", "azure", "gcp"],
     "failover": ["failover", "redundant"],
     "latency": ["latency", "low latency", "sla"],
@@ -202,6 +202,22 @@ SOLUTION_FAMILY_QUESTIONS = {
         "Which applications, public services, and environments must be front-ended or protected in phase one?",
     ],
 }
+
+# Solution-family-aware HA clarifying questions.
+# The architecture gate uses these instead of a hardcoded SIEM-centric question.
+HA_QUESTIONS_BY_FAMILY = {
+    "siem_log_mgmt": "How is high availability handled across log collectors, indexers, and search nodes?",
+    "firewall_network": "How are HA pairs and failover defined across internet edge, VPN termination, and branch sites?",
+    "endpoint_xdr": "How is management server resilience and agent policy continuity maintained during infrastructure failure?",
+    "iam_pam": "How is high availability defined for identity providers, PAM vaults, and authentication proxies?",
+    "sase_proxy": "How is service resilience defined for SASE PoPs, SD-WAN edges, and private application connectors?",
+    "app_delivery_security": "How are HA pairs, failover, and SSL offload responsibilities defined for the load balancer or WAF design?",
+    "email_security": "How is email service continuity and failover defined for the mail flow path and security gateway?",
+}
+HA_QUESTION_DEFAULT = "How is high availability and failover defined for the primary system components?"
+
+# Families where missing identity integration is a material gap worth flagging.
+IDENTITY_SENSITIVE_FAMILIES = {"siem_log_mgmt", "iam_pam", "endpoint_xdr"}
 
 POSITIVE_SIGNALS = [
     ("Quantified sizing is present", "requirements", "log_volume"),
@@ -375,7 +391,7 @@ class PresalesGateEngine:
             strengths,
             clarifying_questions,
         )
-        architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, findings, strengths, clarifying_questions)
+        architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions)
         proposal_score = self._proposal_gate(normalized["requirements"], normalized["proposal"], supporting_context, findings, strengths, clarifying_questions)
         self._cross_document_checks(normalized["requirements"], normalized["proposal"], supporting_context, findings, clarifying_questions)
         self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions)
@@ -494,7 +510,9 @@ class PresalesGateEngine:
             score += gate_config["identity_bonus"]
         elif has_any(supporting_context, KEYWORDS["identity"]):
             score += gate_config["identity_bonus"] // 2
-        else:
+        elif any(f in solution_families for f in IDENTITY_SENSITIVE_FAMILIES):
+            # Only flag missing identity as a gap for SIEM, IAM/PAM, and endpoint deals
+            # where identity integration is a core delivery dependency.
             findings.append(make_finding("Requirements", "medium", "Identity or core integration dependencies are not clearly defined.", "identity"))
             questions.append("Which identity systems and core integrations must be supported?")
 
@@ -532,6 +550,7 @@ class PresalesGateEngine:
         self,
         requirements: str,
         supporting_context: str,
+        solution_families: list[str],
         findings: list[dict[str, str]],
         strengths: list[str],
         questions: list[str],
@@ -544,7 +563,12 @@ class PresalesGateEngine:
             score += gate_config["ha_bonus"]
         else:
             findings.append(make_finding("Architecture", "high", "High availability design is missing or unclear.", "ha"))
-            questions.append("How is high availability handled across collectors, nodes, or sites?")
+            # Use a solution-family-specific HA question rather than SIEM-centric language.
+            ha_q = next(
+                (HA_QUESTIONS_BY_FAMILY[f] for f in solution_families if f in HA_QUESTIONS_BY_FAMILY),
+                HA_QUESTION_DEFAULT,
+            )
+            questions.append(ha_q)
 
         if has_any(combined, KEYWORDS["dr"]) or has_any(combined, KEYWORDS["failover"]):
             score += gate_config["dr_bonus"]

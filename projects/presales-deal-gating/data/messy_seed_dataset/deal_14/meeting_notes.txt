@@ -1,0 +1,6 @@
+Discovery call notes — Multi-product refresh:
+- HA pair confirmed at HQ; regional sites single-unit with SD-WAN failover
+- DMARC enforcement: customer legal team still reviewing — not confirmed
+- OT boundary: plant floor team engagement not yet scheduled — risk to timeline
+- Entra ID SSO confirmed for both workstreams
+- DR failover testing window: Q3 — 3 months after go-live

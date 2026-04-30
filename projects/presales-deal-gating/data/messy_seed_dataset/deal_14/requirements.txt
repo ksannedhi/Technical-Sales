@@ -1,0 +1,15 @@
+### RFP — Network & Email Security Refresh (Enterprise)
+Customer: Org-14 (Manufacturing, 8,000 users)
+Workstream 1 — Firewall:
+- Replace Cisco ASA at 3 sites (HQ + 2 regional) with Palo Alto NGFW
+- HA pair at HQ; single unit at regional sites with failover to HQ via SD-WAN
+- Segmentation: OT/IT boundary at HQ plant floor (Purdue model)
+- VPN for 600 remote workers
+Workstream 2 — Email Security:
+- Replace Symantec Email Security with Proofpoint Email Protection for 8,000 mailboxes
+- M365 mail flow integration (inbound + outbound gateway mode)
+- Anti-phishing, sandboxing, DMARC enforcement in scope
+- Email encryption for finance and HR teams
+- Log retention: 90 days for email security events
+Compliance: ISO 27001 certification in progress; GDPR applies for EU customer data.
+Identity: Azure AD (Entra ID) used for SSO across both workstreams.

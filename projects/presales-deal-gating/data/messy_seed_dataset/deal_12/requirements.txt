@@ -1,0 +1,13 @@
+### RFP — Endpoint Protection Refresh (Regional Bank)
+Customer: Org-12 (Banking)
+Scope: Replace existing antivirus with CrowdStrike Falcon for all endpoints and servers.
+- 3,200 Windows workstations (Windows 10/11)
+- 450 Windows and Linux servers
+- EDR and device control in scope; XDR integration with SIEM in phase 2
+- AD integration required for policy groups and user attribution
+- 90-day event retention in CrowdStrike cloud tenant
+- Pilot: 200 endpoints in Week 1 before full rollout
+- Existing agent: Carbon Black — decommission plan required
+- No legacy OS (Windows 7 or older) in scope per customer confirmation
+- Compliance: CBK IT governance framework alignment required
+- SLA: critical alerts responded to within 15 minutes by MDR partner

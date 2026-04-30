@@ -1,0 +1,5 @@
+### Proposal — PAM Deployment
+Scope: Deploy CyberArk Privileged Access Manager.
+Standard implementation for privileged access control.
+Timeline: 4 weeks.
+Deliverables: Platform installed and configured.

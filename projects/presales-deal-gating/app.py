@@ -323,7 +323,7 @@ def render_page(state: dict[str, object]) -> str:
             </div>
             <div>
               <h3>Strengths</h3>
-              <ul>{strengths}</ul>
+              <ul class="strengths-list">{strengths}</ul>
             </div>
           </div>
           <div class="two-col">
@@ -332,11 +332,12 @@ def render_page(state: dict[str, object]) -> str:
               <ul>{questions}</ul>
             </div>
             <div>
-              <h3>How To Read These Scores</h3>
+              <h3>Recommended Next Steps</h3>
               <ul>
-                <li><strong>80-100</strong>: strong signal for that gate</li>
-                <li><strong>60-79</strong>: usable but needs review or cleanup</li>
-                <li><strong>0-59</strong>: major gaps or blockers were found</li>
+                <li>Answer each clarifying question and add the responses to the discovery notes.</li>
+                <li>Address HIGH findings before the deal advances to customer submission.</li>
+                <li>Re-run the gate review after updating the documents to confirm the score improves.</li>
+                <li>Use the Download Findings report to share gaps with the account team or delivery lead.</li>
               </ul>
             </div>
           </div>
@@ -385,6 +386,12 @@ def render_page(state: dict[str, object]) -> str:
     .history-menu.open {{ display: block; }}
     .history-menu button {{ width: 100%; text-align: left; background: transparent; color: #1f2933; border-radius: 8px; padding: 8px 10px; font-weight: 600; }}
     .history-menu button:hover {{ background: rgba(138, 75, 22, 0.08); }}
+    .finding-badge {{ display: inline-block; border-radius: 5px; padding: 1px 7px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em; margin-right: 5px; vertical-align: middle; }}
+    .badge-high {{ background: #fde8e8; color: #8b1a1a; }}
+    .badge-medium {{ background: #fef5d4; color: #7a5200; }}
+    .badge-low {{ background: #eef4fb; color: #2d5282; }}
+    .strengths-list {{ list-style: none; padding-left: 0; }}
+    .strengths-list li::before {{ content: "✓ "; color: #265c3a; font-weight: 700; }}
     .result-header {{ display: flex; justify-content: space-between; align-items: center; gap: 16px; }}
     .download-link {{ display: inline-block; white-space: nowrap; background: #8a4b16; color: white; text-decoration: none; border-radius: 999px; padding: 10px 14px; font-weight: 700; }}
     .download-link:hover {{ opacity: 0.92; }}
@@ -436,7 +443,7 @@ def render_page(state: dict[str, object]) -> str:
 <body>
   <div class="wrap">
     <h1>Presales Deal Gating</h1>
-    <p class="hint">Local web app for gating requirements, architecture, proposal, and supporting presales context on your laptop.</p>
+    <p class="hint">Know if your deal is ready before it reaches the customer. Upload your RFP, proposal, and discovery notes — get a weighted readiness verdict, specific gaps, and clarifying questions.</p>
     <div class="layout">
       <aside class="sticky">
         <section class="panel">
@@ -708,7 +715,7 @@ def render_findings_groups(findings: list[dict[str, str]]) -> str:
         if not gate_findings:
             continue
         items = "".join(
-            f"<li><strong>[{escape(item['severity'].upper())}]</strong> {escape(item['message'])}</li>"
+            f"<li><span class='finding-badge badge-{escape(item['severity'].lower())}'>{escape(item['severity'].upper())}</span>{escape(item['message'])}</li>"
             for item in gate_findings
         )
         sections.append(f"<h4>{escape(gate)}</h4><ul>{items}</ul>")
