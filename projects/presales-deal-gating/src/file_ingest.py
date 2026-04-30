@@ -152,22 +152,65 @@ def extract_pdf_bytes(payload: bytes, suffix_hint: str = ".pdf") -> str:
 
 
 def _extract_pdf_inprocess(payload: bytes) -> str:
-    """Extract PDF text using pypdf directly in the current process (fast path)."""
+    """Extract PDF text using pypdf directly in the current process (fast path).
+
+    Detects scanned/image-only PDFs (very low character yield) and attempts OCR
+    via pytesseract + pdf2image if both are installed.  Falls back gracefully
+    with an informative message when OCR tools are not available.
+    """
     try:
         from pypdf import PdfReader  # type: ignore[import]
     except ModuleNotFoundError:
         raise
     logging.getLogger("pypdf").setLevel(logging.ERROR)
     reader = PdfReader(io.BytesIO(payload))
+    total_pages = len(reader.pages)
+    pages_to_read = min(total_pages, MAX_PDF_PAGES)
     pages: list[str] = []
     for index, page in enumerate(reader.pages):
         if index >= MAX_PDF_PAGES:
             break
         pages.append(page.extract_text() or "")
     text = "\n\n".join(pages).strip()
-    if len(reader.pages) > MAX_PDF_PAGES:
-        text += f"\n\n[Only the first {MAX_PDF_PAGES} of {len(reader.pages)} pages were reviewed]"
+
+    # Detect scanned / image-based PDF: fewer than ~30 chars per page on average.
+    # Genuinely text-based pages almost always produce several hundred characters each.
+    if pages_to_read > 0 and len(text) < pages_to_read * 30:
+        ocr_result = _try_ocr(payload, pages_to_read)
+        if ocr_result:
+            return ocr_result
+        return (
+            "[PDF appears to be scanned or image-based — very little text was extracted. "
+            "Install pytesseract and pdf2image for OCR support, or upload the .docx version instead.]"
+        )
+
+    if total_pages > MAX_PDF_PAGES:
+        text += f"\n\n[Only the first {MAX_PDF_PAGES} of {total_pages} pages were reviewed]"
     return text
+
+
+def _try_ocr(payload: bytes, page_limit: int) -> str:
+    """Attempt OCR on a scanned PDF using pytesseract + pdf2image (both optional).
+
+    Returns extracted text prefixed with an OCR notice, or an empty string if
+    the required libraries are not installed or OCR fails.
+    """
+    try:
+        import pytesseract  # type: ignore[import]
+        from pdf2image import convert_from_bytes  # type: ignore[import]
+    except ImportError:
+        return ""
+    try:
+        images = convert_from_bytes(payload, last_page=page_limit, dpi=200)
+        ocr_pages: list[str] = []
+        for image in images:
+            ocr_pages.append(pytesseract.image_to_string(image))
+        ocr_text = "\n\n".join(ocr_pages).strip()
+        if ocr_text:
+            return f"[OCR-extracted text — review for accuracy]\n\n{ocr_text}"
+        return ""
+    except Exception:
+        return ""
 
 
 def _extract_pdf_via_subprocess(payload: bytes) -> str:
@@ -188,17 +231,61 @@ def _extract_pdf_via_subprocess(payload: bytes) -> str:
     return completed.stdout.decode("utf-8", errors="ignore")
 
 
+# Content-based routing signals for files whose names give no obvious bucket hint.
+# Scored against the lowercase document text; the bucket with the most hits wins.
+_PROPOSAL_CONTENT_SIGNALS = [
+    "statement of work", "bill of materials", "deliverable", "deliverables",
+    "project plan", "acceptance criteria", "commercial", "pricing",
+    "phases of work", "work breakdown",
+]
+_REQUIREMENTS_CONTENT_SIGNALS = [
+    "functional requirement", "non-functional requirement", "request for proposal",
+    "technical requirement", "business requirement", "shall ", "must ",
+    "rfp ", "scope of work",
+]
+
+
 def assign_text_to_bucket(name: str, text: str, artifacts: dict[str, str]) -> None:
     lower_name = name.lower()
     clean = text.strip()
     if not clean:
         return
-    if "requirement" in lower_name or "discovery" in lower_name or "rfp" in lower_name:
+
+    # Primary: filename-keyword routing (fast, deterministic)
+    if (
+        "requirement" in lower_name
+        or "discovery" in lower_name
+        or "rfp" in lower_name
+        or "scope" in lower_name
+    ):
         artifacts["requirements"] = combine_text(artifacts["requirements"], clean)
-    elif "proposal" in lower_name or "sow" in lower_name:
+    elif (
+        "proposal" in lower_name
+        or "sow" in lower_name
+        or "statement of work" in lower_name
+        or "technical response" in lower_name
+    ):
         artifacts["proposal"] = combine_text(artifacts["proposal"], clean)
     else:
-        artifacts["supporting_context"] = combine_text(artifacts["supporting_context"], clean)
+        # Secondary: content-based routing for generically named files
+        # (e.g. "Solution Overview.docx", "Technical Response v2.docx")
+        bucket = _infer_bucket_from_content(clean.lower())
+        artifacts[bucket] = combine_text(artifacts[bucket], clean)
+
+
+def _infer_bucket_from_content(text_lower: str) -> str:
+    """Infer the artifact bucket from document content when the filename gives no hint.
+
+    Requires at least 2 signal hits and a clear winner — defaults to
+    supporting_context when ambiguous so the engine still sees the text.
+    """
+    proposal_hits = sum(1 for s in _PROPOSAL_CONTENT_SIGNALS if s in text_lower)
+    req_hits = sum(1 for s in _REQUIREMENTS_CONTENT_SIGNALS if s in text_lower)
+    if proposal_hits >= 2 and proposal_hits > req_hits:
+        return "proposal"
+    if req_hits >= 2 and req_hits > proposal_hits:
+        return "requirements"
+    return "supporting_context"
 
 
 def combine_text(existing: str, new_text: str) -> str:

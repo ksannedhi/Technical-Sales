@@ -30,7 +30,11 @@ KEYWORDS = {
     "log_volume": ["tb/day", "gb/day", "log volume", "logs/day", "ingestion"],
     "retention": ["retention", "90-day", "1-year", "365 day"],
     "identity": ["ad", "o365", "entra", "identity", "iam", "hr"],
-    "compliance": ["compliance", "cbk", "nist", "iso", "regulatory"],
+    "compliance": [
+        "compliance", "cbk", "nist", "iso", "regulatory",
+        "gdpr", "hipaa", "pci", "fedramp", "dora", "nerc", "cmmc", "fisma",
+        "soc 2", "soc2", "iso 27001", "iso27001",
+    ],
     "air_gap": ["air-gapped", "air gapped", "no internet", "disconnected network"],
     "cloud": ["cloud", "saas", "aws", "azure", "gcp"],
     "failover": ["failover", "redundant"],
@@ -163,6 +167,29 @@ SOLUTION_FAMILY_KEYWORDS = {
     "app_delivery_security": [
         "load balancer", "load balancer license", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy", "virtual server",
     ],
+    # Extended families
+    "ot_ics": [
+        "ot", "ics", "scada", "purdue", "plant floor", "industrial", "operational technology",
+        "dnp3", "modbus", "claroty", "nozomi", "dragos",
+    ],
+    "cloud_security": [
+        "cspm", "cnapp", "cloud security posture", "cloud posture", "cloud workload protection",
+        "defender for cloud", "wiz", "prisma cloud", "lacework",
+    ],
+    "vulnerability_management": [
+        "vulnerability management", "vulnerability scanning", "patch management", "cve",
+        "tenable", "qualys", "rapid7", "nexpose", "nessus",
+    ],
+    "ndr": [
+        "ndr", "network detection", "network traffic analysis", "nta",
+        "darktrace", "extrahop", "vectra",
+    ],
+    "dlp": [
+        "dlp", "data loss prevention", "data exfiltration", "information protection", "purview",
+    ],
+    "managed_services": [
+        "mdr", "managed detection", "managed soc", "soc as a service", "mssp", "managed security service",
+    ],
 }
 
 SOLUTION_FAMILY_QUESTIONS = {
@@ -201,6 +228,36 @@ SOLUTION_FAMILY_QUESTIONS = {
         "Are HA pairs, failover behavior, SSL offload, and certificate responsibilities defined for the load balancer or WAF design?",
         "Which applications, public services, and environments must be front-ended or protected in phase one?",
     ],
+    "ot_ics": [
+        "Which OT protocols, zones, and network segments must the solution monitor or protect (e.g. Purdue zones, DNP3, Modbus)?",
+        "What is the acceptable inspection depth and latency impact for OT traffic, and are passive-only or read-only sensor modes required?",
+        "Which IT/OT boundary controls and integration points need to be defined before solution deployment can begin?",
+    ],
+    "cloud_security": [
+        "Which cloud platforms, accounts, and workloads are in scope for posture management or workload protection?",
+        "Are agent-based and agentless scanning both required, and which cloud-native services must the solution integrate with?",
+        "What compliance frameworks or policy benchmarks must the CSPM/CNAPP tool enforce continuously?",
+    ],
+    "vulnerability_management": [
+        "How many assets, subnets, and cloud accounts are in scope for vulnerability scanning?",
+        "What scan frequency and credentialed vs. uncredentialed coverage is required for internal and DMZ segments?",
+        "How must vulnerability data integrate with ticketing, patching, and risk-scoring workflows?",
+    ],
+    "ndr": [
+        "Which network segments, cloud VPCs, and east-west traffic paths must the NDR sensor cover?",
+        "What detection fidelity, alert volume, and SIEM integration requirements apply to the NDR deployment?",
+        "Are encrypted traffic analysis, ML baselining, and threat hunting workflows required in phase one?",
+    ],
+    "dlp": [
+        "Which data channels are in scope: endpoint, email, web, cloud storage, or all four?",
+        "How are data classification policies, incident workflows, and false-positive tuning managed?",
+        "What compliance or regulatory drivers are shaping the DLP policy scope and enforcement requirements?",
+    ],
+    "managed_services": [
+        "What is the expected service model: fully managed SOC, co-managed, or MDR with human-analyst escalation?",
+        "Which environments, log sources, and response actions must the managed service cover from day one?",
+        "How are SLAs, escalation paths, and customer-side responsibilities divided between the provider and the internal team?",
+    ],
 }
 
 # Solution-family-aware HA clarifying questions.
@@ -213,11 +270,25 @@ HA_QUESTIONS_BY_FAMILY = {
     "sase_proxy": "How is service resilience defined for SASE PoPs, SD-WAN edges, and private application connectors?",
     "app_delivery_security": "How are HA pairs, failover, and SSL offload responsibilities defined for the load balancer or WAF design?",
     "email_security": "How is email service continuity and failover defined for the mail flow path and security gateway?",
+    "ot_ics": "How is sensor resilience and network tap availability maintained during OT maintenance windows or network disruption?",
+    "cloud_security": "How is continuous posture assessment maintained across cloud accounts during API outages or configuration changes?",
+    "vulnerability_management": "How is scanner availability and scan continuity maintained across network zones and cloud accounts?",
+    "ndr": "How are NDR sensor redundancy and traffic capture continuity maintained during maintenance or network changes?",
+    "dlp": "How is DLP policy enforcement continuity maintained during system upgrades or connector failures?",
+    "managed_services": "How is analyst coverage and escalation continuity maintained during service provider incidents or maintenance windows?",
 }
 HA_QUESTION_DEFAULT = "How is high availability and failover defined for the primary system components?"
 
 # Families where missing identity integration is a material gap worth flagging.
 IDENTITY_SENSITIVE_FAMILIES = {"siem_log_mgmt", "iam_pam", "endpoint_xdr"}
+
+# Sector terms that imply a specific compliance driver.  Used to produce a low-severity
+# finding when no explicit framework (GDPR, ISO 27001, PCI-DSS, etc.) is named.
+# Kept narrow so general "government" or "bank" references do not over-trigger.
+REGULATED_SECTOR_SIGNALS = [
+    "healthcare", "financial services", "critical infrastructure",
+    "defence", "defense", "fintech",
+]
 
 POSITIVE_SIGNALS = [
     ("Quantified sizing is present", "requirements", "log_volume"),
@@ -418,7 +489,9 @@ class PresalesGateEngine:
         )
         overall_status = overall_status_from_findings(overall_score, findings, self.config)
 
-        dedup_questions = dedupe(clarifying_questions)[:6]
+        # Cap at 8 questions — multi-product deals with 4 solution families can generate
+        # many valid questions, and the extra 2 slots ensure family-specific questions survive.
+        dedup_questions = dedupe(clarifying_questions)[:8]
         dedup_strengths = dedupe(strengths)[:6]
         dedup_findings = dedupe_findings(findings)
 
@@ -452,7 +525,9 @@ class PresalesGateEngine:
             if total_hits >= 2:
                 family_scores.append((total_hits, family))
         family_scores.sort(reverse=True)
-        return [family for _, family in family_scores][:2]
+        # Allow up to 4 families so multi-workstream deals (e.g. firewall + email + OT + IAM)
+        # receive relevant questions and findings for every in-scope product area.
+        return [family for _, family in family_scores][:4]
 
     def _solution_family_questions(
         self,
@@ -520,8 +595,11 @@ class PresalesGateEngine:
             score += gate_config["compliance_bonus"]
         elif has_any(supporting_context, KEYWORDS["compliance"]):
             score += gate_config["compliance_bonus"] // 2
-        elif has_word(requirements, "government") or has_word(requirements, "bank"):
-            findings.append(make_finding("Requirements", "medium", "Compliance driver is implied but not made explicit.", "compliance"))
+        elif any(has_word(requirements, sector) for sector in REGULATED_SECTOR_SIGNALS):
+            # A specific regulated sector is named but no explicit compliance framework is mentioned.
+            # Lower severity than a genuine missing requirement — the framework is implied but
+            # should be named before the deal advances to technical proposal.
+            findings.append(make_finding("Requirements", "low", "A regulated sector is referenced but no specific compliance framework is named.", "compliance"))
 
         if vague_language(requirements, self.config):
             score -= gate_config["vague_penalty"]
@@ -679,6 +757,7 @@ class PresalesGateEngine:
         findings: list[dict[str, str]],
         questions: list[str],
     ) -> None:
+        # Log volume (TB/day) consistency
         volume_values = [
             value
             for value in [
@@ -692,6 +771,39 @@ class PresalesGateEngine:
             findings.append(make_finding("Cross-check", "high", "Documented log-volume assumptions are inconsistent across artifacts.", "log volume"))
             questions.append("Which ingestion estimate is authoritative for sizing and proposal commitments?")
 
+        # EPS consistency
+        eps_values = [
+            v for v in [
+                extract_eps(requirements),
+                extract_eps(proposal),
+                extract_eps(supporting_context),
+            ]
+            if v is not None
+        ]
+        if len(eps_values) >= 2 and max(eps_values) > 0:
+            deviation = (max(eps_values) - min(eps_values)) / max(eps_values)
+            if deviation >= 0.30:
+                findings.append(make_finding("Cross-check", "medium", "EPS or event-volume figures appear inconsistent across deal artifacts.", "eps"))
+                questions.append("Which EPS estimate should be used as the authoritative baseline for sizing?")
+
+        # Endpoint count consistency
+        endpoint_counts = [
+            v for v in [
+                extract_endpoint_count(requirements),
+                extract_endpoint_count(proposal),
+                extract_endpoint_count(supporting_context),
+            ]
+            if v is not None
+        ]
+        if len(endpoint_counts) >= 2:
+            max_count = max(endpoint_counts)
+            min_count = min(endpoint_counts)
+            # Flag only when the gap is both relatively large (>20%) and materially sized (>100 devices)
+            if max_count >= min_count * 1.20 and (max_count - min_count) >= 100:
+                findings.append(make_finding("Cross-check", "medium", "Endpoint or device count appears inconsistent across deal artifacts.", "endpoint"))
+                questions.append("Which endpoint count is authoritative for licensing and scope commitments?")
+
+        # Air-gap / cloud conflicts
         if has_word(requirements, "air-gapped") and has_word(proposal, "cloud"):
             findings.append(make_finding("Cross-check", "high", "Proposal language still references cloud dependencies for an air-gapped deal.", "conflict"))
 
@@ -762,6 +874,30 @@ def make_finding(gate: str, severity: str, message: str, tag: str) -> dict[str, 
 def extract_tb_per_day(text: str) -> float | None:
     match = re.search(r"(\d+(?:\.\d+)?)\s*tb/day", text)
     return float(match.group(1)) if match else None
+
+
+def extract_endpoint_count(text: str) -> int | None:
+    """Extract a device/endpoint count from text (e.g. '3,200 endpoints', '5000 workstations')."""
+    match = re.search(r"(\d[\d,]*)\s*(?:endpoint|workstation|device|laptop|desktop)", text)
+    if not match:
+        return None
+    try:
+        return int(match.group(1).replace(",", ""))
+    except ValueError:
+        return None
+
+
+def extract_eps(text: str) -> float | None:
+    """Extract events-per-second rate (e.g. '50k eps', '50,000 eps')."""
+    match = re.search(r"(\d+(?:\.\d+)?)\s*k\s*eps|(\d[\d,]*(?:\.\d+)?)\s*eps", text)
+    if not match:
+        return None
+    try:
+        if match.group(1):            # "Xk eps" form
+            return float(match.group(1)) * 1000
+        return float(match.group(2).replace(",", ""))
+    except ValueError:
+        return None
 
 
 def clamp_score(value: int) -> int:

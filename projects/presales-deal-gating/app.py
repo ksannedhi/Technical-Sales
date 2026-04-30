@@ -101,6 +101,31 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "result": saved["result"],
             }
 
+    # Re-run: pre-populate the form with a previous deal's artifacts so the user
+    # can edit and re-submit without re-uploading or re-pasting the documents.
+    rerun_id = (query.get("rerun", [""]) or [""])[0]
+    if rerun_id:
+        saved = get_session_review(rerun_id)
+        if saved:
+            saved_artifacts = saved.get("artifacts", {})
+            return {
+                "selected_review_id": rerun_id,
+                "active_deal_name": saved["deal_name"],
+                "deal_name": "",
+                "deal_package_path": "",
+                "requirements": saved_artifacts.get("requirements", ""),
+                "requirements_path": "",
+                "proposal": saved_artifacts.get("proposal", ""),
+                "proposal_path": "",
+                "supporting_context": saved_artifacts.get("supporting_context", ""),
+                "supporting_path": "",
+                "messages": [
+                    f"Artifacts from \"{saved['deal_name']}\" are pre-loaded below. "
+                    "Edit as needed, enter a new deal name, then re-run."
+                ],
+                "result": saved["result"],
+            }
+
     state = {
         "selected_review_id": "",
         "active_deal_name": "",
@@ -386,6 +411,8 @@ def render_page(state: dict[str, object]) -> str:
     .history-menu.open {{ display: block; }}
     .history-menu button {{ width: 100%; text-align: left; background: transparent; color: #1f2933; border-radius: 8px; padding: 8px 10px; font-weight: 600; }}
     .history-menu button:hover {{ background: rgba(138, 75, 22, 0.08); }}
+    .history-menu a.history-menu-action {{ display: block; width: 100%; text-align: left; background: transparent; color: #1f2933; border-radius: 8px; padding: 8px 10px; font-weight: 600; text-decoration: none; box-sizing: border-box; }}
+    .history-menu a.history-menu-action:hover {{ background: rgba(138, 75, 22, 0.08); }}
     .finding-badge {{ display: inline-block; border-radius: 5px; padding: 1px 7px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em; margin-right: 5px; vertical-align: middle; }}
     .badge-high {{ background: #fde8e8; color: #8b1a1a; }}
     .badge-medium {{ background: #fef5d4; color: #7a5200; }}
@@ -884,6 +911,7 @@ def render_session_history(selected_review_id: str) -> str:
             f"<div class='history-menu-wrap'>"
             f"<button type='button' class='history-menu-button' data-menu-button='{escape(menu_id)}' aria-label='Deal options' title='Deal options'>&#8942;</button>"
             f"<div class='history-menu' id='{escape(menu_id)}'>"
+            f"<a class='history-menu-action' href='/?rerun={escape(item[\"id\"])}'>Re-run</a>"
             f"<button type='button' data-rename-review='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>Rename</button>"
             f"<button type='button' data-delete-review='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>Delete</button>"
             f"</div>"
