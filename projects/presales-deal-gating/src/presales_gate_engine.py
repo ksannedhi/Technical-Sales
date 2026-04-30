@@ -757,19 +757,37 @@ class PresalesGateEngine:
         findings: list[dict[str, str]],
         questions: list[str],
     ) -> None:
-        # Log volume (TB/day) consistency
-        volume_values = [
-            value
-            for value in [
-                extract_tb_per_day(requirements),
-                extract_tb_per_day(proposal),
-                extract_tb_per_day(supporting_context),
+        # Log volume consistency — normalise TB/day and GB/day to GB for comparison
+        volume_values_gb = [
+            v for v in [
+                extract_volume_gb_per_day(requirements),
+                extract_volume_gb_per_day(proposal),
+                extract_volume_gb_per_day(supporting_context),
             ]
-            if value is not None
+            if v is not None
         ]
-        if len(volume_values) >= 2 and (max(volume_values) - min(volume_values)) >= 1.0:
-            findings.append(make_finding("Cross-check", "high", "Documented log-volume assumptions are inconsistent across artifacts.", "log volume"))
-            questions.append("Which ingestion estimate is authoritative for sizing and proposal commitments?")
+        if len(volume_values_gb) >= 2 and max(volume_values_gb) > 0:
+            vol_deviation = (max(volume_values_gb) - min(volume_values_gb)) / max(volume_values_gb)
+            if vol_deviation >= 0.30:
+                findings.append(make_finding("Cross-check", "high", "Documented log-volume assumptions are inconsistent across artifacts.", "log volume"))
+                questions.append("Which ingestion estimate is authoritative for sizing and proposal commitments?")
+
+        # Retention period consistency
+        retention_values = [
+            v for v in [
+                extract_retention_days(requirements),
+                extract_retention_days(proposal),
+                extract_retention_days(supporting_context),
+            ]
+            if v is not None
+        ]
+        if len(retention_values) >= 2 and max(retention_values) > 0:
+            ret_deviation = (max(retention_values) - min(retention_values)) / max(retention_values)
+            # >10% relative gap catches materially different periods (e.g. 90 days vs 1 year)
+            # while tolerating minor wording differences (e.g. "1 year" ≈ "12 months")
+            if ret_deviation >= 0.10:
+                findings.append(make_finding("Cross-check", "medium", "Retention period is stated differently across deal artifacts.", "retention"))
+                questions.append("Which retention period is the binding commitment for sizing, licensing, and contract?")
 
         # EPS consistency
         eps_values = [
@@ -874,6 +892,47 @@ def make_finding(gate: str, severity: str, message: str, tag: str) -> dict[str, 
 def extract_tb_per_day(text: str) -> float | None:
     match = re.search(r"(\d+(?:\.\d+)?)\s*tb/day", text)
     return float(match.group(1)) if match else None
+
+
+def extract_volume_gb_per_day(text: str) -> float | None:
+    """Extract log ingestion volume as GB/day, normalising TB/day when present.
+
+    TB/day is converted to GB/day (×1000) so both units can be compared on
+    the same scale.  Returns the first figure found; TB/day takes priority
+    if both units appear in the same artifact.
+    """
+    tb = re.search(r"(\d+(?:\.\d+)?)\s*tb/day", text)
+    if tb:
+        return float(tb.group(1)) * 1000
+    gb = re.search(r"(\d+(?:\.\d+)?)\s*gb/day", text)
+    if gb:
+        return float(gb.group(1))
+    return None
+
+
+def extract_retention_days(text: str) -> int | None:
+    """Extract a retention period in days, anchored to 'retention' context.
+
+    Only returns a value when a recognisable duration (days, months, years)
+    falls within ~50 characters of the word 'retain' or 'retention', which
+    avoids matching unrelated project timelines or trial periods.
+
+    Handles:  '90-day retention', 'retention: 1 year', '12-month retention policy'
+    """
+    for anchor in re.finditer(r"\bretain|\bretent", text):
+        start = max(0, anchor.start() - 50)
+        end = min(len(text), anchor.end() + 50)
+        window = text[start:end]
+        year_m = re.search(r"(\d+)[-\s]*year", window)
+        if year_m:
+            return int(year_m.group(1)) * 365
+        month_m = re.search(r"(\d+)[-\s]*month", window)
+        if month_m:
+            return int(month_m.group(1)) * 30
+        day_m = re.search(r"(\d+)[-\s]*day", window)
+        if day_m:
+            return int(day_m.group(1))
+    return None
 
 
 def extract_endpoint_count(text: str) -> int | None:
