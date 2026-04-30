@@ -911,7 +911,7 @@ def render_session_history(selected_review_id: str) -> str:
             f"<div class='history-menu-wrap'>"
             f"<button type='button' class='history-menu-button' data-menu-button='{escape(menu_id)}' aria-label='Deal options' title='Deal options'>&#8942;</button>"
             f"<div class='history-menu' id='{escape(menu_id)}'>"
-            f"<a class='history-menu-action' href='/?rerun={escape(item[\"id\"])}'>Re-run</a>"
+            f"<a class='history-menu-action' href='/?rerun={escape(item['id'])}'>Re-run</a>"
             f"<button type='button' data-rename-review='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>Rename</button>"
             f"<button type='button' data-delete-review='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>Delete</button>"
             f"</div>"
