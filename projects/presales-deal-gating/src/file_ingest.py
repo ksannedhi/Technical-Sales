@@ -17,9 +17,9 @@ from xml.etree import ElementTree as ET
 SUPPORTED_TEXT_EXTENSIONS = {".txt", ".md"}
 SUPPORTED_EXTENSIONS = {".txt", ".md", ".docx", ".pptx", ".pdf", ".zip"}
 NS = {"a": "http://schemas.openxmlformats.org/drawingml/2006/main"}
-MAX_PDF_BYTES = 20_000_000   # 20 MB — typical RFP/proposal PDFs can be 10–20 MB
+MAX_PDF_BYTES = 50_000_000   # 50 MB — government RFPs routinely exceed 20 MB
 MAX_PDF_PAGES = 40           # first 40 pages covers most proposals and RFPs
-PDF_TIMEOUT_SECONDS = 20     # subprocess startup + pypdf import takes 1–3 s on Windows
+PDF_TIMEOUT_SECONDS = 30     # allow extra time for larger government PDFs
 MAX_CACHE_ENTRIES = 64
 EXTRACTION_CACHE: OrderedDict[str, str] = OrderedDict()
 
@@ -115,14 +115,16 @@ def extract_pdf(source: str | Path | io.BytesIO, suffix_hint: str = ".pdf") -> s
     if isinstance(source, io.BytesIO):
         payload = source.getvalue()
         if len(payload) > MAX_PDF_BYTES:
-            return "[PDF too large — convert to DOCX or paste text directly]"
+            mb = MAX_PDF_BYTES // 1_000_000
+            return f"[PDF exceeds {mb} MB limit — convert to DOCX or paste text directly]"
     if isinstance(source, (str, Path)):
         try:
             payload = Path(source).read_bytes()
         except OSError:
             return f"[Could not parse {suffix_hint} file]"
         if len(payload) > MAX_PDF_BYTES:
-            return "[PDF too large — convert to DOCX or paste text directly]"
+            mb = MAX_PDF_BYTES // 1_000_000
+            return f"[PDF exceeds {mb} MB limit — convert to DOCX or paste text directly]"
 
     if not payload:
         return f"[Could not parse {suffix_hint} file]"
