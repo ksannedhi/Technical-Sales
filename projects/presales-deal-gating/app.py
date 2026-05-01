@@ -832,23 +832,25 @@ def render_session_history(selected_review_id: str) -> str:
 
 
 def main() -> None:
+    t0 = time.time()
     url = f"http://{HOST}:{PORT}"
-    print(f"Presales Deal Gating running at {url}")
     with make_server(HOST, PORT, application) as server:
+        elapsed = round((time.time() - t0) * 1000, 1)
+        print(f"Presales Deal Gating running at {url}  (ready in {elapsed} ms)")
         if os.environ.get("PDG_OPEN_BROWSER", "0") == "1":
             threading.Thread(target=open_browser_when_ready, args=(url,), daemon=True).start()
         server.serve_forever()
 
 
 def open_browser_when_ready(url: str) -> None:
-    deadline = time.time() + 10
+    deadline = time.time() + 15
     while time.time() < deadline:
         try:
             with socket.create_connection((HOST, PORT), timeout=0.5):
                 webbrowser.open(url)
                 return
         except OSError:
-            time.sleep(0.2)
+            time.sleep(0.1)
     try:
         webbrowser.open(url)
     except Exception:

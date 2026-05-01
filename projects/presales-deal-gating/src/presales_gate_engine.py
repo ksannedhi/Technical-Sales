@@ -386,9 +386,23 @@ class AnalysisResult:
 
 
 class SeedDataset:
+    """Seed deal dataset with lazy loading.
+
+    File I/O is deferred until the first access of `.deals` so that
+    ``PresalesGateEngine.__init__`` completes (and the WSGI server socket
+    binds) before any disk reads occur.  Subsequent accesses hit the
+    in-memory cache instantly.
+    """
+
     def __init__(self, roots: list[Path]) -> None:
         self.roots = roots
-        self.deals = self._load()
+        self._deals: list[dict[str, str]] | None = None
+
+    @property
+    def deals(self) -> list[dict[str, str]]:
+        if self._deals is None:
+            self._deals = self._load()
+        return self._deals
 
     def _load(self) -> list[dict[str, str]]:
         deals: list[dict[str, str]] = []
