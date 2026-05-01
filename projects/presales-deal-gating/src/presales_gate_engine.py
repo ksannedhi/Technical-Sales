@@ -549,11 +549,13 @@ class PresalesGateEngine:
                 # naming the solution or vendor — the proposal carries the specificity.
                 # Allow proposal-only detection when:
                 #   - Renewal deal: ≥2 proposal hits (vendor is named in proposal)
-                #   - Any deal:     ≥3 proposal hits (strong multi-signal confidence)
-                # The stricter threshold for non-renewal deals prevents a credential or
-                # boilerplate-heavy proposal from fabricating a family the RFP never asked for.
+                #   - Any deal:     ≥4 proposal hits (strong multi-signal confidence)
+                # The higher threshold for non-renewal deals prevents adjacent terms
+                # (e.g. "active directory", "mfa", "sso" in a Proofpoint email proposal)
+                # from spuriously triggering unrelated families such as iam_pam or
+                # firewall_network. A genuine primary-solution proposal always clears 4+.
                 renewal_ok = is_renewal and proposal_hits >= 2
-                strong_proposal = proposal_hits >= 3
+                strong_proposal = proposal_hits >= 4
                 if not (renewal_ok or strong_proposal):
                     continue
             total_hits = sum(1 for kw in keywords if _keyword_match(combined, kw))
