@@ -704,6 +704,16 @@ class PresalesGateEngine:
             # and surface the higher-level retention and use-case questions instead.
             if family == "siem_log_mgmt" and has_any(combined, KEYWORDS["log_volume"]):
                 questions.extend(family_questions[1:3])
+            elif family == "endpoint_xdr" and (is_renewal or is_expansion):
+                # On renewals the seat count is already in the BOQ — asking "how many"
+                # wastes a question slot.  Swap Q1 for OS/agent compatibility which IS
+                # still unknown, and keep Q2 (endpoint controls) unchanged.
+                questions.append(
+                    "What OS builds (Windows versions, Linux distributions, macOS) and "
+                    "existing agent versions make up the endpoint fleet, and are there any "
+                    "EoL OS versions that need agent compatibility review before the renewal loads?"
+                )
+                questions.append(family_questions[1])  # endpoint controls question
             else:
                 questions.extend(family_questions[:2])
 
