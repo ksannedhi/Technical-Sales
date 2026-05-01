@@ -544,8 +544,18 @@ class PresalesGateEngine:
             # hits to stand in when the requirements text yields nothing.
             req_hits = sum(1 for kw in keywords if _keyword_match(requirements, kw))
             proposal_hits = sum(1 for kw in keywords if _keyword_match(proposal, kw))
-            if req_hits == 0 and not (is_renewal and proposal_hits >= 2):
-                continue
+            if req_hits == 0:
+                # Government and procurement RFPs often use generic language without
+                # naming the solution or vendor — the proposal carries the specificity.
+                # Allow proposal-only detection when:
+                #   - Renewal deal: ≥2 proposal hits (vendor is named in proposal)
+                #   - Any deal:     ≥3 proposal hits (strong multi-signal confidence)
+                # The stricter threshold for non-renewal deals prevents a credential or
+                # boilerplate-heavy proposal from fabricating a family the RFP never asked for.
+                renewal_ok = is_renewal and proposal_hits >= 2
+                strong_proposal = proposal_hits >= 3
+                if not (renewal_ok or strong_proposal):
+                    continue
             total_hits = sum(1 for kw in keywords if _keyword_match(combined, kw))
             if total_hits >= 2:
                 family_scores.append((total_hits, family))
