@@ -40,8 +40,8 @@ KEYWORDS = {
     "failover": ["failover", "redundant"],
     "latency": ["latency", "low latency", "sla"],
     "business_outcome": ["outcome", "business", "executive summary", "use case"],
-    "bom": ["bom", "bill of materials"],
-    "timeline": ["week", "weeks", "timeline", "phase", "phases"],
+    "bom": ["bom", "bill of materials", "boq", "bill of quantities"],
+    "timeline": ["week", "weeks", "implementation plan", "project plan", "phased", "phase 1", "phase 2", "delivery schedule"],
 }
 
 DEFAULT_GATE_CONFIG = {
@@ -869,7 +869,7 @@ class PresalesGateEngine:
             score -= gate_config["latency_penalty"]
             findings.append(make_finding("Proposal", "medium", "Proposal does not mention SLA or latency commitments for a latency-sensitive deal.", "sla"))
 
-        if not any(has_word(proposal, token) for token in ["deliverables", "scope", "bom", "plan", "phases", "dashboard", "playbook", "summary"]):
+        if not any(has_word(proposal, token) for token in ["deliverables", "scope", "bom", "boq", "plan", "phases", "dashboard", "playbook", "summary"]):
             score -= gate_config["deliverables_penalty"]
             findings.append(make_finding("Proposal", "medium", "Scope or explicit deliverables are not clearly stated.", "deliverables"))
 
