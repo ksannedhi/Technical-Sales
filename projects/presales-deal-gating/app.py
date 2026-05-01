@@ -187,14 +187,27 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     for key in ["requirements_file", "proposal_file", "supporting_file"]:
         upload = form.get(key)
         if isinstance(upload, dict) and upload.get("filename"):
+            fname = upload["filename"]
+            content = upload["content"]
+            size_mb = len(content) / 1_000_000
+            # Reject PDFs over 20 MB immediately — large PDFs are virtually always
+            # scanned/image-heavy and pypdf would hang for 30-60 s trying to parse them.
+            # Emit a clear message so the user knows to convert before uploading.
+            if fname.lower().endswith(".pdf") and len(content) > 20_000_000:
+                state["messages"].append(
+                    f"{fname} is {size_mb:.0f} MB — PDFs over 20 MB are almost always "
+                    f"scanned and contain no extractable text. Convert to DOCX or paste "
+                    f"the text content directly into the textbox."
+                )
+                continue
             extraction_started = time.time()
-            text = extract_text_from_bytes(upload["filename"], upload["content"])
-            print(f"[timing] extract_{key}_ms={round((time.time() - extraction_started) * 1000, 2)} file={upload['filename']}")
+            text = extract_text_from_bytes(fname, content)
+            print(f"[timing] extract_{key}_ms={round((time.time() - extraction_started) * 1000, 2)} file={fname}")
             target = key.replace("_file", "")
             if target == "supporting":
                 target = "supporting_context"
             artifacts[target] = merge_text(text, artifacts.get(target, ""))
-            warning = upload_warning(upload["filename"], text)
+            warning = upload_warning(fname, text)
             if warning:
                 state["messages"].append(warning)
 
