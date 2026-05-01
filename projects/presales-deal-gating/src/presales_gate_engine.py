@@ -516,7 +516,7 @@ class PresalesGateEngine:
         architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions, is_renewal)
         proposal_score = self._proposal_gate(normalized["requirements"], normalized["proposal"], supporting_context, findings, strengths, clarifying_questions)
         self._cross_document_checks(normalized["requirements"], normalized["proposal"], supporting_context, findings, clarifying_questions)
-        self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions)
+        self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions, is_renewal)
 
         for missing in missing_artifacts:
             findings.append({
@@ -617,11 +617,18 @@ class PresalesGateEngine:
         artifacts: dict[str, str],
         supporting_context: str,
         questions: list[str],
+        is_renewal: bool = False,
     ) -> None:
         combined = " ".join([artifacts.get(section, "") for section in SECTION_NAMES] + [supporting_context])
         for family in solution_families:
             family_questions = SOLUTION_FAMILY_QUESTIONS.get(family, [])
             if not family_questions:
+                continue
+            # For renewal deals, suppress siem_log_mgmt questions entirely.
+            # SIEM is often detected from customer-references boilerplate in renewal
+            # proposals rather than as the primary solution being renewed — asking
+            # about sizing baselines and retention splits is inappropriate in that context.
+            if family == "siem_log_mgmt" and is_renewal:
                 continue
             # For SIEM: if log volume is already defined, skip the sizing question
             # and surface the higher-level retention and use-case questions instead.
