@@ -194,7 +194,7 @@ SOLUTION_FAMILY_KEYWORDS = {
         "dlp", "data loss prevention", "data exfiltration", "information protection", "purview",
     ],
     "managed_services": [
-        "mdr", "managed detection", "managed soc", "soc as a service", "mssp", "managed security service",
+        "mdr", "mxdr", "managed xdr", "managed detection", "managed soc", "soc as a service", "mssp", "managed security service",
     ],
     "ddos_protection": [
         "ddos", "denial of service", "dos protection", "arbor", "netscout", "radware", "cloudflare",
@@ -338,7 +338,7 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     "vulnerability_management": ["tenable", "qualys", "rapid7", "nessus", "vulnerability management", "vulnerability scanning"],
     "ndr": ["darktrace", "extrahop", "vectra", "network detection", "network traffic analysis", "deep discovery"],
     "dlp": ["data loss prevention", "purview", "dlp policy", "information protection platform"],
-    "managed_services": ["managed detection", "managed soc", "soc as a service", "mssp", "mdr service"],
+    "managed_services": ["managed detection", "managed soc", "soc as a service", "mssp", "mdr service", "mxdr", "managed xdr"],
     "ddos_protection": ["arbor", "netscout", "radware", "ddos mitigation", "scrubbing", "bgp diversion", "anti-ddos", "volumetric attack"],
 }
 
@@ -571,9 +571,10 @@ class PresalesGateEngine:
         )
         overall_status = overall_status_from_findings(overall_score, findings, self.config)
 
-        # Cap at 8 questions — multi-product deals with 4 solution families can generate
-        # many valid questions, and the extra 2 slots ensure family-specific questions survive.
-        dedup_questions = dedupe(clarifying_questions)[:8]
+        # Cap at 10 questions — multi-product deals with 5 solution families generate up to
+        # 11 candidates (5 × 2 family questions + 1 scope question); the cap keeps output
+        # readable while ensuring every detected product area surfaces at least one question.
+        dedup_questions = dedupe(clarifying_questions)[:10]
         dedup_strengths = dedupe(strengths)[:6]
         dedup_findings = dedupe_findings(findings)
 
@@ -638,9 +639,9 @@ class PresalesGateEngine:
             if total_hits >= 2:
                 family_scores.append((total_hits, family))
         family_scores.sort(reverse=True)
-        # Allow up to 4 families so multi-workstream deals (e.g. firewall + email + OT + IAM)
-        # receive relevant questions and findings for every in-scope product area.
-        return [family for _, family in family_scores][:4]
+        # Allow up to 5 families so multi-workstream deals (e.g. endpoint + email + NDR +
+        # firewall + managed service) receive relevant questions across every product area.
+        return [family for _, family in family_scores][:5]
 
     def _solution_family_questions(
         self,
