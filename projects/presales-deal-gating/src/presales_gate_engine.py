@@ -148,6 +148,7 @@ GENERAL_SCOPE_TERMS = [
 SOLUTION_FAMILY_KEYWORDS = {
     "siem_log_mgmt": [
         "siem", "log management", "log analytics", "soc", "splunk", "qradar", "sentinel", "elastic", "event volume", "eps",
+        "fortianalyzer", "fortisiem",
     ],
     "firewall_network": [
         "firewall", "fortigate", "palo alto", "checkpoint", "vpn", "nat", "segmentation", "internet edge", "perimeter",
@@ -311,7 +312,7 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     # because they appear as integration context in firewall, network, and multi-product
     # proposals ("SIEM integration", "centralized log management") and would spuriously
     # trigger the siem_log_mgmt family for non-SIEM deals.
-    "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo"],
+    "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo", "fortianalyzer", "fortisiem"],
     "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw"],
     "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email"],
     "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection"],
