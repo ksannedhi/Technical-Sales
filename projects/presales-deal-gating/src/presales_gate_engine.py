@@ -299,6 +299,29 @@ RENEWAL_SIGNALS = [
     "renew", "contract renewal", "subscription renewal",
 ]
 
+# Anchor keywords for proposal-fallback family detection.
+# When the requirements/RFP yields zero family hits (generic procurement language,
+# bilingual PDFs, terse renewal RFPs), the engine falls back to the proposal text.
+# To avoid false positives — e.g. "active directory" and "mfa" in a Proofpoint email
+# proposal triggering the iam_pam family — at least one anchor keyword (vendor name
+# or product-specific term) must be present before the fallback qualifies.
+# Generic integration terms ("sso", "mfa", "firewall") are deliberately excluded.
+FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
+    "siem_log_mgmt": ["splunk", "qradar", "sentinel", "elastic", "log management", "log analytics", "siem"],
+    "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw"],
+    "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email"],
+    "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection"],
+    "iam_pam": ["identity governance", "privileged access", "okta", "entra id", "cyberark", "beyondtrust", "sailpoint", "saviynt"],
+    "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network"],
+    "app_delivery_security": ["load balancer", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy"],
+    "ot_ics": ["scada", "operational technology", "purdue", "claroty", "nozomi", "dragos", "ics security"],
+    "cloud_security": ["cspm", "cnapp", "wiz", "lacework", "cloud security posture", "prisma cloud", "defender for cloud"],
+    "vulnerability_management": ["tenable", "qualys", "rapid7", "nessus", "vulnerability management", "vulnerability scanning"],
+    "ndr": ["darktrace", "extrahop", "vectra", "network detection", "network traffic analysis"],
+    "dlp": ["data loss prevention", "purview", "dlp policy", "information protection platform"],
+    "managed_services": ["managed detection", "managed soc", "soc as a service", "mssp", "mdr service"],
+}
+
 POSITIVE_SIGNALS = [
     ("Quantified sizing is present", "requirements", "log_volume"),
     ("Retention requirement is defined", "requirements", "retention"),
@@ -545,15 +568,19 @@ class PresalesGateEngine:
             req_hits = sum(1 for kw in keywords if _keyword_match(requirements, kw))
             proposal_hits = sum(1 for kw in keywords if _keyword_match(proposal, kw))
             if req_hits == 0:
-                # Government and procurement RFPs often use generic language without
-                # naming the solution or vendor — the proposal carries the specificity.
-                # Allow proposal-only detection when:
-                #   - Renewal deal: ≥2 proposal hits (vendor is named in proposal)
-                #   - Any deal:     ≥4 proposal hits (strong multi-signal confidence)
-                # The higher threshold for non-renewal deals prevents adjacent terms
-                # (e.g. "active directory", "mfa", "sso" in a Proofpoint email proposal)
-                # from spuriously triggering unrelated families such as iam_pam or
-                # firewall_network. A genuine primary-solution proposal always clears 4+.
+                # Government and procurement RFPs often use generic procurement language
+                # without naming the solution or vendor — the proposal carries the specificity.
+                # Allow proposal-only detection when the proposal shows enough signal, but
+                # require at least one anchor keyword (vendor name or product-specific term)
+                # so that generic integration terms ("active directory", "mfa", "sso") in an
+                # unrelated proposal don't spuriously trigger a family.
+                # Rules:
+                #   - Renewal deal: ≥2 proposal hits AND ≥1 anchor hit
+                #   - Any deal:     ≥4 proposal hits AND ≥1 anchor hit
+                anchors = FAMILY_ANCHOR_KEYWORDS.get(family, [])
+                has_anchor = any(_keyword_match(proposal, a) for a in anchors)
+                if not has_anchor:
+                    continue
                 renewal_ok = is_renewal and proposal_hits >= 2
                 strong_proposal = proposal_hits >= 4
                 if not (renewal_ok or strong_proposal):
