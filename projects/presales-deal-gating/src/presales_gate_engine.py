@@ -46,6 +46,21 @@ KEYWORDS = {
     "seat_expansion": ["additional seats", "additional licenses", "additional users", "new seats", "additional seat"],
     # XDR credit allocation — appears in Vision One BOQs as a line item
     "xdr_credit": ["xdr credit", "xdr credits", "xdr for endpoints and emails"],
+    # Government / regulated-procurement certification requirements
+    "fips": ["fips", "fips 140-2", "fips140"],
+    "taa": ["taa compliant", "taa-compliant", "trade agreements act"],
+    "common_criteria": ["common criteria", "cc certification", "cc eal", "niap"],
+    # Firewall security subscription features (should appear in proposal BOQ when required)
+    "ips_feature": ["intrusion prevention", "threat prevention", "ips subscription", " ips ", " ips,", "(ips)"],
+    "url_filtering": ["url filtering", "web filtering"],
+    "sandbox_feature": ["sandbox", "wildfire", "advanced threat"],
+    # Centralised firewall management platforms
+    "fw_central_mgmt": ["panorama", "fortimanager", "smart console", "smartconsole"],
+    # Multi-site firewall deployment signals
+    "fw_multisite": ["multiple sites", "multi-site", "three sites", "two sites", "all sites", "all three", "all locations"],
+    # SIEM-as-log-destination signals — suppress SIEM sizing questions when these appear
+    # alongside a firewall family (the SIEM is already deployed, not being delivered)
+    "log_destination": ["existing siem", "log forwarding", "forward logs", "syslog to", "log to siem", "siem integration"],
 }
 
 DEFAULT_GATE_CONFIG = {
@@ -574,7 +589,7 @@ class PresalesGateEngine:
         )
         architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions, is_renewal, is_expansion)
         proposal_score = self._proposal_gate(normalized["requirements"], normalized["proposal"], supporting_context, findings, strengths, clarifying_questions)
-        self._cross_document_checks(normalized["requirements"], normalized["proposal"], supporting_context, findings, clarifying_questions)
+        self._cross_document_checks(normalized["requirements"], normalized["proposal"], supporting_context, findings, clarifying_questions, detected_solution_families)
         self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions, is_renewal, is_expansion)
 
         for missing in missing_artifacts:
@@ -695,6 +710,14 @@ class PresalesGateEngine:
             # about sizing baselines and retention splits is inappropriate in that context.
             if family == "siem_log_mgmt" and is_renewal:
                 continue
+            # Suppress SIEM sizing questions when the SIEM is a log destination for a
+            # firewall deal rather than the solution being delivered.  Signals: an existing
+            # SIEM is named as the log sink ("log forwarding to Splunk", "existing SIEM")
+            # alongside a firewall family — asking about hot/warm/cold retention splits
+            # or ingestion baselines is wrong in this context.
+            if family == "siem_log_mgmt" and "firewall_network" in solution_families:
+                if has_any(combined_lower, KEYWORDS["log_destination"]):
+                    continue
             # TippingPoint is a network IPS, not a traditional NGFW — swap in IPS-specific
             # questions so the engineer isn't asked about VPN termination or NAT routing,
             # which TippingPoint does not handle.
@@ -742,6 +765,12 @@ class PresalesGateEngine:
             return score
 
         observability_sensitive = "siem_log_mgmt" in solution_families
+        # SIEM appears as a log destination for a firewall deal — don't apply SIEM
+        # sizing checks (log volume, retention) since the SIEM is already deployed.
+        if observability_sensitive and "firewall_network" in solution_families:
+            combined_check = f"{requirements} {supporting_context}".lower()
+            if has_any(combined_check, KEYWORDS["log_destination"]):
+                observability_sensitive = False
         if observability_sensitive:
             if has_any(requirements, KEYWORDS["log_volume"]):
                 score += gate_config["log_volume_bonus"]
@@ -974,7 +1003,9 @@ class PresalesGateEngine:
         supporting_context: str,
         findings: list[dict[str, str]],
         questions: list[str],
+        solution_families: list[str] | None = None,
     ) -> None:
+        solution_families = solution_families or []
         # Log volume consistency — normalise TB/day and GB/day to GB for comparison
         volume_values_gb = [
             v for v in [
@@ -1048,6 +1079,47 @@ class PresalesGateEngine:
 
         if "log sources list incomplete" in supporting_context:
             findings.append(make_finding("Cross-check", "medium", "Supporting notes indicate source inventory is incomplete, which weakens sizing and scope confidence.", "sources"))
+
+        # ── Government / regulated-procurement certification checks ──────────────
+        # Flag when a certification is required in the RFP but not confirmed in
+        # the proposal — these are common government submission blockers.
+        combined_proposal = f"{proposal} {supporting_context}".lower()
+        for cert_keywords, cert_label, cert_tag in [
+            (KEYWORDS["fips"],           "FIPS 140-2",                   "fips"),
+            (KEYWORDS["taa"],            "TAA-compliant hardware",        "taa"),
+            (KEYWORDS["common_criteria"],"Common Criteria certification", "cc"),
+        ]:
+            if has_any(requirements, cert_keywords) and not has_any(combined_proposal, cert_keywords):
+                findings.append(make_finding("Cross-check", "medium",
+                    f"{cert_label} is required but not confirmed in the proposal.", cert_tag))
+
+        # ── Firewall-specific checks ─────────────────────────────────────────────
+        if "firewall_network" in solution_families:
+            combined_all = f"{requirements} {proposal} {supporting_context}"
+
+            # Security subscription completeness: features named in RFP must appear
+            # in the proposal BOQ — a generic "subscriptions included" line is not enough.
+            for feat_keywords, feat_label, feat_tag in [
+                (KEYWORDS["ips_feature"],   "IPS / Threat Prevention",      "ips"),
+                (KEYWORDS["url_filtering"], "URL Filtering",                "url"),
+                (KEYWORDS["sandbox_feature"],"Sandbox / Advanced Threat",   "sandbox"),
+            ]:
+                if has_any(requirements, feat_keywords) and not has_any(proposal, feat_keywords):
+                    findings.append(make_finding("Cross-check", "low",
+                        f"{feat_label} is required but the named subscription is not confirmed "
+                        "in the proposal BOQ — verify it is included.", feat_tag))
+
+            # Central management: multi-site firewall without a named management platform
+            # (Panorama, FortiManager, SmartConsole) is a delivery and ops gap.
+            if has_any(combined_all, KEYWORDS["fw_multisite"]) and not has_any(combined_all, KEYWORDS["fw_central_mgmt"]):
+                findings.append(make_finding("Cross-check", "medium",
+                    "Multi-site firewall deployment is indicated but no centralised management "
+                    "platform (Panorama, FortiManager, SmartConsole) is named in the proposal.",
+                    "central_mgmt"))
+                questions.append(
+                    "Is a centralised management platform (Panorama, FortiManager, or SmartConsole) "
+                    "included in the BOQ to manage and push policy to all sites from a single pane of glass?"
+                )
 
     def _scope_terms(self, solution_families: list[str]) -> list[str]:
         terms = list(GENERAL_SCOPE_TERMS)
