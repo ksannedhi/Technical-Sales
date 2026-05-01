@@ -511,6 +511,7 @@ class PresalesGateEngine:
             findings,
             strengths,
             clarifying_questions,
+            is_renewal,
         )
         architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions, is_renewal)
         proposal_score = self._proposal_gate(normalized["requirements"], normalized["proposal"], supporting_context, findings, strengths, clarifying_questions)
@@ -637,6 +638,7 @@ class PresalesGateEngine:
         findings: list[dict[str, str]],
         strengths: list[str],
         questions: list[str],
+        is_renewal: bool = False,
     ) -> int:
         gate_config = self.config["requirements"]
         score = gate_config["baseline"] if requirements else gate_config["missing_baseline"]
@@ -650,6 +652,11 @@ class PresalesGateEngine:
                 score += gate_config["log_volume_bonus"]
             elif has_any(supporting_context, KEYWORDS["log_volume"]):
                 score += gate_config["log_volume_bonus"] // 2
+            elif is_renewal:
+                # Renewal deal — existing SIEM sizing is already set and running.
+                # SIEM may appear in customer references or as a passing mention;
+                # don't penalise for missing log volume on a renewal.
+                pass
             else:
                 findings.append(make_finding("Requirements", "medium", "Sizing input is missing or unclear, especially log volume or ingestion rate.", "log volume"))
                 questions.append("What is the expected daily ingestion or event volume?")
@@ -658,6 +665,9 @@ class PresalesGateEngine:
                 score += gate_config["retention_bonus"]
             elif has_any(supporting_context, KEYWORDS["retention"]):
                 score += gate_config["retention_bonus"] // 2
+            elif is_renewal:
+                # Retention policy is already configured on the existing SIEM.
+                pass
             else:
                 findings.append(make_finding("Requirements", "medium", "Retention requirement is not clearly stated.", "retention"))
                 questions.append("What retention period is required?")
@@ -666,9 +676,11 @@ class PresalesGateEngine:
             score += gate_config["identity_bonus"]
         elif has_any(supporting_context, KEYWORDS["identity"]):
             score += gate_config["identity_bonus"] // 2
-        elif any(f in solution_families for f in IDENTITY_SENSITIVE_FAMILIES):
+        elif any(f in solution_families for f in IDENTITY_SENSITIVE_FAMILIES) and not is_renewal:
             # Only flag missing identity as a gap for SIEM, IAM/PAM, and endpoint deals
             # where identity integration is a core delivery dependency.
+            # Suppressed for renewal deals — SIEM may appear in customer references
+            # rather than as the primary solution, and integrations are already live.
             findings.append(make_finding("Requirements", "medium", "Identity or core integration dependencies are not clearly defined.", "identity"))
             questions.append("Which identity systems and core integrations must be supported?")
 
