@@ -198,6 +198,14 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             if warning:
                 state["messages"].append(warning)
 
+    # Guard: refuse to run analysis when no content was provided at all.
+    # Uploads are already merged into artifacts by this point, so checking
+    # artifact values is sufficient — empty text + no file = all empty strings.
+    if not any(artifacts.values()):
+        state["messages"].append("Paste or upload at least one document (requirements, proposal, or supporting context) before running the review.")
+        state["deal_name"] = deal_name
+        return state
+
     state.update(artifacts)
     analyze_started = time.time()
     state["result"] = engine.analyze(deal_name=deal_name, artifacts=artifacts).to_dict()
