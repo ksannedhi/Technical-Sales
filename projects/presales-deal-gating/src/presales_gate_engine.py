@@ -152,13 +152,16 @@ SOLUTION_FAMILY_KEYWORDS = {
     ],
     "firewall_network": [
         "firewall", "fortigate", "palo alto", "checkpoint", "vpn", "nat", "segmentation", "internet edge", "perimeter",
+        "tippingpoint", "trend micro tipping point",
     ],
     "email_security": [
         "email security", "secure email", "phishing", "m365", "office 365", "exchange", "mail flow", "email gateway", "mimecast", "proofpoint",
         "barracuda email", "email security gateway", "barracuda essentials",
+        "trend micro email security", "trend micro email", "interscan messaging",
     ],
     "endpoint_xdr": [
         "endpoint", "edr", "xdr", "workstation", "server protection", "device control", "crowdstrike", "defender", "sentinelone",
+        "trend micro", "vision one", "apex one", "deep security", "trend agent",
     ],
     "iam_pam": [
         "iam", "pam", "identity governance", "sso", "mfa", "privileged", "entra id", "okta", "active directory", "ad",
@@ -185,6 +188,7 @@ SOLUTION_FAMILY_KEYWORDS = {
     "ndr": [
         "ndr", "network detection", "network traffic analysis", "nta",
         "darktrace", "extrahop", "vectra",
+        "deep discovery", "trend micro deep discovery",
     ],
     "dlp": [
         "dlp", "data loss prevention", "data exfiltration", "information protection", "purview",
@@ -324,15 +328,15 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     # proposals ("SIEM integration", "centralized log management") and would spuriously
     # trigger the siem_log_mgmt family for non-SIEM deals.
     "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo", "fortianalyzer", "fortisiem"],
-    "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw"],
-    "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email"],
-    "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection"],
+    "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw", "tippingpoint"],
+    "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email", "trend micro email security", "interscan messaging"],
+    "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection", "vision one", "apex one", "deep security"],
     "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network"],
     "app_delivery_security": ["load balancer", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy"],
     "ot_ics": ["scada", "operational technology", "purdue", "claroty", "nozomi", "dragos", "ics security"],
     "cloud_security": ["cspm", "cnapp", "wiz", "lacework", "cloud security posture", "prisma cloud", "defender for cloud"],
     "vulnerability_management": ["tenable", "qualys", "rapid7", "nessus", "vulnerability management", "vulnerability scanning"],
-    "ndr": ["darktrace", "extrahop", "vectra", "network detection", "network traffic analysis"],
+    "ndr": ["darktrace", "extrahop", "vectra", "network detection", "network traffic analysis", "deep discovery"],
     "dlp": ["data loss prevention", "purview", "dlp policy", "information protection platform"],
     "managed_services": ["managed detection", "managed soc", "soc as a service", "mssp", "mdr service"],
     "ddos_protection": ["arbor", "netscout", "radware", "ddos mitigation", "scrubbing", "bgp diversion", "anti-ddos", "volumetric attack"],
