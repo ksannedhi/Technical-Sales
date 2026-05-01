@@ -192,6 +192,11 @@ SOLUTION_FAMILY_KEYWORDS = {
     "managed_services": [
         "mdr", "managed detection", "managed soc", "soc as a service", "mssp", "managed security service",
     ],
+    "ddos_protection": [
+        "ddos", "denial of service", "dos protection", "arbor", "netscout", "radware", "cloudflare",
+        "akamai", "volumetric attack", "scrubbing", "traffic scrubbing", "bgp diversion",
+        "anti-ddos", "ddos mitigation", "flow telemetry",
+    ],
 }
 
 SOLUTION_FAMILY_QUESTIONS = {
@@ -260,6 +265,11 @@ SOLUTION_FAMILY_QUESTIONS = {
         "Which environments, log sources, and response actions must the managed service cover from day one?",
         "How are SLAs, escalation paths, and customer-side responsibilities divided between the provider and the internal team?",
     ],
+    "ddos_protection": [
+        "What is the expected attack profile — volumetric, protocol, or application-layer — and what peak bandwidth must the solution absorb?",
+        "Which upstream ISPs or transit providers are in scope for BGP diversion or flow-telemetry integration?",
+        "What on-premises scrubbing capacity, cloud-based mitigation, and hybrid failover model is required?",
+    ],
 }
 
 # Solution-family-aware HA clarifying questions.
@@ -278,6 +288,7 @@ HA_QUESTIONS_BY_FAMILY = {
     "ndr": "How are NDR sensor redundancy and traffic capture continuity maintained during maintenance or network changes?",
     "dlp": "How is DLP policy enforcement continuity maintained during system upgrades or connector failures?",
     "managed_services": "How is analyst coverage and escalation continuity maintained during service provider incidents or maintenance windows?",
+    "ddos_protection": "How is scrubbing centre availability and BGP diversion continuity maintained during a sustained volumetric attack or ISP failover?",
 }
 HA_QUESTION_DEFAULT = "How is high availability and failover defined for the primary system components?"
 
@@ -324,6 +335,7 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     "ndr": ["darktrace", "extrahop", "vectra", "network detection", "network traffic analysis"],
     "dlp": ["data loss prevention", "purview", "dlp policy", "information protection platform"],
     "managed_services": ["managed detection", "managed soc", "soc as a service", "mssp", "mdr service"],
+    "ddos_protection": ["arbor", "netscout", "radware", "ddos mitigation", "scrubbing", "bgp diversion", "anti-ddos", "volumetric attack"],
 }
 
 # Families excluded from proposal-fallback detection entirely.
