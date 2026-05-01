@@ -214,6 +214,14 @@ SOLUTION_FAMILY_QUESTIONS = {
         "Are HA pairs, failover behavior, and maintenance windows defined for the firewall deployment?",
         "Which NAT, routing, and east-west segmentation requirements must the design preserve?",
     ],
+    # TippingPoint is a network IPS, not a traditional NGFW — VPN/routing questions
+    # do not apply.  These replace the standard firewall_network questions when
+    # TippingPoint is detected as the primary product.
+    "firewall_network_ips": [
+        "Which network segments is TippingPoint deployed inline on — internet edge, DMZ, internal core, or data centre perimeter?",
+        "Is TippingPoint configured in active prevention mode or detection-only, and are hardware bypass cards in place for link continuity during failover?",
+        "How are Digital Vaccine updates and TippingPoint Security Management System (SMS) policies distributed and verified across appliances?",
+    ],
     "email_security": [
         "Is the target email environment M365, Google Workspace, or on-prem Exchange, and what mail flow mode is required?",
         "Which email security capabilities are in scope: anti-phishing, sandboxing, DMARC, continuity, encryption, or awareness?",
@@ -652,6 +660,7 @@ class PresalesGateEngine:
         is_renewal: bool = False,
     ) -> None:
         combined = " ".join([artifacts.get(section, "") for section in SECTION_NAMES] + [supporting_context])
+        combined_lower = combined.lower()
         for family in solution_families:
             family_questions = SOLUTION_FAMILY_QUESTIONS.get(family, [])
             if not family_questions:
@@ -662,6 +671,11 @@ class PresalesGateEngine:
             # about sizing baselines and retention splits is inappropriate in that context.
             if family == "siem_log_mgmt" and is_renewal:
                 continue
+            # TippingPoint is a network IPS, not a traditional NGFW — swap in IPS-specific
+            # questions so the engineer isn't asked about VPN termination or NAT routing,
+            # which TippingPoint does not handle.
+            if family == "firewall_network" and _keyword_match(combined_lower, "tippingpoint"):
+                family_questions = SOLUTION_FAMILY_QUESTIONS["firewall_network_ips"]
             # For SIEM: if log volume is already defined, skip the sizing question
             # and surface the higher-level retention and use-case questions instead.
             if family == "siem_log_mgmt" and has_any(combined, KEYWORDS["log_volume"]):
