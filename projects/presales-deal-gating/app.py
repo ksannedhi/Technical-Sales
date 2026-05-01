@@ -199,6 +199,17 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                     f"scanned and contain no extractable text. Convert to DOCX or paste "
                     f"the text content directly into the textbox."
                 )
+                # Store a placeholder so the gate uses the baseline score rather than
+                # the missing-artifact penalty — the document exists but is unreadable.
+                # This mirrors what pypdf's scanned-PDF message did previously.
+                target = key.replace("_file", "")
+                if target == "supporting":
+                    target = "supporting_context"
+                placeholder = (
+                    f"[{fname} ({size_mb:.0f} MB) could not be processed — "
+                    f"PDF exceeds the 20 MB size limit. Convert to DOCX or paste the text directly.]"
+                )
+                artifacts[target] = merge_text(placeholder, artifacts.get(target, ""))
                 continue
             extraction_started = time.time()
             text = extract_text_from_bytes(fname, content)
