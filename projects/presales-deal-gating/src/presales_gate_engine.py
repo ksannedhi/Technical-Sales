@@ -311,10 +311,6 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw"],
     "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email"],
     "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection"],
-    # Strictly PAM/IGA vendor names — "entra id", "okta", "privileged access" are
-    # excluded because they appear as integration references in unrelated proposals
-    # (e.g. Proofpoint email proposals reference Entra ID for M365 authentication).
-    "iam_pam": ["cyberark", "beyondtrust", "sailpoint", "saviynt", "delinea", "identity governance platform", "pam solution", "privileged access management"],
     "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network"],
     "app_delivery_security": ["load balancer", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy"],
     "ot_ics": ["scada", "operational technology", "purdue", "claroty", "nozomi", "dragos", "ics security"],
@@ -324,6 +320,15 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     "dlp": ["data loss prevention", "purview", "dlp policy", "information protection platform"],
     "managed_services": ["managed detection", "managed soc", "soc as a service", "mssp", "mdr service"],
 }
+
+# Families excluded from proposal-fallback detection entirely.
+# iam_pam is excluded because its keywords (sso, mfa, active directory, privileged access)
+# appear ubiquitously in proposals for unrelated solutions as integration references.
+# Even strict vendor anchors (cyberark, beyondtrust) can appear in context phrases like
+# "securing email for privileged access management accounts" in an email security proposal.
+# A genuine IAM/PAM deal always has the RFP state "identity management", "privileged access",
+# or a PAM vendor name — req_hits will be ≥1 and normal detection fires without fallback.
+PROPOSAL_FALLBACK_EXCLUDED: frozenset[str] = frozenset({"iam_pam"})
 
 POSITIVE_SIGNALS = [
     ("Quantified sizing is present", "requirements", "log_volume"),
@@ -580,6 +585,11 @@ class PresalesGateEngine:
                 # Rules:
                 #   - Renewal deal: ≥2 proposal hits AND ≥1 anchor hit
                 #   - Any deal:     ≥4 proposal hits AND ≥1 anchor hit
+                # Some families are excluded from proposal-fallback altogether because
+                # their keywords are too generic to reliably distinguish primary scope
+                # from incidental integration references in an unrelated proposal.
+                if family in PROPOSAL_FALLBACK_EXCLUDED:
+                    continue
                 anchors = FAMILY_ANCHOR_KEYWORDS.get(family, [])
                 has_anchor = any(_keyword_match(proposal, a) for a in anchors)
                 if not has_anchor:
