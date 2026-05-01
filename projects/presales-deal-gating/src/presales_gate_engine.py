@@ -154,6 +154,7 @@ SOLUTION_FAMILY_KEYWORDS = {
     ],
     "email_security": [
         "email security", "secure email", "phishing", "m365", "office 365", "exchange", "mail flow", "email gateway", "mimecast", "proofpoint",
+        "barracuda email", "email security gateway", "barracuda essentials",
     ],
     "endpoint_xdr": [
         "endpoint", "edr", "xdr", "workstation", "server protection", "device control", "crowdstrike", "defender", "sentinelone",
@@ -288,6 +289,14 @@ IDENTITY_SENSITIVE_FAMILIES = {"siem_log_mgmt", "iam_pam", "endpoint_xdr"}
 REGULATED_SECTOR_SIGNALS = [
     "healthcare", "financial services", "critical infrastructure",
     "defence", "defense", "fintech",
+]
+
+# Terms that indicate a license or support renewal rather than a new deployment.
+# When detected, HA/DR architecture findings are softened — the infrastructure
+# already exists; the check becomes "confirm it hasn't changed" rather than "define it".
+RENEWAL_SIGNALS = [
+    "renewal", "license renewal", "maintenance renewal", "support renewal",
+    "renew", "contract renewal", "subscription renewal",
 ]
 
 POSITIVE_SIGNALS = [
@@ -513,13 +522,23 @@ class PresalesGateEngine:
         requirements = artifacts.get("requirements", "")
         proposal = artifacts.get("proposal", "")
         combined = f"{requirements} {supporting_context} {proposal}"
+
+        # Renewal deals (e.g. government RFPs for existing installations) often have bilingual
+        # PDFs or terse commercial-only requirements sections that don't restate product keywords.
+        # In that case, fall back to proposal hits so the correct solution families are still
+        # detected and relevant questions are asked.
+        is_renewal = has_any(combined, RENEWAL_SIGNALS)
+
         family_scores: list[tuple[int, str]] = []
         for family, keywords in SOLUTION_FAMILY_KEYWORDS.items():
             # Require at least one hit in the requirements/RFP to consider a family in scope.
             # This prevents vendor credential boilerplate in the proposal from triggering
             # solution families unrelated to the actual deal.
+            # Exception: renewal deals may have sparse/bilingual requirements — allow proposal
+            # hits to stand in when the requirements text yields nothing.
             req_hits = sum(1 for kw in keywords if _keyword_match(requirements, kw))
-            if req_hits == 0:
+            proposal_hits = sum(1 for kw in keywords if _keyword_match(proposal, kw))
+            if req_hits == 0 and not (is_renewal and proposal_hits >= 2):
                 continue
             total_hits = sum(1 for kw in keywords if _keyword_match(combined, kw))
             if total_hits >= 2:
@@ -637,8 +656,15 @@ class PresalesGateEngine:
         combined = f"{requirements} {supporting_context}".strip()
         score = gate_config["baseline"]
 
+        # Renewal deals have existing infrastructure — HA/DR is already designed and deployed.
+        # Penalising a renewal RFP for not redefining HA produces false positives.
+        # Instead, ask the account team to confirm the existing architecture is unchanged.
+        is_renewal = has_any(combined, RENEWAL_SIGNALS)
+
         if has_any(combined, KEYWORDS["ha"]):
             score += gate_config["ha_bonus"]
+        elif is_renewal:
+            findings.append(make_finding("Architecture", "low", "Renewal deal — confirm the existing HA design is unchanged and still fit for the renewed term.", "ha"))
         else:
             findings.append(make_finding("Architecture", "high", "High availability design is missing or unclear.", "ha"))
             # Use a solution-family-specific HA question rather than SIEM-centric language.
@@ -650,7 +676,7 @@ class PresalesGateEngine:
 
         if has_any(combined, KEYWORDS["dr"]) or has_any(combined, KEYWORDS["failover"]):
             score += gate_config["dr_bonus"]
-        else:
+        elif not is_renewal:
             findings.append(make_finding("Architecture", "medium", "DR or failover design is not defined.", "dr"))
 
         if has_any(requirements, KEYWORDS["air_gap"]) and has_any(combined, KEYWORDS["cloud"]):
