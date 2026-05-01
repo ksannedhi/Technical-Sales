@@ -42,6 +42,10 @@ KEYWORDS = {
     "business_outcome": ["outcome", "business", "executive summary", "use case"],
     "bom": ["bom", "bill of materials", "boq", "bill of quantities"],
     "timeline": ["week", "weeks", "implementation plan", "project plan", "phased", "phase 1", "phase 2", "delivery schedule"],
+    # Renewal + expansion: additional seats/licenses on top of a renewal base
+    "seat_expansion": ["additional seats", "additional licenses", "additional users", "new seats", "additional seat"],
+    # XDR credit allocation — appears in Vision One BOQs as a line item
+    "xdr_credit": ["xdr credit", "xdr credits", "xdr for endpoints and emails"],
 }
 
 DEFAULT_GATE_CONFIG = {
@@ -550,6 +554,10 @@ class PresalesGateEngine:
         # not in the RFP requirements section.
         all_artifact_text = " ".join([normalized.get(k, "") for k in SECTION_NAMES] + [supporting_context])
         is_renewal = has_any(all_artifact_text, RENEWAL_SIGNALS)
+        # Expansion flag: renewal + additional/new seats being added above the base.
+        # A 30–50% seat increase on a "renewal" needs fresh architecture validation
+        # for the new scope even though the existing deployment is already live.
+        is_expansion = is_renewal and has_any(all_artifact_text, KEYWORDS["seat_expansion"])
 
         findings: list[dict[str, str]] = []
         strengths: list[str] = []
@@ -564,10 +572,10 @@ class PresalesGateEngine:
             clarifying_questions,
             is_renewal,
         )
-        architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions, is_renewal)
+        architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions, is_renewal, is_expansion)
         proposal_score = self._proposal_gate(normalized["requirements"], normalized["proposal"], supporting_context, findings, strengths, clarifying_questions)
         self._cross_document_checks(normalized["requirements"], normalized["proposal"], supporting_context, findings, clarifying_questions)
-        self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions, is_renewal)
+        self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions, is_renewal, is_expansion)
 
         for missing in missing_artifacts:
             findings.append({
@@ -673,6 +681,7 @@ class PresalesGateEngine:
         supporting_context: str,
         questions: list[str],
         is_renewal: bool = False,
+        is_expansion: bool = False,
     ) -> None:
         combined = " ".join([artifacts.get(section, "") for section in SECTION_NAMES] + [supporting_context])
         combined_lower = combined.lower()
@@ -697,6 +706,14 @@ class PresalesGateEngine:
                 questions.extend(family_questions[1:3])
             else:
                 questions.extend(family_questions[:2])
+
+        # XDR credits appear as a BOQ line item in Vision One renewals but are rarely
+        # explained in the proposal — ask how they're allocated before submission.
+        if any(f in solution_families for f in ("endpoint_xdr", "siem_log_mgmt")) and has_any(combined_lower, KEYWORDS["xdr_credit"]):
+            questions.append(
+                "Which telemetry sources and use cases are the XDR credits allocated to, "
+                "and how is credit consumption tracked across the contract term?"
+            )
 
     def _requirements_gate(
         self,
@@ -794,6 +811,7 @@ class PresalesGateEngine:
         strengths: list[str],
         questions: list[str],
         is_renewal: bool = False,
+        is_expansion: bool = False,
     ) -> int:
         gate_config = self.config["architecture"]
         combined = f"{requirements} {supporting_context}".strip()
@@ -801,6 +819,17 @@ class PresalesGateEngine:
 
         if has_any(combined, KEYWORDS["ha"]):
             score += gate_config["ha_bonus"]
+        elif is_expansion:
+            # Renewal + additional seats: the existing HA design covers the base, but
+            # the new seats may be on different OS builds, OUs, or network segments.
+            findings.append(make_finding("Architecture", "low",
+                "Renewal includes additional or new seats — confirm the existing architecture "
+                "and management policies extend to the expanded scope.", "ha"))
+            questions.append(
+                "For the additional seats being added, which OS builds, organisational units, "
+                "and network segments apply, and does the existing management server and policy "
+                "configuration cover them without changes?"
+            )
         elif is_renewal:
             findings.append(make_finding("Architecture", "low", "Renewal deal — confirm the existing HA design is unchanged and still fit for the renewed term.", "ha"))
         else:
@@ -906,6 +935,21 @@ class PresalesGateEngine:
         if not any(has_word(proposal, token) for token in ["deliverables", "scope", "bom", "boq", "plan", "phases", "dashboard", "playbook", "summary"]):
             score -= gate_config["deliverables_penalty"]
             findings.append(make_finding("Proposal", "medium", "Scope or explicit deliverables are not clearly stated.", "deliverables"))
+
+        # Professional Services as a blank BOQ line is a common submission gap —
+        # flag it when "professional services" appears without adjacent scope detail.
+        # Exclude when it's clearly vendor-contextual ("Trend Micro Professional Services").
+        if has_word(proposal, "professional services") and not has_any(proposal, [
+            "professional services includes", "professional services will", "professional services covers",
+            "professional services scope", "ps includes", "ps will",
+        ]):
+            findings.append(make_finding("Proposal", "low",
+                "Professional Services is listed in the proposal without defined deliverables "
+                "or scope — detail what is included before submission.", "professional services"))
+            questions.append(
+                "What specific deliverables, effort allocation, and milestones are covered "
+                "under the Professional Services line item in the BOQ?"
+            )
 
         for message, section, tag in POSITIVE_SIGNALS:
             if section == "proposal" and has_any(proposal, KEYWORDS[tag]):
