@@ -459,6 +459,12 @@ class PresalesGateEngine:
         missing_artifacts = [section for section, text in normalized.items() if not text.strip()]
         detected_solution_families = self._detect_solution_families(normalized, supporting_context)
 
+        # Compute renewal flag once from all artifact text so every gate sees it
+        # consistently — "renewal" typically appears in the proposal title or body,
+        # not in the RFP requirements section.
+        all_artifact_text = " ".join([normalized.get(k, "") for k in SECTION_NAMES] + [supporting_context])
+        is_renewal = has_any(all_artifact_text, RENEWAL_SIGNALS)
+
         findings: list[dict[str, str]] = []
         strengths: list[str] = []
         clarifying_questions: list[str] = []
@@ -471,7 +477,7 @@ class PresalesGateEngine:
             strengths,
             clarifying_questions,
         )
-        architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions)
+        architecture_score = self._architecture_gate(normalized["requirements"], supporting_context, detected_solution_families, findings, strengths, clarifying_questions, is_renewal)
         proposal_score = self._proposal_gate(normalized["requirements"], normalized["proposal"], supporting_context, findings, strengths, clarifying_questions)
         self._cross_document_checks(normalized["requirements"], normalized["proposal"], supporting_context, findings, clarifying_questions)
         self._solution_family_questions(detected_solution_families, normalized, supporting_context, clarifying_questions)
@@ -651,15 +657,11 @@ class PresalesGateEngine:
         findings: list[dict[str, str]],
         strengths: list[str],
         questions: list[str],
+        is_renewal: bool = False,
     ) -> int:
         gate_config = self.config["architecture"]
         combined = f"{requirements} {supporting_context}".strip()
         score = gate_config["baseline"]
-
-        # Renewal deals have existing infrastructure — HA/DR is already designed and deployed.
-        # Penalising a renewal RFP for not redefining HA produces false positives.
-        # Instead, ask the account team to confirm the existing architecture is unchanged.
-        is_renewal = has_any(combined, RENEWAL_SIGNALS)
 
         if has_any(combined, KEYWORDS["ha"]):
             score += gate_config["ha_bonus"]
