@@ -334,6 +334,19 @@ REGULATED_SECTOR_SIGNALS = [
     "defence", "defense", "fintech",
 ]
 
+# Maps sector keywords to the most likely applicable compliance frameworks.
+# Used to make the "no framework named" finding actionable rather than generic.
+SECTOR_COMPLIANCE_MAP: dict[str, list[str]] = {
+    "bank":                   ["CBK", "SAMA", "PCI-DSS", "Basel III"],
+    "banking":                ["CBK", "SAMA", "PCI-DSS"],
+    "financial services":     ["CBK", "SAMA", "PCI-DSS", "DORA"],
+    "fintech":                ["PCI-DSS", "DORA", "ISO 27001"],
+    "healthcare":             ["HIPAA", "GDPR", "ISO 27001"],
+    "defence":                ["CMMC", "NIST 800-171", "ISO 27001"],
+    "defense":                ["CMMC", "NIST 800-171", "ISO 27001"],
+    "critical infrastructure":["IEC 62443", "NERC CIP", "NIST CSF"],
+}
+
 # Terms that indicate a license or support renewal rather than a new deployment.
 # When detected, HA/DR architecture findings are softened — the infrastructure
 # already exists; the check becomes "confirm it hasn't changed" rather than "define it".
@@ -764,6 +777,12 @@ class PresalesGateEngine:
             questions.append("Can you provide a requirements or discovery summary before gating the deal?")
             return score
 
+        # Enhancement 9 — confidence band: flag when the requirements text is too sparse
+        # or primarily non-English to reliably gate the deal.
+        confidence_note = _requirements_confidence(requirements)
+        if confidence_note:
+            findings.append(make_finding("Requirements", "low", confidence_note, "confidence"))
+
         observability_sensitive = "siem_log_mgmt" in solution_families
         # SIEM appears as a log destination for a firewall deal — don't apply SIEM
         # sizing checks (log volume, retention) since the SIEM is already deployed.
@@ -816,7 +835,12 @@ class PresalesGateEngine:
             # A specific regulated sector is named but no explicit compliance framework is mentioned.
             # Lower severity than a genuine missing requirement — the framework is implied but
             # should be named before the deal advances to technical proposal.
-            findings.append(make_finding("Requirements", "low", "A regulated sector is referenced but no specific compliance framework is named.", "compliance"))
+            matched_sector = next((s for s in REGULATED_SECTOR_SIGNALS if has_word(requirements, s)), "")
+            frameworks = SECTOR_COMPLIANCE_MAP.get(matched_sector, [])
+            fw_hint = f" — likely applicable: {', '.join(frameworks[:3])}" if frameworks else ""
+            findings.append(make_finding("Requirements", "low",
+                f"A regulated sector is referenced but no compliance framework is named{fw_hint}.",
+                "compliance"))
 
         if vague_language(requirements, self.config):
             score -= gate_config["vague_penalty"]
@@ -957,9 +981,21 @@ class PresalesGateEngine:
 
         # "assumed" alone is too broad — it fires on biographical text ("assumed the role").
         # "assumed that" is specific to technical assumption statements in proposals/SOWs.
-        if any(has_word(proposal, token) or has_word(supporting_context, token) for token in ["assumed that", "tbd", "check policy"]):
+        # Enhancement 4: enumerate the actual assumption sentences so the reviewer knows
+        # exactly which lines need follow-up, rather than just flagging generically.
+        assumption_sentences = _extract_assumption_sentences(proposal)
+        sc_has_assumption = any(has_word(supporting_context, token) for token in ["assumed that", "tbd", "check policy"])
+        if assumption_sentences or sc_has_assumption:
             score -= gate_config["assumption_penalty"]
-            findings.append(make_finding("Proposal", "medium", "Proposal relies on unresolved assumptions that should be surfaced before customer submission.", "assumption"))
+            if assumption_sentences:
+                enum_text = "; ".join(f'"{s}"' for s in assumption_sentences[:3])
+                findings.append(make_finding("Proposal", "medium",
+                    f"Proposal contains unresolved assumptions to confirm before submission: {enum_text}.",
+                    "assumption"))
+            else:
+                findings.append(make_finding("Proposal", "medium",
+                    "Proposal relies on unresolved assumptions that should be surfaced before customer submission.",
+                    "assumption"))
 
         if has_any(requirements, KEYWORDS["air_gap"]) and has_word(proposal, "conflict"):
             score += gate_config["conflict_bonus"]
@@ -1080,6 +1116,16 @@ class PresalesGateEngine:
         if "log sources list incomplete" in supporting_context:
             findings.append(make_finding("Cross-check", "medium", "Supporting notes indicate source inventory is incomplete, which weakens sizing and scope confidence.", "sources"))
 
+        # Enhancement 5 — SLA numeric comparison: flag when the RFP and proposal state
+        # different response/resolution times.  Even a 2×4 h vs 8 h mismatch is a
+        # contractual risk that should be caught before customer submission.
+        sla_req = extract_sla_hours(requirements)
+        sla_prop = extract_sla_hours(proposal)
+        if sla_req is not None and sla_prop is not None and sla_req != sla_prop:
+            findings.append(make_finding("Cross-check", "high",
+                f"SLA response time differs between documents: RFP specifies {sla_req:g}h but proposal commits to {sla_prop:g}h — align before submission.",
+                "sla"))
+
         # ── Government / regulated-procurement certification checks ──────────────
         # Flag when a certification is required in the RFP but not confirmed in
         # the proposal — these are common government submission blockers.
@@ -1128,6 +1174,87 @@ class PresalesGateEngine:
                 if " " in token or len(token) > 3:
                     terms.append(token)
         return dedupe(terms)
+
+
+def _requirements_confidence(requirements: str) -> str:
+    """Return a LOW-severity message when requirements text is too thin to score reliably.
+
+    Two conditions degrade confidence:
+      1. Very sparse text (fewer than 60 words after normalisation).
+      2. Non-English content detected by a high ratio of non-ASCII alpha characters
+         (>30%) — bilingual PDFs, Arabic, CJK, or Hebrew RFPs fall into this bucket.
+
+    Returns an empty string when confidence is acceptable.
+    """
+    words = requirements.split()
+    word_count = len(words)
+    if word_count == 0:
+        return ""
+    alpha_chars = sum(1 for c in requirements if c.isalpha())
+    non_ascii_chars = sum(1 for c in requirements if c.isalpha() and ord(c) > 127)
+    non_ascii_ratio = non_ascii_chars / alpha_chars if alpha_chars else 0
+    if non_ascii_ratio > 0.30:
+        return (
+            f"Requirements text appears to contain significant non-English content "
+            f"({round(non_ascii_ratio * 100)}% non-ASCII characters) — scoring may be "
+            f"unreliable; consider providing an English translation or pasting discovery notes."
+        )
+    if word_count < 60:
+        return (
+            f"Requirements text is very sparse ({word_count} words) — scoring confidence "
+            f"is low. Paste full RFP sections or discovery notes for a more accurate gate result."
+        )
+    return ""
+
+
+def _extract_assumption_sentences(text: str) -> list[str]:
+    """Return up to 5 sentences from the proposal that contain assumption markers.
+
+    Looks for phrases like 'assumed that', 'tbd', 'to be confirmed', 'subject to
+    confirmation' within sentence-like segments.  Strips whitespace and de-duplicates
+    by lowercased prefix.
+    """
+    ASSUMPTION_MARKERS = [
+        "assumed that", "tbd", "check policy",
+        "to be confirmed", "subject to confirmation", "to be determined",
+    ]
+    sentences: list[str] = []
+    seen: set[str] = set()
+    for seg in re.split(r"(?<=[.!?])\s+", text):
+        seg = seg.strip()
+        if not seg or len(seg) > 300:
+            continue
+        low = seg.lower()
+        if any(marker in low for marker in ASSUMPTION_MARKERS):
+            key = low[:80]
+            if key not in seen:
+                seen.add(key)
+                sentences.append(seg[:200] + ("…" if len(seg) > 200 else ""))
+        if len(sentences) >= 5:
+            break
+    return sentences
+
+
+def extract_sla_hours(text: str) -> float | None:
+    """Extract a response/resolution SLA commitment in hours from text.
+
+    Handles patterns like:
+      - "4-hour response time", "response within 4 hours"
+      - "SLA: 2h", "SLA of 8 hours"
+      - "next business day" → 8 h (conservative working-day estimate)
+
+    Returns the first matched value in hours, or None if no SLA pattern is found.
+    """
+    text_lower = text.lower()
+    if re.search(r"next\s+business\s+day|nbd", text_lower):
+        return 8.0
+    m = re.search(r"(\d+(?:\.\d+)?)\s*[-\s]*hour", text_lower)
+    if m:
+        return float(m.group(1))
+    m = re.search(r"(\d+(?:\.\d+)?)\s*h\b", text_lower)
+    if m:
+        return float(m.group(1))
+    return None
 
 
 def normalize_text(text: str) -> str:

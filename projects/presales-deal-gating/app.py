@@ -119,6 +119,8 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "supporting_context": "",
                 "messages": messages,
                 "result": saved["result"],
+                "rerun_from_id": "",
+                "score_delta": saved.get("score_delta"),
             }
 
     # Re-run: pre-populate the form with a previous deal's artifacts so the user
@@ -140,6 +142,8 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                     "Edit as needed, enter a new deal name, then re-run."
                 ],
                 "result": saved["result"],
+                # Carry the source review ID so the POST can compute a score delta.
+                "rerun_from_id": rerun_id,
             }
 
     state = {
@@ -151,6 +155,8 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         "supporting_context": "",
         "messages": [],
         "result": None,
+        "rerun_from_id": "",
+        "score_delta": None,
     }
     if not form:
         return state
@@ -262,7 +268,19 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     analyze_started = time.time()
     state["result"] = engine.analyze(deal_name=deal_name, artifacts=artifacts).to_dict()
     print(f"[timing] engine_analyze_ms={round((time.time() - analyze_started) * 1000, 2)}")
-    state["selected_review_id"] = remember_session_review(deal_name, artifacts, state["result"])
+
+    # Enhancement 10 — re-run delta: if the user clicked Re-run on a prior deal,
+    # compute the score change so we can show a delta banner on the results page.
+    rerun_from_id = (form.get("rerun_from_id") or "").strip()
+    score_delta: int | None = None
+    if rerun_from_id:
+        prior = get_session_review(rerun_from_id)
+        if prior:
+            old_score = prior["result"].get("overall_score", 0)
+            new_score = state["result"]["overall_score"]
+            score_delta = new_score - old_score
+
+    state["selected_review_id"] = remember_session_review(deal_name, artifacts, state["result"], score_delta=score_delta)
     state["deal_name"] = ""
     state["requirements"] = ""
     state["proposal"] = ""
@@ -304,10 +322,38 @@ def parse_multipart(environ: dict[str, str]) -> dict[str, object]:
     return values
 
 
+def render_delta_banner(score_delta: int | None) -> str:
+    """Return an HTML banner showing score movement on a re-run, or empty string."""
+    if score_delta is None:
+        return ""
+    if score_delta > 0:
+        css = "delta-up"
+        icon = "&#x2B06;"  # ⬆
+        headline = f"Score improved by +{score_delta} points on this re-run."
+        sub = "Keep addressing remaining findings to push the score higher."
+    elif score_delta < 0:
+        css = "delta-down"
+        icon = "&#x2B07;"  # ⬇
+        headline = f"Score dropped by {score_delta} points on this re-run."
+        sub = "Review new or worsened findings — the deal may need rework before advancing."
+    else:
+        css = "delta-flat"
+        icon = "&#x27A1;"  # ➡
+        headline = "Score unchanged on this re-run."
+        sub = "No net movement — check whether the updated artifacts addressed the open findings."
+    return (
+        f"<div class='delta-banner {css}'>"
+        f"<span class='delta-icon'>{icon}</span>"
+        f"<div class='delta-text'>{headline}<small>{sub}</small></div>"
+        f"</div>"
+    )
+
+
 def render_page(state: dict[str, object]) -> str:
     result = state.get("result")
     session_history = render_session_history(state.get("selected_review_id", ""))
     selected_review_summary = ""
+    delta_banner = render_delta_banner(state.get("score_delta"))
 
     result_html = ""
     if result:
@@ -341,6 +387,7 @@ def render_page(state: dict[str, object]) -> str:
             <h2>{overall_icon} Overall Readiness for {escape(active_deal_name)}: {escape(result['overall_status'])}</h2>
             <a class="download-link" href="{findings_download_href}" download="{escape(active_deal_name)}_review.txt">Download Findings</a>
           </div>
+          {delta_banner}
           <p class="hint">Overall is a weighted score out of 100. Requirements, Architecture, and Proposal are gate scores that show how each area performed before the weighted roll-up.</p>
           <div class="scores">
             <div class="score"><span>Overall</span><strong>{result['overall_score']}/100</strong><small>Weighted readiness across all gates</small></div>
@@ -469,6 +516,13 @@ def render_page(state: dict[str, object]) -> str:
     .modal-card h3 {{ margin-bottom: 8px; }}
     .modal-actions {{ display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }}
     .ghost-button {{ background: transparent; color: #6d5c48; border: 1px solid #d8cfc2; }}
+    .delta-banner {{ display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding: 14px 18px; border-radius: 14px; font-weight: 600; font-size: 0.97rem; }}
+    .delta-up {{ background: #e6f4ec; border-left: 4px solid #265c3a; color: #1c4530; }}
+    .delta-down {{ background: #fdeaea; border-left: 4px solid #872020; color: #5a1212; }}
+    .delta-flat {{ background: #f3ebe0; border-left: 4px solid #b8975e; color: #4a3515; }}
+    .delta-icon {{ font-size: 1.4rem; line-height: 1; }}
+    .delta-text {{ flex: 1; }}
+    .delta-text small {{ display: block; font-weight: 400; font-size: 0.88rem; margin-top: 2px; opacity: 0.8; }}
   </style>
 </head>
 <body>
@@ -489,6 +543,7 @@ def render_page(state: dict[str, object]) -> str:
           <section class="panel">
           {"".join(f"<div class='notice'>{escape(message)}</div>" for message in state.get("messages", [])) if state.get("messages") else ""}
           <form id="review-form" method="post" action="/" enctype="multipart/form-data">
+            <input type="hidden" name="rerun_from_id" value="{escape(str(state.get('rerun_from_id', '')))}">
             <label for="deal_name">Deal name</label>
             <input id="deal_name" name="deal_name" type="text" placeholder="Enter a deal name" value="{escape(state['deal_name'])}" required>
 
@@ -813,7 +868,12 @@ def make_unique_deal_name(requested_name: str) -> str:
         index += 1
 
 
-def remember_session_review(deal_name: str, artifacts: dict[str, str], result: dict[str, object]) -> str:
+def remember_session_review(
+    deal_name: str,
+    artifacts: dict[str, str],
+    result: dict[str, object],
+    score_delta: int | None = None,
+) -> str:
     global NEXT_REVIEW_ID
     review_id = str(NEXT_REVIEW_ID)
     NEXT_REVIEW_ID += 1
@@ -822,6 +882,7 @@ def remember_session_review(deal_name: str, artifacts: dict[str, str], result: d
         "deal_name": deal_name,
         "artifacts": dict(artifacts),
         "result": dict(result),
+        "score_delta": score_delta,
     })
     del SESSION_REVIEWS[12:]
     return review_id
