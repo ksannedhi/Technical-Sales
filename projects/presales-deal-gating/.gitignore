@@ -10,6 +10,14 @@ data/analyses.db
 # Generated test artefacts
 tests/_generated/
 
+# Debug / timing output redirected from stdout
+timing_log.txt
+
+# SQLite write-ahead / journal files (recreated automatically)
+data/analyses.db-journal
+data/analyses.db-wal
+data/analyses.db-shm
+
 # Environment overrides
 .env
 .env.*
