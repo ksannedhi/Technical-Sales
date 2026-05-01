@@ -311,7 +311,10 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw"],
     "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email"],
     "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection"],
-    "iam_pam": ["identity governance", "privileged access", "okta", "entra id", "cyberark", "beyondtrust", "sailpoint", "saviynt"],
+    # Strictly PAM/IGA vendor names — "entra id", "okta", "privileged access" are
+    # excluded because they appear as integration references in unrelated proposals
+    # (e.g. Proofpoint email proposals reference Entra ID for M365 authentication).
+    "iam_pam": ["cyberark", "beyondtrust", "sailpoint", "saviynt", "delinea", "identity governance platform", "pam solution", "privileged access management"],
     "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network"],
     "app_delivery_security": ["load balancer", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy"],
     "ot_ics": ["scada", "operational technology", "purdue", "claroty", "nozomi", "dragos", "ics security"],
