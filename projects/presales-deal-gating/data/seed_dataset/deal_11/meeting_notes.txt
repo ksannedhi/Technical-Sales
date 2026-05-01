@@ -1,0 +1,7 @@
+Discovery call notes — Firewall Refresh:
+- HA pair confirmed at primary site; DR site HA pair also confirmed
+- Failover RTO target: 30 seconds
+- BGP routing diagrams shared by customer network team
+- Change management board meets monthly — next window approved for Week 4
+- Customer confirmed no cloud workloads; all traffic on-premises
+- Existing ASA config export scheduled for end of Week 1

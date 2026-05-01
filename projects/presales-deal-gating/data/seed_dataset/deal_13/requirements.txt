@@ -1,0 +1,12 @@
+### Discovery Notes — PAM Implementation (Financial Institution)
+Customer: Org-13 (Finance)
+Objective: Improve privileged access control.
+- Need to control admin access to critical systems
+- Some privileged users — mostly IT admins
+- Looking at CyberArk or BeyondTrust
+- Want MFA for privileged sessions
+No list of target systems provided.
+No account count confirmed.
+No integration details with AD or HR system.
+Retention and audit log requirements not discussed.
+No compliance framework referenced.

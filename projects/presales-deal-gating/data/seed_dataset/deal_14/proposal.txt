@@ -1,0 +1,23 @@
+### Technical Proposal — Network & Email Security Refresh
+
+Scope: Two parallel workstreams delivered over 16 weeks.
+Deliverables:
+Workstream 1 (Firewall):
+- HA NGFW deployment at HQ with DR failover design
+- ASA policy migration and segmentation baseline
+- OT/IT boundary firewall rules (Purdue zones)
+- SD-WAN integration for regional site failover
+
+Workstream 2 (Email Security):
+- Proofpoint gateway configuration for M365 mail flow
+- Anti-phishing and sandbox policy tuning
+- DMARC record deployment and monitoring
+- Email encryption policy for sensitive departments
+
+Timeline: 16 weeks across two workstreams running in parallel from Week 3.
+Phases: Design (Wk 1-2), Deployment (Wk 3-12), Tuning and Handover (Wk 13-16).
+Assumptions:
+- DMARC enforcement timeline to be agreed (not yet confirmed by customer)
+- OT vendor access required for Purdue boundary design — not yet scheduled
+Executive summary: Eliminates two end-of-life products, closes phishing and perimeter gaps,
+and advances ISO 27001 certification objectives.

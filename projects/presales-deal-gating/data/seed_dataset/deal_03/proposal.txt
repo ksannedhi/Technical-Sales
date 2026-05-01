@@ -1,0 +1,10 @@
+### Proposal / SOW (excerpt)
+* Scope: deploy SIEM; integrate sources; basic use-cases
+Timeline: 12 weeks
+* Deliverables: platform configured; dashboards; reports
+- Phases: install → integrate → tune
+- Assumptions: customer provides infra; network access; SMEs
+• Exclusions: custom dev (unless agreed)
+- Retention stated: 90 days
+- Capacity assumed: 5 TB/day
+- Note: sizing based on 2 TB/day (assumption)

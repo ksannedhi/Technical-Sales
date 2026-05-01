@@ -71,7 +71,7 @@ data/gate_config.json       Tunable scoring weights, thresholds, and heuristic s
 - `src/presales_gate_engine.py` — scoring engine (requirements, architecture, proposal gates)
 - `src/file_ingest.py` — file extraction helpers (docx, pptx, pdf, zip, txt, md)
 - `data/gate_config.json` — scoring weights, thresholds, heuristic settings
-- `docs/PRODUCT_SPEC.md` — full product and behaviour spec
+- `PRODUCT_SPEC.md` — full product and behaviour spec
 - `tests/test_engine.py` — regression coverage for scoring and ingestion
 - `start.cmd` — Windows launcher (sets PYTHONPATH, optionally uses local Python)
 

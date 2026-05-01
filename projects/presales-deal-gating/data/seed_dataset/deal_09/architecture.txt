@@ -1,0 +1,9 @@
+### Architecture Notes (text)
+SIEM cluster deployed in DC1
+* Collectors in sites; forwarding via syslog/agent
+UEBA planned
+* SOAR included
+• Cloud ingestion: AWS+Azure
+• DR site: defined (DC2)
+• Data flow: endpoints → collectors → SIEM → SOAR → tickets
+Gaps: identity source details unclear; API access not confirmed

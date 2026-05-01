@@ -1,0 +1,10 @@
+### Architecture Notes (text)
+* SIEM single node deployed in DC1
+* Collectors in sites; forwarding via syslog/agent
+• UEBA planned
+- SOAR included
+- Cloud ingestion: AWS
+DR site: not defined
+Data flow: endpoints → collectors → SIEM → SOAR → tickets
+* Gaps: identity source details unclear; API access not confirmed
+• Potential Issues: Air-gapped environment stated, but cloud integrations listed.; Log volume not provided.; No HA defined.; No DR defined.

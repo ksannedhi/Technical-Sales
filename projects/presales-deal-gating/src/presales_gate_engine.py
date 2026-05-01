@@ -562,7 +562,7 @@ class PresalesGateEngine:
     def __init__(self, data_dir: Path) -> None:
         self.data_dir = data_dir
         self.config = load_gate_config(data_dir / "gate_config.json")
-        self.seed_dataset = SeedDataset([data_dir / "seed_dataset", data_dir / "messy_seed_dataset"])
+        self.seed_dataset = SeedDataset([data_dir / "seed_dataset"])
         self.history = HistoryStore(data_dir / "analyses.db")
 
     def get_examples(self) -> list[str]:

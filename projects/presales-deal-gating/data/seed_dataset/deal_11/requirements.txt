@@ -1,0 +1,14 @@
+### RFP — Firewall Refresh (Government Ministry)
+Customer: Ministry of Interior (Gov)
+Scope: Replace internet edge and internal segmentation firewalls at primary and DR sites.
+- 3 x Palo Alto PA-5450 at primary data centre (HA pair + cold spare)
+- 2 x Palo Alto PA-3440 at DR site (HA pair)
+- Throughput: 10 Gbps internet edge, 40 Gbps east-west segmentation
+- SSL/TLS inspection required for all outbound traffic
+- 16 VLANs to be preserved with existing routing policy
+- BGP peering with ISP — must maintain existing AS configuration
+- VPN termination: 2,000 site-to-site tunnels and 800 remote-access users
+- NAT policy migration from existing Cisco ASA (full documentation provided)
+- Maintenance window: Sunday 02:00–06:00 GST
+- Compliance: NCA ECC baseline controls required
+- No cloud dependency — fully on-premises deployment

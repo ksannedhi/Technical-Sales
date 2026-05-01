@@ -1,0 +1,10 @@
+### RFP / Discovery Notes
+Customer: Org-01 (Gov)
+- Users ~ 4000, Servers ~ 300
+Objectives: improve visibility; compliance; faster IR; fraud detection
+* Environment: hybrid ; Cloud: AWS
+- Retention: 30 days (min)
+• Log volume: 0.8 TB/day
+• Constraints: Data residency in-country ; Budget tight
+• Integrations: AD, O365, Firewalls, EDR, VPN, Apps (SAP/Custom?)
+* Notes: some legacy systems, APIs not well documented

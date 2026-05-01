@@ -1,0 +1,26 @@
+### Technical Proposal — Palo Alto Firewall Refresh
+
+Scope: Supply, install, and commission Palo Alto NGFW at primary DC and DR site.
+Deliverables:
+- HA pair configuration and failover validation at both sites
+- NAT and routing policy migration from Cisco ASA
+- BGP peering cutover with zero downtime
+- SSL inspection policy aligned to NCA ECC controls
+- VPN tunnel migration (phased over 3 weekends)
+- Firewall security policy baseline and hardening guide
+- Acceptance test report
+
+Timeline: 10 weeks
+- Phase 1 (Weeks 1-2): Lab staging, policy translation, design review
+- Phase 2 (Weeks 3-6): Primary DC deployment and validation
+- Phase 3 (Weeks 7-9): DR site deployment and failover testing
+- Phase 4 (Week 10): Documentation, handover, and sign-off
+
+Assumptions:
+- Customer provides rack space, power, and cross-connects
+- Existing ASA configuration exported and shared before Phase 1
+- Change management approvals obtained by customer before each maintenance window
+
+Executive Summary:
+This refresh eliminates end-of-life ASA hardware and delivers a modern NGFW platform
+with centralised policy management, encrypted traffic inspection, and full NCA ECC alignment.

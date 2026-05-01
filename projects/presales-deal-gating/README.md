@@ -2,7 +2,7 @@
 
 Local web app for reviewing presales deal readiness across requirements, architecture, proposal, and supporting discovery notes.
 
-[Full specification](docs/PRODUCT_SPEC.md)
+[Full specification](PRODUCT_SPEC.md)
 
 ## What It Does
 
