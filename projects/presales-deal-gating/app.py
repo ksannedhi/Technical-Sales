@@ -10,7 +10,7 @@ import time
 import urllib.parse
 import webbrowser
 from pathlib import Path
-from wsgiref.simple_server import make_server
+from wsgiref.simple_server import make_server, WSGIRequestHandler
 
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
@@ -30,7 +30,30 @@ FLASH_MESSAGES: dict[str, list[str]] = {}
 NEXT_REVIEW_ID = 1
 
 
+class _QuietHandler(WSGIRequestHandler):
+    """Suppress per-request access log lines from wsgiref.
+
+    wsgiref writes a log line to stderr for every request.  On Windows,
+    CMD.exe in Quick Edit Mode pauses all stdout/stderr when the user
+    clicks inside the window — the server blocks mid-response until the
+    user presses Escape.  Silencing the per-request logs removes that risk
+    without losing our explicit [timing] prints.
+    """
+
+    def log_request(self, *args, **kwargs) -> None:  # type: ignore[override]
+        pass
+
+    def log_message(self, *args, **kwargs) -> None:  # type: ignore[override]
+        pass
+
+
 def application(environ, start_response):
+    # Fast-path: browsers always fetch /favicon.ico; return empty 204 so
+    # wsgiref doesn't run a full page render for an asset that doesn't exist.
+    if environ.get("PATH_INFO") == "/favicon.ico":
+        start_response("204 No Content", [("Cache-Control", "max-age=86400")])
+        return [b""]
+
     method = environ.get("REQUEST_METHOD", "GET").upper()
     query = urllib.parse.parse_qs(environ.get("QUERY_STRING", ""))
     if method == "POST":
@@ -56,7 +79,12 @@ def application(environ, start_response):
         ])
         return [body.encode("utf-8")]
 
-    body = render_page(build_page_state(query, None))
+    t0 = time.time()
+    state = build_page_state(query, None)
+    print(f"[timing] GET build_page_state_ms={round((time.time() - t0) * 1000, 2)}")
+    t1 = time.time()
+    body = render_page(state)
+    print(f"[timing] GET render_page_ms={round((time.time() - t1) * 1000, 2)}")
     start_response("200 OK", [
         ("Content-Type", "text/html; charset=utf-8"),
         ("Cache-Control", "no-store"),
@@ -858,7 +886,7 @@ def render_session_history(selected_review_id: str) -> str:
 def main() -> None:
     t0 = time.time()
     url = f"http://{HOST}:{PORT}"
-    with make_server(HOST, PORT, application) as server:
+    with make_server(HOST, PORT, application, handler_class=_QuietHandler) as server:
         elapsed = round((time.time() - t0) * 1000, 1)
         print(f"Presales Deal Gating running at {url}  (ready in {elapsed} ms)")
         if os.environ.get("PDG_OPEN_BROWSER", "0") == "1":

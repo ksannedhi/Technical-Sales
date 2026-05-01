@@ -413,7 +413,10 @@ class SeedDataset:
     @property
     def deals(self) -> list[dict[str, str]]:
         if self._deals is None:
+            import time as _time
+            t0 = _time.time()
             self._deals = self._load()
+            print(f"[timing] seed_load_ms={round((_time.time() - t0) * 1000, 2)} deals={len(self._deals)}")
         return self._deals
 
     def _load(self) -> list[dict[str, str]]:
@@ -465,6 +468,8 @@ class HistoryStore:
         self._initialize()
 
     def _initialize(self) -> None:
+        import time as _time
+        t0 = _time.time()
         conn = sqlite3.connect(self.db_path)
         try:
             conn.execute(
@@ -482,8 +487,11 @@ class HistoryStore:
             conn.commit()
         finally:
             conn.close()
+        print(f"[timing] history_init_ms={round((_time.time() - t0) * 1000, 2)} db={self.db_path}")
 
     def save(self, deal_name: str, result: AnalysisResult) -> None:
+        import time as _time
+        t0 = _time.time()
         conn = sqlite3.connect(self.db_path)
         try:
             conn.execute(
@@ -493,8 +501,11 @@ class HistoryStore:
             conn.commit()
         finally:
             conn.close()
+        print(f"[timing] history_save_ms={round((_time.time() - t0) * 1000, 2)}")
 
     def recent(self, limit: int = 8) -> list[dict[str, object]]:
+        import time as _time
+        t0 = _time.time()
         conn = sqlite3.connect(self.db_path)
         try:
             rows = conn.execute(
@@ -503,6 +514,7 @@ class HistoryStore:
             ).fetchall()
         finally:
             conn.close()
+        print(f"[timing] history_recent_ms={round((_time.time() - t0) * 1000, 2)} rows={len(rows)}")
         return [
             {
                 "deal_name": row[0],
@@ -597,7 +609,10 @@ class PresalesGateEngine:
             clarifying_questions=dedup_questions,
             seed_examples=self.seed_dataset.related_examples(dedup_findings),
         )
-        self.history.save(deal_name, result)
+        # Persist to SQLite in a daemon thread so the HTTP response is not
+        # blocked by the write (or by Windows Defender scanning the .db file).
+        import threading as _threading
+        _threading.Thread(target=self.history.save, args=(deal_name, result), daemon=True).start()
         return result
 
     def _detect_solution_families(self, artifacts: dict[str, str], supporting_context: str) -> list[str]:
