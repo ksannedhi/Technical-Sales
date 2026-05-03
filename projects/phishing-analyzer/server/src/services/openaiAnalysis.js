@@ -5,14 +5,8 @@ import { buildNarrativeMessages } from '../prompts/analyzeEmail.js';
 import { buildComplianceGaps, getCategoryDisplayLabel, getScenarioSummary } from '../mappings/eccMappings.js';
 
 function normalizeConfidence(value) {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    return 80;
-  }
-
-  if (value <= 1) {
-    return Math.round(value * 100);
-  }
-
+  if (typeof value !== 'number' || Number.isNaN(value)) return 80;
+  if (value <= 1) return Math.round(value * 100);
   return Math.round(value);
 }
 
@@ -24,30 +18,35 @@ function scoreToVerdict(riskScore) {
 }
 
 function computeFallbackRisk(findings, threatProfiles) {
-  let risk = findings.length ? 22 : 12;
+  const breakdown = [];
+  const base = findings.length ? 22 : 12;
+  let risk = base;
+  breakdown.push({ label: 'Base score', points: base });
 
   findings.forEach((finding) => {
-    if (finding.severity === 'critical') {
-      risk += 24;
-    } else if (finding.severity === 'high') {
-      risk += 16;
-    } else if (finding.severity === 'medium') {
-      risk += 9;
-    } else {
-      risk += 4;
-    }
+    const pts = { critical: 24, high: 16, medium: 9, low: 4 }[finding.severity] ?? 4;
+    risk += pts;
+    breakdown.push({ label: finding.title, points: pts });
   });
 
-  if (threatProfiles.includes('credential_harvesting')) risk += 12;
-  if (threatProfiles.includes('business_email_compromise')) risk += 10;
-  if (threatProfiles.includes('financial_fraud')) risk += 10;
-  if (threatProfiles.includes('invoice_fraud')) risk += 8;
-  if (threatProfiles.includes('malware_delivery')) risk += 10;
-  if (threatProfiles.includes('impersonation')) risk += 8;
+  const profileBoosts = [
+    ['credential_harvesting', 12, 'Credential harvesting profile'],
+    ['business_email_compromise', 10, 'Business email compromise profile'],
+    ['financial_fraud', 10, 'Financial fraud profile'],
+    ['invoice_fraud', 8, 'Invoice fraud profile'],
+    ['malware_delivery', 10, 'Malware delivery profile'],
+    ['impersonation', 8, 'Impersonation profile']
+  ];
 
-  return Math.min(100, risk);
+  for (const [profile, pts, label] of profileBoosts) {
+    if (threatProfiles.includes(profile)) {
+      risk += pts;
+      breakdown.push({ label, points: pts });
+    }
+  }
+
+  return { score: Math.min(100, risk), breakdown };
 }
-
 
 function buildDeterministicAttackTactics(threatProfiles, findings) {
   const tactics = [];
@@ -187,9 +186,9 @@ async function fetchNarrative({ parsedEmail, findings, threatProfiles, riskScore
   const { system, user } = buildNarrativeMessages({ parsedEmail, findings, threatProfiles, riskScore, verdict, eccGaps });
 
   const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL || 'gpt-5-nano',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     reasoning: { effort: 'minimal' },
-    max_output_tokens: 1000,
+    max_output_tokens: 1500,
     input: [
       { role: 'system', content: [{ type: 'input_text', text: system }] },
       { role: 'user', content: [{ type: 'input_text', text: user }] }
@@ -200,8 +199,7 @@ async function fetchNarrative({ parsedEmail, findings, threatProfiles, riskScore
         name: narrativeJsonSchema.name,
         schema: narrativeJsonSchema.schema,
         strict: true
-      },
-      verbosity: 'low'
+      }
     }
   });
 
@@ -210,7 +208,6 @@ async function fetchNarrative({ parsedEmail, findings, threatProfiles, riskScore
 
 function buildGenericSummaries(findings, threatProfiles) {
   const scenarioSummary = getScenarioSummary(threatProfiles);
-
   return {
     executiveSummary: findings.length
       ? `This email shows suspicious indicators consistent with ${scenarioSummary || 'phishing activity'}, including message deception, social-engineering pressure, and attacker-controlled routing or destinations. Treat it as unsafe until the security team validates impact and user exposure.`
@@ -221,12 +218,21 @@ function buildGenericSummaries(findings, threatProfiles) {
   };
 }
 
-export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inputType }) {
+function extractIocs(parsedEmail, deterministicSignals) {
+  return deterministicSignals.summary.iocs || {
+    senderDomains: [],
+    replyToDomains: [],
+    returnPathDomains: [],
+    embeddedUrls: [],
+    uniqueDomains: []
+  };
+}
+
+export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inputType, campaignMatch, campaignMatchedAt }) {
   const findings = deterministicSignals.findings;
   const threatProfiles = deterministicSignals.summary.threatProfiles || [];
 
-  // All structured data is computed deterministically
-  const riskScore = computeFallbackRisk(findings, threatProfiles);
+  const { score: riskScore, breakdown: scoreBreakdown } = computeFallbackRisk(findings, threatProfiles);
   const verdict = scoreToVerdict(riskScore);
   const attackTactics = buildDeterministicAttackTactics(threatProfiles, findings);
   const recommendations = findings.length
@@ -234,6 +240,7 @@ export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inp
     : [{ action: 'No immediate containment action required; retain the message for monitoring or tuning.', owner: 'SOC', timeframe: '1-week', rationale: 'The supplied evidence does not currently justify a stronger response.' }];
   const eccGaps = buildComplianceGaps(findings, threatProfiles, 'nca_ecc');
   const isoGaps = buildComplianceGaps(findings, threatProfiles, 'iso27001');
+  const iocs = extractIocs(parsedEmail, deterministicSignals);
 
   const normalizedFindings = findings.map((f) => ({
     ...f,
@@ -247,10 +254,10 @@ export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inp
     emailSubject: parsedEmail.headers.subject || 'Unknown',
     linkCount: parsedEmail.urls.length,
     attachmentDetected: parsedEmail.attachmentDetected,
-    inputType
+    inputType,
+    ...(campaignMatch ? { campaignMatch: true, campaignMatchedAt } : {})
   };
 
-  // Model provides only the narrative layer
   if (process.env.OPENAI_API_KEY) {
     try {
       const narrative = await fetchNarrative({ parsedEmail, findings: normalizedFindings, threatProfiles, riskScore, verdict, eccGaps });
@@ -266,6 +273,8 @@ export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inp
         eccComplianceGaps: mergeNarrativeIntoGaps(eccGaps, narrative.eccGapExplanations),
         isoComplianceGaps: mergeNarrativeIntoGaps(isoGaps, narrative.eccGapExplanations),
         recommendations,
+        scoreBreakdown,
+        iocs,
         metadata: { ...metadata, analysisSource: 'openai_structured' }
       });
     } catch (error) {
@@ -273,7 +282,6 @@ export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inp
     }
   }
 
-  // Fallback: deterministic structure + generic summaries
   const { executiveSummary, analystSummary } = buildGenericSummaries(findings, threatProfiles);
 
   return analysisResultSchema.parse({
@@ -287,6 +295,8 @@ export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inp
     eccComplianceGaps: eccGaps,
     isoComplianceGaps: isoGaps,
     recommendations,
+    scoreBreakdown,
+    iocs,
     metadata: { ...metadata, analysisSource: 'deterministic_fallback' }
   });
 }

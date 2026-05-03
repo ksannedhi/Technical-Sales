@@ -20,6 +20,7 @@ const findingSchema = z.object({
   excerpt: z.string(),
   deterministic: z.boolean(),
   eccControls: z.array(z.string()),
+  isoControls: z.array(z.string()).optional(),
   eccExplanation: z.string()
 });
 
@@ -45,6 +46,19 @@ const recommendationSchema = z.object({
   rationale: z.string()
 });
 
+const scoreBreakdownItemSchema = z.object({
+  label: z.string(),
+  points: z.number()
+});
+
+const iocSchema = z.object({
+  senderDomains: z.array(z.string()),
+  replyToDomains: z.array(z.string()),
+  returnPathDomains: z.array(z.string()),
+  embeddedUrls: z.array(z.string()),
+  uniqueDomains: z.array(z.string())
+});
+
 export const analysisResultSchema = z.object({
   riskScore: z.number().min(0).max(100),
   verdict: z.enum(['clean', 'suspicious', 'likely_phishing', 'phishing']),
@@ -54,7 +68,10 @@ export const analysisResultSchema = z.object({
   findings: z.array(findingSchema),
   attackTactics: z.array(tacticSchema),
   eccComplianceGaps: z.array(gapSchema),
+  isoComplianceGaps: z.array(gapSchema).optional(),
   recommendations: z.array(recommendationSchema),
+  scoreBreakdown: z.array(scoreBreakdownItemSchema).optional(),
+  iocs: iocSchema.optional(),
   metadata: z.object({
     analyzedAt: z.string(),
     emailFrom: z.string(),
@@ -63,9 +80,38 @@ export const analysisResultSchema = z.object({
     linkCount: z.number(),
     attachmentDetected: z.boolean(),
     inputType: z.enum(['raw_text', 'eml_upload', 'headers_body', 'forwarded_email']),
-    analysisSource: z.enum(['openai_structured', 'deterministic_fallback', 'deterministic_override']).optional()
+    analysisSource: z.enum(['openai_structured', 'deterministic_fallback', 'deterministic_override']).optional(),
+    campaignMatch: z.boolean().optional(),
+    campaignMatchedAt: z.string().optional()
   })
 });
+
+export const narrativeJsonSchema = {
+  name: 'phishing_narrative',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['executiveSummary', 'analystSummary', 'confidence', 'eccGapExplanations'],
+    properties: {
+      executiveSummary: { type: 'string' },
+      analystSummary: { type: 'string' },
+      confidence: { type: 'number', minimum: 0, maximum: 100 },
+      eccGapExplanations: {
+        type: 'array',
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['controlId', 'whyItMatters'],
+          properties: {
+            controlId: { type: 'string' },
+            whyItMatters: { type: 'string' }
+          }
+        }
+      }
+    }
+  },
+  strict: true
+};
 
 export const analysisJsonSchema = {
   name: 'phishing_analysis',

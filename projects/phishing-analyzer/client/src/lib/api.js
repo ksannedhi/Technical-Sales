@@ -15,13 +15,13 @@ export async function analyzeEmail(payload) {
   return response.json();
 }
 
-export async function downloadReport(result) {
+export async function downloadReport(result, analystNote = '') {
   const response = await fetch('/api/report', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ result })
+    body: JSON.stringify({ result, analystNote })
   });
 
   if (!response.ok) {

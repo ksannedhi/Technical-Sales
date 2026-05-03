@@ -1,4 +1,7 @@
-function RiskScoreCard({ result, onDownload }) {
+import { useState } from 'react';
+
+function RiskScoreCard({ result, onDownload, scoreBreakdown }) {
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const circumference = 2 * Math.PI * 48;
   const dash = (result.riskScore / 100) * circumference;
 
@@ -21,9 +24,28 @@ function RiskScoreCard({ result, onDownload }) {
         </div>
       </div>
       <span className={`verdict-pill verdict-${result.verdict}`}>{result.verdict.replace('_', ' ')}</span>
-      <button className="download-button" type="button" onClick={onDownload}>
-        Download PDF
-      </button>
+
+      {scoreBreakdown?.length ? (
+        <div className="breakdown-section">
+          <button
+            className="breakdown-toggle"
+            type="button"
+            onClick={() => setShowBreakdown((v) => !v)}
+          >
+            {showBreakdown ? 'Hide' : 'Show'} score breakdown
+          </button>
+          {showBreakdown ? (
+            <ul className="breakdown-list">
+              {scoreBreakdown.map((item, i) => (
+                <li key={i} className="breakdown-item">
+                  <span className="breakdown-label">{item.label}</span>
+                  <span className="breakdown-points">+{item.points}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }

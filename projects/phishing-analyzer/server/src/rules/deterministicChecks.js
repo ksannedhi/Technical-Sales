@@ -1,4 +1,5 @@
 import { getCategoryDisplayLabel, getControlsForFinding } from '../mappings/eccMappings.js';
+import { getDomainAgeDays } from '../services/domainAge.js';
 
 const URGENCY_TERMS = [
   // English
@@ -14,6 +15,19 @@ const URGENCY_TERMS = [
 const BRAND_KEYWORDS = ['microsoft', 'office 365', 'outlook', 'bank', 'invoice', 'payroll', 'amazon', 'jeff bezos'];
 const FREE_MAIL = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
 const OFFICIAL_BRAND_DOMAINS = ['microsoft.com', 'live.com', 'outlook.com', 'amazon.com', 'apple.com', 'google.com', 'paypal.com'];
+
+// Brand terms mapped to their authoritative domains for link-text vs href mismatch
+const BRAND_DOMAIN_MAP = [
+  { terms: ['microsoft', 'office 365', 'microsoft account', 'outlook'], domain: 'microsoft.com', alts: ['live.com', 'microsoftonline.com'] },
+  { terms: ['amazon'], domain: 'amazon.com', alts: [] },
+  { terms: ['paypal'], domain: 'paypal.com', alts: [] },
+  { terms: ['apple', 'icloud', 'apple id'], domain: 'apple.com', alts: [] },
+  { terms: ['google', 'gmail'], domain: 'google.com', alts: ['accounts.google.com'] },
+  { terms: ['linkedin'], domain: 'linkedin.com', alts: [] },
+  { terms: ['facebook', 'meta'], domain: 'facebook.com', alts: ['meta.com'] },
+  { terms: ['dropbox'], domain: 'dropbox.com', alts: [] },
+  { terms: ['docusign'], domain: 'docusign.com', alts: [] }
+];
 
 function isBrandDomainMismatch(fromDomain, combinedText) {
   const lowered = combinedText.toLowerCase();
@@ -34,6 +48,29 @@ function isBrandDomainMismatch(fromDomain, combinedText) {
   }
   return false;
 }
+
+// Returns {brand, officialDomain} if link text claims a brand but href goes elsewhere.
+function detectLinkTextBrandMismatch(linkPairs = []) {
+  for (const { href, text } of linkPairs) {
+    const textLower = text.toLowerCase();
+    for (const mapping of BRAND_DOMAIN_MAP) {
+      if (!mapping.terms.some((t) => textLower.includes(t))) continue;
+      try {
+        const host = new URL(href).hostname.toLowerCase();
+        const isOfficial =
+          host.endsWith(mapping.domain) ||
+          mapping.alts.some((alt) => host.endsWith(alt));
+        if (!isOfficial) {
+          return { brand: mapping.terms[0], officialDomain: mapping.domain, actualHost: host, text, href };
+        }
+      } catch {
+        // malformed URL — skip
+      }
+    }
+  }
+  return null;
+}
+
 const PRIZE_FRAUD_TERMS = [
   // English
   'won you', 'you have won', 'lottery', 'donation', 'beneficiary', 'prize',
@@ -68,16 +105,10 @@ function hostFromUrl(url) {
 }
 
 function rootDomain(value) {
-  if (!value) {
-    return '';
-  }
-
+  if (!value) return '';
   const cleaned = value.toLowerCase().replace(/^.*@/, '').replace(/[>\]]/g, '');
   const parts = cleaned.split('.').filter(Boolean);
-  if (parts.length <= 2) {
-    return cleaned;
-  }
-
+  if (parts.length <= 2) return cleaned;
   return parts.slice(-2).join('.');
 }
 
@@ -97,44 +128,31 @@ function authSignals(headers) {
 }
 
 function isLikelyLegitimateTrackingUrl(urlHost, senderRoot, returnPathRoot) {
-  if (!urlHost) {
-    return false;
-  }
-
-  if (TRACKING_DOMAINS.some((domain) => urlHost.endsWith(domain))) {
-    return true;
-  }
-
-  if (IMAGE_HOSTS.some((domain) => urlHost.endsWith(domain))) {
-    return true;
-  }
-
-  if (BENIGN_ASSET_DOMAINS.some((domain) => urlHost.endsWith(domain))) {
-    return true;
-  }
-
-  if (senderRoot && urlHost.endsWith(senderRoot)) {
-    return true;
-  }
-
-  if (returnPathRoot && urlHost.endsWith(returnPathRoot)) {
-    return true;
-  }
-
+  if (!urlHost) return false;
+  if (TRACKING_DOMAINS.some((d) => urlHost.endsWith(d))) return true;
+  if (IMAGE_HOSTS.some((d) => urlHost.endsWith(d))) return true;
+  if (BENIGN_ASSET_DOMAINS.some((d) => urlHost.endsWith(d))) return true;
+  if (senderRoot && urlHost.endsWith(senderRoot)) return true;
+  if (returnPathRoot && urlHost.endsWith(returnPathRoot)) return true;
   return false;
 }
 
 function hasTyposquatting(domain) {
-  return /micros0ft|rnicrosoft|paypa1|0utlook|g00gle/i.test(domain);
+  if (!domain) return false;
+  // ASCII character substitution (e.g. micros0ft, paypa1)
+  if (/micros0ft|rnicrosoft|paypa1|0utlook|g00gle/i.test(domain)) return true;
+  // Non-ASCII / homograph characters
+  if (/[^\x00-\x7F]/.test(domain)) return true;
+  // Punycode-encoded IDN (xn-- prefix signals encoded non-ASCII)
+  if (domain.split('.').some((label) => label.startsWith('xn--'))) return true;
+  return false;
 }
 
 function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDomain, returnPathDomain, auth }) {
   const threatProfiles = new Set();
   const lowered = combinedText.toLowerCase();
   const suspiciousEmailLanguage =
-    /urgent|verify|login|password|sign in|account suspended|click|won you|lottery|donation|beneficiary|invoice|wire transfer|bank account|payroll/i.test(
-      lowered
-    );
+    /urgent|verify|login|password|sign in|account suspended|click|won you|lottery|donation|beneficiary|invoice|wire transfer|bank account|payroll/i.test(lowered);
   const suspiciousInfrastructure =
     hasTyposquatting(fromDomain) ||
     (replyToDomain && fromDomain && rootDomain(replyToDomain) !== rootDomain(fromDomain)) ||
@@ -161,10 +179,7 @@ function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDo
     threatProfiles.add('impersonation');
   }
 
-  if (
-    parsedEmail.attachmentDetected ||
-    /attached|attachment|enable content|macro|zip file|html attachment|open the file/i.test(lowered)
-  ) {
+  if (parsedEmail.attachmentDetected || /attached|attachment|enable content|macro|zip file|html attachment|open the file/i.test(lowered)) {
     threatProfiles.add('malware_delivery');
   }
 
@@ -196,7 +211,7 @@ function addFinding(findings, threatProfiles, finding) {
   });
 }
 
-export function runDeterministicChecks(parsedEmail) {
+export async function runDeterministicChecks(parsedEmail) {
   const findings = [];
   const fromDomain = domainFromAddress(parsedEmail.headers.from);
   const replyToDomain = domainFromAddress(parsedEmail.headers.replyTo);
@@ -210,18 +225,37 @@ export function runDeterministicChecks(parsedEmail) {
   const combinedText = `${subject}\n${body}`;
   const threatProfiles = detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDomain, returnPathDomain, auth });
 
+  // --- Sender checks ---
+
   if (fromDomain && hasTyposquatting(fromDomain)) {
     addFinding(findings, threatProfiles, {
       id: 'sender-typosquat',
       category: 'sender',
       severity: 'critical',
       title: 'Typosquatted sender domain detected',
-      detail: `The sender domain ${fromDomain} resembles a trusted brand but contains lookalike characters.`,
+      detail: `The sender domain ${fromDomain} resembles a trusted brand but contains lookalike or non-ASCII characters designed to deceive the recipient.`,
       excerpt: parsedEmail.headers.from,
       deterministic: true,
       eccExplanation: 'Sender authentication and inbound filtering controls should block spoofed or lookalike domains before delivery.'
     });
   }
+
+  // Domain age check (async, non-blocking on failure)
+  const ageDays = await getDomainAgeDays(fromDomain).catch(() => null);
+  if (ageDays !== null && ageDays < 30) {
+    addFinding(findings, threatProfiles, {
+      id: 'sender-domain-recently-registered',
+      category: 'sender',
+      severity: 'high',
+      title: 'Sender domain registered recently',
+      detail: `The sender domain (${fromDomain}) was registered approximately ${ageDays} day${ageDays === 1 ? '' : 's'} ago. Newly created domains are a strong indicator of purpose-built phishing infrastructure.`,
+      excerpt: parsedEmail.headers.from,
+      deterministic: true,
+      eccExplanation: 'Email authentication and sender reputation controls should treat newly registered domains as high-risk senders and apply additional scrutiny or quarantine.'
+    });
+  }
+
+  // --- Header checks ---
 
   if (replyToDomain && fromDomain && replyToDomain !== fromDomain) {
     addFinding(findings, threatProfiles, {
@@ -249,36 +283,33 @@ export function runDeterministicChecks(parsedEmail) {
     });
   }
 
-  if (auth.spfFail || auth.dkimFail || auth.dmarcFail || auth.dmarcWeakened ||
-      (auth.spfNone && auth.dkimNone && !auth.spfPass)) {
-    const severity = (auth.spfFail || auth.dkimFail || auth.dmarcFail) ? 'high' : 'medium';
-    const title = (auth.spfFail || auth.dkimFail || auth.dmarcFail)
-      ? 'Email authentication failure detected'
-      : 'Email authentication absent or misconfigured';
-    const detail = (auth.spfFail || auth.dkimFail || auth.dmarcFail)
-      ? 'One or more sender-authentication signals failed, which increases the likelihood of spoofing or untrusted delivery infrastructure.'
-      : 'SPF and DKIM are absent and DMARC is missing or misconfigured, meaning there is no verifiable proof the claimed sender domain authorised this message.';
+  if (
+    auth.spfFail || auth.dkimFail || auth.dmarcFail || auth.dmarcWeakened ||
+    (auth.spfNone && auth.dkimNone && !auth.spfPass)
+  ) {
+    const hardFail = auth.spfFail || auth.dkimFail || auth.dmarcFail;
     addFinding(findings, threatProfiles, {
       id: 'headers-authentication-failure',
       category: 'headers',
-      severity,
-      title,
-      detail,
+      severity: hardFail ? 'high' : 'medium',
+      title: hardFail ? 'Email authentication failure detected' : 'Email authentication absent or misconfigured',
+      detail: hardFail
+        ? 'One or more sender-authentication signals failed, which increases the likelihood of spoofing or untrusted delivery infrastructure.'
+        : 'SPF and DKIM are absent and DMARC is missing or misconfigured, meaning there is no verifiable proof the claimed sender domain authorised this message.',
       excerpt: `${parsedEmail.headers.authenticationResults || ''} ${parsedEmail.headers.receivedSpf || ''}`.trim(),
       deterministic: true,
       eccExplanation: 'Authentication failures are strong indicators that email protection controls should quarantine or flag the message for further review.'
     });
   }
 
+  // --- Link checks ---
+
   if (parsedEmail.urls.length > 0) {
     const firstRiskyUrl = parsedEmail.urls.find((url) => {
       const host = hostFromUrl(url);
-      if (!host) {
-        return false;
-      }
+      if (!host) return false;
       return !isLikelyLegitimateTrackingUrl(host, fromRoot, returnPathRoot);
     });
-
     const urlDomain = firstRiskyUrl ? hostFromUrl(firstRiskyUrl) : '';
     if (urlDomain && fromRoot && rootDomain(urlDomain) !== fromRoot && rootDomain(urlDomain) !== returnPathRoot) {
       addFinding(findings, threatProfiles, {
@@ -293,6 +324,23 @@ export function runDeterministicChecks(parsedEmail) {
       });
     }
   }
+
+  // Link text vs. href brand mismatch
+  const linkMismatch = detectLinkTextBrandMismatch(parsedEmail.linkPairs || []);
+  if (linkMismatch) {
+    addFinding(findings, threatProfiles, {
+      id: 'links-text-href-mismatch',
+      category: 'links',
+      severity: 'high',
+      title: 'Link text claims a trusted brand but destination is unrelated',
+      detail: `Anchor text references "${linkMismatch.brand}" (official domain: ${linkMismatch.officialDomain}) but the actual destination is ${linkMismatch.actualHost}. This is a classic visual deception technique used to redirect users to attacker-controlled pages.`,
+      excerpt: `Text: "${linkMismatch.text}" → ${linkMismatch.href}`,
+      deterministic: true,
+      eccExplanation: 'URL filtering controls should evaluate the actual destination domain, not the display text. User training should reinforce hovering over links before clicking.'
+    });
+  }
+
+  // --- Content and urgency checks ---
 
   if (URGENCY_TERMS.some((term) => combinedText.toLowerCase().includes(term))) {
     addFinding(findings, threatProfiles, {
@@ -372,8 +420,7 @@ export function runDeterministicChecks(parsedEmail) {
       severity: 'high',
       title: 'Advance-fee or prize-fraud language detected',
       detail: 'The email uses lottery, winnings, donation, or payout language associated with common advance-fee and scam campaigns.',
-      excerpt:
-        body.split('\n').find((line) => PRIZE_FRAUD_TERMS.some((term) => line.toLowerCase().includes(term))) || subject,
+      excerpt: body.split('\n').find((line) => PRIZE_FRAUD_TERMS.some((term) => line.toLowerCase().includes(term))) || subject,
       deterministic: true,
       eccExplanation: 'Awareness and reporting controls help users identify non-technical fraud lures that still result in compromise, extortion, or data exposure.'
     });
@@ -386,8 +433,7 @@ export function runDeterministicChecks(parsedEmail) {
       severity: 'medium',
       title: 'Reply-based social engineering lure detected',
       detail: 'The sender asks the recipient to reply and validate their email address, which is a common first step in scam progression and victim qualification.',
-      excerpt:
-        body.split('\n').find((line) => REPLY_LURE_TERMS.some((term) => line.toLowerCase().includes(term))) || body.slice(0, 180),
+      excerpt: body.split('\n').find((line) => REPLY_LURE_TERMS.some((term) => line.toLowerCase().includes(term))) || body.slice(0, 180),
       deterministic: true,
       eccExplanation: 'User awareness and suspicious-message reporting are important even when the scam relies on replies rather than links or attachments.'
     });
@@ -406,6 +452,27 @@ export function runDeterministicChecks(parsedEmail) {
     });
   }
 
+  // --- IOC extraction ---
+  const suspiciousUrls = parsedEmail.urls.filter((url) => {
+    const host = hostFromUrl(url);
+    return host && !isLikelyLegitimateTrackingUrl(host, fromRoot, returnPathRoot);
+  });
+
+  const allDomains = [
+    fromDomain,
+    replyToDomain,
+    returnPathDomain,
+    ...parsedEmail.urls.map((u) => hostFromUrl(u)).filter(Boolean)
+  ].filter(Boolean);
+
+  const iocs = {
+    senderDomains: fromDomain ? [fromDomain] : [],
+    replyToDomains: replyToDomain ? [replyToDomain] : [],
+    returnPathDomains: returnPathDomain ? [returnPathDomain] : [],
+    embeddedUrls: [...new Set(suspiciousUrls)],
+    uniqueDomains: [...new Set(allDomains)]
+  };
+
   return {
     findings,
     summary: {
@@ -415,7 +482,8 @@ export function runDeterministicChecks(parsedEmail) {
       urlCount: parsedEmail.urls.length,
       attachmentDetected: parsedEmail.attachmentDetected,
       threatProfiles,
-      auth
+      auth,
+      iocs
     }
   };
 }

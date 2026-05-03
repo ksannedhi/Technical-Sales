@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
 import { buildReportHtml } from './reportTemplate.js';
 
-export async function buildReportBuffer(result) {
+export async function buildReportBuffer(result, analystNote = '') {
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox']
@@ -9,7 +9,7 @@ export async function buildReportBuffer(result) {
 
   try {
     const page = await browser.newPage();
-    await page.setContent(buildReportHtml(result), {
+    await page.setContent(buildReportHtml(result, analystNote), {
       waitUntil: 'networkidle0'
     });
 
