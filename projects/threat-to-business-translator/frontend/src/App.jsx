@@ -294,22 +294,20 @@ export default function App() {
 
       <section className="sector-bar">
         <div className="sector-bar-inner">
-          <label className="sector-label" htmlFor="sectorSelect">
-            Customer industry sector
-          </label>
-          <select
-            id="sectorSelect"
-            className="sector-select"
-            value={sector}
-            onChange={(event) => setSector(event.target.value)}
-          >
+          <span className="sector-label">Customer industry sector</span>
+          <div className="sector-pill-group" role="group" aria-label="Customer industry sector">
             {sectors.map((s) => (
-              <option key={s.id} value={s.id}>{s.label}</option>
+              <button
+                key={s.id}
+                type="button"
+                className={`sector-pill${sector === s.id ? " active" : ""}`}
+                onClick={() => setSector(s.id)}
+                aria-pressed={sector === s.id}
+              >
+                {s.label}
+              </button>
             ))}
-          </select>
-          <p className="sector-hint">
-            Sets the business context for scenario outcomes and ad hoc analysis. The scenario library updates when you change sector.
-          </p>
+          </div>
         </div>
       </section>
 
