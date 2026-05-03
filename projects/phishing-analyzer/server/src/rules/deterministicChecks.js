@@ -1,17 +1,50 @@
-import { getCategoryDisplayLabel, getEccControlsForFinding } from '../mappings/eccMappings.js';
+import { getCategoryDisplayLabel, getControlsForFinding } from '../mappings/eccMappings.js';
 
-const URGENCY_TERMS = ['urgent', 'immediately', 'within 24 hours', 'account suspended', 'failure to act'];
+const URGENCY_TERMS = [
+  // English
+  'urgent', 'immediately', 'within 24 hours', 'account suspended', 'failure to act',
+  // German
+  'sofort', 'dringend', 'unverzüglich', 'keine zeit verlieren', 'verlieren sie keine zeit',
+  'konto gesperrt', 'ihre daten aktualisieren',
+  // French
+  'immédiatement', 'urgent', 'compte suspendu', 'sans délai',
+  // Arabic
+  'عاجل', 'فوراً', 'تعليق الحساب'
+];
 const BRAND_KEYWORDS = ['microsoft', 'office 365', 'outlook', 'bank', 'invoice', 'payroll', 'amazon', 'jeff bezos'];
 const FREE_MAIL = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
+const OFFICIAL_BRAND_DOMAINS = ['microsoft.com', 'live.com', 'outlook.com', 'amazon.com', 'apple.com', 'google.com', 'paypal.com'];
+
+function isBrandDomainMismatch(fromDomain, combinedText) {
+  const lowered = combinedText.toLowerCase();
+  if (!fromDomain || OFFICIAL_BRAND_DOMAINS.some((d) => fromDomain.endsWith(d))) {
+    return false;
+  }
+  if (lowered.includes('microsoft') || lowered.includes('office 365') || lowered.includes('microsoft account')) {
+    return !fromDomain.endsWith('microsoft.com') && !fromDomain.endsWith('live.com');
+  }
+  if (lowered.includes('amazon') && !lowered.includes('jeff bezos')) {
+    return !fromDomain.endsWith('amazon.com');
+  }
+  if (lowered.includes('paypal')) {
+    return !fromDomain.endsWith('paypal.com');
+  }
+  if (lowered.includes('apple') || lowered.includes('icloud') || lowered.includes('apple id')) {
+    return !fromDomain.endsWith('apple.com');
+  }
+  return false;
+}
 const PRIZE_FRAUD_TERMS = [
-  'won you',
-  'you have won',
-  'lottery',
-  'donation',
-  'beneficiary',
-  'prize',
-  '$2,500,000',
-  '$2.500,000.00'
+  // English
+  'won you', 'you have won', 'lottery', 'donation', 'beneficiary', 'prize',
+  '$2,500,000', '$2.500,000.00',
+  // German
+  'gewinnspiel', 'gewinner', 'herzlichen glückwunsch', 'herzlichen gluckwunsch',
+  'finalisten', 'gewinndaten', 'gewinn', 'gutschein gewinn',
+  // French
+  'vous avez gagné', 'tirage au sort', 'loterie', 'gagnant',
+  // Arabic
+  'لقد فزت', 'يانصيب', 'جائزة'
 ];
 const REPLY_LURE_TERMS = ['kindly get back to me', 'reply to this email', 'confirm your email address', 'so i know your email address is valid'];
 const HIGH_PROFILE_IMPERSONATION_TERMS = ['jeff bezos', 'amazon founder', 'ceo of amazon', 'mr. jeffrey bezos'];
@@ -53,10 +86,13 @@ function authSignals(headers) {
   return {
     spfPass: authText.includes('spf=pass') || authText.includes('received-spf: pass') || authText.includes(' pass '),
     spfFail: authText.includes('spf=fail'),
+    spfNone: authText.includes('spf=none'),
     dkimPass: authText.includes('dkim=pass'),
     dkimFail: authText.includes('dkim=fail'),
+    dkimNone: authText.includes('dkim=none'),
     dmarcPass: authText.includes('dmarc=pass'),
-    dmarcFail: authText.includes('dmarc=fail')
+    dmarcFail: authText.includes('dmarc=fail'),
+    dmarcWeakened: authText.includes('dmarc=permerror') || authText.includes('dmarc=temperror') || authText.includes('dmarc=none')
   };
 }
 
@@ -92,7 +128,7 @@ function hasTyposquatting(domain) {
   return /micros0ft|rnicrosoft|paypa1|0utlook|g00gle/i.test(domain);
 }
 
-function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDomain, auth }) {
+function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDomain, returnPathDomain, auth }) {
   const threatProfiles = new Set();
   const lowered = combinedText.toLowerCase();
   const suspiciousEmailLanguage =
@@ -102,6 +138,7 @@ function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDo
   const suspiciousInfrastructure =
     hasTyposquatting(fromDomain) ||
     (replyToDomain && fromDomain && rootDomain(replyToDomain) !== rootDomain(fromDomain)) ||
+    (returnPathDomain && fromDomain && rootDomain(returnPathDomain) !== rootDomain(fromDomain)) ||
     parsedEmail.attachmentDetected;
   const newsletterLike = NEWSLETTER_TERMS.some((term) => lowered.includes(term));
   const strongAuth = auth.spfPass && auth.dkimPass && auth.dmarcPass;
@@ -131,13 +168,18 @@ function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDo
     threatProfiles.add('malware_delivery');
   }
 
-  if (hasTyposquatting(fromDomain) || (replyToDomain && fromDomain && rootDomain(replyToDomain) !== rootDomain(fromDomain))) {
+  if (
+    hasTyposquatting(fromDomain) ||
+    (replyToDomain && fromDomain && rootDomain(replyToDomain) !== rootDomain(fromDomain)) ||
+    (returnPathDomain && fromDomain && rootDomain(returnPathDomain) !== rootDomain(fromDomain))
+  ) {
     threatProfiles.add('impersonation');
   }
 
   if (
     HIGH_PROFILE_IMPERSONATION_TERMS.some((term) => lowered.includes(term)) ||
-    (BRAND_KEYWORDS.some((term) => lowered.includes(term)) && fromDomain && FREE_MAIL.includes(fromDomain))
+    (BRAND_KEYWORDS.some((term) => lowered.includes(term)) && fromDomain && FREE_MAIL.includes(fromDomain)) ||
+    isBrandDomainMismatch(fromDomain, combinedText)
   ) {
     threatProfiles.add('impersonation');
   }
@@ -149,7 +191,8 @@ function addFinding(findings, threatProfiles, finding) {
   findings.push({
     ...finding,
     displayCategory: getCategoryDisplayLabel(finding.category),
-    eccControls: getEccControlsForFinding(finding.category, threatProfiles)
+    eccControls: getControlsForFinding(finding.category, threatProfiles, 'nca_ecc'),
+    isoControls: getControlsForFinding(finding.category, threatProfiles, 'iso27001')
   });
 }
 
@@ -165,7 +208,7 @@ export function runDeterministicChecks(parsedEmail) {
   const subject = parsedEmail.headers.subject || '';
   const body = parsedEmail.body || '';
   const combinedText = `${subject}\n${body}`;
-  const threatProfiles = detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDomain, auth });
+  const threatProfiles = detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDomain, returnPathDomain, auth });
 
   if (fromDomain && hasTyposquatting(fromDomain)) {
     addFinding(findings, threatProfiles, {
@@ -193,13 +236,34 @@ export function runDeterministicChecks(parsedEmail) {
     });
   }
 
-  if (auth.spfFail || auth.dkimFail || auth.dmarcFail) {
+  if (returnPathDomain && fromDomain && rootDomain(returnPathDomain) !== rootDomain(fromDomain)) {
+    addFinding(findings, threatProfiles, {
+      id: 'headers-returnpath-mismatch',
+      category: 'headers',
+      severity: 'medium',
+      title: 'Return-Path domain differs from sender domain',
+      detail: `Bounce handling is routed to ${returnPathDomain}, which is unrelated to the claimed sender domain. This is a common signal of infrastructure deception where the sending party operates under a different domain than the one displayed.`,
+      excerpt: `From: ${parsedEmail.headers.from}\nReturn-Path: ${parsedEmail.headers.returnPath}`,
+      deterministic: true,
+      eccExplanation: 'Email authentication controls should validate envelope sender alignment and flag messages where the return path diverges from the From domain.'
+    });
+  }
+
+  if (auth.spfFail || auth.dkimFail || auth.dmarcFail || auth.dmarcWeakened ||
+      (auth.spfNone && auth.dkimNone && !auth.spfPass)) {
+    const severity = (auth.spfFail || auth.dkimFail || auth.dmarcFail) ? 'high' : 'medium';
+    const title = (auth.spfFail || auth.dkimFail || auth.dmarcFail)
+      ? 'Email authentication failure detected'
+      : 'Email authentication absent or misconfigured';
+    const detail = (auth.spfFail || auth.dkimFail || auth.dmarcFail)
+      ? 'One or more sender-authentication signals failed, which increases the likelihood of spoofing or untrusted delivery infrastructure.'
+      : 'SPF and DKIM are absent and DMARC is missing or misconfigured, meaning there is no verifiable proof the claimed sender domain authorised this message.';
     addFinding(findings, threatProfiles, {
       id: 'headers-authentication-failure',
       category: 'headers',
-      severity: 'high',
-      title: 'Email authentication failure detected',
-      detail: 'One or more sender-authentication signals failed, which increases the likelihood of spoofing or untrusted delivery infrastructure.',
+      severity,
+      title,
+      detail,
       excerpt: `${parsedEmail.headers.authenticationResults || ''} ${parsedEmail.headers.receivedSpf || ''}`.trim(),
       deterministic: true,
       eccExplanation: 'Authentication failures are strong indicators that email protection controls should quarantine or flag the message for further review.'
@@ -243,20 +307,26 @@ export function runDeterministicChecks(parsedEmail) {
     });
   }
 
-  if (BRAND_KEYWORDS.some((term) => combinedText.toLowerCase().includes(term)) && fromDomain && FREE_MAIL.includes(fromDomain)) {
+  const brandFromFreeMail = BRAND_KEYWORDS.some((term) => combinedText.toLowerCase().includes(term)) && fromDomain && FREE_MAIL.includes(fromDomain);
+  const brandFromLookalikeDomain = isBrandDomainMismatch(fromDomain, combinedText);
+  if (brandFromFreeMail || brandFromLookalikeDomain) {
     addFinding(findings, threatProfiles, {
       id: 'impersonation-brand-abuse',
       category: 'impersonation',
-      severity: 'medium',
-      title: 'Brand-referencing content from a non-official mail domain',
-      detail: 'The message references a trusted organization but does not originate from an official domain associated with that brand.',
+      severity: brandFromLookalikeDomain ? 'high' : 'medium',
+      title: brandFromLookalikeDomain
+        ? 'Brand impersonation from a lookalike sender domain'
+        : 'Brand-referencing content from a non-official mail domain',
+      detail: brandFromLookalikeDomain
+        ? `The message claims to be from a trusted brand but the sender domain (${fromDomain}) is not an official domain for that organisation. This pattern is consistent with purpose-built phishing infrastructure.`
+        : 'The message references a trusted organization but does not originate from an official domain associated with that brand.',
       excerpt: parsedEmail.headers.from || subject,
       deterministic: true,
       eccExplanation: 'Brand impersonation controls and user education should reduce trust in off-brand messaging.'
     });
   }
 
-  if (/verify|password|login|sign in|credential|mfa/i.test(combinedText) && parsedEmail.urls.length > 0) {
+  if (/verify|password|login|sign[- .]in|credential|mfa/i.test(combinedText) && parsedEmail.urls.length > 0) {
     addFinding(findings, threatProfiles, {
       id: 'credential-harvesting-lure',
       category: 'credential_harvesting',
@@ -320,6 +390,19 @@ export function runDeterministicChecks(parsedEmail) {
         body.split('\n').find((line) => REPLY_LURE_TERMS.some((term) => line.toLowerCase().includes(term))) || body.slice(0, 180),
       deterministic: true,
       eccExplanation: 'User awareness and suspicious-message reporting are important even when the scam relies on replies rather than links or attachments.'
+    });
+  }
+
+  if (parsedEmail.cssObfuscationDetected) {
+    addFinding(findings, threatProfiles, {
+      id: 'content-css-obfuscation',
+      category: 'content',
+      severity: 'medium',
+      title: 'CSS content obfuscation detected',
+      detail: 'The email contains an oversized CSS style block with a large number of comma-separated selectors. This pattern is used to hide malicious intent from spam filters and content-inspection gateways.',
+      excerpt: '<style> block with excessive comma-separated selectors detected in email body',
+      deterministic: true,
+      eccExplanation: 'Email security controls should inspect and flag obfuscated or oversized style payloads used to evade gateway analysis.'
     });
   }
 

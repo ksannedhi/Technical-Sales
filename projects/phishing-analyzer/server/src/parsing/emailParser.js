@@ -53,6 +53,17 @@ function detectAttachment(raw) {
   return attachmentDisposition.test(raw) || namedAttachmentHeader.test(raw);
 }
 
+function detectCssObfuscation(raw) {
+  const styleBlocks = [...raw.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)];
+  for (const block of styleBlocks) {
+    const commaCount = (block[1].match(/,/g) || []).length;
+    if (commaCount >= 100) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function parseEmailInput(raw, inputType = 'raw_text') {
   const parsedHeaders = parseHeaders(raw);
   const from = readHeader(parsedHeaders, 'From');
@@ -78,6 +89,7 @@ export function parseEmailInput(raw, inputType = 'raw_text') {
     },
     body,
     urls,
-    attachmentDetected: detectAttachment(raw)
+    attachmentDetected: detectAttachment(raw),
+    cssObfuscationDetected: detectCssObfuscation(raw)
   };
 }
