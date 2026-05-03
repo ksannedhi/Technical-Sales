@@ -2,463 +2,324 @@
 
 ## Overview
 
-Phishing Analyzer is a demo-first web application that analyzes suspicious email content and turns it into a polished, executive-ready phishing report. The app is designed primarily for CISO and presales conversations, while still remaining technically credible for analysts.
+Phishing Analyzer is a demo-first web application that analyzes suspicious email content and produces an executive-ready phishing report. Designed for CISO and presales conversations, while remaining technically credible for analysts.
 
-The product goal is simple:
+The product goal:
 
-- paste one suspicious email
-- get a polished phishing assessment
-- present it in a visually convincing way
-- do it fast enough to feel live in a demo
+- paste or upload one suspicious email
+- get a polished, boardroom-ready phishing assessment
+- present it convincingly in a live demo
 
 ## Product Intent
 
-This is not intended to be a mailbox security platform or SOC case management tool in V1.
-It is a focused phishing analysis demo that combines:
+Not a mailbox security platform or SOC case management tool. A focused phishing analysis demo that combines:
 
-- raw email inspection
-- AI-assisted reasoning
+- raw email and `.eml` inspection with MIME multipart decoding
+- deterministic pattern-based detection engine
+- AI-assisted narrative (summaries, compliance explanations)
 - MITRE ATT&CK context
-- NCA ECC mapping
+- NCA ECC-2:2024 and ISO 27001 compliance mapping (user-selectable toggle)
+- structured IOC extraction
 - owner-based recommendations
-- downloadable PDF reporting
+- downloadable PDF reporting with analyst notes
 
 ## Primary User
-
-Primary target user:
 
 - CISO / presales demo audience
 
 Secondary viewers:
 
 - SOC analysts
-- compliance / GRC stakeholders
+- Compliance / GRC stakeholders
 - MSSP consultants
 
 ## MVP Success Criteria
 
-The first demo should allow a user to:
-
 1. Paste or upload one suspicious email
-2. Receive a structured threat report
+2. Receive a structured threat report with score, verdict, findings, IOCs, compliance gaps, and recommendations
 3. Understand the risk within seconds
-4. Export a presentation-quality PDF
+4. Export a presentation-quality PDF with analyst notes
 
-Performance target:
-
-- target under 10 seconds end-to-end
-- practical current result is near that target depending on API latency
+Performance target: under 10 seconds end-to-end (practical result near that depending on API latency).
 
 ## Supported Inputs
 
-Version 1 supports:
-
-- pasted raw email text
-- uploaded `.eml` files
-- pasted headers + body
-- forwarded email text from Outlook or Gmail
-
-Demo and test phishing samples are expected to live under:
-
-- `sample-emails/`
+- Pasted raw email text
+- Uploaded `.eml` files (MIME multipart with base64/QP decoding)
+- Pasted headers + body
+- Forwarded email text from Outlook or Gmail
 
 ## Threat Types In Scope
 
-The analyzer should handle:
-
-- phishing
-- business email compromise (BEC)
-- malware delivery
-- credential harvesting
-- impersonation
-- invoice fraud / finance-related social engineering
+- Phishing
+- Business email compromise (BEC)
+- Malware delivery (attachment-based)
+- Credential harvesting
+- Impersonation (brand, executive, lookalike domain)
+- Invoice fraud / finance-related social engineering
 
 ## Functional Requirements
 
 ### Input Experience
 
-The user can:
-
-- paste suspicious email content into a large text area
-- upload an `.eml` file
-- use a sample email to demo the flow quickly
+- Large textarea for pasting email content
+- `.eml` file upload
+- Sample email button for quick demo flow
 
 ### Analysis Output
 
-The app should return:
-
-- risk score
-- verdict
-- confidence
-- executive summary
-- analyst summary
-- structured findings
-- MITRE ATT&CK tactics
-- NCA ECC compliance gaps
-- owner-based recommendations
-- report metadata
+- `riskScore` (0–100) with labelled per-finding breakdown
+- `verdict`: clean / suspicious / likely_phishing / phishing
+- `confidence` score
+- `executiveSummary` (AI-written)
+- `analystSummary` (AI-written)
+- `findings[]` — each includes severity, category, detail, excerpt, eccControls, isoControls
+- `attackTactics[]` — MITRE ATT&CK tactic + technique + relevance
+- `eccComplianceGaps[]` and `isoComplianceGaps[]`
+- `recommendations[]` — action, owner, timeframe, rationale
+- `iocs` — senderDomains, replyToDomains, returnPathDomains, embeddedUrls, uniqueDomains
+- `scoreBreakdown[]` — labelled score contributions per finding and threat profile
+- `metadata` — timestamps, emailFrom, subject, linkCount, attachmentDetected, analysisSource, campaignMatch
 
 ### Findings Presentation
 
-Findings should be:
+- Ordered by severity
+- Labeled by category
+- Evidence excerpts with highlighted URLs and domains (link/sender/impersonation/headers findings)
+- Mapped to both NCA ECC and ISO 27001 controls
+- Framework toggle switches displayed controls without re-analyzing
 
-- ordered by severity
-- labeled by category
-- supported by direct excerpts from the source email
-- mapped to NCA ECC controls
+### Compliance Gaps
 
-The preferred visual style uses:
+Tabular display:
+- Finding category
+- Controls violated (NCA ECC or ISO 27001)
+- What the control requires
 
-- severity pills such as `Critical`, `High`, `Medium`
-- uppercase category labels such as `Sender`, `Headers`, `Links`
-- evidence excerpts shown in subtle boxed blocks
+Both frameworks computed on every analysis. Toggle switches views without re-analyzing. PDF always renders both sections.
 
-### NCA ECC Compliance Gaps
+### IOC Panel
 
-NCA ECC content should be shown in tabular form with columns for:
+Dedicated panel surfaces:
+- Sender domain
+- Reply-To domain
+- Return-Path domain
+- Suspicious embedded URLs (excluding legitimate tracking/asset domains)
 
-- finding category
-- NCA ECC controls violated
-- what the control requires
+### Score Breakdown
 
-The mapping logic is:
+Show/hide collapsible list on the risk score card. Lists each contributing finding title and threat profile bonus with its point value. Replicated in the PDF verdict card sidebar.
 
-- fixed baseline mappings by category
-- AI-written explanation in plain English
+### Campaign Cluster Signal
+
+If the sender domain, return-path domain, and CSS obfuscation fingerprint match a previous analysis in the current session, a banner is shown with the time of the first match. Useful for demonstrating that two samples are the same threat actor campaign.
+
+### Analyst Note
+
+Free-text field at the bottom of results. Content is appended to the PDF as a highlighted note block. Not persisted between page loads.
 
 ## Architecture
 
 ### Frontend
 
-- React
-- Vite
-
-Responsibilities:
-
-- input capture
-- loading states
-- result visualization
-- PDF download action
+- React + Vite
+- Responsibilities: input, loading states, result visualization, IOC panel, framework toggle, analyst note, PDF download
 
 ### Backend
 
-- Node.js
-- Express
-
-Responsibilities:
-
-- receive analysis requests
-- parse email content
-- run deterministic checks
-- call OpenAI Responses API
-- validate structured output
-- apply deterministic override logic when the model underweights or overcalls the evidence
-- generate PDF reports
+- Node.js + Express
+- Responsibilities: receive requests, parse and decode MIME email, run deterministic checks, call OpenAI, validate output, generate PDF
 
 ### AI Layer
 
 - OpenAI Responses API
-- structured output with JSON schema
-- default low-cost model: `gpt-5-nano`
+- Structured JSON schema output
+- Default model: `gpt-4o-mini`
+- `max_output_tokens: 1500`
+- `reasoning: { effort: 'minimal' }`
 
-Responsibilities:
+Responsibilities (narrative layer only):
+- Executive summary
+- Analyst summary
+- Plain-English compliance control explanations (`whyItMatters`)
+- Calibrated confidence score
 
-- produce balanced executive + analyst summaries
-- correlate deterministic evidence into a final risk verdict
-- return structured findings and recommendations
-- explain NCA ECC control implications in plain English
+All structured data — verdict, risk score, findings, IOCs, score breakdown, MITRE tactics, compliance gaps, recommendations — is computed deterministically. The model narrates; it does not classify.
 
 ### PDF Layer
 
-- Puppeteer-based HTML-to-PDF rendering
-
-Responsibilities:
-
-- create a polished PDF layout
-- mirror the app's report structure
-- support findings pills and ECC tables matching the design direction
-- include the analysis source in report metadata
+- Puppeteer-based HTML-to-PDF
+- Renders: branded header, verdict card with score breakdown sidebar, analyst note, MITRE tags with technique IDs, findings, IOC table, NCA ECC compliance gaps, ISO 27001 compliance gaps, recommendations
+- Campaign reuse warning banner when `campaignMatch` is true
 
 ## Hybrid Analysis Design
 
-The analyzer is intentionally hybrid.
+### Email Parsing
+
+`emailParser.js` handles:
+- MIME boundary detection and multipart splitting
+- Base64 and quoted-printable decoding for `text/html` and `text/plain` parts
+- Non-text parts (PDF, images, Office docs) are skipped before decoding
+- Anchor tag extraction for link text vs. href mismatch detection
+- URL deduplication across raw and decoded content
+- CSS junk-blob detection (`<style>` blocks with ≥100 commas)
+- Attachment detection via `Content-Disposition` and `Content-Type` headers
 
 ### Deterministic Checks
 
-These are used to create reliable baseline evidence, including:
+`deterministicChecks.js` runs all structural analysis:
 
-- sender / reply-to mismatch
-- typosquatted sender domains
-- suspicious link mismatch
-- unfolded authentication-header parsing for SPF, DKIM, and DMARC context
-- urgency language
-- credential harvesting cues
-- impersonation cues
-- finance fraud cues
-- attachment presence
+| Finding ID | Signal |
+|---|---|
+| `sender-typosquat` | ASCII substitutions and Unicode/homograph/Punycode domains |
+| `sender-domain-recently-registered` | RDAP domain age < 30 days |
+| `headers-replyto-mismatch` | Reply-To domain ≠ From domain |
+| `headers-returnpath-mismatch` | Return-Path root ≠ From root |
+| `headers-authentication-failure` | SPF/DKIM/DMARC fail or absent |
+| `links-domain-mismatch` | Embedded URL root ≠ sender root |
+| `links-text-href-mismatch` | Link text claims brand X, href goes to non-official domain |
+| `urgency-pressure-language` | Urgency terms (EN/DE/FR/AR) |
+| `impersonation-brand-abuse` | Brand keywords from free-mail or lookalike domain |
+| `credential-harvesting-lure` | Verify/login/sign-in language + URL |
+| `financial-fraud-cue` | Invoice/payment/wire-transfer language |
+| `impersonation-high-profile` | Named executive impersonation |
+| `financial-fraud-prize-theme` | Prize/lottery/advance-fee language (EN/DE/FR/AR) |
+| `content-reply-lure` | Reply-and-confirm social engineering |
+| `content-css-obfuscation` | Oversized CSS style block (≥100 commas) |
+
+Domain age lookups use rdap.org with a 3.5s timeout and 24h in-memory cache. Checks run async without blocking if the lookup fails.
+
+### Risk Score
+
+Additive model in `computeFallbackRisk`:
+
+- Base: 22 (findings present) or 12 (no findings)
+- Per finding: critical +24, high +16, medium +9, low +4
+- Per threat profile: credential_harvesting +12, BEC +10, financial_fraud +10, malware_delivery +10, invoice_fraud +8, impersonation +8
+- Hard cap: 100
+
+Score breakdown is returned as a labelled array alongside the final score.
 
 ### AI Reasoning
 
-The model is responsible for:
+Model receives: parsed email metadata, normalized findings, threat profiles, risk score, verdict, and ECC gap structure. Returns only the narrative layer (4 fields: executiveSummary, analystSummary, confidence, eccGapExplanations).
 
-- overall verdict
-- score calibration
-- executive summary
-- analyst summary
-- MITRE ATT&CK mapping
-- ECC explanation
-- role-based recommendations
+### Campaign Fingerprinting
 
-This reduces hallucination risk while preserving demo value.
+`routes/analyze.js` maintains the last 20 analysis fingerprints in memory (format: `fromDomain|returnPathDomain|cssObfuscated`). On each analysis, if the fingerprint matches a stored entry, `metadata.campaignMatch: true` and `metadata.campaignMatchedAt` are added to the result.
 
 ### Source Transparency
 
-Each result should carry an `analysisSource` marker so the UI and PDF can indicate whether the final report came from:
+Each result carries `analysisSource`:
+- `openai_structured` — narrative from OpenAI, deterministic structure
+- `deterministic_fallback` — OpenAI call failed; generic summaries used
 
-- `openai_structured`
-- `deterministic_fallback`
-- `deterministic_override`
+## Compliance Mapping Model
 
-This keeps demo output honest and makes troubleshooting easier.
+Both frameworks computed on every analysis. Frontend toggle switches without re-analyzing. PDF renders both sections.
 
-## Output Schema
+### NCA ECC-2:2024 Controls Used
 
-The backend returns a structured object with these main fields:
+| Control ID | Description |
+|---|---|
+| `2.4.3.1` | Email phishing and spam filtering |
+| `2.4.3.2` | MFA for email remote and webmail access |
+| `2.4.3.4` | Email APT and zero-day malware protection |
+| `2.4.3.5` | Email domain validation (SPF, DKIM, DMARC) |
+| `2.2.3.2` | Multi-factor authentication for remote and privileged access |
+| `2.2.3.4` | Privileged access management |
+| `2.5.3.3` | Secure internet browsing and restriction of suspicious websites |
+| `1.10.3.1` | Cybersecurity awareness — secure handling of email and phishing |
+| `2.13.3.1` | Cybersecurity incident response plans and escalation procedures |
+| `2.13.3.3` | Reporting cybersecurity incidents to the NCA |
 
-- `riskScore`
-- `verdict`
-- `confidence`
-- `executiveSummary`
-- `analystSummary`
-- `findings[]`
-- `attackTactics[]`
-- `eccComplianceGaps[]`
-- `recommendations[]`
-- `metadata`
+### ISO 27002:2022 Controls Used
 
-## ECC Mapping Model
-
-The ECC mapping model is intentionally more complete than a simple category lookup.
-It combines:
-
-- baseline controls by finding category
-- supporting controls by likely compromise scenario
-
-This helps:
-
-- make reports look different depending on the incident type
-- better reflect phishing vs BEC vs malware delivery vs invoice fraud
-- improve risk scoring consistency
-
-### Baseline Mapping By Finding Category
-
-- `sender` -> `ECC-2-1-1`, `ECC-2-1-3`
-- `headers` -> `ECC-2-1-1`, `ECC-2-1-3`
-- `links` -> `ECC-2-3-1`, `ECC-2-3-2`
-- `credential_harvesting` -> `ECC-1-5-1`, `ECC-1-5-3`
-- `impersonation` -> `ECC-2-1-2`, `ECC-3-3-1`
-- `urgency` -> `ECC-3-3-1`, `ECC-3-3-2`
-- `financial_fraud` -> `ECC-3-3-1`, `ECC-3-3-2`
-- `payload` -> `ECC-2-1-3`, `ECC-2-3-2`
-- `content` -> `ECC-3-3-1`, `ECC-3-3-2`
-
-### Threat Profile Overlays
-
-The analyzer should infer the likely compromise scenario and overlay additional supporting controls:
-
-- `phishing`
-  - `ECC-2-1-1`, `ECC-2-1-3`, `ECC-2-3-1`, `ECC-2-3-2`, `ECC-3-3-1`, `ECC-3-3-2`
-- `business_email_compromise`
-  - `ECC-2-1-1`, `ECC-2-1-2`, `ECC-2-1-3`, `ECC-1-5-1`, `ECC-3-3-1`, `ECC-3-3-2`
-- `malware_delivery`
-  - `ECC-2-1-3`, `ECC-2-3-1`, `ECC-2-3-2`, `ECC-3-3-1`, `ECC-3-3-2`
-- `credential_harvesting`
-  - `ECC-2-1-1`, `ECC-2-1-3`, `ECC-2-3-1`, `ECC-2-3-2`, `ECC-1-5-1`, `ECC-1-5-3`, `ECC-3-3-1`
-- `impersonation`
-  - `ECC-2-1-1`, `ECC-2-1-2`, `ECC-2-1-3`, `ECC-3-3-1`, `ECC-3-3-2`
-- `invoice_fraud`
-  - `ECC-2-1-1`, `ECC-2-1-2`, `ECC-2-1-3`, `ECC-1-5-1`, `ECC-3-3-1`, `ECC-3-3-2`
-
-### Intended Outcome
-
-Examples:
-
-- a credential-harvesting email should emphasize email security, URL inspection, MFA, and privileged credential protection
-- a BEC or invoice-fraud email should emphasize impersonation, email controls, MFA, awareness, and reporting
-- a malware-delivery email should emphasize email filtering, malicious URL blocking, and response readiness
-
-## UI Direction
-
-The UI should feel:
-
-- clean
-- premium
-- business-ready
-- visually persuasive
-- restrained rather than flashy
-
-Important visual priorities:
-
-1. risk score and verdict should be obvious immediately
-2. executive summary should be easy to quote
-3. findings should be easy to scan by severity
-4. ECC table should be easy to discuss during a customer meeting
-5. recommendations should feel actionable
-
-### Inspiration Alignment
-
-The current design direction should align with the provided mockups by using:
-
-- compact branded header
-- large score / verdict area
-- findings section with pills and evidence rows
-- ECC table matching the reference structure
-- generic `Phishing Analyzer` branding
-
-## PDF Direction
-
-The PDF should mirror the mockup style as closely as practical.
-
-Required elements:
-
-- branded header with metadata
-- verdict card with score and executive summary
-- analyst summary section
-- MITRE ATT&CK tags
-- findings section with severity pills and excerpt blocks
-- ECC compliance gaps table
-- recommendations table
-
-## Model and Cost Strategy
-
-Default model:
-
-- `gpt-5-nano`
-
-Reasoning settings:
-
-- minimal reasoning effort
-- low verbosity
-- compact evidence payload
-- structured output token ceiling sized for richer findings, ECC text, and recommendations
-
-Why:
-
-- lowest practical cost
-- better latency for demo usage
-- structured outputs still supported
-
-## Startup Experience
-
-The project supports Windows launcher flows.
-
-Preferred launcher:
-
-- `Launch Phishing Analyzer.cmd`
-
-Supporting scripts:
-
-- `launch.ps1`
-
-The launcher should:
-
-- install packages if needed
-- create `.env` from `.env.example` if missing
-- open backend and frontend in separate windows
-- print the local URLs clearly
+| Control | Description |
+|---|---|
+| `8.7` | Protection against malware |
+| `8.23` | Web filtering |
+| `8.5` | Secure authentication |
+| `8.2` | Privileged access rights |
+| `5.17` | Authentication information |
+| `6.3` | Information security awareness, education and training |
+| `5.26` | Response to information security incidents |
 
 ## Operational Safeguards
 
-- request body limit raised to `5mb` for larger enterprise `.eml` files
-- lightweight in-memory rate limiting on `/api/analyze`
-- attachment detection limited to MIME and attachment-header evidence to reduce false positives
-- deterministic override when the model overcalls an email with strong legitimate authentication evidence
+| Safeguard | Detail |
+|---|---|
+| Request body limit | 5 MB |
+| Rate limiting | 10 requests/min per IP, in-memory |
+| RDAP timeout | 3.5 s per lookup; analysis never blocks on failure |
+| RDAP cache | 24 h in-memory per root domain |
+| Campaign fingerprint store | Last 20 analyses in memory, not persisted |
+| Attachment decoding | Binary MIME parts skipped before decoding |
+| Model token ceiling | 1500 output tokens |
+
+## Startup
+
+**One-click (Windows):** `Launch Phishing Analyzer.cmd`
+- Kills any existing process on ports 3002 / 5175
+- Runs `npm install` if `node_modules` is absent
+- Creates `.env` from `.env.example` if `.env` is absent
+- Opens backend and frontend in separate PowerShell windows
+
+**Terminal:**
+```
+npm install
+npm run dev
+```
 
 ## Key Project Files
 
-- `client/src/App.jsx`
-- `client/src/components/*`
-- `client/src/styles/global.css`
-- `server/src/routes/analyze.js`
-- `server/src/routes/report.js`
-- `server/src/parsing/emailParser.js`
-- `server/src/rules/deterministicChecks.js`
-- `server/src/mappings/eccMappings.js`
-- `server/src/prompts/analyzeEmail.js`
-- `server/src/schemas/analysisResultSchema.js`
-- `server/src/services/openaiAnalysis.js`
-- `server/src/services/reportTemplate.js`
-- `server/src/services/pdfReport.js`
+| File | Purpose |
+|---|---|
+| `server/src/parsing/emailParser.js` | MIME decode, link pair extraction, CSS obfuscation |
+| `server/src/rules/deterministicChecks.js` | All detection logic, IOC extraction, domain age |
+| `server/src/services/domainAge.js` | RDAP lookup with cache |
+| `server/src/mappings/eccMappings.js` | NCA ECC and ISO 27001 control libraries |
+| `server/src/schemas/analysisResultSchema.js` | Zod schema for result validation |
+| `server/src/services/openaiAnalysis.js` | Score breakdown, IOC assembly, narrative fetch |
+| `server/src/prompts/analyzeEmail.js` | OpenAI narrative-only prompt |
+| `server/src/services/reportTemplate.js` | HTML report template (all sections) |
+| `server/src/services/pdfReport.js` | Puppeteer HTML-to-PDF |
+| `server/src/routes/analyze.js` | Analysis route + campaign fingerprint tracking |
+| `server/src/routes/report.js` | PDF export route |
+| `server/src/middleware/rateLimit.js` | In-memory rate limiter |
+| `client/src/App.jsx` | Root: state, analyst note, download |
+| `client/src/components/IocPanel.jsx` | IOC chip display |
+| `client/src/components/FindingsPanel.jsx` | Findings with highlighted excerpts |
+| `client/src/components/RiskScoreCard.jsx` | Score ring + breakdown toggle |
+| `client/src/components/EccPanel.jsx` | Compliance gaps with framework toggle |
+| `client/src/styles/global.css` | All UI styles |
 
-## Non-Goals For V1
+## Non-Goals
 
-Not included in V1:
-
-- mailbox integration
-- user accounts
-- persistent case storage
-- workflow orchestration
-- multilingual reporting
-- white-label customer branding controls
-- production-grade SOC ticketing integrations
-
-## Risks and Constraints
-
-### Model Latency
-
-Even with `gpt-5-nano`, latency may occasionally exceed the ideal demo target.
-
-Mitigations:
-
-- keep prompt compact
-- trim evidence payloads
-- keep schema concise
-- show deterministic findings quickly in the UI if needed later
-
-### Hallucination Risk
-
-Mitigations:
-
-- deterministic evidence first
-- structured schema validation
-- fixed ECC mapping baseline
-- restrained prompt instructions
-
-### PDF Rendering
-
-Puppeteer is required for high-fidelity PDF generation.
-If the app is running during PDF service updates, it should be restarted.
-
-### Language Coverage
-
-The current version handles multilingual infrastructure signals better than multilingual social-engineering language.
-
-In practice:
-
-- non-English phishing emails with suspicious links, headers, reply routing, or attachment patterns can still be detected well
-- English-language scam phrasing is covered more deeply than non-English deterministic wording today
-- broader multilingual heuristic coverage remains a future enhancement
-
-## Future Enhancements
-
-Potential next steps:
-
-- faster perceived analysis with progressive rendering
-- even closer UI alignment to the mockups
-- stronger PDF typography and spacing polish
-- broader multilingual deterministic cue coverage
-- export options beyond PDF
+- Mailbox integration
+- Persistent analysis history
+- User accounts or authentication
+- Attachment content analysis (PDF URLs, Office macros)
+- Multilingual reporting output
+- White-label branding controls
+- Production SOC ticketing integrations
 
 ## Current Status
 
-The project currently includes:
+Fully functional demo tool. Capabilities:
 
-- working frontend scaffold
-- working backend scaffold
-- hybrid deterministic + AI analysis path
-- OpenAI structured output integration
-- Windows launcher flow
-- Puppeteer-based PDF generation
-- mockup-style PDF template foundation
-- analysis source indicator in the UI and PDF
-- grounded MITRE normalization and scenario-specific recommendations
+- MIME multipart decoding — engine sees actual decoded HTML body from real `.eml` files
+- 15 deterministic detection signals across sender, headers, links, content, and payload categories
+- Multilingual detection: English, German, French, and Arabic urgency and prize-fraud terms
+- Homograph and Punycode domain detection
+- RDAP domain age lookup with cache
+- Link text vs. href brand mismatch across 9 major brands
+- CSS content obfuscation detection (T1027)
+- Structured IOC extraction surfaced in UI and PDF
+- Score breakdown with per-finding and per-profile contributions
+- Campaign cluster fingerprinting across session analyses
+- Analyst note field appended to PDF export
+- Dual-framework compliance: NCA ECC-2:2024 and ISO 27001 with real sub-control IDs
+- PDF includes both compliance frameworks, IOC table, score breakdown sidebar, MITRE technique IDs, analyst note, and campaign reuse banner
+- Windows one-click launcher
+- In-memory rate limiting
