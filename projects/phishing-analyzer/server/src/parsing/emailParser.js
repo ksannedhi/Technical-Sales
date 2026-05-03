@@ -136,6 +136,12 @@ function decodeMimeBody(raw) {
     const ct = (headers.get('content-type') || '').toLowerCase();
     const enc = (headers.get('content-transfer-encoding') || '').toLowerCase().trim();
 
+    const isText = ct.startsWith('text/html') || ct.startsWith('text/plain');
+    const isNested = ct.includes('multipart/');
+
+    // Skip decode entirely for non-text, non-multipart parts (e.g. PDF/image attachments)
+    if (!isText && !isNested) continue;
+
     let decoded = body;
     if (enc === 'base64') {
       try {
@@ -151,7 +157,7 @@ function decodeMimeBody(raw) {
       html += decoded;
     } else if (ct.startsWith('text/plain')) {
       plain += decoded;
-    } else if (ct.includes('multipart/')) {
+    } else if (isNested) {
       const subHeaderLines = [...headers.entries()].map(([k, v]) => `${k}: ${v}`).join('\r\n');
       const subRaw = `${subHeaderLines}\r\n\r\n${body}`;
       const nested = decodeMimeBody(subRaw);
