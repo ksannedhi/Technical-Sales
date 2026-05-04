@@ -562,7 +562,8 @@ def _resolve_service(text: str, domain: dict) -> dict | None:
     1. Exact service name (case-insensitive)
     2. Partial service name (substring either way)
     3. Business unit name → returns the highest-criticality service in that BU
-    4. _SERVICE_KEYWORDS map — covers abbreviations and common synonyms
+    4. _SERVICE_CONCEPT_KEYWORDS — concept terms searched against live domain service
+       names and IDs, making the lookup sector-agnostic across all five sector files
 
     Returns the matched service dict, or None if no confident match is found.
     """
