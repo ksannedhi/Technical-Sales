@@ -148,9 +148,9 @@ If the user does not apply custom assumptions, the app uses built-in defaults.
 - The launcher handles first-run dependency installation when possible.
 
 ### FR12. Industry sector selection
-- The user can select an industry sector from a dropdown in the UI (Financial Services, Healthcare, Manufacturing, Retail, Technology).
+- The user selects an industry sector using a horizontal segmented control (pill tabs) showing all five options simultaneously: Financial Services, Healthcare, Manufacturing, Retail, Technology.
 - Changing sector reloads the scenario library with sector-appropriate scenarios.
-- The selected scenario resets to the first visible scenario in the new sector when sector changes.
+- The selected scenario and report always reload when sector changes, even if the first scenario ID in the new sector matches the previously selected ID.
 - All backend endpoints accept a `sector` parameter; the default is `financial-services`.
 - Each sector maps to a dedicated domain JSON file. The 18 SCENARIO_MATCHERS templates are shared across all sectors; `_scenario_by_id()` uses a resilient fallback chain so new matcher IDs work gracefully even if a domain file has not yet added a matching scenario stub.
 
