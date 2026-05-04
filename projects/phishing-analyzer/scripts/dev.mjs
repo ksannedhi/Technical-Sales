@@ -31,10 +31,29 @@ function runWorkspace(label, workspace, color) {
   return child;
 }
 
-const client = runWorkspace('client', 'client', '36');
+// Start server first, then client — prevents ECONNRESET on first request
+// when Vite proxy forwards before Express is listening.
 const server = runWorkspace('server', 'server', '35');
 
-const children = [client, server];
+let clientStarted = false;
+
+function startClient() {
+  if (clientStarted) return;
+  clientStarted = true;
+  runWorkspace('client', 'client', '36');
+}
+
+// Trigger as soon as Express logs its ready message
+server.stdout.on('data', (chunk) => {
+  if (!clientStarted && chunk.toString().includes('listening on')) {
+    startClient();
+  }
+});
+
+// Fallback: start client after 6s regardless, in case the ready signal is missed
+setTimeout(startClient, 6000);
+
+const children = [server];
 
 function shutdown() {
   for (const child of children) {
@@ -48,8 +67,8 @@ process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 setTimeout(() => {
-  const hint = path.join(root, 'start-phishing-analyzer.bat');
+  const hint = path.join(root, 'Launch Phishing Analyzer.cmd');
   process.stdout.write(
-    `\nPhishing Analyzer is starting.\nFrontend: http://localhost:5173\nBackend:  http://localhost:3001\nOne-click launcher: ${hint}\n\n`
+    `\nPhishing Analyzer is starting.\nFrontend: http://localhost:5175\nBackend:  http://localhost:3002\nOne-click launcher: ${hint}\n\n`
   );
 }, 1200);
