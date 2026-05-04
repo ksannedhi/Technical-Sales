@@ -79,6 +79,25 @@ All structured data — verdict, risk score, MITRE tactics, compliance gaps, rec
 - High-profile impersonation (named executives)
 - Reply-based social engineering lures
 
+## Detection limits
+
+The engine is a deterministic rule set, not a trained model. It catches what the rules cover — and misses what they don't.
+
+**What it may miss:**
+- Phishing domains that don't mimic a known brand — clean ASCII, aged registration, no typosquatting
+- Image-only emails where the body is a single embedded graphic with no inspectable text
+- Obfuscated urgency language — spaced characters, zero-width insertions, or languages beyond EN/DE/FR/AR
+- Redirect chains and URL shorteners — the engine sees the first hop, not the final destination
+- Targeted BEC written as clean, contextual prose with no suspicious keywords or infrastructure signals
+
+**What it may over-flag:**
+- Transactional and marketing mail routed through ESPs — Return-Path and link domain mismatches are expected and normal for legitimate bulk senders
+- Internal mail relayed through third-party platforms such as Salesforce or Mailchimp
+- Security notifications from large vendors whose delivery infrastructure differs from their primary domain
+
+**Intended scope:**
+This tool is designed for demo and presales conversations, not production detection. It illustrates the analytical framework — findings, compliance mapping, IOC extraction, and reporting — that a production email security stack would feed with richer signals: sender reputation databases, threat intelligence feeds, trained classifiers, and behavioral context. The analysis source field on every result (`openai_structured` or `deterministic_fallback`) makes the engine's role transparent to any technical reviewer.
+
 ## Safeguards
 
 - 5 MB request body limit for enterprise `.eml` files

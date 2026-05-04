@@ -88,8 +88,7 @@ function buildMitreTags(result) {
 
 function buildScoreBreakdown(scoreBreakdown = []) {
   if (!scoreBreakdown.length) return '';
-  const top = scoreBreakdown.slice(0, 8);
-  const rows = top.map((item) => `
+  const rows = scoreBreakdown.map((item) => `
     <div class="breakdown-row">
       <span class="breakdown-label">${escapeHtml(item.label)}</span>
       <span class="breakdown-points">+${item.points}</span>

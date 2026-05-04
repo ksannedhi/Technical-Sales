@@ -617,7 +617,7 @@ pre {
 .breakdown-item {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
   font-size: 0.8rem;
   gap: 12px;
 }
@@ -626,9 +626,6 @@ pre {
   color: var(--muted);
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .breakdown-points {
