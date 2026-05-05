@@ -57,7 +57,18 @@ Full product spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)
 
 ## What makes the analysis trustworthy
 
-All structured data — verdict, risk score, MITRE tactics, compliance gaps, recommendations — is computed deterministically before the model is called. OpenAI is called only for the narrative layer: executive summary, analyst summary, and plain-English compliance explanations. The UI shows the analysis source on every result.
+The verdict, risk score, findings, MITRE tactics, compliance gaps, and recommendations are all computed before the AI is called — the model cannot influence them.
+
+**How the deterministic layer works:**
+- 15 discrete checks run against the parsed email: SPF/DKIM/DMARC header inspection, RDAP domain age lookup, typosquat and homograph domain detection, Reply-To and Return-Path mismatch, link text vs. href brand comparison across 9 major brands, urgency and credential-harvesting language matching, CSS obfuscation detection, and more
+- Each finding maps to a severity (critical / high / medium / low) and contributes a fixed point value to the risk score
+- The verdict is derived from the final score against fixed thresholds — the AI sees the verdict but cannot change it
+
+**What the AI layer does and does not do:**
+- Does: write the executive summary, analyst summary, and plain-English compliance explanations
+- Does not: classify the email, assign findings, set the score, or select MITRE techniques or recommendations
+
+Every result carries an `analysisSource` field — `openai_structured` when the narrative was AI-written, `deterministic_fallback` when the OpenAI call failed and generic summaries were used instead. The structured data is identical in both cases.
 
 ## Detection coverage
 
