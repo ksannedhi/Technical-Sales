@@ -46,6 +46,15 @@ Full product spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)
 | Backend  | `http://localhost:3002` |
 | Health   | `http://localhost:3002/api/health` |
 
+## Verdict thresholds
+
+| Score | Verdict |
+|---|---|
+| 0 – 40 | Clean |
+| 41 – 65 | Suspicious |
+| 66 – 85 | Likely Phishing |
+| 86 – 100 | Phishing |
+
 ## What makes the analysis trustworthy
 
 All structured data — verdict, risk score, MITRE tactics, compliance gaps, recommendations — is computed deterministically before the model is called. OpenAI is called only for the narrative layer: executive summary, analyst summary, and plain-English compliance explanations. The UI shows the analysis source on every result.

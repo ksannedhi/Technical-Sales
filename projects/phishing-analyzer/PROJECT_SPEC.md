@@ -200,6 +200,15 @@ Additive model in `computeFallbackRisk`:
 
 Score breakdown is returned as a labelled array alongside the final score.
 
+### Verdict Thresholds
+
+| Score | Verdict |
+|---|---|
+| 0 – 40 | `clean` |
+| 41 – 65 | `suspicious` |
+| 66 – 85 | `likely_phishing` |
+| 86 – 100 | `phishing` |
+
 ### AI Reasoning
 
 Model receives: parsed email metadata, normalized findings, threat profiles, risk score, verdict, and ECC gap structure. Returns only the narrative layer (4 fields: executiveSummary, analystSummary, confidence, eccGapExplanations).
