@@ -48,12 +48,16 @@ Full product spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)
 
 ## Verdict thresholds
 
-| Score | Verdict |
+The risk score is computed additively (base + per-finding + per-threat-profile bonuses), hard-capped at 100, then mapped to a verdict:
+
+| Capped score | Verdict |
 |---|---|
 | 0 – 40 | Clean |
 | 41 – 65 | Suspicious |
 | 66 – 85 | Likely Phishing |
 | 86 – 100 | Phishing |
+
+Two critical findings alone score 70 (22 base + 24 + 24), reaching Likely Phishing before any threat profile bonus is applied. The cap is applied before the verdict lookup — the model cannot distinguish 102 from 148; both return Phishing.
 
 ## What makes the analysis trustworthy
 

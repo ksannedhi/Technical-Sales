@@ -202,12 +202,16 @@ Score breakdown is returned as a labelled array alongside the final score.
 
 ### Verdict Thresholds
 
-| Score | Verdict |
+The hard-capped score is passed directly to `scoreToVerdict()`:
+
+| Capped score | Verdict |
 |---|---|
 | 0 – 40 | `clean` |
 | 41 – 65 | `suspicious` |
 | 66 – 85 | `likely_phishing` |
 | 86 – 100 | `phishing` |
+
+The cap is applied before the verdict lookup — a raw additive total of 148 and one of 102 both produce the same `phishing` verdict. The thresholds are calibrated to the scoring weights: two critical findings alone (22 + 24 + 24 = 70) reach `likely_phishing` before any threat profile bonus is counted.
 
 ### AI Reasoning
 
