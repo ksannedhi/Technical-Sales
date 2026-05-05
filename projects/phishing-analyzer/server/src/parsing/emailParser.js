@@ -207,10 +207,33 @@ export function parseEmailInput(raw, inputType = 'raw_text') {
   const authenticationResults = readHeader(parsedHeaders, 'Authentication-Results');
   const receivedSpf = readHeader(parsedHeaders, 'Received-SPF');
 
-  // Attempt MIME multipart decoding; fall back to raw body split
+  // Attempt MIME multipart decoding
   const mimeDecoded = decodeMimeBody(raw);
-  const decodedHtml = mimeDecoded?.html || '';
-  const decodedPlain = mimeDecoded?.plain || '';
+
+  // For non-multipart single-part emails, decode the body directly.
+  // Without this, QP-encoded text/html falls back to raw QP text, which contains
+  // HTML attribute values (e.g. xmlns:v="urn:schemas-microsoft-com:vml") that
+  // trigger false brand-keyword matches in the detection engine.
+  let singlePartDecoded = null;
+  if (!mimeDecoded) {
+    const ct = (parsedHeaders.get('content-type') || '').toLowerCase();
+    const enc = (parsedHeaders.get('content-transfer-encoding') || '').toLowerCase().trim();
+    const partBody = extractBody(raw);
+    if (ct.startsWith('text/html') || ct.startsWith('text/plain')) {
+      let decoded = partBody;
+      if (enc === 'quoted-printable') {
+        decoded = decodeQuotedPrintable(partBody);
+      } else if (enc === 'base64') {
+        try { decoded = Buffer.from(partBody.replace(/\s+/g, ''), 'base64').toString('utf-8'); } catch { decoded = partBody; }
+      }
+      singlePartDecoded = ct.startsWith('text/html')
+        ? { html: decoded, plain: '' }
+        : { html: '', plain: decoded };
+    }
+  }
+
+  const decodedHtml = mimeDecoded?.html || singlePartDecoded?.html || '';
+  const decodedPlain = mimeDecoded?.plain || singlePartDecoded?.plain || '';
   const rawBody = extractBody(raw);
 
   // Prefer MIME-decoded plain text; derive from HTML if unavailable; fall back to raw.

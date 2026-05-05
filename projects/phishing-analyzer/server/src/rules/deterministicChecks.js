@@ -93,8 +93,12 @@ const SIGNATURE_URL_PATTERNS = ['/sig_', '/signature/', '/email-signature/', '/s
 const NEWSLETTER_TERMS = ['unsubscribe', 'manage preferences', 'view in browser', 'newsletter', 'email preferences', 'opt out'];
 
 function domainFromAddress(value) {
-  const match = value.match(/@([^>\s]+)/);
-  return match?.[1]?.toLowerCase() ?? '';
+  // Use lastIndexOf so SRS-encoded Return-Path values like
+  // "bounces+...@pot=hotmail.com@em.quantinsti.com" resolve to the actual
+  // sending domain (em.quantinsti.com) rather than the encoded recipient fragment.
+  const lastAt = value.lastIndexOf('@');
+  if (lastAt === -1) return '';
+  return value.slice(lastAt + 1).replace(/[>\s].*/, '').toLowerCase().trim();
 }
 
 function hostFromUrl(url) {
