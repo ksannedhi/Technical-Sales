@@ -88,6 +88,8 @@ const HIGH_PROFILE_IMPERSONATION_TERMS = ['jeff bezos', 'amazon founder', 'ceo o
 const TRACKING_DOMAINS = ['sendgrid.net', 'cloudfront.net', 'mailchimp.com', 'mandrillapp.com', 'hubspotemail.net'];
 const IMAGE_HOSTS = ['imgur.com', 'giphy.com'];
 const BENIGN_ASSET_DOMAINS = ['googleapis.com', 'gstatic.com', 'googleusercontent.com'];
+// URL path prefixes used by email signature image and link targets across vendors
+const SIGNATURE_URL_PATTERNS = ['/sig_', '/signature/', '/email-signature/', '/sig/', '/emailsig/'];
 const NEWSLETTER_TERMS = ['unsubscribe', 'manage preferences', 'view in browser', 'newsletter', 'email preferences', 'opt out'];
 
 function domainFromAddress(value) {
@@ -99,6 +101,14 @@ function hostFromUrl(url) {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
     return hostname.includes('=') ? '' : hostname;
+  } catch {
+    return '';
+  }
+}
+
+function pathFromUrl(url) {
+  try {
+    return new URL(url).pathname;
   } catch {
     return '';
   }
@@ -127,13 +137,15 @@ function authSignals(headers) {
   };
 }
 
-function isLikelyLegitimateTrackingUrl(urlHost, senderRoot, returnPathRoot) {
+function isLikelyLegitimateTrackingUrl(urlHost, senderRoot, returnPathRoot, urlPath) {
   if (!urlHost) return false;
   if (TRACKING_DOMAINS.some((d) => urlHost.endsWith(d))) return true;
   if (IMAGE_HOSTS.some((d) => urlHost.endsWith(d))) return true;
   if (BENIGN_ASSET_DOMAINS.some((d) => urlHost.endsWith(d))) return true;
   if (senderRoot && urlHost.endsWith(senderRoot)) return true;
   if (returnPathRoot && urlHost.endsWith(returnPathRoot)) return true;
+  // Email signature image/link targets (e.g. goto.vendor.com/sig_logo)
+  if (urlPath && SIGNATURE_URL_PATTERNS.some((p) => urlPath.toLowerCase().startsWith(p))) return true;
   return false;
 }
 
@@ -179,7 +191,9 @@ function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDo
     threatProfiles.add('impersonation');
   }
 
-  if (parsedEmail.attachmentDetected || /attached|attachment|enable content|macro|zip file|html attachment|open the file/i.test(lowered)) {
+  // Require actual attachment detection OR explicit payload language.
+  // Bare "attached"/"attachment" removed — too common in legitimate business prose.
+  if (parsedEmail.attachmentDetected || /enable content|macro|zip file|html attachment|open the file/i.test(lowered)) {
     threatProfiles.add('malware_delivery');
   }
 
@@ -308,7 +322,7 @@ export async function runDeterministicChecks(parsedEmail) {
     const firstRiskyUrl = parsedEmail.urls.find((url) => {
       const host = hostFromUrl(url);
       if (!host) return false;
-      return !isLikelyLegitimateTrackingUrl(host, fromRoot, returnPathRoot);
+      return !isLikelyLegitimateTrackingUrl(host, fromRoot, returnPathRoot, pathFromUrl(url));
     });
     const urlDomain = firstRiskyUrl ? hostFromUrl(firstRiskyUrl) : '';
     if (urlDomain && fromRoot && rootDomain(urlDomain) !== fromRoot && rootDomain(urlDomain) !== returnPathRoot) {
@@ -455,7 +469,7 @@ export async function runDeterministicChecks(parsedEmail) {
   // --- IOC extraction ---
   const suspiciousUrls = parsedEmail.urls.filter((url) => {
     const host = hostFromUrl(url);
-    return host && !isLikelyLegitimateTrackingUrl(host, fromRoot, returnPathRoot);
+    return host && !isLikelyLegitimateTrackingUrl(host, fromRoot, returnPathRoot, pathFromUrl(url));
   });
 
   const allDomains = [

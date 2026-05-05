@@ -41,6 +41,18 @@ function extractBody(raw) {
   return split.length > 1 ? split.slice(1).join('\n\n').trim() : raw.trim();
 }
 
+// Strip standard legal disclaimer blocks before content analysis to prevent
+// boilerplate terms (e.g. "immediately", "delete the material") from
+// triggering urgency and content checks.
+function stripDisclaimerBlocks(text) {
+  return text
+    // Spaced-out DISCLAIMER header (e.g. "D I S C L A I M E R")
+    .replace(/D[\s]*I[\s]*S[\s]*C[\s]*L[\s]*A[\s]*I[\s]*M[\s]*E[\s]*R[\s\S]{0,3000}?(?=\n\n|\n[-_=]{3,}|$)/gi, '')
+    // Standard opening phrase
+    .replace(/The information in this e?-?mail[\s\S]{0,2500}?(strictly prohibited|those of the (company|sender))\./gi, '')
+    .trim();
+}
+
 function extractUrls(text) {
   return [...text.matchAll(/https?:\/\/[^\s)>"'<\]]+/gim)].map((m) => m[0]);
 }
@@ -201,10 +213,12 @@ export function parseEmailInput(raw, inputType = 'raw_text') {
   const decodedPlain = mimeDecoded?.plain || '';
   const rawBody = extractBody(raw);
 
-  // Prefer MIME-decoded plain text; derive from HTML if unavailable; fall back to raw
-  const body = decodedPlain ||
+  // Prefer MIME-decoded plain text; derive from HTML if unavailable; fall back to raw.
+  // Strip disclaimer blocks before handing body to detection engine.
+  const rawBodyText = decodedPlain ||
     (decodedHtml ? decodedHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '') ||
     rawBody;
+  const body = stripDisclaimerBlocks(rawBodyText);
 
   // Collect URLs from all available sources and deduplicate
   const urlsFromRaw = extractUrls(raw);
