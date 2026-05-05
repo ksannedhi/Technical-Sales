@@ -164,6 +164,9 @@ All structured data — verdict, risk score, findings, IOCs, score breakdown, MI
 - URL deduplication across raw and decoded content
 - CSS junk-blob detection (`<style>` blocks with ≥100 commas)
 - Attachment detection via `Content-Disposition` and `Content-Type` headers
+- Legal disclaimer block stripping — standard boilerplate removed from body before content checks to prevent false urgency findings
+- Email signature URL paths excluded from suspicious URL and IOC detection (`/sig_logo`, `/sig_target`, and similar patterns via `SIGNATURE_URL_PATTERNS`)
+- Malware delivery profile requires actual attachment detection or explicit payload language (macro, enable content, zip file) — bare "attached"/"attachment" wording excluded to prevent false positives from business prose
 
 ### Deterministic Checks
 

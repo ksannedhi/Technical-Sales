@@ -80,6 +80,8 @@ Every result carries an `analysisSource` field — `openai_structured` when the 
 - MIME multipart decoding with base64 and quoted-printable support — the engine sees the actual decoded HTML body, not the raw MIME wrapper
 - Attachment detection via Content-Disposition and Content-Type headers (presence and file type, not content analysis)
 - CSS junk-blob obfuscation detection in `<style>` blocks
+- Legal disclaimer blocks stripped from body before content analysis — prevents boilerplate urgency terms from triggering false findings
+- Email signature URL paths excluded from suspicious URL and IOC detection (`/sig_logo`, `/sig_target`, and similar patterns)
 
 **Sender and infrastructure signals**
 - Typosquatted sender domains (ASCII substitution, Unicode/homograph characters, Punycode IDN labels)
@@ -115,9 +117,14 @@ The engine is a deterministic rule set, not a trained model. It catches what the
 - Targeted BEC written as clean, contextual prose with no suspicious keywords or infrastructure signals
 
 **What it may over-flag:**
-- Transactional and marketing mail routed through ESPs — Return-Path and link domain mismatches are expected and normal for legitimate bulk senders
-- Internal mail relayed through third-party platforms such as Salesforce or Mailchimp
+- Transactional and marketing mail routed through ESPs — Return-Path and link domain mismatches are expected and normal for legitimate bulk senders (common tracking domains are allowlisted; edge cases remain)
+- Internal mail relayed through third-party platforms where the sending domain differs from the From domain
 - Security notifications from large vendors whose delivery infrastructure differs from their primary domain
+
+**Mitigations applied:**
+- Standard legal disclaimer boilerplate is stripped before content analysis — urgency terms in disclaimer text no longer trigger findings
+- Email signature image and link URLs are excluded from suspicious URL and IOC detection
+- Bare "attached"/"attachment" wording no longer triggers the malware delivery profile — only actual MIME attachments or explicit payload language (macro, enable content, zip file) do
 
 **Intended scope:**
 This tool is designed for demo and presales conversations, not production detection. It illustrates the analytical framework — findings, compliance mapping, IOC extraction, and reporting — that a production email security stack would feed with richer signals: sender reputation databases, threat intelligence feeds, trained classifiers, and behavioral context. The analysis source field on every result (`openai_structured` or `deterministic_fallback`) makes the engine's role transparent to any technical reviewer.
