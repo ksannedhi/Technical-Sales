@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { get } from 'node:http';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -31,35 +32,50 @@ function runWorkspace(label, workspace, color) {
   return child;
 }
 
-// Start server first, then client — prevents ECONNRESET on first request
-// when Vite proxy forwards before Express is listening.
-const server = runWorkspace('server', 'server', '35');
+// Poll /api/health until the Express server responds 200.
+// More reliable than stdout text matching: confirms the server is actually
+// accepting HTTP connections, not just that the process started.
+function waitForServer(url, timeoutMs = 30000) {
+  return new Promise((resolve) => {
+    const deadline = Date.now() + timeoutMs;
 
-let clientStarted = false;
+    function attempt() {
+      get(url, (res) => {
+        res.resume();
+        if (res.statusCode === 200) {
+          resolve();
+        } else {
+          retry();
+        }
+      }).on('error', retry);
+    }
 
-function startClient() {
-  if (clientStarted) return;
-  clientStarted = true;
-  runWorkspace('client', 'client', '36');
+    function retry() {
+      if (Date.now() >= deadline) {
+        resolve(); // timed out — start client anyway
+        return;
+      }
+      setTimeout(attempt, 500);
+    }
+
+    attempt();
+  });
 }
 
-// Trigger as soon as Express logs its ready message
-server.stdout.on('data', (chunk) => {
-  if (!clientStarted && chunk.toString().includes('listening on')) {
-    startClient();
-  }
-});
-
-// Fallback: start client after 6s regardless, in case the ready signal is missed
-setTimeout(startClient, 6000);
-
+// Start server first, then wait for it to be healthy before starting Vite.
+// Prevents ECONNRESET on the first proxied request after a fresh start or
+// a node --watch restart triggered by file changes.
+const server = runWorkspace('server', 'server', '35');
 const children = [server];
+
+waitForServer('http://localhost:3002/api/health').then(() => {
+  const client = runWorkspace('client', 'client', '36');
+  children.push(client);
+});
 
 function shutdown() {
   for (const child of children) {
-    if (!child.killed) {
-      child.kill();
-    }
+    if (!child.killed) child.kill();
   }
 }
 
