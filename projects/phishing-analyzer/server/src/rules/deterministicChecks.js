@@ -240,11 +240,15 @@ export async function runDeterministicChecks(parsedEmail) {
   const auth = authSignals(parsedEmail.headers);
   const subject = parsedEmail.headers.subject || '';
   const body = parsedEmail.body || '';
-  // Strip residual HTML tags before any content checks. Prevents attribute
-  // values in HTML email templates (e.g. xmlns:v="urn:schemas-microsoft-com:vml"
-  // in Outlook-compatibility markup) from matching brand keyword patterns on
-  // legitimate senders when the body was not pre-stripped by the parser.
-  const combinedText = `${subject}\n${body}`.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+  // Strip style/script blocks (tag + content) then remaining tags before any
+  // content checks. Prevents CSS selectors like a[x-apple-data-detectors] and
+  // XML namespace attributes like xmlns:v="urn:schemas-microsoft-com:vml" from
+  // matching brand keyword patterns on legitimate senders.
+  const combinedText = `${subject}\n${body}`
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ');
   const threatProfiles = detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDomain, returnPathDomain, auth });
 
   // --- Sender checks ---

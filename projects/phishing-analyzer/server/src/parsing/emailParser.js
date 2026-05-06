@@ -239,7 +239,12 @@ export function parseEmailInput(raw, inputType = 'raw_text') {
   // Prefer MIME-decoded plain text; derive from HTML if unavailable; fall back to raw.
   // Strip disclaimer blocks before handing body to detection engine.
   const rawBodyText = decodedPlain ||
-    (decodedHtml ? decodedHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '') ||
+    (decodedHtml ? decodedHtml
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim() : '') ||
     rawBody;
   const body = stripDisclaimerBlocks(rawBodyText);
 
