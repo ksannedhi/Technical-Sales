@@ -1,6 +1,7 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
+import type { ErrorRequestHandler } from "express";
 import { analyzeRoute } from "./routes/analyze.js";
 import { generateRoute } from "./routes/generate.js";
 import { followupRoute } from "./routes/followup.js";
@@ -18,6 +19,12 @@ app.get("/api/health", (_req, res) => {
 app.post("/api/analyze", analyzeRoute);
 app.post("/api/generate", generateRoute);
 app.post("/api/followup", followupRoute);
+
+const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  console.error("[unhandled]", err);
+  res.status(500).json({ error: "An unexpected error occurred." });
+};
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Network Security Diagrammer backend listening on http://localhost:${port}`);

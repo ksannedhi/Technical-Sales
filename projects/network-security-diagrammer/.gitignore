@@ -3,3 +3,4 @@ dist
 .env
 cache/
 backend/cache/
+shared/**/*.js

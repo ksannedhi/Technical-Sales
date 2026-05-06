@@ -31,7 +31,7 @@ curl http://localhost:8787/api/health
 
 ## Architecture
 
-A **local-first network security diagrammer** that converts natural language prompts into Excalidraw diagrams. Pattern-based topology inference runs entirely locally; OpenAI is optional for advanced prompt analysis and follow-up edits.
+A **local-first network security diagrammer** that converts natural language prompts into Excalidraw diagrams. Pattern-based topology inference runs entirely locally; Claude (via Anthropic API) is optional for advanced prompt analysis and follow-up edits.
 
 ```
 frontend/src/           React SPA — prompt input, Excalidraw canvas, follow-up chat
@@ -52,7 +52,7 @@ shared/                 Types and schemas shared between backend and frontend
 
 - **TypeScript throughout** — backend uses `tsx watch` for hot-reload during dev; `tsc` for production builds.
 - **Pattern-first inference** — base topology (star, mesh, hybrid, DMZ) is determined locally without AI, making the tool usable offline.
-- **OpenAI optional** — if `OPENAI_API_KEY` is absent, `/api/analyze` falls back to regex-based pattern matching. `/api/generate` and `/api/followup` require the key.
+- **Claude optional** — if `ANTHROPIC_API_KEY` is absent, `/api/analyze` falls back to regex-based pattern matching. `/api/generate` and `/api/followup` require the key.
 - **Excalidraw output** — generates native Excalidraw JSON that can be pasted directly into excalidraw.com or the desktop app.
 - **Monorepo with workspaces** — `backend`, `frontend`, and `shared` are npm workspaces under the root `package.json`.
 
@@ -61,10 +61,11 @@ shared/                 Types and schemas shared between backend and frontend
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `PORT` | No | `8787` | Backend port |
-| `OPENAI_API_KEY` | No | — | Enables AI-powered prompt analysis and generation |
-| `OPENAI_MODEL` | No | `gpt-4.1-mini` | OpenAI model to use |
+| `ANTHROPIC_API_KEY` | No | — | Enables AI-powered prompt analysis and generation |
+| `ANTHROPIC_ANALYZE_MODEL` | No | `claude-haiku-4-5-20251001` | Model for `/api/analyze` |
+| `ANTHROPIC_GENERATE_MODEL` | No | `claude-sonnet-4-6` | Model for `/api/generate` and `/api/followup` |
 
-Copy `.env.example` → `.env` and add `OPENAI_API_KEY` for full functionality.
+Copy `.env.example` → `.env` and add `ANTHROPIC_API_KEY` for full functionality.
 
 ## Ports
 

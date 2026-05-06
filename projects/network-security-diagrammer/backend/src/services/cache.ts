@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const cacheDir = path.resolve(process.cwd(), "cache");
+const TTL_MS = 90 * 24 * 60 * 60 * 1000;
 
 function getCachePath(key: string) {
   return path.join(cacheDir, `${key}.json`);
@@ -14,7 +15,11 @@ export function createCacheKey(input: unknown) {
 
 export async function readCache<T>(key: string): Promise<T | null> {
   try {
-    const raw = await readFile(getCachePath(key), "utf8");
+    const filePath = getCachePath(key);
+    const [raw, fileInfo] = await Promise.all([readFile(filePath, "utf8"), stat(filePath)]);
+    if (Date.now() - fileInfo.mtimeMs > TTL_MS) {
+      return null;
+    }
     return JSON.parse(raw) as T;
   } catch {
     return null;

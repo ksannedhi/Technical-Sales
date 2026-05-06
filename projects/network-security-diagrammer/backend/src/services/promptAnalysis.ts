@@ -1,6 +1,6 @@
 import type { PromptAnalysis } from "../../../shared/types/analysis.js";
 import { promptAnalysisSchema } from "../schemas/analysisSchema.js";
-import { getOpenAIClient, getOpenAIModel } from "./openai.js";
+import { getAnthropicClient, getAnalyzeModel } from "./anthropic.js";
 
 const ambiguousPatterns = [
   /secure architecture/i,
@@ -105,7 +105,7 @@ export function analyzePrompt(prompt: string): PromptAnalysis {
 
 export async function analyzePromptWithModel(prompt: string): Promise<PromptAnalysis> {
   const baseline = analyzePrompt(prompt);
-  const client = getOpenAIClient();
+  const client = getAnthropicClient();
 
   if (!client) {
     return baseline;
@@ -116,24 +116,20 @@ export async function analyzePromptWithModel(prompt: string): Promise<PromptAnal
   }
 
   try {
-    const response = await client.chat.completions.create({
-      model: getOpenAIModel(),
+    const response = await client.messages.create({
+      model: getAnalyzeModel(),
+      max_tokens: 1024,
       temperature: 0.1,
-      response_format: { type: "json_object" },
+      system: [
+        "You classify prompts for a network and security architecture diagram generator.",
+        "Return only valid JSON with no markdown or code fences.",
+        "Supported statuses: clear, ambiguous, bad.",
+        "Mark ambiguous when important details are missing but a reasonable conceptual design can still be inferred.",
+        "Mark bad when the prompt clearly requests an insecure design.",
+        "Favor simplicity and architect-level conceptual output.",
+        "Vendor-neutral unless the prompt explicitly names a provider or vendor.",
+      ].join(" "),
       messages: [
-        {
-          role: "system",
-          content: [
-            "You classify prompts for a network and security architecture diagram generator.",
-            "Return only JSON.",
-            "Supported statuses: clear, ambiguous, bad.",
-            "Mark ambiguous when important details are missing but a reasonable conceptual design can still be inferred.",
-            "Mark bad when the prompt clearly requests an insecure design.",
-            "Favor simplicity and architect-level conceptual output.",
-            "Vendor-neutral unless the prompt explicitly names a provider or vendor.",
-            "This app turns ideas into architectural diagrams with Excalidraw and LLM assistance for inference and pattern enforcement.",
-          ].join(" "),
-        },
         {
           role: "user",
           content: JSON.stringify({
@@ -151,12 +147,14 @@ export async function analyzePromptWithModel(prompt: string): Promise<PromptAnal
       ],
     });
 
-    const content = response.choices[0]?.message?.content;
+    const block = response.content[0];
+    const content = block?.type === "text" ? block.text : null;
     if (!content) {
       return baseline;
     }
 
-    const parsed = promptAnalysisSchema.parse(JSON.parse(content));
+    const cleaned = content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
+    const parsed = promptAnalysisSchema.parse(JSON.parse(cleaned));
     const sanitized = {
       ...parsed,
       assumptions: sanitizeAssumptions(parsed.assumptions),

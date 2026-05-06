@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PromptAnalysis } from "@shared/types/analysis";
 import type { DiagramResponse } from "@shared/types/diagram";
 import { AssumptionsPanel } from "./components/AssumptionsPanel";
@@ -16,6 +16,7 @@ interface PromptHistoryEntry {
 }
 
 export default function App() {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [prompt, setPrompt] = useState("");
   const [lastSubmittedPrompt, setLastSubmittedPrompt] = useState("");
   const [followUp, setFollowUp] = useState("");
@@ -55,7 +56,7 @@ export default function App() {
         setDiagram(response);
       }
     } catch (nextError) {
-      setError((nextError as { error?: string }).error ?? "Could not analyze the prompt.");
+      setError(nextError instanceof Error ? nextError.message : "Could not analyze the prompt.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export default function App() {
       });
       setDiagram(response);
     } catch (nextError) {
-      setError((nextError as { error?: string }).error ?? "Could not generate the diagram.");
+      setError(nextError instanceof Error ? nextError.message : "Could not generate the diagram.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +108,7 @@ export default function App() {
       ]);
       setFollowUp("");
     } catch (nextError) {
-      setError((nextError as { error?: string }).error ?? "Could not apply the follow-up prompt.");
+      setError(nextError instanceof Error ? nextError.message : "Could not apply the follow-up prompt.");
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,7 @@ export default function App() {
     <main className="app-shell">
       <div className="app-grid">
         <div className="left-column">
-          <PromptInput prompt={prompt} loading={loading} onPromptChange={setPrompt} onSubmit={submitPrompt} />
+          <PromptInput ref={textareaRef} prompt={prompt} loading={loading} onPromptChange={setPrompt} onSubmit={submitPrompt} />
 
           {analysis?.status === "ambiguous" ? (
             <AssumptionsPanel
@@ -184,9 +185,28 @@ export default function App() {
             </>
           ) : (
             <section className="panel empty-state">
+              <svg className="empty-state-icon" viewBox="0 0 120 80" fill="none" aria-hidden="true">
+                <rect x="48" y="2" width="24" height="16" rx="4" fill="#d4cbbd" />
+                <rect x="2" y="32" width="24" height="16" rx="4" fill="#d4cbbd" />
+                <rect x="48" y="32" width="24" height="16" rx="4" fill="#1f4f46" opacity="0.7" />
+                <rect x="94" y="32" width="24" height="16" rx="4" fill="#d4cbbd" />
+                <rect x="16" y="62" width="24" height="16" rx="4" fill="#d4cbbd" />
+                <rect x="80" y="62" width="24" height="16" rx="4" fill="#d4cbbd" />
+                <line x1="60" y1="18" x2="14" y2="32" stroke="#b5aa9a" strokeWidth="1.5" strokeDasharray="4 3" />
+                <line x1="60" y1="18" x2="60" y2="32" stroke="#b5aa9a" strokeWidth="1.5" strokeDasharray="4 3" />
+                <line x1="60" y1="18" x2="106" y2="32" stroke="#b5aa9a" strokeWidth="1.5" strokeDasharray="4 3" />
+                <line x1="14" y1="48" x2="28" y2="62" stroke="#b5aa9a" strokeWidth="1.5" strokeDasharray="4 3" />
+                <line x1="106" y1="48" x2="92" y2="62" stroke="#b5aa9a" strokeWidth="1.5" strokeDasharray="4 3" />
+              </svg>
               <p className="eyebrow">Preview</p>
-              <h2>The generated diagram will appear here.</h2>
-              <p>Start with a network or security prompt, and the app will guide you through assumptions or secure alternatives before rendering.</p>
+              <h2>Your diagram will appear here.</h2>
+              <p>Try one of these to get started:</p>
+              <div className="example-chips">
+                <button className="example-chip" onClick={() => { setPrompt("Zero trust access for remote employees reaching internal apps"); textareaRef.current?.focus(); }}>Zero trust remote access</button>
+                <button className="example-chip" onClick={() => { setPrompt("DMZ with WAF and on-prem application servers"); textareaRef.current?.focus(); }}>WAF in DMZ</button>
+                <button className="example-chip" onClick={() => { setPrompt("Secure email with Exchange and on-prem filtering appliance"); textareaRef.current?.focus(); }}>Email security with Exchange</button>
+                <button className="example-chip" onClick={() => { setPrompt("Centralized SIEM with log collection from network and security sources"); textareaRef.current?.focus(); }}>Centralized SIEM</button>
+              </div>
             </section>
           )}
         </div>

@@ -1,6 +1,6 @@
 import type { ArchitectureModel } from "../../../shared/types/architecture.js";
 import { architectureSchema } from "../schemas/architectureSchema.js";
-import { getOpenAIClient, getOpenAIModel } from "./openai.js";
+import { getAnthropicClient, getGenerateModel } from "./anthropic.js";
 import { applyFollowupInstruction, refreshArchitectureText } from "./architectureGenerator.js";
 
 function getSignature(architecture: ArchitectureModel) {
@@ -17,28 +17,25 @@ export async function editArchitectureWithModel(
   architecture: ArchitectureModel,
   instruction: string,
 ): Promise<ArchitectureModel> {
-  const client = getOpenAIClient();
+  const client = getAnthropicClient();
 
   if (!client) {
     return applyFollowupInstruction(architecture, instruction);
   }
 
   try {
-    const response = await client.chat.completions.create({
-      model: getOpenAIModel(),
+    const response = await client.messages.create({
+      model: getGenerateModel(),
+      max_tokens: 4096,
       temperature: 0.25,
-      response_format: { type: "json_object" },
+      system: [
+        "You update a network and security architecture model based on a follow-up instruction.",
+        "Return only valid JSON with no markdown or code fences.",
+        "Preserve the current architecture unless the instruction explicitly replaces part of it.",
+        "Keep the result architect-level, simple, and vendor-neutral unless explicitly requested.",
+        "Maintain 16 components max and 15 connections max whenever possible.",
+      ].join(" "),
       messages: [
-        {
-          role: "system",
-          content: [
-            "You update a network and security architecture model based on a follow-up instruction.",
-            "Return only JSON.",
-            "Preserve the current architecture unless the instruction explicitly replaces part of it.",
-            "Keep the result architect-level, simple, and vendor-neutral unless explicitly requested.",
-            "Maintain 16 components max and 15 connections max whenever possible.",
-          ].join(" "),
-        },
         {
           role: "user",
           content: JSON.stringify({
@@ -49,12 +46,14 @@ export async function editArchitectureWithModel(
       ],
     });
 
-    const content = response.choices[0]?.message?.content;
+    const block = response.content[0];
+    const content = block?.type === "text" ? block.text : null;
     if (!content) {
       return applyFollowupInstruction(architecture, instruction);
     }
 
-    const parsed = refreshArchitectureText(architectureSchema.parse(JSON.parse(content)));
+    const cleaned = content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
+    const parsed = refreshArchitectureText(architectureSchema.parse(JSON.parse(cleaned)));
     if (getSignature(parsed) === getSignature(architecture)) {
       return applyFollowupInstruction(architecture, instruction);
     }

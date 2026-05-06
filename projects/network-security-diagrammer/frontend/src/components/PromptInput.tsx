@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { forwardRef, type KeyboardEvent } from "react";
 
 interface PromptInputProps {
   prompt: string;
@@ -7,7 +7,8 @@ interface PromptInputProps {
   onSubmit: () => void;
 }
 
-export function PromptInput({ prompt, loading, onPromptChange, onSubmit }: PromptInputProps) {
+export const PromptInput = forwardRef<HTMLTextAreaElement, PromptInputProps>(
+  function PromptInput({ prompt, loading, onPromptChange, onSubmit }, ref) {
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -29,6 +30,7 @@ export function PromptInput({ prompt, loading, onPromptChange, onSubmit }: Promp
         <span>Describe the architecture</span>
         <div className="composer-shell">
           <textarea
+            ref={ref}
             value={prompt}
             onChange={(event) => onPromptChange(event.target.value)}
             onKeyDown={handleKeyDown}
@@ -49,4 +51,5 @@ export function PromptInput({ prompt, loading, onPromptChange, onSubmit }: Promp
       <p className="hint-copy">Press Enter to submit. Use Shift+Enter for a new line.</p>
     </section>
   );
-}
+});
+

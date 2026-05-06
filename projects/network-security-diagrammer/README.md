@@ -23,7 +23,7 @@ The current pipeline is:
 4. lay out the diagram locally
 5. render the scene in Excalidraw
 
-OpenAI assists with prompt analysis, follow-up editing, and structured fallback generation when an API key is available. Layout and rendering remain local to the app.
+Claude (Anthropic) assists with prompt analysis, follow-up editing, and structured fallback generation when an API key is available. Layout and rendering remain local to the app.
 
 ## Run
 
@@ -36,24 +36,25 @@ On Windows you can also double-click `Launch Network Security Diagrammer.cmd`.
 
 Default local URLs:
 
-- Frontend: `http://localhost:5173`
+- Frontend: `http://localhost:5174`
 - Backend: `http://localhost:8787`
 
-## OpenAI Setup
+## Claude Setup
 
-1. Create `.env` in the project root, or let the launcher copy it from `.env.example`.
+1. Create `.env` in the project root, or copy from `.env.example`.
 2. Add values like:
 
 ```bash
-OPENAI_API_KEY=your_key_here
-OPENAI_MODEL=gpt-4.1-mini
+ANTHROPIC_API_KEY=your_key_here
+ANTHROPIC_ANALYZE_MODEL=claude-haiku-4-5-20251001
+ANTHROPIC_GENERATE_MODEL=claude-sonnet-4-6
 PORT=8787
 ```
 
 Notes:
 
-- without `OPENAI_API_KEY`, the app falls back to local prompt analysis and local follow-up edit handling
-- with `OPENAI_API_KEY`, OpenAI is used for prompt analysis and follow-up editing
+- without `ANTHROPIC_API_KEY`, the app falls back to local pattern analysis and local follow-up edit handling
+- with `ANTHROPIC_API_KEY`, Claude Haiku handles prompt analysis and Claude Sonnet handles diagram generation and follow-up editing
 - the architecture model and Excalidraw layout remain deterministic and local
 
 ## Current UX

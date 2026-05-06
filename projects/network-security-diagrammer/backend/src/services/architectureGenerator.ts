@@ -6,7 +6,7 @@ import type {
 } from "../../../shared/types/architecture.js";
 import type { PromptAnalysis } from "../../../shared/types/analysis.js";
 import { architectureSchema } from "../schemas/architectureSchema.js";
-import { getOpenAIClient, getOpenAIModel } from "./openai.js";
+import { getAnthropicClient, getGenerateModel } from "./anthropic.js";
 import { classifyPromptPattern } from "./patternLibrary.js";
 
 function slug(value: string) {
@@ -130,33 +130,30 @@ async function generateArchitectureWithModel(
   analysis: PromptAnalysis,
   classification: ReturnType<typeof classifyPromptPattern>,
 ) {
-  const client = getOpenAIClient();
+  const client = getAnthropicClient();
 
   if (!client) {
     return null;
   }
 
   try {
-    const response = await client.chat.completions.create({
-      model: getOpenAIModel(),
+    const response = await client.messages.create({
+      model: getGenerateModel(),
+      max_tokens: 4096,
       temperature: 0.2,
-      response_format: { type: "json_object" },
+      system: [
+        "You generate a network and security architecture model for diagram rendering.",
+        "Return only valid JSON with no markdown or code fences.",
+        "Keep the output conceptual, simple, and vendor-neutral unless the prompt explicitly names a vendor, provider, or product.",
+        "Preserve explicit entities from the prompt such as AWS, Exchange, WAF, MFA, SSO, VPN, DMZ, or SIEM when present.",
+        "Avoid generic zone-heavy diagrams unless the prompt truly calls for them.",
+        "Target 2 to 4 zones, 6 to 12 components, and at most 15 connections.",
+        "Use these zone types only: external, dmz, security-zone, internal, cloud, branch, data-center.",
+        "Use these component types only: user, network, security-control, identity, application, data, monitoring, integration.",
+        "Use connection styles only: solid or dashed.",
+        "Provide stable ids as lowercase slugs.",
+      ].join(" "),
       messages: [
-        {
-          role: "system",
-          content: [
-            "You generate a network and security architecture model for diagram rendering.",
-            "Return only JSON.",
-            "Keep the output conceptual, simple, and vendor-neutral unless the prompt explicitly names a vendor, provider, or product.",
-            "Preserve explicit entities from the prompt such as AWS, Exchange, WAF, MFA, SSO, VPN, DMZ, or SIEM when present.",
-            "Avoid generic zone-heavy diagrams unless the prompt truly calls for them.",
-            "Target 2 to 4 zones, 6 to 12 components, and at most 15 connections.",
-            "Use these zone types only: external, dmz, security-zone, internal, cloud, branch, data-center.",
-            "Use these component types only: user, network, security-control, identity, application, data, monitoring, integration.",
-            "Use connection styles only: solid or dashed.",
-            "Provide stable ids as lowercase slugs.",
-          ].join(" "),
-        },
         {
           role: "user",
           content: JSON.stringify({
@@ -186,12 +183,14 @@ async function generateArchitectureWithModel(
       ],
     });
 
-    const content = response.choices[0]?.message?.content;
+    const block = response.content[0];
+    const content = block?.type === "text" ? block.text : null;
     if (!content) {
       return null;
     }
 
-    const parsed = architectureSchema.parse(JSON.parse(content));
+    const cleaned = content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
+    const parsed = architectureSchema.parse(JSON.parse(cleaned));
     const normalized = normalizeGeneratedArchitecture({
       ...parsed,
       assumptions: analysis.assumptions,
@@ -1336,7 +1335,7 @@ export function applyFollowupInstruction(
   };
 
   if (lower.includes("siem")) {
-    const monitoringZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id;
+    const monitoringZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
     const siemId = ensureComponent("SIEM", "monitoring", monitoringZone);
     next.components
       .filter((component) => component.type === "security-control")
@@ -1352,7 +1351,7 @@ export function applyFollowupInstruction(
   }
 
   if (lower.includes("monitor")) {
-    const monitoringZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id;
+    const monitoringZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
     const beforeCount = next.components.length;
     ensureComponent("Monitoring Console", "monitoring", monitoringZone);
     if (next.components.length > beforeCount) {
@@ -1361,7 +1360,7 @@ export function applyFollowupInstruction(
   }
 
   if (lower.includes("logging") || lower.includes("log")) {
-    const internalZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id;
+    const internalZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
     const logId = ensureComponent("Central Log Store", "monitoring", internalZone);
     next.components
       .filter((component) => ["security-control", "application", "network"].includes(component.type))
@@ -1378,7 +1377,7 @@ export function applyFollowupInstruction(
 
   if (lower.includes("waf")) {
     const edgeZone =
-      next.zones.find((zone) => zone.type === "dmz" || zone.type === "security-zone")?.id ?? next.zones[0]?.id;
+      next.zones.find((zone) => zone.type === "dmz" || zone.type === "security-zone")?.id ?? next.zones[0]?.id ?? "";
     const wafId = ensureComponent("Web Application Firewall", "security-control", edgeZone, "critical");
     const upstream =
       next.components.find((component) => component.type === "user" || component.type === "network")?.id ??
@@ -1400,7 +1399,7 @@ export function applyFollowupInstruction(
   }
 
   if (lower.includes("identity") || lower.includes("mfa") || lower.includes("sso")) {
-    const internalZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id;
+    const internalZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
     const identityId = ensureComponent("Identity Platform", "identity", internalZone, "critical");
     next.components
       .filter((component) => component.type === "application" || component.type === "security-control")

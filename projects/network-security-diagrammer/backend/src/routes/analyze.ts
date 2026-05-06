@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { promptRequestSchema } from "../schemas/analysisSchema.js";
 import { createCacheKey, readCache, writeCache } from "../services/cache.js";
-import { getModelCacheIdentity } from "../services/openai.js";
+import { getModelCacheIdentity } from "../services/anthropic.js";
 import { analyzePromptWithModel } from "../services/promptAnalysis.js";
 
 export async function analyzeRoute(req: Request, res: Response) {
@@ -20,7 +20,12 @@ export async function analyzeRoute(req: Request, res: Response) {
     return res.json(cached);
   }
 
-  const analysis = await analyzePromptWithModel(parsed.data.prompt);
-  await writeCache(key, analysis);
-  return res.json(analysis);
+  try {
+    const analysis = await analyzePromptWithModel(parsed.data.prompt);
+    await writeCache(key, analysis);
+    return res.json(analysis);
+  } catch (err) {
+    console.error("[analyze]", err);
+    return res.status(500).json({ error: "Failed to analyze prompt." });
+  }
 }
