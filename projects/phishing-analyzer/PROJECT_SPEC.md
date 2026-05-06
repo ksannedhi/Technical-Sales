@@ -98,6 +98,8 @@ Tabular display:
 
 Both frameworks computed on every analysis. Toggle switches views without re-analyzing. PDF always renders both sections.
 
+Gaps are derived exclusively from findings. A **clean verdict produces no compliance gaps** — the gap table is empty and the PDF compliance sections contain no rows. This is by design: gaps represent controls that failed to prevent the identified threat; if no threat is identified, no control failure is asserted.
+
 ### IOC Panel
 
 Dedicated panel surfaces:
@@ -232,7 +234,7 @@ Each result carries `analysisSource`:
 
 ## Compliance Mapping Model
 
-Both frameworks computed on every analysis. Frontend toggle switches without re-analyzing. PDF renders both sections.
+Both frameworks computed on every analysis. Frontend toggle switches without re-analyzing. PDF renders both sections. Compliance gaps are derived from findings only — a clean verdict produces no gaps in either framework.
 
 ### NCA ECC-2:2024 Controls Used
 

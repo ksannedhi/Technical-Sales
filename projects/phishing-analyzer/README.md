@@ -22,7 +22,7 @@ Full product spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)
 - Executive and analyst summaries (AI-written)
 - Severity-ranked findings with email evidence excerpts and highlighted URLs/domains
 - MITRE ATT&CK tactic and technique mapping
-- NCA ECC-2:2024 and ISO 27001 compliance gaps — toggle between frameworks in the UI
+- NCA ECC-2:2024 and ISO 27001 compliance gaps — toggle between frameworks in the UI; gaps are derived from findings only, so a clean verdict produces no gap rows in either framework
 - Structured IOC table: sender domains, reply-to, return-path, suspicious embedded URLs
 - Owner-assigned remediation recommendations
 - Campaign cluster signal when infrastructure repeats across analyses in the same session
