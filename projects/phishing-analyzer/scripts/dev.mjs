@@ -32,18 +32,26 @@ function runWorkspace(label, workspace, color) {
   return child;
 }
 
-// Poll /api/health until the Express server responds 200.
-// More reliable than stdout text matching: confirms the server is actually
-// accepting HTTP connections, not just that the process started.
+// Poll /api/health until the Express server responds 200 *twice* with a 1 s
+// gap between checks. The double-pass guards against node --watch's initial
+// file-scan restart: the first 200 arrives as soon as Express binds, but
+// node --watch may immediately restart the process after scanning loaded
+// files. Without the confirmation pass, Vite starts in that brief window and
+// the very first proxied request hits a closed socket (ECONNRESET).
 function waitForServer(url, timeoutMs = 30000) {
   return new Promise((resolve) => {
     const deadline = Date.now() + timeoutMs;
 
-    function attempt() {
+    function attempt(confirming = false) {
       get(url, (res) => {
         res.resume();
         if (res.statusCode === 200) {
-          resolve();
+          if (confirming) {
+            resolve();
+          } else {
+            // First 200 received — wait 1 s then confirm server is still up.
+            setTimeout(() => attempt(true), 1000);
+          }
         } else {
           retry();
         }
@@ -55,10 +63,10 @@ function waitForServer(url, timeoutMs = 30000) {
         resolve(); // timed out — start client anyway
         return;
       }
-      setTimeout(attempt, 500);
+      setTimeout(() => attempt(false), 500);
     }
 
-    attempt();
+    attempt(false);
   });
 }
 
