@@ -11,7 +11,7 @@ import { analyzePrompt, followupDiagram, generateDiagram } from "./lib/api";
 
 interface PromptHistoryEntry {
   id: string;
-  kind: "initial" | "followup";
+  kind: "initial" | "followup" | "refined-from";
   text: string;
 }
 
@@ -25,6 +25,7 @@ export default function App() {
   const [diagram, setDiagram] = useState<DiagramResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refinedFromPrompt, setRefinedFromPrompt] = useState<string | null>(null);
   const assumptions = diagram?.architecture.assumptions ?? [];
   const appliedChanges = diagram?.architecture.appliedChanges ?? [];
 
@@ -38,13 +39,13 @@ export default function App() {
     setError(null);
     setDiagram(null);
     setLastSubmittedPrompt(submittedPrompt);
-    setPromptHistory([
-      {
-        id: `initial-${Date.now()}`,
-        kind: "initial",
-        text: submittedPrompt,
-      },
-    ]);
+    const historyEntries: PromptHistoryEntry[] = [];
+    if (refinedFromPrompt) {
+      historyEntries.push({ id: `refined-from-${Date.now()}`, kind: "refined-from", text: refinedFromPrompt });
+      setRefinedFromPrompt(null);
+    }
+    historyEntries.push({ id: `initial-${Date.now()}`, kind: "initial", text: submittedPrompt });
+    setPromptHistory(historyEntries);
     setPrompt("");
 
     try {
@@ -126,6 +127,7 @@ export default function App() {
               loading={loading}
               onProceed={() => generateFromAnalysis({ confirmedAssumptions: true })}
               onSelectExample={(example) => {
+                setRefinedFromPrompt(lastSubmittedPrompt);
                 setPrompt(example);
                 setAnalysis(null);
                 setTimeout(() => textareaRef.current?.focus(), 0);

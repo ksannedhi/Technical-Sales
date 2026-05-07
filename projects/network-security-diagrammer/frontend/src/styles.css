@@ -244,6 +244,15 @@ button:disabled {
   white-space: pre-wrap;
 }
 
+.prompt-history-item--dimmed {
+  opacity: 0.45;
+}
+
+.prompt-history-item--dimmed .prompt-history-text {
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
 .canvas-shell {
   height: 760px;
   border-radius: 18px;
