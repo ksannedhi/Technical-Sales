@@ -7,6 +7,8 @@ export const promptAnalysisSchema = z.object({
   unsafeReasons: z.array(z.string()),
   secureAlternativeAvailable: z.boolean(),
   confidence: z.number().min(0).max(1),
+  clarificationHint: z.string().optional(),
+  examplePrompts: z.array(z.string()).optional(),
 });
 
 export const promptRequestSchema = z.object({

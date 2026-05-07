@@ -2,11 +2,47 @@ import type { PromptAnalysis } from "../../../shared/types/analysis.js";
 import { promptAnalysisSchema } from "../schemas/analysisSchema.js";
 import { getAnthropicClient, getAnalyzeModel } from "./anthropic.js";
 
-const ambiguousPatterns = [
-  /secure architecture/i,
-  /cloud setup with best practices/i,
-  /modern network design/i,
-  /secure app flow/i,
+const ambiguousPatterns: Array<{
+  pattern: RegExp;
+  clarificationHint: string;
+  examplePrompts: string[];
+}> = [
+  {
+    pattern: /secure architecture/i,
+    clarificationHint: "What environment and user base are you designing for?",
+    examplePrompts: [
+      "Secure architecture for remote employees reaching internal apps over VPN",
+      "Secure architecture for a cloud-hosted web app with WAF and identity controls",
+      "Secure architecture connecting on-prem data center to AWS with encrypted transit",
+    ],
+  },
+  {
+    pattern: /cloud setup with best practices/i,
+    clarificationHint: "Which cloud provider, and what type of workload?",
+    examplePrompts: [
+      "AWS setup with VPC, WAF, and IAM best practices for a web application",
+      "Azure landing zone with identity, network segmentation, and centralized monitoring",
+      "GCP setup with VPC firewall, Cloud Armor, and IAP for internal tooling",
+    ],
+  },
+  {
+    pattern: /modern network design/i,
+    clarificationHint: "What does modern mean here — SD-WAN, zero trust, or cloud-first?",
+    examplePrompts: [
+      "Modern SD-WAN network connecting 5 branch sites to HQ over encrypted overlay",
+      "Modern zero trust network replacing legacy VPN for remote employees",
+      "Modern cloud-first network with Zscaler and direct internet breakout at branches",
+    ],
+  },
+  {
+    pattern: /secure app flow/i,
+    clarificationHint: "What type of app, and who are the users?",
+    examplePrompts: [
+      "Secure web app flow for external customers with WAF, CDN, and API gateway",
+      "Secure internal app flow for employees with SSO, MFA, and identity-aware proxy",
+      "Secure API flow between microservices with mutual TLS and centralized API gateway",
+    ],
+  },
 ];
 
 const badPatterns = [
@@ -82,13 +118,15 @@ export function analyzePrompt(prompt: string): PromptAnalysis {
   let status: PromptAnalysis["status"] = "clear";
   let confidence = 0.9;
 
-  if (
-    ambiguousPatterns.some((pattern) => pattern.test(prompt)) ||
-    normalizedPrompt.split(" ").length < 6
-  ) {
+  const matchedAmbiguous = ambiguousPatterns.find((entry) => entry.pattern.test(prompt));
+  const isTooShort = normalizedPrompt.split(" ").length < 6;
+
+  if (matchedAmbiguous || isTooShort) {
     status = "ambiguous";
     confidence = 0.72;
-    if (!/internet|dmz|vpn|cloud|hybrid|api|email|ddos|sase|siem|waf|zero trust/i.test(prompt)) {
+
+    // Only add generic assumption for short unrecognised prompts with no tech signal
+    if (!matchedAmbiguous && !/internet|dmz|vpn|cloud|hybrid|api|email|ddos|sase|siem|waf|zero trust/i.test(prompt)) {
       assumptions.push("Assumed a standard secure edge-to-internal-network flow with inspection and segmentation.");
     }
   }
@@ -100,6 +138,10 @@ export function analyzePrompt(prompt: string): PromptAnalysis {
     unsafeReasons: [],
     secureAlternativeAvailable: false,
     confidence,
+    ...(matchedAmbiguous ? {
+      clarificationHint: matchedAmbiguous.clarificationHint,
+      examplePrompts: matchedAmbiguous.examplePrompts,
+    } : {}),
   };
 }
 

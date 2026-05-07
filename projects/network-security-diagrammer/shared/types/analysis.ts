@@ -7,4 +7,6 @@ export interface PromptAnalysis {
   unsafeReasons: string[];
   secureAlternativeAvailable: boolean;
   confidence: number;
+  clarificationHint?: string;
+  examplePrompts?: string[];
 }

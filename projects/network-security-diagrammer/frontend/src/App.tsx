@@ -125,6 +125,11 @@ export default function App() {
               analysis={analysis}
               loading={loading}
               onProceed={() => generateFromAnalysis({ confirmedAssumptions: true })}
+              onSelectExample={(example) => {
+                setPrompt(example);
+                setAnalysis(null);
+                setTimeout(() => textareaRef.current?.focus(), 0);
+              }}
             />
           ) : null}
 
