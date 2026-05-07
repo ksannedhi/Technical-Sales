@@ -101,7 +101,12 @@ const patternRules: Array<{
   },
   {
     pattern: "email-security",
-    test: (prompt) => /email|smtp|mx record|mail/i.test(prompt),
+    test: (prompt) =>
+      (/email|smtp|mx record/i.test(prompt) || /\bmail\b/i.test(prompt)) &&
+      // Exclude attack-chain / threat-scenario prompts that mention email as a vector
+      !/ransomware|attack (flow|chain|path)|kill chain|threat actor|lateral movement/i.test(prompt) &&
+      // Exclude generic DMZ / multi-server prompts where mail is one of several servers
+      !(/\bdmz\b/i.test(prompt) && /(web server|app server|application server)/i.test(prompt)),
     score: (prompt) => {
       let score = 0;
       if (/email|mail/i.test(prompt)) score += 3;
@@ -131,7 +136,10 @@ const patternRules: Array<{
   },
   {
     pattern: "hybrid-connectivity",
-    test: (prompt) => /hybrid/i.test(prompt) || (/(on-prem|data center|dc)/i.test(prompt) && /(aws|azure|gcp|cloud)/i.test(prompt)),
+    test: (prompt) =>
+      (/hybrid/i.test(prompt) || (/(on-prem|data center|dc)/i.test(prompt) && /(aws|azure|gcp|cloud)/i.test(prompt))) &&
+      // Exclude data-protection / DLP prompts that mention on-prem + cloud but aren't about connectivity
+      !(/protect(ing)? data|data protection|data loss|dlp/i.test(prompt) && !/(connect|connectivity|tunnel|vpn|link|circuit|expressroute|direct connect)/i.test(prompt)),
     score: (prompt) => {
       let score = 0;
       if (/hybrid/i.test(prompt)) score += 3;

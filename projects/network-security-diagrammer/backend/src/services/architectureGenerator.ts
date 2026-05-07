@@ -29,8 +29,9 @@ const PATTERN_RATIONALE: Partial<Record<ArchitecturePatternId, string[]>> = {
   ],
   "zero-trust": [
     "No implicit trust based on network location — every access request is verified explicitly.",
-    "Policy Decision Point evaluates identity, device posture, and context before granting access.",
-    "Access Proxy ensures applications are never directly reachable without a valid policy grant.",
+    "Device posture check gates access for unmanaged devices before policy evaluation.",
+    "Policy Decision Point combines identity context and posture signal before granting any session.",
+    "CASB intercepts all cloud app traffic to enforce DLP and shadow-IT controls.",
   ],
   "sase-network": [
     "SASE consolidates network and security enforcement in the cloud, eliminating backhauling to HQ.",
@@ -66,8 +67,9 @@ const PATTERN_RATIONALE: Partial<Record<ArchitecturePatternId, string[]>> = {
   ],
   "logging-siem": [
     "Centralized log collection eliminates blind spots from siloed, per-device logging.",
-    "Normalization layer ensures consistent event schema before SIEM ingestion.",
-    "SIEM correlates events across sources to detect threats not visible in individual logs.",
+    "Message queue buffers high-volume log streams so the SIEM ingests at its own rate without loss.",
+    "Normalization layer ensures consistent event schema, making cross-source correlation reliable.",
+    "SOAR automation closes the gap between SIEM alert and analyst action by triaging and enriching incidents.",
   ],
   "sandbox-analysis": [
     "Sandbox detonation safely executes suspicious files in a fully isolated environment.",
@@ -303,11 +305,32 @@ async function generateArchitectureWithModel(
   }
 }
 
+// Patterns that already handle vendor branching in their static template
+const VENDOR_AWARE_STATIC_PATTERNS: ArchitecturePatternId[] = [
+  "hybrid-connectivity",
+  "email-security",
+  "wireless-network",
+  "sase-network",
+  "hybrid-identity-cloud",
+  "waf-dmz",
+];
+
+function hasHighSpecificity(prompt: string): boolean {
+  // Named vendor or product that the static template won't reflect
+  return /\b(palo alto|cisco|fortinet|check point|checkpoint|crowdstrike|splunk|microsoft sentinel|qradar|cortex|darktrace|zscaler|netskope|okta|ping identity|cyberark|hashicorp vault|illumio|guardicore)\b/i.test(prompt);
+}
+
 function shouldUseModelFallback(
   analysis: PromptAnalysis,
   classification: ReturnType<typeof classifyPromptPattern>,
+  prompt: string,
 ) {
-  return classification.pattern === "generic-secure-architecture" || classification.confidence < 0.8 || analysis.confidence < 0.75;
+  if (classification.pattern === "generic-secure-architecture") return true;
+  if (classification.confidence < 0.8) return true;
+  if (analysis.confidence < 0.75) return true;
+  // Route to Claude when prompt has vendor-specific detail that static templates can't reflect
+  if (hasHighSpecificity(prompt) && !VENDOR_AWARE_STATIC_PATTERNS.includes(classification.pattern)) return true;
+  return false;
 }
 
 function deriveSummary(architecture: ArchitectureModel) {
@@ -1254,26 +1277,34 @@ function buildScenarioArchitecture(
       assumptions: analysis.assumptions,
       appliedChanges: [],
       zones: [
-        createZone("sources", "Security / Infrastructure Sources", "external"),
-        createZone("collection", "Collection Layer", "security-zone"),
+        createZone("sources", "Log Sources", "external"),
+        createZone("collection", "Collection and Enrichment", "security-zone"),
         createZone("operations", "Monitoring Operations", "internal"),
       ],
       components: [
+        createComponent("Network Devices", "network", "sources"),
         createComponent("Security Controls", "security-control", "sources"),
-        createComponent("Infrastructure Devices", "network", "sources"),
-        createComponent("Application Logs", "application", "sources"),
-        createComponent("Log Collector", "monitoring", "collection", "critical"),
-        createComponent("Normalization / Parsing", "monitoring", "collection"),
+        createComponent("Endpoints / EDR", "security-control", "sources"),
+        createComponent("Cloud Platforms", "application", "sources"),
+        createComponent("Log Collector / Forwarder", "monitoring", "collection", "critical"),
+        createComponent("Message Queue / Buffer", "integration", "collection"),
+        createComponent("Normalization and Parsing", "monitoring", "collection"),
+        createComponent("Threat Intelligence Feed", "integration", "collection"),
         createComponent("SIEM Platform", "monitoring", "operations", "critical"),
-        createComponent("SOC Workflow", "integration", "operations"),
+        createComponent("SOAR / Automation", "integration", "operations"),
+        createComponent("SOC Analyst Workflow", "monitoring", "operations"),
       ],
       connections: [
-        createConnection("security-controls", "log-collector", "Logs", "dashed"),
-        createConnection("infrastructure-devices", "log-collector", "Logs", "dashed"),
-        createConnection("application-logs", "log-collector", "Logs", "dashed"),
-        createConnection("log-collector", "normalization-parsing"),
-        createConnection("normalization-parsing", "siem-platform"),
-        createConnection("siem-platform", "soc-workflow", "Alerts"),
+        createConnection("network-devices", "log-collector-forwarder", "syslog / SNMP", "dashed"),
+        createConnection("security-controls", "log-collector-forwarder", "CEF / Syslog", "dashed"),
+        createConnection("endpoints-edr", "log-collector-forwarder", "Agent / API", "dashed"),
+        createConnection("cloud-platforms", "log-collector-forwarder", "API / Webhook", "dashed"),
+        createConnection("log-collector-forwarder", "message-queue-buffer"),
+        createConnection("message-queue-buffer", "normalization-and-parsing"),
+        createConnection("normalization-and-parsing", "siem-platform", "Normalized Events"),
+        createConnection("threat-intelligence-feed", "siem-platform", "IOC Enrichment", "dashed"),
+        createConnection("siem-platform", "soar-automation", "Triggered Alert"),
+        createConnection("soar-automation", "soc-analyst-workflow", "Case / Incident"),
       ],
     }, { prompt, classification });
   }
@@ -1287,24 +1318,34 @@ function buildScenarioArchitecture(
       zones: [
         createZone("users", "Users / Devices", "external"),
         createZone("control", "Identity and Policy", "security-zone"),
-        createZone("apps", "Applications", "internal"),
+        createZone("apps", "Protected Applications", "internal"),
       ],
       components: [
         createComponent("Users", "user", "users"),
         createComponent("Managed Devices", "network", "users"),
+        createComponent("Unmanaged Devices", "network", "users"),
         createComponent("Identity Platform", "identity", "control", "critical"),
+        createComponent("Device Posture Check", "security-control", "control"),
         createComponent("Policy Decision Point", "security-control", "control", "critical"),
         createComponent("Access Proxy", "security-control", "control", "critical"),
+        createComponent("CASB", "security-control", "control"),
         createComponent("Internal Apps", "application", "apps"),
         createComponent("SaaS Apps", "application", "apps"),
+        createComponent("Audit Logging", "monitoring", "apps"),
       ],
       connections: [
         createConnection("users", "managed-devices"),
+        createConnection("users", "unmanaged-devices"),
         createConnection("managed-devices", "identity-platform", "Authenticate"),
-        createConnection("identity-platform", "policy-decision-point", "Context"),
+        createConnection("unmanaged-devices", "identity-platform", "Authenticate"),
+        createConnection("identity-platform", "device-posture-check", "Device Context"),
+        createConnection("device-posture-check", "policy-decision-point", "Posture Signal"),
+        createConnection("identity-platform", "policy-decision-point", "Identity Context"),
         createConnection("policy-decision-point", "access-proxy", "Access Decision"),
-        createConnection("access-proxy", "internal-apps"),
-        createConnection("access-proxy", "saas-apps"),
+        createConnection("access-proxy", "internal-apps", "HTTPS"),
+        createConnection("access-proxy", "casb", "Cloud App Inspect"),
+        createConnection("casb", "saas-apps", "CASB Proxy"),
+        createConnection("access-proxy", "audit-logging", "Session Logs", "dashed"),
       ],
     }, { prompt, classification });
   }
@@ -1441,7 +1482,7 @@ export async function generateArchitecture(
 ): Promise<ArchitectureModel> {
   const classification = classifyPromptPattern(analysis.normalizedPrompt);
 
-  if (shouldUseModelFallback(analysis, classification)) {
+  if (shouldUseModelFallback(analysis, classification, prompt)) {
     const modelGenerated = await generateArchitectureWithModel(prompt, analysis, classification);
     if (modelGenerated) {
       return modelGenerated;

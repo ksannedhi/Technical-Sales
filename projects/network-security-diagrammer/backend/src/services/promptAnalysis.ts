@@ -64,6 +64,17 @@ const badPatterns = [
   },
 ];
 
+const outOfScopePatterns = [
+  {
+    pattern: /ransomware attack (flow|chain|path|scenario)|kill chain|attack chain|lateral movement path|threat actor.*pivot/i,
+    reason: "This describes an attack scenario, not a defensive architecture. This tool models protective network designs — try describing the defensive controls you want instead.",
+  },
+  {
+    pattern: /active[- ]active failover|redundant (firewall )?pair|ha (cluster|topology|pair)|high.availability (topology|design|cluster)/i,
+    reason: "High-availability and failover topologies are outside the scope of this diagrammer. Try describing the security architecture around the HA deployment instead.",
+  },
+];
+
 function normalizePrompt(prompt: string) {
   return prompt
     .trim()
@@ -93,6 +104,23 @@ function sanitizeAssumptions(assumptions: string[]) {
 
 export function analyzePrompt(prompt: string): PromptAnalysis {
   const normalizedPrompt = normalizePrompt(prompt);
+
+  // Out-of-scope check (before bad patterns — these need a different message, no secure alternative)
+  const outOfScopeReasons = outOfScopePatterns
+    .filter((entry) => entry.pattern.test(prompt))
+    .map((entry) => entry.reason);
+
+  if (outOfScopeReasons.length > 0) {
+    return {
+      status: "bad",
+      normalizedPrompt,
+      assumptions: [],
+      unsafeReasons: outOfScopeReasons,
+      secureAlternativeAvailable: false,
+      confidence: 0.92,
+    };
+  }
+
   const unsafeReasons = badPatterns
     .filter((entry) => entry.pattern.test(prompt))
     .map((entry) => entry.reason);
@@ -120,8 +148,12 @@ export function analyzePrompt(prompt: string): PromptAnalysis {
 
   const matchedAmbiguous = ambiguousPatterns.find((entry) => entry.pattern.test(prompt));
   const isTooShort = normalizedPrompt.split(" ").length < 6;
+  // Only treat a matched ambiguous pattern as genuinely ambiguous when the prompt is short
+  // enough that the pattern captures the entire intent (not a substring of a longer specific prompt)
+  const wordCount = normalizedPrompt.split(/\s+/).length;
+  const isGenuinelyAmbiguous = Boolean(matchedAmbiguous) && wordCount <= 8;
 
-  if (matchedAmbiguous || isTooShort) {
+  if (isGenuinelyAmbiguous || isTooShort) {
     status = "ambiguous";
     confidence = 0.72;
 
@@ -138,7 +170,7 @@ export function analyzePrompt(prompt: string): PromptAnalysis {
     unsafeReasons: [],
     secureAlternativeAvailable: false,
     confidence,
-    ...(matchedAmbiguous ? {
+    ...(isGenuinelyAmbiguous && matchedAmbiguous ? {
       clarificationHint: matchedAmbiguous.clarificationHint,
       examplePrompts: matchedAmbiguous.examplePrompts,
     } : {}),
