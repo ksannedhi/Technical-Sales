@@ -286,6 +286,16 @@ button:disabled {
   transform: translateY(-1px);
 }
 
+.rationale-panel {
+  border-left: 3px solid #1f4f46;
+}
+
+.rationale-panel h2 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: #1f4f46;
+}
+
 .error-panel {
   border-color: rgba(153, 47, 47, 0.2);
   color: #7f1d1d;

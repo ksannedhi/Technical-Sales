@@ -14,6 +14,7 @@ export type ArchitecturePatternId =
   | "logging-siem"
   | "segmentation"
   | "zero-trust"
+  | "sase-network"
   | "cloud-workload"
   | "generic-secure-architecture";
 
@@ -165,6 +166,23 @@ const patternRules: Array<{
     pattern: "zero-trust",
     test: (prompt) => /zero trust|identity-based/i.test(prompt),
     score: (prompt) => (/zero trust/i.test(prompt) ? 5 : 0) + (/identity-based/i.test(prompt) ? 2 : 0),
+  },
+  {
+    pattern: "sase-network",
+    test: (prompt) =>
+      /\bsase\b/i.test(prompt) ||
+      (/ztna/i.test(prompt) && /cloud/i.test(prompt)) ||
+      (/sd-wan/i.test(prompt) && /cloud/i.test(prompt) && /security/i.test(prompt)) ||
+      /secure access service edge/i.test(prompt),
+    score: (prompt) => {
+      let score = 0;
+      if (/\bsase\b/i.test(prompt)) score += 5;
+      if (/secure access service edge/i.test(prompt)) score += 5;
+      if (/ztna/i.test(prompt)) score += 3;
+      if (/sd-wan/i.test(prompt) && /security/i.test(prompt)) score += 2;
+      if (/casb|swg|cloud firewall/i.test(prompt)) score += 2;
+      return score;
+    },
   },
   {
     pattern: "cloud-workload",

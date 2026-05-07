@@ -88,23 +88,35 @@ const preferredZoneOrders: Array<{
     order: ["cloud", "identity", "onprem"],
   },
   {
+    match: (architecture) => architecture.title.includes("SASE"),
+    order: ["users", "sase", "resources"],
+  },
+  {
     match: (architecture) => architecture.title.includes("Secure Messaging Protection"),
     order: ["internet", "dmz", "internal", "clients"],
   },
 ];
 
-function zoneColor(zone: ArchitectureZone["type"]) {
-    switch (zone) {
-      case "dmz":
-        return "#f7f4f1";
-      case "cloud":
-        return "#eef3fb";
-      case "security-zone":
-        return "#fcfbf8";
-      default:
-        return "#fbfbfb";
-    }
+function zoneColor(zoneType: ArchitectureZone["type"]) {
+  switch (zoneType) {
+    case "external":
+      return { background: "#fff8f5", stroke: "#c2692b", titleColor: "#7c3610" };
+    case "dmz":
+      return { background: "#fefce8", stroke: "#b45309", titleColor: "#713f12" };
+    case "security-zone":
+      return { background: "#f0fdf4", stroke: "#16a34a", titleColor: "#14532d" };
+    case "internal":
+      return { background: "#eff6ff", stroke: "#2563eb", titleColor: "#1e3a8a" };
+    case "cloud":
+      return { background: "#faf5ff", stroke: "#7c3aed", titleColor: "#4c1d95" };
+    case "branch":
+      return { background: "#f0fdfa", stroke: "#0d9488", titleColor: "#134e4a" };
+    case "data-center":
+      return { background: "#f8fafc", stroke: "#475569", titleColor: "#1e293b" };
+    default:
+      return { background: "#fbfbfb", stroke: "#3f3f46", titleColor: "#18181b" };
   }
+}
 
 function shortenLabel(label: string) {
   const replacements: Array<[RegExp, string]> = [
@@ -463,6 +475,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
     const zoneX = CANVAS_PADDING;
     const zoneY = currentY;
 
+    const zoneColors = zoneColor(zone.type);
     elements.push({
       id: `${zone.id}-container`,
       type: "rectangle",
@@ -470,8 +483,8 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       y: zoneY,
       width: zoneWidth,
       height: zoneHeight,
-      strokeColor: "#3f3f46",
-      backgroundColor: zoneColor(zone.type),
+      strokeColor: zoneColors.stroke,
+      backgroundColor: zoneColors.background,
       fillStyle: "solid",
       roughness: 1,
     });
@@ -482,7 +495,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       y: zoneY + 10,
       text: title.lines.join("\n"),
       fontSize: 22,
-      strokeColor: "#18181b",
+      strokeColor: zoneColors.titleColor,
     });
 
     let runningY = zoneY + zoneTitleHeight + ZONE_PADDING_Y;

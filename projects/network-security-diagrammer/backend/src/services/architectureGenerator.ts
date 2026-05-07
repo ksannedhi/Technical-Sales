@@ -7,7 +7,99 @@ import type {
 import type { PromptAnalysis } from "../../../shared/types/analysis.js";
 import { architectureSchema } from "../schemas/architectureSchema.js";
 import { getAnthropicClient, getGenerateModel } from "./anthropic.js";
-import { classifyPromptPattern } from "./patternLibrary.js";
+import { classifyPromptPattern, type ArchitecturePatternId } from "./patternLibrary.js";
+
+const PATTERN_RATIONALE: Partial<Record<ArchitecturePatternId, string[]>> = {
+  "partner-api-security": [
+    "mTLS at the edge ensures only cert-holding partners can initiate API sessions.",
+    "API gateway enforces rate limiting and quota before business logic is touched.",
+    "OAuth2/OIDC token validation decouples partner identity from internal service auth.",
+    "Audit logging at the backend provides non-repudiation for all partner transactions.",
+  ],
+  "hybrid-identity-cloud": [
+    "Cloud identity platform is the single authentication authority for both cloud and on-prem apps.",
+    "Directory sync keeps on-prem AD authoritative while extending SSO to SaaS applications.",
+    "Conditional access evaluates risk signals (device, location, MFA) before granting any session.",
+    "Dedicated connectivity (ExpressRoute/VPN) protects identity sync traffic from interception.",
+  ],
+  "identity-access": [
+    "SSO portal eliminates credential sprawl by providing a single authentication entry point.",
+    "Step-up MFA verification reduces risk from stolen or phished credentials.",
+    "Token service centralizes session lifecycle, enabling fast revocation across all apps.",
+  ],
+  "zero-trust": [
+    "No implicit trust based on network location — every access request is verified explicitly.",
+    "Policy Decision Point evaluates identity, device posture, and context before granting access.",
+    "Access Proxy ensures applications are never directly reachable without a valid policy grant.",
+  ],
+  "sase-network": [
+    "SASE consolidates network and security enforcement in the cloud, eliminating backhauling to HQ.",
+    "Identity-aware access decisions are enforced at the cloud edge, close to where users connect.",
+    "SD-WAN integration provides optimized, encrypted connectivity from branch sites.",
+    "Consistent security policy applies whether users are at HQ, branch, or fully remote.",
+  ],
+  "waf-dmz": [
+    "WAF in the DMZ inspects HTTP/S traffic before it reaches internal application servers.",
+    "External firewall drops non-web traffic before it can reach the WAF inspection layer.",
+    "Internal firewall provides a second enforcement boundary behind the WAF.",
+    "DMZ isolation limits blast radius if the WAF or load balancer is compromised.",
+  ],
+  "email-security": [
+    "Message filtering in the DMZ prevents malicious mail from entering the internal network.",
+    "Firewall layers before and after the filter appliance enforce strict zone boundaries.",
+    "Directory integration ensures delivery only to valid, authenticated internal recipients.",
+  ],
+  "ddos-protection": [
+    "Cloud scrubbing absorbs volumetric attack traffic before it reaches the enterprise edge.",
+    "BGP/anycast traffic redirection routes attack flows through the mitigation platform.",
+    "Clean traffic is tunneled back to the edge router so legitimate users are unaffected during attacks.",
+  ],
+  "hybrid-connectivity": [
+    "Encrypted tunnel (IPSec/IKEv2 or dedicated circuit) prevents interception of transit traffic.",
+    "Connectivity gateway is the policy enforcement point for all cross-environment traffic.",
+    "Cloud edge gateway provides the first inspection boundary inside the cloud perimeter.",
+  ],
+  "remote-access": [
+    "Endpoint access client enforces device health checks before tunnel establishment.",
+    "Encrypted tunnel (IPSec/TLS) protects all traffic across the untrusted public internet.",
+    "Secure access gateway authenticates the user session before any internal network access is granted.",
+  ],
+  "logging-siem": [
+    "Centralized log collection eliminates blind spots from siloed, per-device logging.",
+    "Normalization layer ensures consistent event schema before SIEM ingestion.",
+    "SIEM correlates events across sources to detect threats not visible in individual logs.",
+  ],
+  "sandbox-analysis": [
+    "Sandbox detonation safely executes suspicious files in a fully isolated environment.",
+    "Verdict engine produces verdicts before results reach production workflows or endpoints.",
+    "Multi-source submission (email, network, manual) ensures broad threat coverage.",
+  ],
+  "branch-networking": [
+    "SD-WAN overlay provides encrypted branch connectivity without dedicated MPLS per site.",
+    "Local security control at the branch reduces backhaul traffic for internet-destined flows.",
+    "Central security gateway maintains consistent policy enforcement across all branch connections.",
+  ],
+  "ndr-visibility": [
+    "Traffic mirroring (TAP/SPAN) provides passive east-west visibility with no inline risk.",
+    "NDR analytics detect lateral movement patterns invisible to perimeter-only tools.",
+    "Coverage across DMZ, core, and server farm closes blind spots between network segments.",
+  ],
+  "wireless-network": [
+    "Separate SSIDs with VLAN isolation keep guest and corporate traffic on distinct paths.",
+    "Private VLAN prevents guest devices from communicating with internal network resources.",
+    "Internet-only VLAN restricts guest access at the policy layer, not just at the access point.",
+  ],
+  "segmentation": [
+    "Firewall-enforced segmentation prevents lateral movement between application zones.",
+    "Inspection at the policy layer ensures all inter-zone traffic is examined, not just north-south.",
+    "Least-privilege zone design limits breach impact to a single segment.",
+  ],
+  "cloud-workload": [
+    "Workload protection enforces runtime security policies at the compute layer.",
+    "Identity and secrets management prevents credential theft from workload environments.",
+    "Telemetry collection provides cloud-native activity visibility for SOC workflows.",
+  ],
+};
 
 function slug(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -144,14 +236,17 @@ async function generateArchitectureWithModel(
       system: [
         "You generate a network and security architecture model for diagram rendering.",
         "Return only valid JSON with no markdown or code fences.",
-        "Keep the output conceptual, simple, and vendor-neutral unless the prompt explicitly names a vendor, provider, or product.",
-        "Preserve explicit entities from the prompt such as AWS, Exchange, WAF, MFA, SSO, VPN, DMZ, or SIEM when present.",
+        "Use vendor-specific component names when the vendor is inferable from context.",
+        "For example: Cisco ASA or Palo Alto NGFW for firewalls; Zscaler or Netskope for SASE/ZTNA; Splunk or Microsoft Sentinel for SIEM; CrowdStrike for endpoint; F5 or Imperva for WAF.",
+        "Always preserve explicit product names from the prompt (AWS, Azure, Exchange, Fortinet, Check Point, etc.).",
+        "Label connections with precise protocol or flow names where meaningful (e.g. IPSec/IKEv2, BGP, HTTPS, SMTP, SAML 2.0, ZTNA, SD-WAN, syslog/UDP 514, MAPI, ActiveSync).",
         "Avoid generic zone-heavy diagrams unless the prompt truly calls for them.",
         "Target 2 to 4 zones, 6 to 12 components, and at most 15 connections.",
         "Use these zone types only: external, dmz, security-zone, internal, cloud, branch, data-center.",
         "Use these component types only: user, network, security-control, identity, application, data, monitoring, integration.",
         "Use connection styles only: solid or dashed.",
         "Provide stable ids as lowercase slugs.",
+        "Include a securityRationale array of 3 to 4 concise bullet strings explaining the key security design decisions in this architecture.",
       ].join(" "),
       messages: [
         {
@@ -166,6 +261,7 @@ async function generateArchitectureWithModel(
               summary: "string",
               assumptions: ["string"],
               appliedChanges: [],
+              securityRationale: ["string — key security design decision, 3–4 items"],
               zones: [{ id: "string", label: "string", type: "external|dmz|security-zone|internal|cloud|branch|data-center" }],
               components: [
                 {
@@ -258,6 +354,10 @@ function deriveSummary(architecture: ArchitectureModel) {
     return "User and device access is brokered through identity, policy, and access proxy controls before any internal or SaaS application session is established.";
   }
 
+  if (architecture.title.includes("SASE")) {
+    return "Users and branch sites connect through a cloud-delivered SASE platform that combines ZTNA, cloud firewall, SWG, and CASB into a single policy enforcement point before reaching any corporate resource.";
+  }
+
   if (architecture.title.includes("Segmentation")) {
     return "Traffic is inspected and segmented before it reaches protected application, data, and monitoring zones, keeping the main enforcement path simple and visible.";
   }
@@ -342,6 +442,10 @@ function deriveTitle(
 
   if (classification?.pattern === "zero-trust") {
     return "Zero Trust Access Architecture";
+  }
+
+  if (classification?.pattern === "sase-network") {
+    return "SASE Network Architecture";
   }
 
   if (classification?.pattern === "segmentation") {
@@ -1205,6 +1309,44 @@ function buildScenarioArchitecture(
     }, { prompt, classification });
   }
 
+  if (classification.pattern === "sase-network") {
+    return refreshArchitectureText({
+      title: "SASE Network Pattern",
+      summary: "",
+      assumptions: analysis.assumptions,
+      appliedChanges: [],
+      zones: [
+        createZone("users", "Users and Devices", "external"),
+        createZone("sase", "SASE Cloud Platform", "cloud"),
+        createZone("resources", "Corporate Resources", "internal"),
+      ],
+      components: [
+        createComponent("Remote Users", "user", "users"),
+        createComponent("Branch Offices", "network", "users"),
+        createComponent("ZTNA Access Proxy", "security-control", "sase", "critical"),
+        createComponent("Cloud Firewall / SWG", "security-control", "sase", "critical"),
+        createComponent("CASB", "security-control", "sase"),
+        createComponent("SD-WAN Gateway", "network", "sase", "critical"),
+        createComponent("Identity Provider", "identity", "sase"),
+        createComponent("Internal Applications", "application", "resources"),
+        createComponent("SaaS Applications", "application", "resources"),
+        createComponent("Data Center", "data", "resources"),
+      ],
+      connections: [
+        createConnection("remote-users", "ztna-access-proxy", "ZTNA Tunnel"),
+        createConnection("branch-offices", "sd-wan-gateway", "SD-WAN / IPSec"),
+        createConnection("ztna-access-proxy", "identity-provider", "Identity Verify"),
+        createConnection("identity-provider", "ztna-access-proxy", "Auth Token", "dashed"),
+        createConnection("ztna-access-proxy", "cloud-firewall-swg", "Policy Enforcement"),
+        createConnection("sd-wan-gateway", "cloud-firewall-swg", "Traffic Inspection"),
+        createConnection("cloud-firewall-swg", "casb", "Cloud App Inspect"),
+        createConnection("cloud-firewall-swg", "internal-applications", "HTTPS"),
+        createConnection("casb", "saas-applications", "CASB Proxy"),
+        createConnection("cloud-firewall-swg", "data-center", "Protected Access"),
+      ],
+    }, { prompt, classification });
+  }
+
   if (classification.pattern === "cloud-workload") {
     return refreshArchitectureText({
       title: "Cloud Workload Protection Pattern",
@@ -1306,7 +1448,9 @@ export async function generateArchitecture(
     }
   }
 
-  return buildScenarioArchitecture(prompt, analysis, classification);
+  const arch = buildScenarioArchitecture(prompt, analysis, classification);
+  const rationale = PATTERN_RATIONALE[classification.pattern];
+  return rationale ? { ...arch, securityRationale: rationale } : arch;
 }
 
 export function applyFollowupInstruction(

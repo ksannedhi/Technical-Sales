@@ -7,6 +7,7 @@ export const architectureSchema = z.object({
   summary: z.string().min(1),
   assumptions: z.array(z.string()),
   appliedChanges: z.array(z.string()).default([]),
+  securityRationale: z.array(z.string()).optional(),
   zones: z.array(
     z.object({
       id: z.string().min(1),

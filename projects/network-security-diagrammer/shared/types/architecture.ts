@@ -44,6 +44,7 @@ export interface ArchitectureModel {
   summary: string;
   assumptions: string[];
   appliedChanges: string[];
+  securityRationale?: string[];
   zones: ArchitectureZone[];
   components: ArchitectureComponent[];
   connections: ArchitectureConnection[];

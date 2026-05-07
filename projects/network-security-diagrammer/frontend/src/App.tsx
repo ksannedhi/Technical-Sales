@@ -168,6 +168,17 @@ export default function App() {
             </>
           ) : null}
 
+          {diagram?.architecture.securityRationale && diagram.architecture.securityRationale.length > 0 ? (
+            <section className="panel rationale-panel">
+              <h2>Why this design</h2>
+              <ul className="bullet-list compact">
+                {diagram.architecture.securityRationale.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {error ? <section className="panel error-panel">{error}</section> : null}
         </div>
 
