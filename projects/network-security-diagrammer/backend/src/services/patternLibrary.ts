@@ -176,8 +176,8 @@ const patternRules: Array<{
       /secure access service edge/i.test(prompt),
     score: (prompt) => {
       let score = 0;
-      if (/\bsase\b/i.test(prompt)) score += 5;
-      if (/secure access service edge/i.test(prompt)) score += 5;
+      if (/\bsase\b/i.test(prompt)) score += 9;
+      if (/secure access service edge/i.test(prompt)) score += 9;
       if (/ztna/i.test(prompt)) score += 3;
       if (/sd-wan/i.test(prompt) && /security/i.test(prompt)) score += 2;
       if (/casb|swg|cloud firewall/i.test(prompt)) score += 2;

@@ -130,6 +130,16 @@ function shortenLabel(label: string) {
     [/Cloud Application Tier/gi, "Cloud App Tier"],
     [/Traffic Scrubbing Layer/gi, "Scrubbing Layer"],
     [/Policy \/ Response Workflow/gi, "Response Workflow"],
+    [/Alerting \/ Case Output/gi, "Alerting / Cases"],
+    [/Alerting \/ SOC/gi, "Alerting / SOC"],
+    [/Edge Protection Appliance/gi, "Edge Protection"],
+    [/Application Server Cluster/gi, "App Server Cluster"],
+    [/Security Management Console/gi, "Security Console"],
+    [/On-Prem Application Segment/gi, "On-Prem Apps"],
+    [/On-Prem Core Network/gi, "Core Network"],
+    [/Central Security Gateway/gi, "Central Gateway"],
+    [/Cloud Firewall \/ SWG/gi, "Cloud FW / SWG"],
+    [/Internal Applications/gi, "Internal Apps"],
   ];
 
   return replacements.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), label);
@@ -544,6 +554,11 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
     maxWidth = Math.max(maxWidth, zoneWidth + CANVAS_PADDING * 2);
   });
 
+  // Track labels already placed per target to avoid fan-in label stacking
+  const renderedTargetLabels = new Map<string, Set<string>>();
+  // Track labeled connection count per source to avoid fan-out label congestion
+  const labeledConnectionsPerSource = new Map<string, number>();
+
   architecture.connections.forEach((connection, index) => {
     const from = componentBoxes.get(connection.from);
     const to = componentBoxes.get(connection.to);
@@ -565,6 +580,26 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
 
     if (connection.label && shouldRenderConnectionLabel(connection.label, connection.style)) {
       const labelText = shortenLabel(connection.label);
+
+      // Suppress duplicate label on the same target (fan-in congestion)
+      const targetLabels = renderedTargetLabels.get(connection.to) ?? new Set<string>();
+      if (targetLabels.has(labelText)) {
+        renderedTargetLabels.set(connection.to, targetLabels);
+        return;
+      }
+      targetLabels.add(labelText);
+      renderedTargetLabels.set(connection.to, targetLabels);
+
+      // Suppress more than 1 solid label per source (fan-out congestion)
+      if (connection.style !== "dashed") {
+        const sourceCount = labeledConnectionsPerSource.get(connection.from) ?? 0;
+        if (sourceCount >= 1) {
+          labeledConnectionsPerSource.set(connection.from, sourceCount + 1);
+          return;
+        }
+        labeledConnectionsPerSource.set(connection.from, sourceCount + 1);
+      }
+
       const { x: labelX, y: labelY } = arrowLabelPosition(startX, startY, points, index, labelText);
       elements.push({
         id: `${connection.id}-label`,
