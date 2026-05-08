@@ -16,6 +16,7 @@ export type ArchitecturePatternId =
   | "zero-trust"
   | "sase-network"
   | "cloud-workload"
+  | "perimeter-firewall"
   | "generic-secure-architecture";
 
 export interface PatternMatch {
@@ -189,6 +190,22 @@ const patternRules: Array<{
       if (/ztna/i.test(prompt)) score += 3;
       if (/sd-wan/i.test(prompt) && /security/i.test(prompt)) score += 2;
       if (/casb|swg|cloud firewall/i.test(prompt)) score += 2;
+      return score;
+    },
+  },
+  {
+    pattern: "perimeter-firewall",
+    test: (prompt) =>
+      /firewall|router/i.test(prompt) &&
+      /(perimeter|enterprise network|network edge|campus network|corporate network)/i.test(prompt) &&
+      // Don't steal from WAF-specific or zero-trust prompts
+      !/waf|web application firewall|zero trust|ztna/i.test(prompt),
+    score: (prompt) => {
+      let score = 0;
+      if (/firewall/i.test(prompt)) score += 3;
+      if (/router/i.test(prompt)) score += 3;
+      if (/(perimeter|enterprise network|campus|corporate)/i.test(prompt)) score += 2;
+      if (/(dmz|segment|vlan)/i.test(prompt)) score += 1;
       return score;
     },
   },

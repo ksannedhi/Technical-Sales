@@ -5,15 +5,15 @@ const CANVAS_PADDING = 80;
 const ZONE_GAP = 92;
 const ZONE_PADDING_X = 30;
 const ZONE_PADDING_Y = 28;
-const MIN_COMPONENT_WIDTH = 180;
+const MIN_COMPONENT_WIDTH = 200;
 const MIN_COMPONENT_HEIGHT = 72;
 const COMPONENT_GAP_X = 42;
 const COMPONENT_GAP_Y = 28;
-const TEXT_CHAR_WIDTH = 10.4;
+const TEXT_CHAR_WIDTH = 12;
 const MAX_CHARS_PER_LINE = 16;
 const TEXT_LINE_HEIGHT = 22;
 const MAX_ROW_COMPONENTS = 3;
-const ZONE_TITLE_CHAR_WIDTH = 12.4;
+const ZONE_TITLE_CHAR_WIDTH = 13;
 const STRAIGHT_ARROW_THRESHOLD = 24;
 const LABEL_CLEARANCE = 18;
 const TITLE_MAX_CHARS_PER_LINE = 22;
@@ -94,6 +94,10 @@ const preferredZoneOrders: Array<{
   {
     match: (architecture) => architecture.title.includes("Secure Messaging Protection"),
     order: ["internet", "dmz", "internal", "clients"],
+  },
+  {
+    match: (architecture) => architecture.title.includes("Perimeter Firewall"),
+    order: ["internet", "perimeter", "internal"],
   },
 ];
 
@@ -191,7 +195,8 @@ function getComponentSize(label: string, architecture: ArchitectureModel) {
   return {
     displayLabel,
     lines,
-    width: Math.max(MIN_COMPONENT_WIDTH, Math.ceil(widestLine * TEXT_CHAR_WIDTH) + 42),
+    // Extra 56px side padding (28px each side) ensures Excalifont glyphs don't clip at the box boundary
+    width: Math.max(MIN_COMPONENT_WIDTH, Math.ceil(widestLine * TEXT_CHAR_WIDTH) + 56),
     height: Math.max(MIN_COMPONENT_HEIGHT, lines.length * TEXT_LINE_HEIGHT + 34),
   };
 }
@@ -503,6 +508,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       type: "text",
       x: zoneX + 16,
       y: zoneY + 10,
+      width: zoneWidth - 32,
       text: title.lines.join("\n"),
       fontSize: 22,
       strokeColor: zoneColors.titleColor,
@@ -533,6 +539,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
           type: "text",
           x: componentX + 18,
           y: componentY + 18,
+          width: size.width - 36,
           text: size.lines.join("\n"),
           fontSize: 18,
           strokeColor: "#18181b",

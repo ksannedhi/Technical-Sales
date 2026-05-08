@@ -101,6 +101,12 @@ const PATTERN_RATIONALE: Partial<Record<ArchitecturePatternId, string[]>> = {
     "Identity and secrets management prevents credential theft from workload environments.",
     "Telemetry collection provides cloud-native activity visibility for SOC workflows.",
   ],
+  "perimeter-firewall": [
+    "Router at the perimeter provides the first ingress/egress control point for all external traffic.",
+    "Stateful firewall inspects and filters traffic before it reaches any internal segment.",
+    "Internal core switch enforces LAN-side segmentation between server and user zones.",
+    "Out-of-band monitoring console keeps security telemetry off the production data path.",
+  ],
 };
 
 function slug(value: string) {
@@ -385,6 +391,10 @@ function deriveSummary(architecture: ArchitectureModel) {
     return "Traffic is inspected and segmented before it reaches protected application, data, and monitoring zones, keeping the main enforcement path simple and visible.";
   }
 
+  if (architecture.title.includes("Perimeter Firewall")) {
+    return "Internet traffic enters through a perimeter router and is inspected by a stateful firewall before reaching the internal core switch, which distributes connectivity to server and user segments.";
+  }
+
   const zoneLabels = architecture.zones.map((zone) => zone.label).slice(0, 3);
   const controlLabels = architecture.components
     .filter((component) => component.type === "security-control" && component.importance === "critical")
@@ -473,6 +483,10 @@ function deriveTitle(
 
   if (classification?.pattern === "segmentation") {
     return "Segmentation and Inspection Architecture";
+  }
+
+  if (classification?.pattern === "perimeter-firewall") {
+    return "Enterprise Network with Perimeter Firewall and Router";
   }
 
   if (classification?.pattern === "logging-siem") {
@@ -1413,6 +1427,47 @@ function buildScenarioArchitecture(
         createConnection("cloud-workloads", "data-services"),
         createConnection("cloud-workloads", "telemetry-logs", "Telemetry", "dashed"),
         createConnection("telemetry-logs", "security-operations"),
+      ],
+    }, { prompt, classification });
+  }
+
+  if (classification.pattern === "perimeter-firewall") {
+    const hasDmz = promptMentions(prompt, ["dmz"]);
+    const hasVlan = promptMentions(prompt, ["vlan", "segment"]);
+
+    return refreshArchitectureText({
+      title: "Perimeter Firewall Pattern",
+      summary: "",
+      assumptions: analysis.assumptions,
+      appliedChanges: [],
+      zones: [
+        createZone("internet", "Public Internet", "external"),
+        createZone("perimeter", "Network Perimeter", "security-zone"),
+        createZone("internal", "Internal Network", "internal"),
+      ],
+      components: [
+        createComponent("External Users", "user", "internet"),
+        createComponent("Internet Router", "network", "perimeter", "critical"),
+        createComponent("Perimeter Firewall", "security-control", "perimeter", "critical"),
+        ...(hasDmz ? [createComponent("DMZ Segment", "network", "perimeter")] : []),
+        createComponent("Internal Core Switch", "network", "internal", "critical"),
+        createComponent(hasVlan ? "User VLAN" : "User Segment", "user", "internal"),
+        createComponent("Application Servers", "application", "internal"),
+        createComponent("File and Data Services", "data", "internal"),
+        createComponent("Monitoring Console", "monitoring", "internal"),
+      ],
+      connections: [
+        createConnection("external-users", "internet-router"),
+        createConnection("internet-router", "perimeter-firewall", "Inbound Traffic"),
+        ...(hasDmz
+          ? [createConnection("perimeter-firewall", "dmz-segment", "Screened Traffic")]
+          : []),
+        createConnection("perimeter-firewall", "internal-core-switch", "Allowed Traffic"),
+        createConnection("internal-core-switch", hasVlan ? "user-vlan" : "user-segment"),
+        createConnection("internal-core-switch", "application-servers"),
+        createConnection("application-servers", "file-and-data-services"),
+        createConnection("application-servers", "monitoring-console", "Logs", "dashed"),
+        createConnection("perimeter-firewall", "monitoring-console", "FW Logs", "dashed"),
       ],
     }, { prompt, classification });
   }
