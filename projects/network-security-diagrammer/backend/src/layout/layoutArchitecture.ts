@@ -410,9 +410,15 @@ function arrowLabelPosition(
     const midX = startX + endPoint[0] / 2;
     const midY = startY + endPoint[1] / 2;
     const isHorizontal = Math.abs(endPoint[1]) < Math.abs(endPoint[0]) * 0.3;
-    return isHorizontal
-      ? { x: midX - labelWidth / 2, y: midY - 20 }
-      : { x: midX + LABEL_CLEARANCE, y: midY + getLabelOffset(index) };
+    if (isHorizontal) {
+      return { x: midX - labelWidth / 2, y: midY - 20 };
+    }
+    // For vertical arrows clamp label Y so it never dips into the target box.
+    // getLabelOffset can return +14 which, on short inter-row gaps (dy ≈ 28px), lands inside the box.
+    const rawY = midY + getLabelOffset(index);
+    const targetTopY = startY + endPoint[1]; // top edge of destination box
+    const clampedY = Math.min(rawY, targetTopY - TEXT_LINE_HEIGHT - 4);
+    return { x: midX + LABEL_CLEARANCE, y: clampedY };
   }
 
   const midPoint = points[1] ?? [0, 0];

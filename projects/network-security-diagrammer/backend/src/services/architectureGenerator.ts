@@ -1459,8 +1459,8 @@ function buildScenarioArchitecture(
       ],
       connections: [
         createConnection("external-users", "internet-router"),
-        // "Inbound" keeps the label short enough to fit in the gap between the two perimeter boxes
-        createConnection("internet-router", "perimeter-firewall", "Inbound"),
+        // No label — gap between adjacent boxes is too narrow for any text without overlap
+        createConnection("internet-router", "perimeter-firewall"),
         ...(hasDmz
           ? [createConnection("perimeter-firewall", "dmz-segment", "Screened Traffic")]
           : []),
