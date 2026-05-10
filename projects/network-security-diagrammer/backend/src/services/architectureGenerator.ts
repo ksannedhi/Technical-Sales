@@ -1433,7 +1433,6 @@ function buildScenarioArchitecture(
 
   if (classification.pattern === "perimeter-firewall") {
     const hasDmz = promptMentions(prompt, ["dmz"]);
-    const hasVlan = promptMentions(prompt, ["vlan", "segment"]);
 
     return refreshArchitectureText({
       title: "Perimeter Firewall Pattern",
@@ -1450,24 +1449,27 @@ function buildScenarioArchitecture(
         createComponent("Internet Router", "network", "perimeter", "critical"),
         createComponent("Perimeter Firewall", "security-control", "perimeter", "critical"),
         ...(hasDmz ? [createComponent("DMZ Segment", "network", "perimeter")] : []),
+        // Internal zone — sort order (network < application < data < monitoring) gives:
+        // Row 1: Core Switch | Application Servers | File and Data Services
+        // Row 2: Monitoring Console  (clean downward arrow from App Servers)
         createComponent("Internal Core Switch", "network", "internal", "critical"),
-        createComponent(hasVlan ? "User VLAN" : "User Segment", "user", "internal"),
         createComponent("Application Servers", "application", "internal"),
         createComponent("File and Data Services", "data", "internal"),
         createComponent("Monitoring Console", "monitoring", "internal"),
       ],
       connections: [
         createConnection("external-users", "internet-router"),
-        createConnection("internet-router", "perimeter-firewall", "Inbound Traffic"),
+        // "Inbound" keeps the label short enough to fit in the gap between the two perimeter boxes
+        createConnection("internet-router", "perimeter-firewall", "Inbound"),
         ...(hasDmz
           ? [createConnection("perimeter-firewall", "dmz-segment", "Screened Traffic")]
           : []),
         createConnection("perimeter-firewall", "internal-core-switch", "Allowed Traffic"),
-        createConnection("internal-core-switch", hasVlan ? "user-vlan" : "user-segment"),
         createConnection("internal-core-switch", "application-servers"),
+        // Left-to-right in same row — clean arrow
         createConnection("application-servers", "file-and-data-services"),
+        // Straight down to row 2 — no cross-zone FW Logs to compete with
         createConnection("application-servers", "monitoring-console", "Logs", "dashed"),
-        createConnection("perimeter-firewall", "monitoring-console", "FW Logs", "dashed"),
       ],
     }, { prompt, classification });
   }
