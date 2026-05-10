@@ -376,7 +376,7 @@ function deriveSummary(architecture: ArchitectureModel) {
   }
 
   if (architecture.title.includes("Wireless Network")) {
-    return "Wireless users connect through a shared access point into separate SSID segments, with downstream network policy keeping private and guest access paths distinct.";
+    return "Corporate and guest users connect through a dual-band access point over separate SSIDs, keeping employee and guest devices on isolated wireless segments.";
   }
 
   if (architecture.title.includes("Zero Trust")) {
@@ -927,6 +927,8 @@ function buildScenarioArchitecture(
     const ssidLabels = deriveWirelessSsidLabels(prompt);
     const guestLabel = ssidLabels[1] ?? "Guest Wi-Fi";
     const corporateLabel = ssidLabels[0] ?? "Internal Corporate";
+    const corpSsidId = slug(`${corporateLabel} SSID`);
+    const guestSsidId = slug(`${guestLabel} SSID`);
 
     return refreshArchitectureText({
       title: "Wireless Network Segmentation Pattern",
@@ -935,29 +937,31 @@ function buildScenarioArchitecture(
       appliedChanges: [],
       zones: [
         createZone("upstream", "Upstream Network", "external"),
-        createZone("wireless", "Wireless Access", "security-zone"),
-        createZone("policy", "Network Policy", "internal"),
+        // Wireless zone holds only infrastructure — keeps devices out of the same sort bucket
+        createZone("wireless", "Wireless Infrastructure", "security-zone"),
+        // Devices in their own bottom zone so all arrows flow downward from SSIDs
+        createZone("devices", "Connected Devices", "internal"),
       ],
       components: [
         createComponent("Internet", "network", "upstream"),
         createComponent("Main Router", "network", "upstream"),
+        // AP sorts first (critical), then both SSIDs — all three in one row
         createComponent("Dual-Band Access Point", "network", "wireless", "critical"),
         createComponent(`${corporateLabel} SSID`, "network", "wireless"),
-        createComponent("Employee Devices", "user", "wireless"),
         createComponent(`${guestLabel} SSID`, "network", "wireless"),
-        createComponent("Guest Devices", "user", "wireless"),
-        createComponent("Private VLAN", "network", "policy"),
-        createComponent("Internet-Only VLAN", "network", "policy"),
+        // Devices sorted together in a single row below
+        createComponent("Employee Devices", "user", "devices"),
+        createComponent("Guest Devices", "user", "devices"),
       ],
       connections: [
         createConnection("internet", "main-router"),
         createConnection("main-router", "dual-band-access-point"),
-        createConnection("dual-band-access-point", `${slug(corporateLabel)}-ssid`, "Corporate SSID"),
-        createConnection("dual-band-access-point", `${slug(guestLabel)}-ssid`, "Guest SSID"),
-        createConnection(`${slug(corporateLabel)}-ssid`, "employee-devices"),
-        createConnection(`${slug(guestLabel)}-ssid`, "guest-devices"),
-        createConnection(`${slug(corporateLabel)}-ssid`, "private-vlan", "Private Access"),
-        createConnection(`${slug(guestLabel)}-ssid`, "internet-only-vlan", "Internet Only"),
+        // No labels on AP→SSID — box labels already name the segment; avoids duplication
+        createConnection("dual-band-access-point", corpSsidId),
+        createConnection("dual-band-access-point", guestSsidId),
+        // Cross-zone downward arrows — always flow top-to-bottom, no upward confusion
+        createConnection(corpSsidId, "employee-devices"),
+        createConnection(guestSsidId, "guest-devices"),
       ],
     }, { prompt, classification });
   }

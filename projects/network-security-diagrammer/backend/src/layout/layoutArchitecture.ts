@@ -77,7 +77,7 @@ const preferredZoneOrders: Array<{
   },
   {
     match: (architecture) => architecture.title.includes("Wireless Network"),
-    order: ["upstream", "wireless", "policy"],
+    order: ["upstream", "wireless", "devices"],
   },
   {
     match: (architecture) => architecture.title.includes("Partner API Security"),
