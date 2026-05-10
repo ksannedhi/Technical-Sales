@@ -296,6 +296,27 @@ function routeArrow(from: Box, to: Box, index: number): { startX: number; startY
       const endY = centerY(to);
       const dx = endX - startX;
       const dy = endY - startY;
+
+      // Non-adjacent same-row: there is at least one component between from and to.
+      // A straight horizontal arrow would visually cut through the intermediate box.
+      // Route from the bottom of `from`, drop 20px (within zone padding), sweep across,
+      // then rise to the vertical centre of `to`.
+      if (dx > from.width + COMPONENT_GAP_X) {
+        const fromBottomX = centerX(from);
+        const fromBottomY = from.y + from.height;
+        const DROP = 20;
+        return {
+          startX: fromBottomX,
+          startY: fromBottomY,
+          points: [
+            [0, 0],
+            [0, DROP],
+            [centerX(to) - fromBottomX, DROP],
+            [centerX(to) - fromBottomX, centerY(to) - fromBottomY],
+          ],
+        };
+      }
+
       const points: Array<[number, number]> =
         Math.abs(dy) < 8
           ? [
