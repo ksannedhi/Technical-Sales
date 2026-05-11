@@ -1037,18 +1037,19 @@ function buildScenarioArchitecture(
       zones: [
         createZone("home", "Home Environment", "external"),
         createZone("internet", "Public Internet", "external"),
-        // VPN Gateway in its own zone so arrows to Identity + Application are clean inter-zone connections
         createZone("gateway", "Access Control Layer", "security-zone"),
-        createZone("internal", "Internal Environment", "internal"),
+        // Split into two zones so identity→application is a downward inter-zone arrow
+        // with full space for the "Access Granted" label — no same-row overlap.
+        createZone("identity", "Identity & Policy", "security-zone"),
+        createZone("application", "Application Tier", "internal"),
       ],
       components: [
         createComponent("Remote User Device", "user", "home"),
         createComponent("Local Gateway", "network", "home"),
         createComponent("Encrypted VPN Tunnel", "security-control", "internet", "critical"),
         createComponent("VPN Gateway", "security-control", "gateway", "critical"),
-        // Identity + Application side by side in internal zone — both reachable via clean downward arrows
-        createComponent("Identity Service", "identity", "internal"),
-        createComponent("Business Application", "application", "internal"),
+        createComponent("Identity Service", "identity", "identity", "critical"),
+        createComponent("Business Application", "application", "application"),
       ],
       connections: [
         createConnection("remote-user-device", "local-gateway"),

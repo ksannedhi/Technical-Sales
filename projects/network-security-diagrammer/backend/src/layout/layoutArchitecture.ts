@@ -125,7 +125,7 @@ const preferredZoneOrders: Array<{
   },
   {
     match: (architecture) => architecture.title.includes("Secure Remote Access"),
-    order: ["home", "internet", "gateway", "internal"],
+    order: ["home", "internet", "gateway", "identity", "application"],
   },
 ];
 
