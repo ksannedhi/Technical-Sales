@@ -242,20 +242,39 @@ async function generateArchitectureWithModel(
       max_tokens: 4096,
       temperature: 0.2,
       system: [
-        "You generate a network and security architecture model for diagram rendering.",
-        "Return only valid JSON with no markdown or code fences.",
-        "Use vendor-specific component names when the vendor is inferable from context.",
-        "For example: Cisco ASA or Palo Alto NGFW for firewalls; Zscaler or Netskope for SASE/ZTNA; Splunk or Microsoft Sentinel for SIEM; CrowdStrike for endpoint; F5 or Imperva for WAF.",
-        "Always preserve explicit product names from the prompt (AWS, Azure, Exchange, Fortinet, Check Point, etc.).",
-        "Label connections with precise protocol or flow names where meaningful (e.g. IPSec/IKEv2, BGP, HTTPS, SMTP, SAML 2.0, ZTNA, SD-WAN, syslog/UDP 514, MAPI, ActiveSync).",
-        "Avoid generic zone-heavy diagrams unless the prompt truly calls for them.",
-        "Target 2 to 4 zones, 6 to 12 components, and at most 15 connections.",
-        "Use these zone types only: external, dmz, security-zone, internal, cloud, branch, data-center.",
-        "Use these component types only: user, network, security-control, identity, application, data, monitoring, integration.",
-        "Use connection styles only: solid or dashed.",
-        "Provide stable ids as lowercase slugs.",
-        "Include a securityRationale array of 3 to 4 concise bullet strings explaining the key security design decisions in this architecture.",
-      ].join(" "),
+        "You generate network and security architecture models that will be rendered as Excalidraw zone diagrams.",
+        "Return ONLY valid JSON — no markdown, no code fences, no commentary.",
+        "",
+        "LAYOUT RULES (critical — the renderer is zone-based, not free-form):",
+        "- Use 3 to 5 zones. Each zone renders as a labeled horizontal band.",
+        "- Put 1 to 3 components per zone. The renderer places them side-by-side in a row; more than 3 crowds the diagram.",
+        "- Order zones top-to-bottom from least trusted (external/internet) to most trusted (internal/data-center).",
+        "- Security controls (firewalls, gateways, proxies, policy engines) belong in their own zone between external and internal zones — never mixed into user or application zones.",
+        "- Use a dedicated 'cloud' zone for cloud-hosted services; a 'branch' zone for remote sites; a 'data-center' zone for on-prem DC resources.",
+        "- Keep total components between 5 and 12. Keep connections at most 14.",
+        "",
+        "NAMING RULES:",
+        "- Use vendor-specific names when inferable: Cisco ASA / Palo Alto NGFW for firewalls; Zscaler / Netskope for SASE/ZTNA; Splunk / Microsoft Sentinel for SIEM; CrowdStrike for EDR; F5 / Imperva for WAF; Okta / Entra ID for identity.",
+        "- Preserve every explicit product name from the prompt (AWS, Azure, Fortinet, Check Point, Exchange, etc.).",
+        "- Component labels must be concise — 2 to 4 words maximum. Avoid parenthetical qualifiers.",
+        "",
+        "CONNECTION RULES:",
+        "- Label connections with the specific protocol or control name where meaningful: IPSec/IKEv2, HTTPS, SAML 2.0, syslog/514, SD-WAN, ZTNA, BGP, SMTP, MAPI.",
+        "- Use dashed style for out-of-band or monitoring flows (syslog, SNMP, telemetry); solid for primary data paths.",
+        "- Only connect components that have a direct and meaningful relationship — skip transitive hops.",
+        "",
+        "SECURITY PERSPECTIVE:",
+        "- Design as a security architect, not a network engineer. Emphasise where inspection, authentication, and policy enforcement occur.",
+        "- Every architecture must have at least one security-control component (firewall, gateway, proxy, policy engine, or identity provider) marked importance: critical.",
+        "- Include a securityRationale array of exactly 3 concise bullet strings explaining the key security design decisions.",
+        "",
+        "ALLOWED VALUES:",
+        "- zone types: external, dmz, security-zone, internal, cloud, branch, data-center",
+        "- component types: user, network, security-control, identity, application, data, monitoring, integration",
+        "- importance: normal, critical",
+        "- connection style: solid, dashed",
+        "- ids: lowercase slugs (kebab-case, no spaces)",
+      ].join("\n"),
       messages: [
         {
           role: "user",
@@ -336,6 +355,16 @@ function shouldUseModelFallback(
   if (analysis.confidence < 0.75) return true;
   // Route to Claude when prompt has vendor-specific detail that static templates can't reflect
   if (hasHighSpecificity(prompt) && !VENDOR_AWARE_STATIC_PATTERNS.includes(classification.pattern)) return true;
+  // Cloud infrastructure prompts with VPC/subnet/resource-level detail
+  if (/\b(vpc|subnet|security group|ec2|eks|aks|gke|lambda|s3 bucket|rds|load balancer|igw|nat gateway|transit gateway|vnet|resource group)\b/i.test(prompt)) return true;
+  // Multi-site or campus-scale prompts that static templates can't represent
+  if (/\b(hq|headquarters)\b.*\b(branch|data.?center|dc|office)\b|\b(branch|data.?center|dc|office)\b.*\b(hq|headquarters)\b/i.test(prompt) &&
+      /(two|three|four|five|multiple|several|\d+)\s+(branch|site|office|data.?center)/i.test(prompt)) return true;
+  // Explicit multi-location lists (three or more named sites)
+  if ((prompt.match(/\b(site|office|location|data.?center|branch)\b/gi) ?? []).length >= 3) return true;
+  // Prompts that name 4+ distinct networking or security technologies (complex integration)
+  const techCount = (prompt.match(/\b(firewall|ids|ips|siem|edr|xdr|dlp|casb|waf|iam|pam|nac|soa[rp]|siem|ndr|ueba|deception|honeypot)\b/gi) ?? []).length;
+  if (techCount >= 4) return true;
   return false;
 }
 
@@ -937,19 +966,19 @@ function buildScenarioArchitecture(
       appliedChanges: [],
       zones: [
         createZone("upstream", "Upstream Network", "external"),
-        // Wireless zone holds only infrastructure — keeps devices out of the same sort bucket
+        // AP alone in its zone so arrows to both SSIDs are clean inter-zone downward connections
         createZone("wireless", "Wireless Infrastructure", "security-zone"),
-        // Devices in their own bottom zone so all arrows flow downward from SSIDs
+        // SSIDs in their own zone — side by side, directly below the AP
+        createZone("ssid", "Network Segments", "security-zone"),
+        // Devices at the bottom
         createZone("devices", "Connected Devices", "internal"),
       ],
       components: [
         createComponent("Internet", "network", "upstream"),
         createComponent("Main Router", "network", "upstream"),
-        // AP sorts first (critical), then both SSIDs — all three in one row
         createComponent("Dual-Band Access Point", "network", "wireless", "critical"),
-        createComponent(`${corporateLabel} SSID`, "network", "wireless"),
-        createComponent(`${guestLabel} SSID`, "network", "wireless"),
-        // Devices sorted together in a single row below
+        createComponent(`${corporateLabel} SSID`, "network", "ssid"),
+        createComponent(`${guestLabel} SSID`, "network", "ssid"),
         createComponent("Employee Devices", "user", "devices"),
         createComponent("Guest Devices", "user", "devices"),
       ],
@@ -1008,30 +1037,25 @@ function buildScenarioArchitecture(
       zones: [
         createZone("home", "Home Environment", "external"),
         createZone("internet", "Public Internet", "external"),
+        // VPN Gateway in its own zone so arrows to Identity + Application are clean inter-zone connections
+        createZone("gateway", "Access Control Layer", "security-zone"),
         createZone("internal", "Internal Environment", "internal"),
       ],
       components: [
-        createComponent("Remote User", "user", "home"),
-        createComponent("Endpoint Access Client", "security-control", "home", "critical"),
-        createComponent("User Device", "network", "home"),
+        createComponent("Remote User Device", "user", "home"),
         createComponent("Local Gateway", "network", "home"),
-        createComponent("Encrypted Tunnel", "security-control", "internet", "critical"),
-        createComponent("Perimeter Firewall", "security-control", "internal", "critical"),
-        createComponent("Secure Access Gateway", "security-control", "internal", "critical"),
-        createComponent("Internal Network", "network", "internal"),
-        createComponent("Business Application", "application", "internal"),
+        createComponent("Encrypted VPN Tunnel", "security-control", "internet", "critical"),
+        createComponent("VPN Gateway", "security-control", "gateway", "critical"),
+        // Identity + Application side by side in internal zone — both reachable via clean downward arrows
         createComponent("Identity Service", "identity", "internal"),
+        createComponent("Business Application", "application", "internal"),
       ],
       connections: [
-        createConnection("remote-user", "endpoint-access-client"),
-        createConnection("remote-user", "user-device"),
-        createConnection("endpoint-access-client", "local-gateway"),
-        createConnection("local-gateway", "encrypted-tunnel", "Protected Access"),
-        createConnection("encrypted-tunnel", "perimeter-firewall"),
-        createConnection("perimeter-firewall", "secure-access-gateway"),
-        createConnection("secure-access-gateway", "internal-network"),
-        createConnection("internal-network", "business-application"),
-        createConnection("secure-access-gateway", "identity-service", "Identity Check"),
+        createConnection("remote-user-device", "local-gateway"),
+        createConnection("local-gateway", "encrypted-vpn-tunnel", "VPN Connection"),
+        createConnection("encrypted-vpn-tunnel", "vpn-gateway"),
+        createConnection("vpn-gateway", "identity-service", "Auth Check"),
+        createConnection("vpn-gateway", "business-application"),
       ],
     }, { prompt, classification });
   }

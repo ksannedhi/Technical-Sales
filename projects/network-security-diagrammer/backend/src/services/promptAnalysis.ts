@@ -73,6 +73,14 @@ const outOfScopePatterns = [
     pattern: /active[- ]active failover|redundant (firewall )?pair|ha (cluster|topology|pair)|high.availability (topology|design|cluster)/i,
     reason: "High-availability and failover topologies are outside the scope of this diagrammer. Try describing the security architecture around the HA deployment instead.",
   },
+  {
+    pattern: /802\.1[Xx]|port.based (network )?access control|supplicant.*authenticat|eap[- ](tls|peap|ttls|mschapv2)|radius.*sequence|sequence diagram|authentication (flow|sequence|handshake|exchange)/i,
+    reason: "This describes an authentication protocol sequence or flow diagram. This tool generates network and security architecture diagrams — try describing the network zones and security controls you want to protect instead.",
+  },
+  {
+    pattern: /packet (capture|flow|trace)|wireshark|tcpdump|network (traffic )?analysis diagram|osi (layer|model) diagram|protocol stack/i,
+    reason: "Packet-level and protocol-stack diagrams are outside the scope of this diagrammer. Try describing the network topology or security architecture instead.",
+  },
 ];
 
 function normalizePrompt(prompt: string) {
