@@ -1,59 +1,83 @@
 import type { ArchitectureModel, ArchitectureComponent, ArchitectureZone } from "../../../shared/types/architecture.js";
 import type { DiagramLayout, DiagramSeed } from "../../../shared/types/diagram.js";
 
+// ─── Layout constants ────────────────────────────────────────────────────────
 const CANVAS_PADDING = 80;
+const CANVAS_MIN_WIDTH = 1400;          // gives ≥ 1240px unified zone width
 const ZONE_GAP = 92;
 const ZONE_PADDING_X = 30;
 const ZONE_PADDING_Y = 28;
-const MIN_COMPONENT_WIDTH = 200;
 const MIN_COMPONENT_HEIGHT = 72;
 const COMPONENT_GAP_X = 42;
 const COMPONENT_GAP_Y = 28;
-const TEXT_CHAR_WIDTH = 12;
-const MAX_CHARS_PER_LINE = 16;
 const TEXT_LINE_HEIGHT = 22;
 const MAX_ROW_COMPONENTS = 3;
-const ZONE_TITLE_CHAR_WIDTH = 13;
 const STRAIGHT_ARROW_THRESHOLD = 24;
 const LABEL_CLEARANCE = 18;
-const TITLE_MAX_CHARS_PER_LINE = 22;
 const SOLID_LABEL_MAX_CHARS = 22;
-const DENSE_PATTERN_MAX_CHARS_PER_LINE = 14;
+const TITLE_MAX_CHARS_PER_LINE = 22;
+const ZONE_TITLE_CHAR_WIDTH = 15;       // used only for zone-title min-width estimate
 
-const componentColors: Record<ArchitectureComponent["type"], string> = {
-  user: "#ffffff",
-  network: "#ffffff",
-  "security-control": "#f7b3ae",
-  identity: "#b8d4ff",
-  application: "#ffffff",
-  data: "#dbe8c9",
-  monitoring: "#f2d79f",
-  integration: "#ffffff",
+// Conservative overestimate of Excalifont glyph width at fontSize 18.
+// Used ONLY to derive charsPerLine from boxWidth — never for box sizing.
+// Overestimating causes more line-breaks but guarantees no horizontal truncation.
+const CHAR_ESTIMATE = 22;
+
+// ─── Derived sizing helpers ──────────────────────────────────────────────────
+
+/**
+ * Width of a single component box when `rowLen` components share a zone row.
+ * All components in a row get equal width so the row exactly fills the zone.
+ */
+function computeBoxWidth(rowLen: number, zoneWidth: number): number {
+  const totalGaps = Math.max(0, rowLen - 1) * COMPONENT_GAP_X;
+  return Math.floor((zoneWidth - 2 * ZONE_PADDING_X - totalGaps) / rowLen);
+}
+
+/**
+ * Maximum characters per line that will fit inside a box of `boxWidth`.
+ * Derived from the box width — text is wrapped server-side to this limit so
+ * that the rendered line is always narrower than the text-element width.
+ */
+function computeCharsPerLine(boxWidth: number): number {
+  // Reserve 8px (4px each side) inside the box for the border gap.
+  return Math.max(6, Math.floor((boxWidth - 8) / CHAR_ESTIMATE));
+}
+
+// ─── Colors ──────────────────────────────────────────────────────────────────
+
+type ComponentStyle = { bg: string; stroke: string };
+
+// Each component type gets a distinct hue. Critical importance uses a deeper tint
+// of the same hue so the visual hierarchy is clear without extra stroke width.
+const componentStyles: Record<ArchitectureComponent["type"], { normal: ComponentStyle; critical: ComponentStyle }> = {
+  user:               { normal: { bg: "#dbeafe", stroke: "#2563eb" }, critical: { bg: "#bfdbfe", stroke: "#1d4ed8" } },
+  network:            { normal: { bg: "#e0e7ff", stroke: "#4338ca" }, critical: { bg: "#c7d2fe", stroke: "#3730a3" } },
+  "security-control": { normal: { bg: "#fee2e2", stroke: "#dc2626" }, critical: { bg: "#fecaca", stroke: "#b91c1c" } },
+  identity:           { normal: { bg: "#ede9fe", stroke: "#7c3aed" }, critical: { bg: "#ddd6fe", stroke: "#6d28d9" } },
+  application:        { normal: { bg: "#dcfce7", stroke: "#16a34a" }, critical: { bg: "#bbf7d0", stroke: "#15803d" } },
+  data:               { normal: { bg: "#d1fae5", stroke: "#059669" }, critical: { bg: "#a7f3d0", stroke: "#047857" } },
+  monitoring:         { normal: { bg: "#fef3c7", stroke: "#d97706" }, critical: { bg: "#fde68a", stroke: "#b45309" } },
+  integration:        { normal: { bg: "#f1f5f9", stroke: "#64748b" }, critical: { bg: "#e2e8f0", stroke: "#475569" } },
 };
 
-function componentColor(component: ArchitectureComponent, architecture: ArchitectureModel) {
+function componentStyle(component: ArchitectureComponent, architecture: ArchitectureModel): ComponentStyle {
   const label = component.label.toLowerCase();
+  const isCritical = component.importance === "critical";
 
+  // Wireless-specific overrides — keep visual distinction between SSID types
   if (architecture.title.includes("Wi-Fi") || architecture.title.includes("Wireless Network")) {
-    if (label.includes("guest") && label.includes("ssid")) {
-      return "#f8f0b8";
-    }
-
-    if ((label.includes("internal") || label.includes("corporate")) && label.includes("ssid")) {
-      return "#cfe4f8";
-    }
-
-    if (label.includes("private vlan")) {
-      return "#d8ead0";
-    }
-
-    if (label.includes("internet-only vlan")) {
-      return "#f7e2c4";
-    }
+    if (label.includes("guest") && label.includes("ssid")) return { bg: "#fef9c3", stroke: "#ca8a04" };
+    if ((label.includes("internal") || label.includes("corporate")) && label.includes("ssid")) return { bg: "#bfdbfe", stroke: "#2563eb" };
+    if (label.includes("private vlan")) return { bg: "#bbf7d0", stroke: "#16a34a" };
+    if (label.includes("internet-only vlan")) return { bg: "#fed7aa", stroke: "#ea580c" };
   }
 
-  return componentColors[component.type];
+  const styles = componentStyles[component.type];
+  return isCritical ? styles.critical : styles.normal;
 }
+
+// ─── Zone ordering ───────────────────────────────────────────────────────────
 
 const preferredZoneOrders: Array<{
   match: (architecture: ArchitectureModel) => boolean;
@@ -77,7 +101,7 @@ const preferredZoneOrders: Array<{
   },
   {
     match: (architecture) => architecture.title.includes("Wireless Network"),
-    order: ["upstream", "wireless", "devices"],
+    order: ["upstream", "wireless", "ssid", "devices"],
   },
   {
     match: (architecture) => architecture.title.includes("Partner API Security"),
@@ -99,28 +123,34 @@ const preferredZoneOrders: Array<{
     match: (architecture) => architecture.title.includes("Perimeter Firewall"),
     order: ["internet", "perimeter", "internal"],
   },
+  {
+    match: (architecture) => architecture.title.includes("Secure Remote Access"),
+    order: ["home", "internet", "gateway", "internal"],
+  },
 ];
 
 function zoneColor(zoneType: ArchitectureZone["type"]) {
   switch (zoneType) {
     case "external":
-      return { background: "#fff8f5", stroke: "#c2692b", titleColor: "#7c3610" };
+      return { background: "#fff3ee", stroke: "#c2692b", titleColor: "#7c3610" };
     case "dmz":
-      return { background: "#fefce8", stroke: "#b45309", titleColor: "#713f12" };
+      return { background: "#fffbec", stroke: "#b59b20", titleColor: "#7a6400" };
     case "security-zone":
-      return { background: "#f0fdf4", stroke: "#16a34a", titleColor: "#14532d" };
+      return { background: "#f0fff4", stroke: "#3a9b52", titleColor: "#1a6e35" };
     case "internal":
-      return { background: "#eff6ff", stroke: "#2563eb", titleColor: "#1e3a8a" };
+      return { background: "#eef4ff", stroke: "#3b5bdb", titleColor: "#1a3bbd" };
     case "cloud":
-      return { background: "#faf5ff", stroke: "#7c3aed", titleColor: "#4c1d95" };
+      return { background: "#f0f9ff", stroke: "#0284c7", titleColor: "#0369a1" };
     case "branch":
-      return { background: "#f0fdfa", stroke: "#0d9488", titleColor: "#134e4a" };
+      return { background: "#fdf4ff", stroke: "#9333ea", titleColor: "#7e22ce" };
     case "data-center":
-      return { background: "#f8fafc", stroke: "#475569", titleColor: "#1e293b" };
+      return { background: "#f8fafc", stroke: "#475569", titleColor: "#334155" };
     default:
-      return { background: "#fbfbfb", stroke: "#3f3f46", titleColor: "#18181b" };
+      return { background: "#f9fafb", stroke: "#6b7280", titleColor: "#374151" };
   }
 }
+
+// ─── Label helpers ───────────────────────────────────────────────────────────
 
 function shortenLabel(label: string) {
   const replacements: Array<[RegExp, string]> = [
@@ -149,11 +179,7 @@ function shortenLabel(label: string) {
   return replacements.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), label);
 }
 
-function getComponentWrapLimit(architecture: ArchitectureModel) {
-  return architecture.components.length > 10 ? DENSE_PATTERN_MAX_CHARS_PER_LINE : MAX_CHARS_PER_LINE;
-}
-
-function wrapText(text: string, maxChars = MAX_CHARS_PER_LINE) {
+function wrapText(text: string, maxChars: number) {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let current = "";
@@ -178,28 +204,37 @@ function wrapText(text: string, maxChars = MAX_CHARS_PER_LINE) {
   return lines;
 }
 
+// ─── Size computation ─────────────────────────────────────────────────────────
+
 function getTitleSize(label: string) {
   const lines = wrapText(label, TITLE_MAX_CHARS_PER_LINE);
   const widestLine = Math.max(...lines.map((line) => line.length), 8);
   return {
     lines,
+    // Width used only as a zone minimum — always overridden by CANVAS_MIN_WIDTH in practice
     width: Math.ceil(widestLine * ZONE_TITLE_CHAR_WIDTH) + 36,
     height: lines.length * TEXT_LINE_HEIGHT + 10,
   };
 }
 
-function getComponentSize(label: string, architecture: ArchitectureModel) {
+/**
+ * Layout-driven component sizing.
+ * `boxWidth` is determined by the zone layout (zone width ÷ row count), NOT by text length.
+ * Text is wrapped to fit the box; the box is never narrowed to fit the text.
+ */
+function getComponentSize(label: string, boxWidth: number) {
   const displayLabel = shortenLabel(label);
-  const lines = wrapText(displayLabel, getComponentWrapLimit(architecture));
-  const widestLine = Math.max(...lines.map((line) => line.length), 8);
+  const charsPerLine = computeCharsPerLine(boxWidth);
+  const lines = wrapText(displayLabel, charsPerLine);
   return {
     displayLabel,
     lines,
-    // Extra 56px side padding (28px each side) ensures Excalifont glyphs don't clip at the box boundary
-    width: Math.max(MIN_COMPONENT_WIDTH, Math.ceil(widestLine * TEXT_CHAR_WIDTH) + 56),
+    width: boxWidth,
     height: Math.max(MIN_COMPONENT_HEIGHT, lines.length * TEXT_LINE_HEIGHT + 34),
   };
 }
+
+// ─── Row / zone helpers ───────────────────────────────────────────────────────
 
 function getRows(components: ArchitectureComponent[]) {
   if (components.length <= MAX_ROW_COMPONENTS) {
@@ -213,13 +248,6 @@ function getRows(components: ArchitectureComponent[]) {
     index += MAX_ROW_COMPONENTS;
   }
   return rows;
-}
-
-function getRowWidth(row: ArchitectureComponent[], architecture: ArchitectureModel) {
-  return row.reduce((sum, component, index) => {
-    const { width } = getComponentSize(component.label, architecture);
-    return sum + width + (index > 0 ? COMPONENT_GAP_X : 0);
-  }, 0);
 }
 
 function sortZones(architecture: ArchitectureModel) {
@@ -256,6 +284,8 @@ function sortComponents(architecture: ArchitectureModel, zoneId: string) {
     return weight(a) - weight(b);
   });
 }
+
+// ─── Arrow routing ────────────────────────────────────────────────────────────
 
 function getLabelOffset(index: number) {
   return index % 2 === 0 ? -16 : 14;
@@ -297,22 +327,24 @@ function routeArrow(from: Box, to: Box, index: number): { startX: number; startY
       const dx = endX - startX;
       const dy = endY - startY;
 
-      // Non-adjacent same-row: there is at least one component between from and to.
-      // A straight horizontal arrow would visually cut through the intermediate box.
-      // Route from the bottom of `from`, drop 20px (within zone padding), sweep across,
-      // then rise to the vertical centre of `to`.
+      // Non-adjacent same-row: route below the row to avoid cutting through the intermediate box.
+      // Path: bottom-center of `from` → drop 20px → sweep to target left edge →
+      // rise to target center Y → enter target from the left side.
       if (dx > from.width + COMPONENT_GAP_X) {
         const fromBottomX = centerX(from);
         const fromBottomY = from.y + from.height;
         const DROP = 20;
+        const targetLeftX = to.x;
+        const targetCenterY = centerY(to);
         return {
           startX: fromBottomX,
           startY: fromBottomY,
           points: [
             [0, 0],
             [0, DROP],
-            [centerX(to) - fromBottomX, DROP],
-            [centerX(to) - fromBottomX, centerY(to) - fromBottomY],
+            [targetLeftX - fromBottomX, DROP],
+            [targetLeftX - fromBottomX, targetCenterY - fromBottomY],
+            [centerX(to) - fromBottomX, targetCenterY - fromBottomY],
           ],
         };
       }
@@ -401,7 +433,6 @@ function routeArrow(from: Box, to: Box, index: number): { startX: number; startY
   const interZoneGap = Math.abs(dy);
   const verticalGap = Math.max(28, Math.min(56, interZoneGap / 2));
   const laneY = startY + verticalGap;
-  const sideStep = index % 2 === 0 ? -18 : 18;
 
   return {
     startX,
@@ -409,7 +440,7 @@ function routeArrow(from: Box, to: Box, index: number): { startX: number; startY
     points: [
       [0, 0],
       [0, laneY - startY],
-      [dx + sideStep, laneY - startY],
+      [dx, laneY - startY],
       [dx, dy],
     ],
   };
@@ -435,9 +466,8 @@ function arrowLabelPosition(
       return { x: midX - labelWidth / 2, y: midY - 20 };
     }
     // For vertical arrows clamp label Y so it never dips into the target box.
-    // getLabelOffset can return +14 which, on short inter-row gaps (dy ≈ 28px), lands inside the box.
     const rawY = midY + getLabelOffset(index);
-    const targetTopY = startY + endPoint[1]; // top edge of destination box
+    const targetTopY = startY + endPoint[1];
     const clampedY = Math.min(rawY, targetTopY - TEXT_LINE_HEIGHT - 4);
     return { x: midX + LABEL_CLEARANCE, y: clampedY };
   }
@@ -451,6 +481,8 @@ function arrowLabelPosition(
   };
 }
 
+// ─── Main layout entry point ──────────────────────────────────────────────────
+
 export function layoutArchitecture(architecture: ArchitectureModel): {
   layout: DiagramLayout;
   elements: DiagramSeed[];
@@ -461,63 +493,62 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
   let currentY = CANVAS_PADDING;
   let maxWidth = 0;
 
-  const zoneDimensions = new Map<
-    string,
-    {
-      title: ReturnType<typeof getTitleSize>;
-      rows: ArchitectureComponent[][];
-      rowHeights: number[];
-      contentWidth: number;
-      width: number;
-      height: number;
-    }
-  >();
+  // ── Pass 1: collect rows and title sizes ──────────────────────────────────
+  // We need row counts per zone before we can compute box widths, and we need
+  // box widths before we can compute row heights. Resolve by using CANVAS_MIN_WIDTH
+  // as the zone width for the initial pass (which determines unifiedZoneWidth anyway).
 
+  type ZoneMeta = {
+    title: ReturnType<typeof getTitleSize>;
+    rows: ArchitectureComponent[][];
+    rowHeights: number[];
+    height: number;
+  };
+
+  const zoneMeta = new Map<string, ZoneMeta>();
+
+  // Minimum unified zone width: max of all title minimums and the canvas minimum.
+  let minZoneWidth = CANVAS_MIN_WIDTH - CANVAS_PADDING * 2;
+  for (const zone of zoneOrder) {
+    const title = getTitleSize(zone.label);
+    minZoneWidth = Math.max(minZoneWidth, ZONE_PADDING_X * 2 + title.width);
+  }
+  const unifiedZoneWidth = minZoneWidth;
+
+  // ── Pass 2: compute row heights now that boxWidths are known ──────────────
   for (const zone of zoneOrder) {
     const components = sortComponents(architecture, zone.id);
     const rows = getRows(components);
-    const widestRowWidth = Math.max(...rows.map((row) => getRowWidth(row, architecture)), MIN_COMPONENT_WIDTH);
     const title = getTitleSize(zone.label);
-    const rowHeights = rows.map((row) =>
-      row.reduce(
-        (height, component) => Math.max(height, getComponentSize(component.label, architecture).height),
-        MIN_COMPONENT_HEIGHT,
-      ),
-    );
-    const width = Math.max(ZONE_PADDING_X * 2 + widestRowWidth, ZONE_PADDING_X * 2 + title.width);
+
+    const rowHeights = rows.map((row) => {
+      const boxWidth = computeBoxWidth(row.length, unifiedZoneWidth);
+      return row.reduce((h, component) => {
+        const size = getComponentSize(component.label, boxWidth);
+        return Math.max(h, size.height);
+      }, MIN_COMPONENT_HEIGHT);
+    });
+
     const height =
       title.height +
       ZONE_PADDING_Y * 2 +
-      rowHeights.reduce((sum, rowHeight) => sum + rowHeight, 0) +
+      rowHeights.reduce((sum, rh) => sum + rh, 0) +
       Math.max(0, rowHeights.length - 1) * COMPONENT_GAP_Y;
 
-    zoneDimensions.set(zone.id, {
-      title,
-      rows,
-      rowHeights,
-      contentWidth: widestRowWidth,
-      width,
-      height,
-    });
+    zoneMeta.set(zone.id, { title, rows, rowHeights, height });
   }
 
-  const unifiedZoneWidth = Math.max(
-    ...Array.from(zoneDimensions.values()).map((zone) => zone.width),
-    1200 - CANVAS_PADDING * 2,
-  );
-
+  // ── Render zones ──────────────────────────────────────────────────────────
   zoneOrder.forEach((zone) => {
-    const zoneDimension = zoneDimensions.get(zone.id);
-    if (!zoneDimension) {
-      return;
-    }
-    const { title, rows, rowHeights, height: zoneHeight } = zoneDimension;
-    const zoneTitleHeight = title.height;
+    const meta = zoneMeta.get(zone.id);
+    if (!meta) return;
+
+    const { title, rows, rowHeights, height: zoneHeight } = meta;
     const zoneWidth = unifiedZoneWidth;
     const zoneX = CANVAS_PADDING;
     const zoneY = currentY;
-
     const zoneColors = zoneColor(zone.type);
+
     elements.push({
       id: `${zone.id}-container`,
       type: "rectangle",
@@ -528,57 +559,66 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       strokeColor: zoneColors.stroke,
       backgroundColor: zoneColors.background,
       fillStyle: "solid",
-      roughness: 1,
+      roughness: 0,
     });
+
+    // Zone title — give the full zone width so it never truncates
     elements.push({
       id: `${zone.id}-title`,
       type: "text",
       x: zoneX + 16,
       y: zoneY + 10,
-      width: zoneWidth - 32,
+      width: zoneWidth - 20,
       text: title.lines.join("\n"),
       fontSize: 22,
       strokeColor: zoneColors.titleColor,
     });
 
-    let runningY = zoneY + zoneTitleHeight + ZONE_PADDING_Y;
-      rows.forEach((row, rowIndex) => {
-      const rowWidth = getRowWidth(row, architecture);
-      let componentX = zoneX + (zoneWidth - rowWidth) / 2;
+    let runningY = zoneY + title.height + ZONE_PADDING_Y;
+
+    rows.forEach((row, rowIndex) => {
+      // All components in the row share equal width; the row fills the zone exactly.
+      const boxWidth = computeBoxWidth(row.length, zoneWidth);
+      let componentX = zoneX + ZONE_PADDING_X;
       const componentY = runningY;
 
       row.forEach((component) => {
-        const size = getComponentSize(component.label, architecture);
+        const size = getComponentSize(component.label, boxWidth);
+        const style = componentStyle(component, architecture);
+
         elements.push({
           id: `${component.id}-box`,
           type: "rectangle",
           x: componentX,
           y: componentY,
           width: size.width,
-          height: size.height,
-          strokeColor: "#27272a",
-          backgroundColor: componentColor(component, architecture),
+          height: rowHeights[rowIndex],   // all boxes in row share the same height
+          strokeColor: style.stroke,
+          backgroundColor: style.bg,
           fillStyle: "solid",
-          roughness: 1,
+          roughness: 0,
         });
+
         elements.push({
           id: `${component.id}-label`,
           type: "text",
-          x: componentX + 18,
-          y: componentY + 18,
-          width: size.width - 36,
+          x: componentX + 8,
+          y: componentY + 14,
+          width: size.width - 16,         // 8px inset each side — well within the box
           text: size.lines.join("\n"),
           fontSize: 18,
           strokeColor: "#18181b",
           containerId: `${component.id}-box`,
         });
+
         componentBoxes.set(component.id, {
           x: componentX,
           y: componentY,
           width: size.width,
-          height: size.height,
+          height: rowHeights[rowIndex],
         });
-        componentX += size.width + COMPONENT_GAP_X;
+
+        componentX += boxWidth + COMPONENT_GAP_X;
       });
 
       runningY += rowHeights[rowIndex] + COMPONENT_GAP_Y;
@@ -588,9 +628,8 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
     maxWidth = Math.max(maxWidth, zoneWidth + CANVAS_PADDING * 2);
   });
 
-  // Track labels already placed per target to avoid fan-in label stacking
+  // ── Render connections ────────────────────────────────────────────────────
   const renderedTargetLabels = new Map<string, Set<string>>();
-  // Track labeled connection count per source to avoid fan-out label congestion
   const labeledConnectionsPerSource = new Map<string, number>();
 
   architecture.connections.forEach((connection, index) => {
@@ -607,9 +646,9 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       x: startX,
       y: startY,
       points,
-      strokeColor: "#27272a",
+      strokeColor: connection.style === "dashed" ? "#6b7280" : "#374151",
       strokeStyle: connection.style === "dashed" ? "dashed" : "solid",
-      roughness: 1,
+      roughness: 0,
     });
 
     if (connection.label && shouldRenderConnectionLabel(connection.label, connection.style)) {
@@ -649,7 +688,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
 
   return {
     layout: {
-      width: Math.max(maxWidth, 1200),
+      width: Math.max(maxWidth, CANVAS_MIN_WIDTH),
       height: Math.max(currentY, 900),
     },
     elements,
