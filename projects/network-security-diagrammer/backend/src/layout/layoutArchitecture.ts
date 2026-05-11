@@ -679,6 +679,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
         type: "text",
         x: labelX,
         y: labelY,
+        width: Math.max(160, labelText.length * 12 + 24),  // generous — prevents same clipping as zone/component labels
         text: labelText,
         fontSize: 16,
         strokeColor: "#3f3f46",
