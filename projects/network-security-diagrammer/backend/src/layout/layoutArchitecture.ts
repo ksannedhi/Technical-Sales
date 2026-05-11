@@ -291,11 +291,18 @@ function getLabelOffset(index: number) {
   return index % 2 === 0 ? -16 : 14;
 }
 
-function shouldRenderConnectionLabel(label: string, style?: "solid" | "dashed") {
-  if (style === "dashed") {
-    return true;
+function shouldRenderConnectionLabel(label: string, from: Box, to: Box, style?: "solid" | "dashed") {
+  // Same-row adjacent connections have only COMPONENT_GAP_X (42px) of horizontal
+  // space — not enough for any label without overlapping the adjacent component box.
+  const sameRow = Math.abs(from.y - to.y) < Math.max(from.height, to.height) * 0.6;
+  if (sameRow) {
+    const gap = to.x > from.x
+      ? to.x - (from.x + from.width)
+      : from.x - (to.x + to.width);
+    if (gap < 80) return false;
   }
 
+  if (style === "dashed") return true;
   return label.length <= SOLID_LABEL_MAX_CHARS;
 }
 
@@ -651,7 +658,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       roughness: 0,
     });
 
-    if (connection.label && shouldRenderConnectionLabel(connection.label, connection.style)) {
+    if (connection.label && shouldRenderConnectionLabel(connection.label, from, to, connection.style)) {
       const labelText = shortenLabel(connection.label);
 
       // Suppress duplicate label on the same target (fan-in congestion)
