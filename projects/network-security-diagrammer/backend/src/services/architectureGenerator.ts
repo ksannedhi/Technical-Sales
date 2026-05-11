@@ -122,8 +122,9 @@ function createComponent(
   type: ArchitectureComponent["type"],
   zoneId: string,
   importance: ArchitectureComponent["importance"] = "normal",
+  displayOrder?: number,
 ): ArchitectureComponent {
-  return { id: slug(label), label, type, zoneId, importance };
+  return { id: slug(label), label, type, zoneId, importance, ...(displayOrder !== undefined && { displayOrder }) };
 }
 
 function createConnection(
@@ -1041,9 +1042,9 @@ function buildScenarioArchitecture(
         createZone("internal", "Internal Network", "internal"),
       ],
       components: [
-        createComponent("Remote User", "user", "home"),
-        createComponent("VPN Client", "security-control", "home"),
-        createComponent("Home Router", "network", "home"),
+        createComponent("Remote User", "user", "home", "normal", 0),
+        createComponent("VPN Client", "security-control", "home", "normal", 1),
+        createComponent("Home Router", "network", "home", "normal", 2),
         createComponent("ISP Infrastructure", "network", "internet"),
         // Rendered with a dashed border — logical construct, not a physical device
         createComponent("Encrypted VPN Tunnel", "security-control", "internet", "critical"),

@@ -29,6 +29,7 @@ export interface ArchitectureComponent {
   type: ComponentType;
   zoneId: string;
   importance?: "normal" | "critical";
+  displayOrder?: number;
 }
 
 export interface ArchitectureConnection {

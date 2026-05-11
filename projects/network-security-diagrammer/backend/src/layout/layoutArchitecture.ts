@@ -274,6 +274,13 @@ function sortZones(architecture: ArchitectureModel) {
 function sortComponents(architecture: ArchitectureModel, zoneId: string) {
   const components = architecture.components.filter((component) => component.zoneId === zoneId);
   return [...components].sort((a, b) => {
+    // Explicit display order takes priority — used when connection flow doesn't match type order
+    if (a.displayOrder !== undefined && b.displayOrder !== undefined) {
+      return a.displayOrder - b.displayOrder;
+    }
+    if (a.displayOrder !== undefined) return -1;
+    if (b.displayOrder !== undefined) return 1;
+
     const weight = (component: ArchitectureComponent) => {
       const importance = component.importance === "critical" ? 0 : 1;
       const typeWeight: Record<ArchitectureComponent["type"], number> = {

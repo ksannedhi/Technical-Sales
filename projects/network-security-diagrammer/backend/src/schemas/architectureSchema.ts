@@ -39,6 +39,7 @@ export const architectureSchema = z.object({
       ]),
       zoneId: z.string().min(1),
       importance: z.enum(["normal", "critical"]).optional(),
+      displayOrder: z.number().optional(),
     }),
   ),
   connections: z.array(
