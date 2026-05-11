@@ -7,7 +7,7 @@ import type { AppState, BinaryFiles, ExcalidrawImperativeAPI } from "@excalidraw
 import type { DiagramSeed } from "@shared/types/diagram";
 
 export function toExcalidrawElements(elements: DiagramSeed[]) {
-  return convertToExcalidrawElements(
+  const converted = convertToExcalidrawElements(
     elements.map((element) => {
       if (element.type === "text") {
         return {
@@ -19,9 +19,6 @@ export function toExcalidrawElements(elements: DiagramSeed[]) {
           fontSize: element.fontSize ?? 18,
           strokeColor: element.strokeColor ?? "#18181b",
           backgroundColor: "transparent",
-          // Use the layout-computed width so convertToExcalidrawElements skips
-          // its own font-metric estimate (which consistently clips 1-2 chars).
-          // Fall back to 0 only for unlabelled elements like arrow label text.
           width: element.width ?? 0,
           height: element.height ?? 0,
         };
@@ -59,6 +56,23 @@ export function toExcalidrawElements(elements: DiagramSeed[]) {
       };
     }),
   );
+
+  // convertToExcalidrawElements always re-measures text width using its own
+  // internal font metrics, ignoring the width we pass in. Those metrics are
+  // consistently 5-15px narrower than the actual browser canvas render, so
+  // Excalidraw clips the last 1-2 chars of every label.
+  //
+  // Fix: after conversion, override each text element's width with the generous
+  // layout-computed value from the DiagramSeed (e.g. 1220px for zone titles,
+  // full boxWidth for component labels). The text renders left-aligned within
+  // this wider bounding box — no overflow, no clipping.
+  return converted.map((el, i) => {
+    const seed = elements[i];
+    if (el.type === "text" && seed?.type === "text" && seed.width) {
+      return { ...el, width: seed.width };
+    }
+    return el;
+  });
 }
 
 function getScene(api: ExcalidrawImperativeAPI) {
