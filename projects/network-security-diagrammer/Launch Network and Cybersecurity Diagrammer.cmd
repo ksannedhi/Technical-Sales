@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 set ROOT=%~dp0
 
 echo.
-echo  Starting Network Security Diagrammer...
+echo  Starting Network and Cybersecurity Diagrammer...
 echo.
 
 REM -- Kill any process already listening on port 8787 --
@@ -36,12 +36,12 @@ if not exist "%ROOT%.env" (
 )
 
 REM -- Open backend in a new window --
-start "Network Security Diagrammer - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%'; npm.cmd run dev:backend"
+start "Network and Cybersecurity Diagrammer - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%'; npm.cmd run dev:backend"
 
 timeout /t 3 /nobreak >nul
 
 REM -- Open frontend in a new window --
-start "Network Security Diagrammer - Frontend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%'; npm.cmd run dev:frontend"
+start "Network and Cybersecurity Diagrammer - Frontend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%'; npm.cmd run dev:frontend"
 
 echo.
 echo  Backend and frontend launch windows opened.

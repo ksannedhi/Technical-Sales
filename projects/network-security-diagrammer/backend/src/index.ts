@@ -27,5 +27,5 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 app.use(errorHandler);
 
 app.listen(port, () => {
-  console.log(`Network Security Diagrammer backend listening on http://localhost:${port}`);
+  console.log(`Network and Cybersecurity Diagrammer backend listening on http://localhost:${port}`);
 });

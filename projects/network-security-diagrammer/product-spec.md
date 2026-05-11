@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`Network Security Diagrammer` is a local app that turns rough network and security prompts into clean Excalidraw diagrams.
+`Network and Cybersecurity Diagrammer` is a local app that turns rough network and security prompts into clean Excalidraw diagrams.
 
 The app is meant to:
 

@@ -1,4 +1,4 @@
-# Network Security Diagrammer
+# Network and Cybersecurity Diagrammer
 
 Local app for turning rough network and security prompts into clean, editable Excalidraw diagrams.
 
@@ -32,7 +32,7 @@ npm install
 npm run dev
 ```
 
-On Windows you can also double-click `Launch Network Security Diagrammer.cmd`.
+On Windows you can also double-click `Launch Network and Cybersecurity Diagrammer.cmd`.
 
 Default local URLs:
 

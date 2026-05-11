@@ -31,7 +31,7 @@ curl http://localhost:8787/api/health
 
 ## Architecture
 
-A **local-first network security diagrammer** that converts natural language prompts into Excalidraw diagrams. Pattern-based topology inference runs entirely locally; Claude (via Anthropic API) is optional for advanced prompt analysis and follow-up edits.
+A **local-first network and cybersecurity diagrammer** that converts natural language prompts into Excalidraw diagrams. Pattern-based topology inference runs entirely locally; Claude (via Anthropic API) is optional for advanced prompt analysis and follow-up edits.
 
 ```
 frontend/src/           React SPA — prompt input, Excalidraw canvas, follow-up chat
