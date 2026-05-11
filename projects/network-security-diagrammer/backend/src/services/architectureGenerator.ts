@@ -1055,7 +1055,7 @@ function buildScenarioArchitecture(
         createConnection("local-gateway", "encrypted-vpn-tunnel", "VPN Connection"),
         createConnection("encrypted-vpn-tunnel", "vpn-gateway"),
         createConnection("vpn-gateway", "identity-service", "Auth Check"),
-        createConnection("vpn-gateway", "business-application"),
+        createConnection("identity-service", "business-application", "Access Granted"),
       ],
     }, { prompt, classification });
   }
