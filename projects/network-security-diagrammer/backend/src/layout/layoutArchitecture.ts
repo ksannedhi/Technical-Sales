@@ -61,6 +61,14 @@ const componentStyles: Record<ArchitectureComponent["type"], { normal: Component
   integration:        { normal: { bg: "#f1f5f9", stroke: "#64748b" }, critical: { bg: "#e2e8f0", stroke: "#475569" } },
 };
 
+/**
+ * Logical constructs (tunnels, virtual overlays) are not physical devices.
+ * They render with a dashed border to match standard network diagram conventions.
+ */
+function isLogicalConstruct(label: string): boolean {
+  return /\btunnel\b|\bvirtual link\b|\boverlay\b|\bvpn path\b/i.test(label);
+}
+
 function componentStyle(component: ArchitectureComponent, architecture: ArchitectureModel): ComponentStyle {
   const label = component.label.toLowerCase();
   const isCritical = component.importance === "critical";
@@ -125,7 +133,7 @@ const preferredZoneOrders: Array<{
   },
   {
     match: (architecture) => architecture.title.includes("Secure Remote Access"),
-    order: ["home", "internet", "gateway", "identity", "application"],
+    order: ["home", "internet", "gateway", "internal"],
   },
 ];
 
@@ -602,7 +610,8 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
           height: rowHeights[rowIndex],   // all boxes in row share the same height
           strokeColor: style.stroke,
           backgroundColor: style.bg,
-          fillStyle: "solid",
+          fillStyle: isLogicalConstruct(component.label) ? "hachure" : "solid",
+          strokeStyle: isLogicalConstruct(component.label) ? "dashed" : "solid",
           roughness: 0,
         });
 

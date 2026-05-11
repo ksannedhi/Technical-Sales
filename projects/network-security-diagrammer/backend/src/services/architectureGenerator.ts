@@ -1038,25 +1038,29 @@ function buildScenarioArchitecture(
         createZone("home", "Home Environment", "external"),
         createZone("internet", "Public Internet", "external"),
         createZone("gateway", "Access Control Layer", "security-zone"),
-        // Split into two zones so identity→application is a downward inter-zone arrow
-        // with full space for the "Access Granted" label — no same-row overlap.
-        createZone("identity", "Identity & Policy", "security-zone"),
-        createZone("application", "Application Tier", "internal"),
+        createZone("internal", "Internal Network", "internal"),
       ],
       components: [
-        createComponent("Remote User Device", "user", "home"),
-        createComponent("Local Gateway", "network", "home"),
+        createComponent("Remote User", "user", "home"),
+        createComponent("VPN Client", "security-control", "home"),
+        createComponent("Home Router", "network", "home"),
+        createComponent("ISP Infrastructure", "network", "internet"),
+        // Rendered with a dashed border — logical construct, not a physical device
         createComponent("Encrypted VPN Tunnel", "security-control", "internet", "critical"),
         createComponent("VPN Gateway", "security-control", "gateway", "critical"),
-        createComponent("Identity Service", "identity", "identity", "critical"),
-        createComponent("Business Application", "application", "application"),
+        createComponent("Core Switch", "network", "internal"),
+        createComponent("Application Server", "application", "internal"),
+        createComponent("Internal Database", "data", "internal"),
       ],
       connections: [
-        createConnection("remote-user-device", "local-gateway"),
-        createConnection("local-gateway", "encrypted-vpn-tunnel", "VPN Connection"),
-        createConnection("encrypted-vpn-tunnel", "vpn-gateway"),
-        createConnection("vpn-gateway", "identity-service", "Auth Check"),
-        createConnection("identity-service", "business-application", "Access Granted"),
+        createConnection("remote-user", "vpn-client"),
+        createConnection("vpn-client", "home-router"),
+        createConnection("home-router", "isp-infrastructure", "VPN Connection"),
+        createConnection("isp-infrastructure", "encrypted-vpn-tunnel"),
+        createConnection("encrypted-vpn-tunnel", "vpn-gateway", "IPSec/IKEv2"),
+        createConnection("vpn-gateway", "core-switch", "Auth & Decapsulation"),
+        createConnection("core-switch", "application-server"),
+        createConnection("application-server", "internal-database"),
       ],
     }, { prompt, classification });
   }

@@ -52,6 +52,7 @@ export function toExcalidrawElements(elements: DiagramSeed[]) {
         strokeColor: element.strokeColor ?? "#27272a",
         backgroundColor: element.backgroundColor ?? "#ffffff",
         fillStyle: element.fillStyle ?? "solid",
+        strokeStyle: element.strokeStyle ?? "solid",
         roughness: element.roughness ?? 1,
       };
     }),
