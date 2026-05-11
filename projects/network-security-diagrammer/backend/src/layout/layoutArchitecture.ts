@@ -604,7 +604,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
           type: "text",
           x: componentX + 8,
           y: componentY + 14,
-          width: size.width - 16,         // 8px inset each side — well within the box
+          width: size.width,              // full box width — frontend uses this directly as bounding box
           text: size.lines.join("\n"),
           fontSize: 18,
           strokeColor: "#18181b",

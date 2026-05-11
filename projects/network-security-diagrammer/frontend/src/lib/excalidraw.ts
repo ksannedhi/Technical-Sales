@@ -19,8 +19,11 @@ export function toExcalidrawElements(elements: DiagramSeed[]) {
           fontSize: element.fontSize ?? 18,
           strokeColor: element.strokeColor ?? "#18181b",
           backgroundColor: "transparent",
-          width: 0,
-          height: 0,
+          // Use the layout-computed width so convertToExcalidrawElements skips
+          // its own font-metric estimate (which consistently clips 1-2 chars).
+          // Fall back to 0 only for unlabelled elements like arrow label text.
+          width: element.width ?? 0,
+          height: element.height ?? 0,
         };
       }
 
