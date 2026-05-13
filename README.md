@@ -112,3 +112,14 @@ Docs: `projects/threat-briefing/README.md`
 cd projects/regulatory-lens && "Launch Cross-Framework Harmoniser.cmd"
 ```
 Docs: `projects/regulatory-lens/README.md`
+
+---
+
+### ZTA Advisor
+- Path: `projects/ZTA Advisor`
+- Purpose: presales Zero Trust Architecture assessment tool — 35-question structured interview across 6 ZT pillars, geo-based framework suggestion (CISA ZTMM, NIST 800-207, NCSC ZT, ENISA, NIS2, ISO 27001, DoD ZT), deterministic maturity scoring (1–4), gap analysis table, prioritised remediation roadmap, AI-generated executive narrative, and PDF export.
+- One-click launch (Windows):
+```
+cd "projects/ZTA Advisor" && "Launch ZTA Advisor.cmd"
+```
+Docs: `projects/ZTA Advisor/README.md`
