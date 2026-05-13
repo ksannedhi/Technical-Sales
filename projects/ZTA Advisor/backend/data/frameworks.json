@@ -1,0 +1,98 @@
+{
+  "frameworks": [
+    {
+      "id": "cisa-ztmm",
+      "name": "CISA Zero Trust Maturity Model",
+      "shortName": "CISA ZTMM",
+      "version": "2.0",
+      "description": "The CISA ZTMM provides a gradient of implementation across five pillars to assist agencies in developing ZT strategies and plans.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["Traditional", "Initial", "Advanced", "Optimal"],
+      "geos": ["US"]
+    },
+    {
+      "id": "nist-800-207",
+      "name": "NIST SP 800-207",
+      "shortName": "NIST 800-207",
+      "version": "1.0",
+      "description": "NIST SP 800-207 defines Zero Trust Architecture and provides a roadmap for federal agencies and organizations adopting ZTA.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["Ad-hoc", "Defined", "Managed", "Optimized"],
+      "geos": ["US"]
+    },
+    {
+      "id": "dod-zt",
+      "name": "DoD Zero Trust Reference Architecture",
+      "shortName": "DoD ZT",
+      "version": "2.0",
+      "description": "The DoD ZT Reference Architecture defines the seven pillars of ZT for defense and national security environments.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["Target Level", "Advanced Level"],
+      "geos": ["US-DoD"]
+    },
+    {
+      "id": "ncsc-zt",
+      "name": "NCSC Zero Trust Principles",
+      "shortName": "NCSC ZT",
+      "version": "1.0",
+      "description": "The NCSC Zero Trust Architecture guidance outlines eight principles for designing and deploying ZTA in UK organizations.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["None", "Partial", "Informed", "Optimised"],
+      "geos": ["UK"]
+    },
+    {
+      "id": "enisa-zt",
+      "name": "ENISA Zero Trust Guidelines",
+      "shortName": "ENISA ZT",
+      "version": "2023",
+      "description": "ENISA guidelines on Zero Trust for EU member states and organizations, aligned with the EU cybersecurity strategy.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["Initial", "Developing", "Defined", "Optimised"],
+      "geos": ["EU"]
+    },
+    {
+      "id": "nis2",
+      "name": "NIS2 Directive",
+      "shortName": "NIS2",
+      "version": "2022/2555",
+      "description": "EU NIS2 Directive establishes cybersecurity requirements for essential and important entities, with ZT-aligned access controls and incident management.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["Non-compliant", "Partial", "Substantial", "High"],
+      "geos": ["EU"]
+    },
+    {
+      "id": "iso-27001",
+      "name": "ISO/IEC 27001:2022",
+      "shortName": "ISO 27001",
+      "version": "2022",
+      "description": "ISO 27001:2022 includes ZT-relevant controls in Annex A covering access control, cryptography, network security, and threat intelligence.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["Non-conformant", "Partial", "Substantial", "Certified"],
+      "geos": ["APAC", "Global"]
+    }
+  ],
+  "geoMapping": {
+    "US": ["cisa-ztmm", "nist-800-207"],
+    "US-DoD": ["dod-zt", "nist-800-207"],
+    "UK": ["ncsc-zt"],
+    "EU": ["enisa-zt", "nis2"],
+    "APAC": ["iso-27001"],
+    "Global": ["nist-800-207", "iso-27001"]
+  },
+  "geoOptions": [
+    { "value": "US", "label": "United States (Commercial)" },
+    { "value": "US-DoD", "label": "United States (Defense / DoD)" },
+    { "value": "UK", "label": "United Kingdom" },
+    { "value": "EU", "label": "European Union" },
+    { "value": "APAC", "label": "Asia-Pacific" },
+    { "value": "Global", "label": "Global / Multi-region" }
+  ],
+  "pillars": [
+    { "id": "identity", "label": "Identity", "icon": "user-check", "description": "User and non-person entity authentication, authorization, and lifecycle management" },
+    { "id": "devices", "label": "Devices", "icon": "monitor", "description": "Device health, compliance posture, and endpoint security" },
+    { "id": "networks", "label": "Networks", "icon": "network", "description": "Network segmentation, traffic inspection, and access controls" },
+    { "id": "applications", "label": "Applications & Workloads", "icon": "layers", "description": "Application access, API security, and workload identity" },
+    { "id": "data", "label": "Data", "icon": "database", "description": "Data classification, governance, encryption, and loss prevention" },
+    { "id": "visibility", "label": "Visibility & Analytics", "icon": "bar-chart", "description": "Logging, monitoring, threat detection, and automated response" }
+  ]
+}

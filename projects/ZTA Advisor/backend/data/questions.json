@@ -1,0 +1,459 @@
+{
+  "questions": [
+    {
+      "id": "id-01",
+      "pillar": "identity",
+      "sequence": 1,
+      "text": "How are users authenticated to access corporate resources?",
+      "rationale": "Authentication strength is the foundation of Zero Trust — every access request must be verified.",
+      "options": [
+        { "value": 1, "label": "Username and password only", "description": "Static credentials with no additional factors" },
+        { "value": 2, "label": "MFA for some applications or user groups", "description": "Partial MFA adoption — high-risk apps or admins only" },
+        { "value": 3, "label": "MFA enforced for all users and all applications", "description": "Consistent MFA with phishing-resistant options (FIDO2/passkeys)" },
+        { "value": 4, "label": "Continuous, risk-adaptive authentication", "description": "Step-up auth triggered by risk signals; passwordless preferred" }
+      ]
+    },
+    {
+      "id": "id-02",
+      "pillar": "identity",
+      "sequence": 2,
+      "text": "How is privileged access (admin accounts) managed?",
+      "rationale": "Privileged accounts are the highest-value targets — ZT requires they are tightly scoped and monitored.",
+      "options": [
+        { "value": 1, "label": "Shared admin accounts or standing privileges", "description": "Admins have persistent elevated access" },
+        { "value": 2, "label": "Named admin accounts with basic separation of duties", "description": "Individual accounts but persistent privileges" },
+        { "value": 3, "label": "PAM solution with session recording and approval workflows", "description": "Privileged Access Management controls in place" },
+        { "value": 4, "label": "Just-in-Time (JIT) privileges with zero standing access", "description": "Ephemeral admin rights, fully audited, auto-expired" }
+      ]
+    },
+    {
+      "id": "id-03",
+      "pillar": "identity",
+      "sequence": 3,
+      "text": "How are access rights reviewed and recertified?",
+      "rationale": "Stale permissions accumulate over time — regular recertification enforces least privilege.",
+      "options": [
+        { "value": 1, "label": "Rarely or never reviewed", "description": "Access is assigned and largely unchanged" },
+        { "value": 2, "label": "Annual manual reviews", "description": "Periodic reviews driven by compliance deadlines" },
+        { "value": 3, "label": "Quarterly automated access reviews with manager certification", "description": "Regular, tooling-assisted recertification" },
+        { "value": 4, "label": "Continuous automated access reviews with ML-based anomaly detection", "description": "Real-time entitlement optimization" }
+      ]
+    },
+    {
+      "id": "id-04",
+      "pillar": "identity",
+      "sequence": 4,
+      "text": "Is Single Sign-On (SSO) implemented across applications?",
+      "rationale": "SSO centralizes identity control and enables consistent policy enforcement across all apps.",
+      "options": [
+        { "value": 1, "label": "No SSO — users manage separate credentials per application", "description": "Fragmented identity" },
+        { "value": 2, "label": "SSO for some internal applications", "description": "Partial federation" },
+        { "value": 3, "label": "SSO for all internal and most SaaS applications", "description": "Broad IdP integration" },
+        { "value": 4, "label": "Universal SSO with continuous session risk evaluation", "description": "All apps federated; session trust dynamically evaluated" }
+      ]
+    },
+    {
+      "id": "id-05",
+      "pillar": "identity",
+      "sequence": 5,
+      "text": "How is non-person entity (service account, API, workload) identity managed?",
+      "rationale": "Machine identities are frequently overlooked and represent a major ZT gap.",
+      "options": [
+        { "value": 1, "label": "Shared credentials or hardcoded secrets", "description": "No lifecycle management for machine identities" },
+        { "value": 2, "label": "Named service accounts with static credentials", "description": "Individual accounts but no rotation" },
+        { "value": 3, "label": "Secrets manager with rotation policies", "description": "Centralized vault with automated credential rotation" },
+        { "value": 4, "label": "Workload identity federation with short-lived tokens (OIDC/SPIFFE)", "description": "Zero standing machine credentials" }
+      ]
+    },
+    {
+      "id": "id-06",
+      "pillar": "identity",
+      "sequence": 6,
+      "text": "Is User and Entity Behavior Analytics (UEBA) deployed?",
+      "rationale": "UEBA detects insider threats and compromised accounts by baselining normal behavior.",
+      "options": [
+        { "value": 1, "label": "No behavioral monitoring", "description": "No visibility into user activity patterns" },
+        { "value": 2, "label": "Basic audit logging with manual review", "description": "Logs collected but analyzed reactively" },
+        { "value": 3, "label": "UEBA integrated with SIEM — alerts on anomalies", "description": "Automated anomaly detection" },
+        { "value": 4, "label": "UEBA with automated adaptive response (block, step-up auth)", "description": "Real-time risk-based response to identity anomalies" }
+      ]
+    },
+    {
+      "id": "id-07",
+      "pillar": "identity",
+      "sequence": 7,
+      "text": "Is identity governance (IGA) implemented for joiner-mover-leaver processes?",
+      "rationale": "Lifecycle gaps create orphaned accounts — a leading cause of unauthorized access.",
+      "options": [
+        { "value": 1, "label": "Manual, inconsistent HR-to-IT processes", "description": "Delayed or missed de-provisioning is common" },
+        { "value": 2, "label": "Basic automation for joiners; leavers handled manually", "description": "Partial lifecycle automation" },
+        { "value": 3, "label": "IGA platform with automated provisioning and de-provisioning", "description": "Full lifecycle managed via IGA workflows" },
+        { "value": 4, "label": "IGA with real-time HR feed integration and zero-day de-provisioning", "description": "Instant access termination on employee departure" }
+      ]
+    },
+    {
+      "id": "dev-01",
+      "pillar": "devices",
+      "sequence": 8,
+      "text": "How is device health and compliance verified before granting access?",
+      "rationale": "ZT requires that every device proves its health posture — not just its identity.",
+      "options": [
+        { "value": 1, "label": "No device health checks — any device can access resources", "description": "Network-based trust only" },
+        { "value": 2, "label": "Basic MDM enrollment required for corporate devices", "description": "Enrollment checked but not real-time posture" },
+        { "value": 3, "label": "Device compliance policy enforced at access time via MDM/EDR integration", "description": "Real-time posture checks gate access" },
+        { "value": 4, "label": "Continuous device attestation with hardware-level trust (TPM/Secure Enclave)", "description": "Hardware-rooted device trust, continuously evaluated" }
+      ]
+    },
+    {
+      "id": "dev-02",
+      "pillar": "devices",
+      "sequence": 9,
+      "text": "Is a complete and continuously updated device inventory maintained?",
+      "rationale": "You cannot protect what you cannot see — full asset visibility is a ZT prerequisite.",
+      "options": [
+        { "value": 1, "label": "No formal inventory — devices tracked informally", "description": "Significant gaps in asset visibility" },
+        { "value": 2, "label": "Periodic manual inventory or basic MDM asset list", "description": "Inventory exists but may be stale" },
+        { "value": 3, "label": "Automated discovery with near-real-time inventory updates", "description": "Asset management integrated with MDM/EDR" },
+        { "value": 4, "label": "Continuous real-time inventory with automatic policy enforcement for new devices", "description": "Zero unmanaged devices tolerated" }
+      ]
+    },
+    {
+      "id": "dev-03",
+      "pillar": "devices",
+      "sequence": 10,
+      "text": "How is Endpoint Detection and Response (EDR) deployed?",
+      "rationale": "EDR provides the telemetry needed to evaluate device trust in a ZT model.",
+      "options": [
+        { "value": 1, "label": "Traditional antivirus only", "description": "Signature-based protection, no behavioral detection" },
+        { "value": 2, "label": "EDR deployed on most managed endpoints", "description": "Partial coverage — some gaps in visibility" },
+        { "value": 3, "label": "EDR deployed on all managed endpoints with centralized management", "description": "Full coverage, actively managed" },
+        { "value": 4, "label": "EDR with AI-driven threat hunting and ZT policy integration", "description": "EDR posture signals feed directly into access decisions" }
+      ]
+    },
+    {
+      "id": "dev-04",
+      "pillar": "devices",
+      "sequence": 11,
+      "text": "How are unmanaged and BYOD devices handled?",
+      "rationale": "Unmanaged devices are the highest-risk access vector — ZT requires explicit policy for these.",
+      "options": [
+        { "value": 1, "label": "No differentiation — same access as managed devices", "description": "No controls on unmanaged device access" },
+        { "value": 2, "label": "BYOD access restricted to email and basic productivity via MDM profile", "description": "Basic BYOD separation" },
+        { "value": 3, "label": "BYOD isolated to browser-based access or VDI — no corporate data on device", "description": "Strong BYOD data protection" },
+        { "value": 4, "label": "BYOD assessed in real-time; access scoped dynamically based on posture", "description": "Risk-adaptive access for unmanaged devices" }
+      ]
+    },
+    {
+      "id": "dev-05",
+      "pillar": "devices",
+      "sequence": 12,
+      "text": "Is patch and vulnerability management automated for endpoints?",
+      "rationale": "Unpatched endpoints are exploitable — ZT requires proof of patch currency as part of device trust.",
+      "options": [
+        { "value": 1, "label": "Manual patching — infrequent and inconsistent", "description": "High vulnerability exposure" },
+        { "value": 2, "label": "Automated patching for OS; applications patched manually", "description": "Partial automation" },
+        { "value": 3, "label": "Automated patching for OS and applications with compliance reporting", "description": "Broad automation with visibility" },
+        { "value": 4, "label": "Continuous vulnerability assessment with automated remediation and access gating for non-compliant devices", "description": "Patch currency enforced at access time" }
+      ]
+    },
+    {
+      "id": "dev-06",
+      "pillar": "devices",
+      "sequence": 13,
+      "text": "Is Mobile Device Management (MDM) / Unified Endpoint Management (UEM) deployed?",
+      "rationale": "MDM/UEM enables configuration enforcement and remote wipe — essential for device trust.",
+      "options": [
+        { "value": 1, "label": "No MDM — endpoints are unmanaged", "description": "No centralized device management" },
+        { "value": 2, "label": "MDM for mobile devices only", "description": "Laptops and desktops unmanaged" },
+        { "value": 3, "label": "UEM covering all device types (mobile, laptop, desktop)", "description": "Unified management across all endpoints" },
+        { "value": 4, "label": "UEM with real-time compliance enforcement and ZT policy integration", "description": "Device posture continuously enforced" }
+      ]
+    },
+    {
+      "id": "dev-07",
+      "pillar": "devices",
+      "sequence": 14,
+      "text": "Are device certificates or hardware keys used for device authentication?",
+      "rationale": "Device certificates provide cryptographic proof of device identity — stronger than IP or hostname.",
+      "options": [
+        { "value": 1, "label": "No device authentication — devices identified by IP or hostname only", "description": "No cryptographic device identity" },
+        { "value": 2, "label": "PKI certificates deployed on some device types", "description": "Partial certificate adoption" },
+        { "value": 3, "label": "PKI certificates deployed on all managed devices with automated renewal", "description": "Full certificate lifecycle management" },
+        { "value": 4, "label": "Hardware-backed certificates (TPM) with automated certificate management", "description": "Hardware-rooted cryptographic device identity" }
+      ]
+    },
+    {
+      "id": "net-01",
+      "pillar": "networks",
+      "sequence": 15,
+      "text": "Is network micro-segmentation implemented?",
+      "rationale": "Flat networks allow lateral movement — micro-segmentation is a core ZT network control.",
+      "options": [
+        { "value": 1, "label": "Flat network — minimal segmentation beyond DMZ", "description": "Lateral movement unconstrained once inside perimeter" },
+        { "value": 2, "label": "VLAN-based segmentation for broad zones (prod, dev, corp)", "description": "Coarse segmentation" },
+        { "value": 3, "label": "Micro-segmentation with firewall rules per application or workload", "description": "Application-aware segmentation" },
+        { "value": 4, "label": "Software-defined micro-segmentation with identity-aware policies enforced at the workload level", "description": "ZT network fabric — every workload is a segment" }
+      ]
+    },
+    {
+      "id": "net-02",
+      "pillar": "networks",
+      "sequence": 16,
+      "text": "How is east-west (internal) traffic inspected?",
+      "rationale": "Most breaches involve lateral movement — internal traffic inspection is critical for ZT.",
+      "options": [
+        { "value": 1, "label": "No inspection of internal traffic", "description": "Implicit trust within the network perimeter" },
+        { "value": 2, "label": "Basic network monitoring (NetFlow/IPFIX) on internal traffic", "description": "Visibility but no deep inspection" },
+        { "value": 3, "label": "IDS/IPS on internal segments with alerting", "description": "Active detection on internal traffic" },
+        { "value": 4, "label": "Full SSL/TLS inspection with behavioral analytics on all internal flows", "description": "No implicit trust on any network segment" }
+      ]
+    },
+    {
+      "id": "net-03",
+      "pillar": "networks",
+      "sequence": 17,
+      "text": "Is Zero Trust Network Access (ZTNA) or Software-Defined Perimeter (SDP) deployed for remote access?",
+      "rationale": "VPNs grant broad network access — ZTNA replaces VPN with application-level access.",
+      "options": [
+        { "value": 1, "label": "Traditional VPN — full network access once authenticated", "description": "Perimeter-based remote access" },
+        { "value": 2, "label": "VPN with split-tunneling or application-level controls", "description": "Partial access restriction via VPN policy" },
+        { "value": 3, "label": "ZTNA deployed for remote access — users access specific apps not the network", "description": "Application-level remote access" },
+        { "value": 4, "label": "ZTNA for all remote access with continuous posture evaluation per session", "description": "Full ZTNA with real-time trust evaluation" }
+      ]
+    },
+    {
+      "id": "net-04",
+      "pillar": "networks",
+      "sequence": 18,
+      "text": "How is encrypted traffic (TLS) inspected on the network?",
+      "rationale": "Encrypted traffic can hide threats — ZT requires visibility even into encrypted flows.",
+      "options": [
+        { "value": 1, "label": "No TLS inspection — encrypted traffic is untrusted but uninspected", "description": "Threats can hide in encrypted channels" },
+        { "value": 2, "label": "TLS inspection at the perimeter firewall/proxy only", "description": "Limited inspection scope" },
+        { "value": 3, "label": "TLS inspection at multiple points (perimeter, internal, cloud egress)", "description": "Broad encrypted traffic visibility" },
+        { "value": 4, "label": "Comprehensive TLS inspection with certificate pinning enforcement and anomaly detection", "description": "Full encrypted traffic governance" }
+      ]
+    },
+    {
+      "id": "net-05",
+      "pillar": "networks",
+      "sequence": 19,
+      "text": "Is DNS security implemented?",
+      "rationale": "DNS is a primary C2 channel — DNS security prevents exfiltration and malware callbacks.",
+      "options": [
+        { "value": 1, "label": "No DNS filtering or security controls", "description": "Uncontrolled DNS resolution" },
+        { "value": 2, "label": "Basic DNS filtering via on-prem resolver (block known-bad domains)", "description": "Reactive DNS protection" },
+        { "value": 3, "label": "Cloud-delivered DNS security (filtering, DoH enforcement, DNSSEC validation)", "description": "Proactive DNS threat protection" },
+        { "value": 4, "label": "DNS analytics integrated with SIEM; anomalous DNS used as threat signal in ZT policy", "description": "DNS as a ZT telemetry source" }
+      ]
+    },
+    {
+      "id": "net-06",
+      "pillar": "networks",
+      "sequence": 20,
+      "text": "Is Software-Defined WAN (SD-WAN) or cloud-delivered network security (SSE/SASE) in use?",
+      "rationale": "SSE/SASE converges network and security, enabling consistent ZT policy across all locations.",
+      "options": [
+        { "value": 1, "label": "Traditional MPLS/WAN with on-prem security appliances", "description": "Legacy network architecture" },
+        { "value": 2, "label": "SD-WAN deployed — traffic optimization but security still appliance-based", "description": "Network modernization underway" },
+        { "value": 3, "label": "SSE/SASE with cloud-delivered SWG, CASB, and ZTNA", "description": "Converged cloud security platform" },
+        { "value": 4, "label": "Full SASE with identity-aware routing, continuous posture checks, and unified policy across all edges", "description": "ZT-native cloud network architecture" }
+      ]
+    },
+    {
+      "id": "app-01",
+      "pillar": "applications",
+      "sequence": 21,
+      "text": "How are internal applications published and accessed?",
+      "rationale": "How applications are exposed determines the attack surface — ZT requires app-level access, not network access.",
+      "options": [
+        { "value": 1, "label": "Direct network access — apps accessible to anyone on the corporate network", "description": "Network as security boundary" },
+        { "value": 2, "label": "VPN required for internal app access — broad network tunnel granted", "description": "Network-layer access control" },
+        { "value": 3, "label": "App proxy or ZTNA — users access specific apps without network access", "description": "Application-level access control" },
+        { "value": 4, "label": "All apps published via ZTNA/SDP with per-session trust evaluation and least-privilege access", "description": "ZT-native application access" }
+      ]
+    },
+    {
+      "id": "app-02",
+      "pillar": "applications",
+      "sequence": 22,
+      "text": "Is API security and management centralized?",
+      "rationale": "APIs are the modern attack surface — undocumented and unmanaged APIs are a major ZT gap.",
+      "options": [
+        { "value": 1, "label": "No API gateway — APIs called directly; no centralized visibility", "description": "Shadow APIs are common" },
+        { "value": 2, "label": "API gateway for some APIs — others are undocumented or unmanaged", "description": "Partial API governance" },
+        { "value": 3, "label": "All APIs registered in an API management platform with authentication and rate limiting", "description": "Centralized API control" },
+        { "value": 4, "label": "API discovery, runtime protection, and behavioral analytics on all API traffic", "description": "Full API security posture" }
+      ]
+    },
+    {
+      "id": "app-03",
+      "pillar": "applications",
+      "sequence": 23,
+      "text": "Is workload identity implemented for cloud and containerized environments?",
+      "rationale": "In cloud-native environments, workloads must authenticate to each other — not just humans to systems.",
+      "options": [
+        { "value": 1, "label": "Workloads use static credentials or IAM keys stored in code/config", "description": "Hardcoded or long-lived machine credentials" },
+        { "value": 2, "label": "Managed identities or instance profiles used for some cloud resources", "description": "Partial workload identity adoption" },
+        { "value": 3, "label": "Managed identities / IRSA / Workload Identity used across all cloud workloads", "description": "Broad workload identity coverage" },
+        { "value": 4, "label": "SPIFFE/SPIRE or equivalent for cross-environment workload identity with short-lived mTLS certificates", "description": "Platform-agnostic cryptographic workload identity" }
+      ]
+    },
+    {
+      "id": "app-04",
+      "pillar": "applications",
+      "sequence": 24,
+      "text": "Is application security testing integrated into the CI/CD pipeline?",
+      "rationale": "ZT extends to the software supply chain — apps must be verified secure before deployment.",
+      "options": [
+        { "value": 1, "label": "No automated security testing in the pipeline", "description": "Security tested manually or not at all" },
+        { "value": 2, "label": "SAST scanning integrated; results reviewed periodically", "description": "Static analysis in pipeline" },
+        { "value": 3, "label": "SAST, DAST, and SCA all integrated with pipeline gates on critical findings", "description": "Automated security gates in CI/CD" },
+        { "value": 4, "label": "Full DevSecOps: SAST, DAST, SCA, IaC scanning, container scanning, and SBOMs with policy enforcement", "description": "Security as code — ZT for the supply chain" }
+      ]
+    },
+    {
+      "id": "app-05",
+      "pillar": "applications",
+      "sequence": 25,
+      "text": "Is SaaS application usage discovered and governed?",
+      "rationale": "Shadow SaaS creates data exposure and identity sprawl — CASB visibility is a ZT requirement.",
+      "options": [
+        { "value": 1, "label": "No SaaS discovery — unknown SaaS apps are in use", "description": "Shadow IT is uncontrolled" },
+        { "value": 2, "label": "CASB in monitoring mode — SaaS discovered but not enforced", "description": "Visibility without control" },
+        { "value": 3, "label": "CASB enforcing policy — approved SaaS list, DLP controls on SaaS data", "description": "SaaS governed and controlled" },
+        { "value": 4, "label": "Inline CASB with real-time SaaS risk scoring and adaptive access control", "description": "Dynamic SaaS trust based on risk" }
+      ]
+    },
+    {
+      "id": "app-06",
+      "pillar": "applications",
+      "sequence": 26,
+      "text": "Is secrets management centralized for application credentials?",
+      "rationale": "Hardcoded secrets are a top breach vector — ZT requires centralized, audited secrets lifecycle.",
+      "options": [
+        { "value": 1, "label": "Secrets stored in code, config files, or shared spreadsheets", "description": "High risk of credential exposure" },
+        { "value": 2, "label": "Secrets stored in environment variables or basic vaults with manual rotation", "description": "Partial protection — rotation is manual" },
+        { "value": 3, "label": "Centralized secrets vault with automated rotation and audit logging", "description": "Secrets managed with full lifecycle control" },
+        { "value": 4, "label": "Dynamic secrets with zero long-lived credentials; secret scanning in pipelines", "description": "No persistent secrets anywhere in the stack" }
+      ]
+    },
+    {
+      "id": "app-07",
+      "pillar": "applications",
+      "sequence": 27,
+      "text": "Is application behavior monitored for runtime anomalies?",
+      "rationale": "ZT assumes breach — runtime application protection detects attacks that bypass perimeter defenses.",
+      "options": [
+        { "value": 1, "label": "No runtime monitoring — issues detected reactively via user reports", "description": "Blind to application-layer attacks" },
+        { "value": 2, "label": "Basic APM for availability and performance — no security monitoring", "description": "Operational observability without security context" },
+        { "value": 3, "label": "Application logging integrated with SIEM; alerts on error rate spikes and auth failures", "description": "Security-aware application monitoring" },
+        { "value": 4, "label": "RASP or behavioral analytics detecting zero-day attacks in real-time with automated response", "description": "Runtime self-protection with automated containment" }
+      ]
+    },
+    {
+      "id": "dat-01",
+      "pillar": "data",
+      "sequence": 28,
+      "text": "Is data classified and labeled across the organization?",
+      "rationale": "ZT data controls depend on knowing what data you have and how sensitive it is.",
+      "options": [
+        { "value": 1, "label": "No formal data classification — all data treated equally", "description": "Cannot apply differentiated controls without classification" },
+        { "value": 2, "label": "Classification policy exists but labeling is manual and inconsistent", "description": "Partial classification coverage" },
+        { "value": 3, "label": "Automated classification and labeling for structured and unstructured data", "description": "Systematic data classification" },
+        { "value": 4, "label": "AI-driven classification across all data stores with real-time discovery of new sensitive data", "description": "Continuous, adaptive data classification" }
+      ]
+    },
+    {
+      "id": "dat-02",
+      "pillar": "data",
+      "sequence": 29,
+      "text": "Is Data Loss Prevention (DLP) implemented?",
+      "rationale": "DLP enforces data handling policies — preventing unauthorized exfiltration of sensitive data.",
+      "options": [
+        { "value": 1, "label": "No DLP controls", "description": "Data can leave the organization unconstrained" },
+        { "value": 2, "label": "DLP on email only", "description": "Limited DLP coverage — endpoints and cloud are unprotected" },
+        { "value": 3, "label": "DLP covering email, endpoints, and cloud storage", "description": "Broad DLP coverage across major channels" },
+        { "value": 4, "label": "Unified DLP policy across all channels (email, endpoint, cloud, web) with adaptive enforcement", "description": "Comprehensive data protection with context-aware enforcement" }
+      ]
+    },
+    {
+      "id": "dat-03",
+      "pillar": "data",
+      "sequence": 30,
+      "text": "Is data encrypted at rest and in transit for all sensitive assets?",
+      "rationale": "Encryption ensures that even if data is accessed, it cannot be read without authorization.",
+      "options": [
+        { "value": 1, "label": "Encryption inconsistently applied — many sensitive data stores are unencrypted", "description": "Significant encryption gaps" },
+        { "value": 2, "label": "Encryption at rest for databases; TLS for data in transit", "description": "Basic encryption coverage" },
+        { "value": 3, "label": "Encryption at rest and in transit for all sensitive data, including backups and archives", "description": "Comprehensive encryption" },
+        { "value": 4, "label": "Customer-managed keys (CMEK/BYOK) with HSM, key rotation policies, and envelope encryption", "description": "Full cryptographic sovereignty" }
+      ]
+    },
+    {
+      "id": "dat-04",
+      "pillar": "data",
+      "sequence": 31,
+      "text": "How is data access governed — who can access what data and why?",
+      "rationale": "ZT requires attribute-based or role-based access to data with audit trails on every access.",
+      "options": [
+        { "value": 1, "label": "Minimal access controls — most data accessible to anyone in the organization", "description": "No least-privilege for data" },
+        { "value": 2, "label": "Role-based access control (RBAC) for primary data systems", "description": "Coarse-grained access control" },
+        { "value": 3, "label": "Attribute-based access control (ABAC) with data classification driving access policy", "description": "Fine-grained, policy-driven access" },
+        { "value": 4, "label": "Automated entitlement management with continuous access graph optimization and just-in-time data access", "description": "Dynamic, least-privilege data access" }
+      ]
+    },
+    {
+      "id": "dat-05",
+      "pillar": "data",
+      "sequence": 32,
+      "text": "Is all data access logged and auditable?",
+      "rationale": "Forensic capability requires knowing who accessed what data, when, and from where.",
+      "options": [
+        { "value": 1, "label": "Minimal or no data access logging", "description": "Cannot reconstruct data access history" },
+        { "value": 2, "label": "Logging for some sensitive data stores", "description": "Partial audit trail" },
+        { "value": 3, "label": "Comprehensive data access logging across all sensitive systems, retained for 12+ months", "description": "Full audit trail with retention" },
+        { "value": 4, "label": "Real-time data access monitoring with anomaly alerts and automated incident triggering", "description": "Active data access governance" }
+      ]
+    },
+    {
+      "id": "dat-06",
+      "pillar": "data",
+      "sequence": 33,
+      "text": "Is Cloud Data Security Posture Management (DSPM) or database activity monitoring deployed?",
+      "rationale": "Cloud data stores often contain unknown sensitive data — DSPM discovers and protects them.",
+      "options": [
+        { "value": 1, "label": "No visibility into cloud data store contents or access patterns", "description": "Unknown sensitive data exposure in cloud" },
+        { "value": 2, "label": "Manual audits of cloud storage — periodic reviews of bucket/blob permissions", "description": "Reactive cloud data governance" },
+        { "value": 3, "label": "DSPM discovering sensitive data in cloud stores and flagging misconfigurations", "description": "Automated cloud data visibility" },
+        { "value": 4, "label": "DSPM with real-time misconfiguration remediation and data access behavioral analytics", "description": "Proactive cloud data security posture" }
+      ]
+    },
+    {
+      "id": "vis-01",
+      "pillar": "visibility",
+      "sequence": 34,
+      "text": "Is a centralized SIEM/SOAR platform deployed with coverage across all pillars?",
+      "rationale": "ZT requires comprehensive telemetry and automated response — SIEM/SOAR is the control plane for security operations.",
+      "options": [
+        { "value": 1, "label": "No SIEM — logs collected ad-hoc; no centralized visibility", "description": "Reactive security operations only" },
+        { "value": 2, "label": "SIEM deployed but with limited source coverage — key pillars have gaps", "description": "Partial telemetry aggregation" },
+        { "value": 3, "label": "SIEM with coverage across identity, endpoint, network, and application logs; basic SOAR playbooks", "description": "Broad telemetry with some automation" },
+        { "value": 4, "label": "SIEM/SOAR with full pillar coverage, threat intelligence enrichment, and automated ZT policy enforcement on detections", "description": "ZT-integrated security operations" }
+      ]
+    },
+    {
+      "id": "vis-02",
+      "pillar": "visibility",
+      "sequence": 35,
+      "text": "Is continuous compliance monitoring and automated reporting implemented?",
+      "rationale": "ZT requires provable compliance — continuous monitoring replaces point-in-time audits.",
+      "options": [
+        { "value": 1, "label": "Compliance assessed annually via manual audit", "description": "Compliance posture unknown between audits" },
+        { "value": 2, "label": "Automated compliance scans run periodically (monthly/quarterly)", "description": "More frequent visibility but still lagging" },
+        { "value": 3, "label": "Continuous compliance monitoring with dashboard and automated evidence collection", "description": "Real-time compliance posture visibility" },
+        { "value": 4, "label": "Policy-as-code with automated remediation and continuous compliance attestation across all ZT pillars", "description": "Compliance enforced continuously as code" }
+      ]
+    }
+  ]
+}
