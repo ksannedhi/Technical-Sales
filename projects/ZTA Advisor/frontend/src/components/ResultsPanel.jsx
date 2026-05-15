@@ -16,11 +16,14 @@ const TIMELINE_CONFIG = [
   { key: 'long', label: 'Strategic', sub: '180+ days', color: '#3b82f6', bg: '#eff6ff' }
 ];
 
-function maturityLabel(score) {
-  if (score < 1.5) return 'Traditional';
-  if (score < 2.5) return 'Initial';
-  if (score < 3.5) return 'Advanced';
-  return 'Optimal';
+const ROADMAP_CAP = 5;
+const CISA_LABELS = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+
+function maturityLabel(score, labels = CISA_LABELS) {
+  if (score < 1.5) return labels[0];
+  if (score < 2.5) return labels[1];
+  if (score < 3.5) return labels[2];
+  return labels[3];
 }
 
 function maturityColor(score) {
@@ -38,12 +41,14 @@ function gapBadge(gap) {
 }
 
 export default function ResultsPanel({ results, orgProfile, frameworkIds, onReset }) {
-  const { pillarScores, roadmap, overallScore, narrative } = results;
+  const { pillarScores, roadmap, overallScore, narrative, maturityLabels } = results;
+  const labels = Array.isArray(maturityLabels) && maturityLabels.length === 4 ? maturityLabels : CISA_LABELS;
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError] = useState(null);
+  const [expanded, setExpanded] = useState({ short: false, medium: false, long: false });
 
   const overallColor = maturityColor(overallScore);
-  const overallLabel = maturityLabel(overallScore);
+  const overallLabel = maturityLabel(overallScore, labels);
   const totalActions = (roadmap.short?.length || 0) + (roadmap.medium?.length || 0) + (roadmap.long?.length || 0);
 
   async function handleExportPdf() {
@@ -155,7 +160,7 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
                         />
                       </div>
                       <span style={{ fontSize: 12, fontWeight: 600, color: maturityColor(s.current), minWidth: 110 }}>
-                        {maturityLabel(s.current)} ({s.current.toFixed(1)})
+                        {maturityLabel(s.current, labels)} ({s.current.toFixed(1)})
                       </span>
                     </div>
                   </td>
@@ -174,11 +179,19 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
 
       {/* Remediation roadmap */}
       <div className="card">
-        <div className="card-title">Prioritized Remediation Roadmap</div>
+        <div className="card-title">
+          Prioritized Remediation Roadmap
+          <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--muted)', marginLeft: 8 }}>
+            — top {ROADMAP_CAP} per bucket shown · expand to see all
+          </span>
+        </div>
 
-        {TIMELINE_CONFIG.map(({ key, label, sub, color, bg }) => {
+        {TIMELINE_CONFIG.map(({ key, label, sub, color }) => {
           const items = roadmap[key] || [];
           if (!items.length) return null;
+          const isExpanded = expanded[key];
+          const visible = isExpanded ? items : items.slice(0, ROADMAP_CAP);
+          const hidden = items.length - ROADMAP_CAP;
           return (
             <div key={key} className="timeline-section">
               <div className="timeline-header">
@@ -190,7 +203,7 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
                 </span>
               </div>
 
-              {items.map((ctrl, i) => (
+              {visible.map((ctrl, i) => (
                 <div key={i} className="ctrl-card" style={{ borderLeftColor: color }}>
                   <div className="ctrl-card-row">
                     <div>
@@ -201,6 +214,17 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
                   </div>
                 </div>
               ))}
+
+              {items.length > ROADMAP_CAP && (
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{ marginTop: 8, fontSize: 12, padding: '4px 12px' }}
+                  onClick={() => setExpanded(e => ({ ...e, [key]: !e[key] }))}
+                >
+                  {isExpanded ? '▲ Show top 5 only' : `▼ Show ${hidden} more action${hidden !== 1 ? 's' : ''}`}
+                </button>
+              )}
             </div>
           );
         })}
