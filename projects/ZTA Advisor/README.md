@@ -32,7 +32,7 @@ A presales tool that guides engineers through a structured Zero Trust Architectu
 
 ### Option A — One-click launch (Windows)
 
-1. Copy `.env.example` → `backend/.env` and add your `ANTHROPIC_API_KEY`
+1. Copy `.env.example` → `.env` (project root) and add your `ANTHROPIC_API_KEY`
 2. Double-click **`Launch ZTA Advisor.cmd`** in this folder
 
 Two terminal windows open (backend on 3005, frontend on 5180) and the browser launches automatically at http://localhost:5180.
@@ -41,8 +41,8 @@ Two terminal windows open (backend on 3005, frontend on 5180) and the browser la
 
 ```bash
 # Backend
+cp .env.example .env           # add ANTHROPIC_API_KEY (at project root)
 cd backend
-cp ../.env.example .env        # add ANTHROPIC_API_KEY
 npm install
 npm run dev
 

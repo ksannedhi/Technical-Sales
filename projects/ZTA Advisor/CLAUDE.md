@@ -14,7 +14,8 @@ cd frontend && npm install && npm run dev
 ```
 
 ## Environment
-Copy `.env.example` → `backend/.env` and fill in `ANTHROPIC_API_KEY`.
+Copy `.env.example` → `.env` (project root) and fill in `ANTHROPIC_API_KEY`.
+The backend loads it automatically — no copy to `backend/.env` needed.
 
 PYTHONPATH is not needed (Node project).
 

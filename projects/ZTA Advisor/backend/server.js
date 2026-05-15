@@ -1,4 +1,8 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+// Load .env from project root (one level above backend/)
+config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
 import express from 'express';
 import cors from 'cors';
 import { frameworksRouter } from './routes/frameworks.js';
