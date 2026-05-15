@@ -108,18 +108,26 @@ export default function QuestionnaireWizard({
         }} />
       </div>
 
-      {/* Pillar nav */}
+      {/* Pillar nav — can only jump to completed pillars or the current one */}
       <div className="pillar-nav">
-        {PILLAR_ORDER.map(p => (
-          <button
-            key={p}
-            className={`pillar-nav-btn ${activePillar === p ? 'active' : ''} ${isPillarComplete(p) ? 'complete' : ''}`}
-            onClick={() => goToPillar(p)}
-            type="button"
-          >
-            {isPillarComplete(p) && activePillar !== p ? '✓ ' : ''}{PILLAR_LABELS[p]}
-          </button>
-        ))}
+        {PILLAR_ORDER.map(p => {
+          const complete = isPillarComplete(p);
+          const isCurrent = activePillar === p;
+          const canClick = isCurrent || complete;
+          return (
+            <button
+              key={p}
+              className={`pillar-nav-btn ${isCurrent ? 'active' : ''} ${complete ? 'complete' : ''}`}
+              onClick={() => canClick && goToPillar(p)}
+              disabled={!canClick}
+              title={!canClick ? 'Complete earlier pillars first' : undefined}
+              type="button"
+              style={!canClick ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+            >
+              {complete && !isCurrent ? '✓ ' : ''}{PILLAR_LABELS[p]}
+            </button>
+          );
+        })}
       </div>
 
       {/* Active pillar questions */}
@@ -175,6 +183,8 @@ export default function QuestionnaireWizard({
           <button
             className="btn btn-primary"
             onClick={() => goToPillar(PILLAR_ORDER[pillarIdx + 1])}
+            disabled={!isPillarComplete(activePillar)}
+            title={!isPillarComplete(activePillar) ? 'Answer all questions in this pillar first' : undefined}
             type="button"
           >
             Next: {PILLAR_LABELS[PILLAR_ORDER[pillarIdx + 1]]} →
