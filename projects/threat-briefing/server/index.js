@@ -1,3 +1,6 @@
+// dotenv fallback: only effective if running `node index.js` directly from the
+// server/ directory. The preferred launch path uses --env-file=.env from the
+// project root, which loads env vars before this module executes.
 import 'dotenv/config';
 import express from 'express';
 import fetch   from 'node-fetch';
@@ -180,14 +183,24 @@ registerRunner(runPipeline);
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
+// In-flight guard — prevents concurrent pipeline runs from double-clicks or
+// rapid re-triggers during a demo (each run fetches all feeds + calls Claude).
+let pipelineRunning = false;
+
 // On-demand generate
 app.post('/api/briefing/generate', async (req, res) => {
+  if (pipelineRunning) {
+    return res.status(429).json({ error: 'Generation already in progress — please wait.' });
+  }
+  pipelineRunning = true;
   try {
     const result = await runPipeline();
     res.json(result);
   } catch (e) {
     console.error('[/generate]', e.message);
     res.status(500).json({ error: e.message });
+  } finally {
+    pipelineRunning = false;
   }
 });
 

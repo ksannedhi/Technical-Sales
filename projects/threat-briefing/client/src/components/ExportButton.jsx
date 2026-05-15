@@ -2,9 +2,11 @@ import { useState } from 'react';
 
 export default function ExportButton({ briefing }) {
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState(null);
 
   async function handleExport() {
     setExporting(true);
+    setExportError(null);
     try {
       const res = await fetch('/api/briefing/export', {
         method: 'POST',
@@ -20,17 +22,17 @@ export default function ExportButton({ briefing }) {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      const msg = e instanceof TypeError
-        ? 'Export failed — backend is not reachable. Make sure the server is running on port 3003.'
-        : e.message;
-      alert(msg);
+      setExportError(e instanceof TypeError
+        ? 'Backend not reachable — make sure the server is running.'
+        : e.message);
     } finally {
       setExporting(false);
     }
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+      {exportError && <p className="error-msg" style={{ margin: 0 }}>{exportError}</p>}
       <button className="btn btn-primary" onClick={handleExport} disabled={exporting}>
         {exporting ? 'Generating PDF…' : 'Export PDF report'}
       </button>

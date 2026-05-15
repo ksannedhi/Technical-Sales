@@ -6,16 +6,16 @@ echo.
 echo  Starting Threat Intel Briefing Builder...
 echo.
 
-REM -- Kill any process already listening on port 3001 --
-for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":3001 " ^| findstr "LISTENING"') do (
+REM -- Kill any process already listening on port 3003 --
+for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":3003 " ^| findstr "LISTENING"') do (
     taskkill /F /PID %%a >nul 2>&1
-    echo  Stopped existing process on port 3001.
+    echo  Stopped existing process on port 3003.
 )
 
-REM -- Kill any process already listening on port 5173 --
-for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":5173 " ^| findstr "LISTENING"') do (
+REM -- Kill any process already listening on port 5177 --
+for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":5177 " ^| findstr "LISTENING"') do (
     taskkill /F /PID %%a >nul 2>&1
-    echo  Stopped existing process on port 5173.
+    echo  Stopped existing process on port 5177.
 )
 
 REM -- Install dependencies if node_modules is missing --
@@ -47,12 +47,12 @@ start "Threat Briefing - Frontend" powershell -NoExit -NoProfile -ExecutionPolic
 echo.
 echo  Backend and frontend launch windows opened.
 echo.
-echo  Dashboard : http://localhost:5173
-echo  Backend   : http://localhost:3001
-echo  Health    : http://localhost:3001/api/health
+echo  Dashboard : http://localhost:5177
+echo  Backend   : http://localhost:3003
+echo  Health    : http://localhost:3003/api/health
 echo.
-echo  Click "Generate now" in the dashboard to run the pipeline on demand.
-echo  The daily briefing auto-runs at 06:00 GST while the server is running.
+echo  Click "Generate latest" in the dashboard to run the pipeline on demand.
+echo  The daily briefing auto-runs at 06:00 AST while the server is running.
 echo.
 echo  Confirm your ANTHROPIC_API_KEY is set in .env before first use.
 echo.

@@ -18,7 +18,8 @@ export async function fetchAbusech() {
       sha256:          s.sha256_hash,
       fileName:        s.file_name,
       fileType:        s.file_type,
-      malwareFamily:   (s.tags || [])[0] || 'unknown',
+      malwareFamily:   s.tags?.length ? s.tags[0] : 'unknown',
+      malwareTags:     s.tags || [],
       deliveryMethod:  s.delivery_method || null,
       publishedAt:     s.first_seen
     }));
