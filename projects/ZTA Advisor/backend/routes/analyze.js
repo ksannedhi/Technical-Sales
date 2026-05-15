@@ -9,7 +9,11 @@ const { questions } = JSON.parse(readFileSync(join(__dirname, '../data/questions
 const { remediationControls } = JSON.parse(readFileSync(join(__dirname, '../data/controls.json'), 'utf8'));
 const frameworksData = JSON.parse(readFileSync(join(__dirname, '../data/frameworks.json'), 'utf8'));
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Only instantiate if a real key is present — avoids MissingAPIKeyError at module load
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const client = ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'your_key_here'
+  ? new Anthropic({ apiKey: ANTHROPIC_API_KEY })
+  : null;
 
 const PILLAR_ORDER = ['identity', 'devices', 'networks', 'applications', 'data', 'visibility'];
 const TARGET_MATURITY = 3; // Advanced — realistic ZT target for most organizations
@@ -141,8 +145,13 @@ analyzeRouter.post('/', async (req, res) => {
     const overallScore = PILLAR_ORDER.reduce((s, p) => s + pillarScores[p].current, 0) / PILLAR_ORDER.length;
 
     let narrative = null;
-    if (process.env.ANTHROPIC_API_KEY) {
-      narrative = await generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds || []);
+    if (client) {
+      try {
+        narrative = await generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds || []);
+      } catch (narrativeErr) {
+        console.warn('Narrative generation skipped:', narrativeErr.message);
+        // Non-fatal — scoring and roadmap are returned regardless
+      }
     }
 
     res.json({
