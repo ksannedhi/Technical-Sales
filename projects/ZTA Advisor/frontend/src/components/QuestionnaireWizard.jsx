@@ -10,10 +10,13 @@ const PILLAR_LABELS = {
   visibility: 'Visibility & Analytics'
 };
 
-export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComplete, onBack }) {
+export default function QuestionnaireWizard({
+  orgProfile, frameworkIds,
+  answers, onAnswersChange,
+  activePillar, onActivePillarChange,
+  onComplete, onBack
+}) {
   const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [activePillar, setActivePillar] = useState('identity');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -39,21 +42,17 @@ export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComple
     return pillarQuestions(pillar).every(q => answers[q.id] !== undefined);
   }
 
-  function totalAnswered() {
-    return Object.keys(answers).length;
-  }
-
-  function totalQuestions() {
-    return questions.length;
-  }
-
+  function totalAnswered() { return Object.keys(answers).length; }
+  function totalQuestions() { return questions.length; }
   function allComplete() {
     return questions.length > 0 && questions.every(q => answers[q.id] !== undefined);
   }
 
   function setAnswer(qId, val) {
-    setAnswers(prev => ({ ...prev, [qId]: val }));
+    onAnswersChange(prev => ({ ...prev, [qId]: val }));
   }
+
+  function goToPillar(pillar) { onActivePillarChange(pillar); }
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -85,6 +84,7 @@ export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComple
   const currentQuestions = pillarQuestions(activePillar);
   const currentAnswered = currentQuestions.filter(q => answers[q.id] !== undefined).length;
   const progressPct = currentQuestions.length ? (currentAnswered / currentQuestions.length) * 100 : 0;
+  const pillarIdx = PILLAR_ORDER.indexOf(activePillar);
 
   return (
     <div>
@@ -99,15 +99,13 @@ export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComple
 
       {/* Global progress */}
       <div style={{ background: 'var(--border)', borderRadius: 4, height: 4, marginBottom: 20, overflow: 'hidden' }}>
-        <div
-          style={{
-            height: '100%',
-            background: allComplete() ? 'var(--green)' : 'var(--blue)',
-            borderRadius: 4,
-            width: `${totalQuestions() ? (totalAnswered() / totalQuestions()) * 100 : 0}%`,
-            transition: 'width .3s ease'
-          }}
-        />
+        <div style={{
+          height: '100%',
+          background: allComplete() ? 'var(--green)' : 'var(--blue)',
+          borderRadius: 4,
+          width: `${totalQuestions() ? (totalAnswered() / totalQuestions()) * 100 : 0}%`,
+          transition: 'width .3s ease'
+        }} />
       </div>
 
       {/* Pillar nav */}
@@ -116,7 +114,7 @@ export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComple
           <button
             key={p}
             className={`pillar-nav-btn ${activePillar === p ? 'active' : ''} ${isPillarComplete(p) ? 'complete' : ''}`}
-            onClick={() => setActivePillar(p)}
+            onClick={() => goToPillar(p)}
             type="button"
           >
             {isPillarComplete(p) && activePillar !== p ? '✓ ' : ''}{PILLAR_LABELS[p]}
@@ -136,9 +134,7 @@ export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComple
 
         {currentQuestions.map((q, idx) => (
           <div key={q.id} className="question-block">
-            <div className="question-text">
-              {idx + 1}. {q.text}
-            </div>
+            <div className="question-text">{idx + 1}. {q.text}</div>
             <div className="question-rationale">{q.rationale}</div>
             <div className="option-list">
               {q.options.map(opt => (
@@ -165,27 +161,23 @@ export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComple
         ))}
       </div>
 
-      {/* Pillar navigation arrows */}
+      {/* Pillar navigation */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16, gap: 8 }}>
         <button
           className="btn btn-outline"
-          onClick={() => {
-            const idx = PILLAR_ORDER.indexOf(activePillar);
-            if (idx > 0) setActivePillar(PILLAR_ORDER[idx - 1]);
-            else onBack();
-          }}
+          onClick={() => pillarIdx > 0 ? goToPillar(PILLAR_ORDER[pillarIdx - 1]) : onBack()}
           type="button"
         >
-          ← {PILLAR_ORDER.indexOf(activePillar) === 0 ? 'Back to Profile' : `Back to ${PILLAR_LABELS[PILLAR_ORDER[PILLAR_ORDER.indexOf(activePillar) - 1]]}`}
+          ← {pillarIdx === 0 ? 'Back to Profile' : `Back to ${PILLAR_LABELS[PILLAR_ORDER[pillarIdx - 1]]}`}
         </button>
 
-        {PILLAR_ORDER.indexOf(activePillar) < PILLAR_ORDER.length - 1 ? (
+        {pillarIdx < PILLAR_ORDER.length - 1 ? (
           <button
             className="btn btn-primary"
-            onClick={() => setActivePillar(PILLAR_ORDER[PILLAR_ORDER.indexOf(activePillar) + 1])}
+            onClick={() => goToPillar(PILLAR_ORDER[pillarIdx + 1])}
             type="button"
           >
-            Next: {PILLAR_LABELS[PILLAR_ORDER[PILLAR_ORDER.indexOf(activePillar) + 1]]} →
+            Next: {PILLAR_LABELS[PILLAR_ORDER[pillarIdx + 1]]} →
           </button>
         ) : (
           <button
@@ -194,11 +186,7 @@ export default function QuestionnaireWizard({ orgProfile, frameworkIds, onComple
             disabled={!allComplete() || submitting}
             type="button"
           >
-            {submitting ? (
-              <><span className="spinner" /> Analyzing…</>
-            ) : (
-              'Generate Assessment →'
-            )}
+            {submitting ? <><span className="spinner" /> Analyzing…</> : 'Generate Assessment →'}
           </button>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const INDUSTRY_OPTIONS = [
   'Financial Services', 'Healthcare', 'Government / Public Sector', 'Defense / DoD',
@@ -10,13 +10,22 @@ const SIZE_OPTIONS = [
   '1–500 employees', '501–2,000 employees', '2,001–10,000 employees', '10,000+ employees'
 ];
 
-export default function OrgProfile({ onComplete }) {
-  const [form, setForm] = useState({ orgName: '', industry: '', orgSize: '', geo: '' });
+export default function OrgProfile({ onComplete, initialProfile, initialFrameworks }) {
+  const [form, setForm] = useState({
+    orgName: initialProfile?.orgName || '',
+    industry: initialProfile?.industry || '',
+    orgSize: initialProfile?.orgSize || '',
+    geo: initialProfile?.geo || ''
+  });
   const [suggested, setSuggested] = useState([]);
   const [allFrameworks, setAllFrameworks] = useState([]);
-  const [selectedFrameworks, setSelectedFrameworks] = useState([]);
+  const [selectedFrameworks, setSelectedFrameworks] = useState(initialFrameworks || []);
   const [geoOptions, setGeoOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Track the last geo for which we auto-applied suggestions, so returning
+  // users don't have their custom framework selections overwritten.
+  const lastAutoGeo = useRef(initialProfile?.geo || null);
 
   useEffect(() => {
     fetch('/api/frameworks')
@@ -34,9 +43,18 @@ export default function OrgProfile({ onComplete }) {
       .then(r => r.json())
       .then(d => {
         setSuggested(d.suggested || []);
-        setSelectedFrameworks((d.suggested || []).map(f => f.id));
+        // Auto-apply suggestions only when:
+        //   (a) no prior selection exists (fresh form), OR
+        //   (b) the user actively changed geo from a previously saved value
+        const isGeoChange = form.geo !== lastAutoGeo.current;
+        const hasNoSelection = selectedFrameworks.length === 0;
+        if (hasNoSelection || isGeoChange) {
+          setSelectedFrameworks((d.suggested || []).map(f => f.id));
+          lastAutoGeo.current = form.geo;
+        }
       })
       .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.geo]);
 
   function set(field, val) {

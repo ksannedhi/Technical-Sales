@@ -13,6 +13,9 @@ export default function App() {
   const [step, setStep] = useState(1);
   const [orgProfile, setOrgProfile] = useState(null);
   const [frameworkIds, setFrameworkIds] = useState([]);
+  // Lifted so answers + pillar position survive step navigation
+  const [answers, setAnswers] = useState({});
+  const [activePillar, setActivePillar] = useState('identity');
   const [results, setResults] = useState(null);
 
   function handleProfileComplete(profile, frameworks) {
@@ -30,6 +33,8 @@ export default function App() {
     setStep(1);
     setOrgProfile(null);
     setFrameworkIds([]);
+    setAnswers({});
+    setActivePillar('identity');
     setResults(null);
   }
 
@@ -54,12 +59,20 @@ export default function App() {
         <StepIndicator current={step} />
 
         {step === 1 && (
-          <OrgProfile onComplete={handleProfileComplete} />
+          <OrgProfile
+            onComplete={handleProfileComplete}
+            initialProfile={orgProfile}
+            initialFrameworks={frameworkIds}
+          />
         )}
         {step === 2 && (
           <QuestionnaireWizard
             orgProfile={orgProfile}
             frameworkIds={frameworkIds}
+            answers={answers}
+            onAnswersChange={setAnswers}
+            activePillar={activePillar}
+            onActivePillarChange={setActivePillar}
             onComplete={handleAssessmentComplete}
             onBack={() => setStep(1)}
           />
