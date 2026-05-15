@@ -1,5 +1,11 @@
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { Router } from 'express';
 import puppeteer from 'puppeteer';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const frameworksData = JSON.parse(readFileSync(join(__dirname, '../data/frameworks.json'), 'utf8'));
 
 export const exportRouter = Router();
 
@@ -12,14 +18,23 @@ const PILLAR_LABELS = {
   visibility: 'Visibility & Analytics'
 };
 
-const MATURITY_LABELS = ['', 'Traditional', 'Initial', 'Advanced', 'Optimal'];
-const MATURITY_COLORS = ['', '#dc2626', '#f59e0b', '#3b82f6', '#10b981'];
+const CISA_LABELS = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
 
-function maturityLabel(score) {
-  if (score < 1.5) return 'Traditional';
-  if (score < 2.5) return 'Initial';
-  if (score < 3.5) return 'Advanced';
-  return 'Optimal';
+// Use labels passed from analyze response; fall back to first framework with 4 labels, then CISA defaults
+function resolveMaturityLabels(passedLabels, frameworkIds = []) {
+  if (Array.isArray(passedLabels) && passedLabels.length === 4) return passedLabels;
+  for (const id of frameworkIds) {
+    const fw = frameworksData.frameworks.find(f => f.id === id);
+    if (fw?.maturityLabels?.length === 4) return fw.maturityLabels;
+  }
+  return CISA_LABELS;
+}
+
+function maturityLabel(score, labels = CISA_LABELS) {
+  if (score < 1.5) return labels[0];
+  if (score < 2.5) return labels[1];
+  if (score < 3.5) return labels[2];
+  return labels[3];
 }
 
 function maturityColor(score) {
@@ -44,13 +59,15 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative }) {
+function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, maturityLabels: passedLabels }) {
   const { orgProfile, frameworkIds, assessedAt } = meta;
   const dateStr = new Date(assessedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const frameworks = (frameworkIds || []).join(', ').toUpperCase() || 'N/A';
 
+  const labels = resolveMaturityLabels(passedLabels, frameworkIds || []);
+
   const overallColor = maturityColor(overallScore);
-  const overallLabel = maturityLabel(overallScore);
+  const overallLabel = maturityLabel(overallScore, labels);
 
   const pillars = ['identity', 'devices', 'networks', 'applications', 'data', 'visibility'];
 
@@ -66,7 +83,7 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative }) {
             <div style="flex:1;background:#e5e7eb;border-radius:4px;height:8px;">
               <div style="width:${barWidth}%;background:${maturityColor(s.current)};height:8px;border-radius:4px;"></div>
             </div>
-            <span style="font-size:12px;font-weight:600;color:${maturityColor(s.current)};min-width:70px;">${escapeHtml(maturityLabel(s.current))} (${s.current.toFixed(1)})</span>
+            <span style="font-size:12px;font-weight:600;color:${maturityColor(s.current)};min-width:70px;">${escapeHtml(maturityLabel(s.current, labels))} (${s.current.toFixed(1)})</span>
           </div>
         </td>
         <td style="padding:10px 12px;color:#6b7280;">Advanced (3.0)</td>
@@ -197,7 +214,7 @@ exportRouter.post('/pdf', async (req, res) => {
 
     const pdfBuffer = Buffer.from(await page.pdf({
       format: 'A4',
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
+      margin: { top: '12mm', right: '0', bottom: '12mm', left: '0' },
       printBackground: true
     }));
 

@@ -454,6 +454,45 @@
         { "value": 3, "label": "Continuous compliance monitoring with dashboard and automated evidence collection", "description": "Real-time compliance posture visibility" },
         { "value": 4, "label": "Policy-as-code with automated remediation and continuous compliance attestation across all ZT pillars", "description": "Compliance enforced continuously as code" }
       ]
+    },
+    {
+      "id": "vis-03",
+      "pillar": "visibility",
+      "sequence": 36,
+      "text": "Is User and Entity Behavior Analytics (UEBA) deployed to detect insider threats and compromised accounts?",
+      "rationale": "ZT assumes breach — UEBA detects anomalous behavior that bypasses perimeter controls, identifying compromised credentials and insider risk before damage occurs.",
+      "options": [
+        { "value": 1, "label": "No behavioral analytics — threat detection relies on signature-based rules only", "description": "No anomaly detection capability" },
+        { "value": 2, "label": "Basic anomaly detection for privileged accounts only", "description": "Limited behavioral baseline coverage" },
+        { "value": 3, "label": "UEBA deployed across user and service accounts with risk scoring and alerting", "description": "Broad behavioral analytics coverage" },
+        { "value": 4, "label": "UEBA integrated with ZT policy engine — risk score dynamically adjusts access rights in real time", "description": "Adaptive access driven by behavioral risk" }
+      ]
+    },
+    {
+      "id": "vis-04",
+      "pillar": "visibility",
+      "sequence": 37,
+      "text": "Are defined SLAs in place for mean time to detect (MTTD) and mean time to respond (MTTR) to security incidents?",
+      "rationale": "ZT requires measurable security operations. Without SLAs, organizations cannot quantify or improve detection and response capability over time.",
+      "options": [
+        { "value": 1, "label": "No defined SLAs — incident response is fully ad-hoc", "description": "Unmeasured response capability" },
+        { "value": 2, "label": "Informal MTTD/MTTR targets exist but are not formally tracked or reported", "description": "Aspirational targets without measurement" },
+        { "value": 3, "label": "Formal MTTD/MTTR SLAs defined, measured, and reported to security leadership", "description": "Governed and measured response performance" },
+        { "value": 4, "label": "SLAs continuously optimized through automated playbooks, tabletop exercises, and post-incident reviews", "description": "Continuously improving response capability" }
+      ]
+    },
+    {
+      "id": "vis-05",
+      "pillar": "visibility",
+      "sequence": 38,
+      "text": "Is threat intelligence integrated into detection and response workflows?",
+      "rationale": "Operationalized threat intelligence transforms raw indicators into actionable detections, reducing dwell time for known threat actor TTPs relevant to the organization's sector.",
+      "options": [
+        { "value": 1, "label": "No threat intelligence feeds — detection relies on default vendor signatures only", "description": "No external intelligence operationalized" },
+        { "value": 2, "label": "Threat intelligence feeds subscribed to but manually reviewed — not automated into detection rules", "description": "Intelligence consumed but not operationalized" },
+        { "value": 3, "label": "Threat intelligence automatically ingested into SIEM with IOC matching and TTP-based detection rules", "description": "Operationalized intelligence pipeline" },
+        { "value": 4, "label": "Threat intelligence platform (TIP) with automated rule generation, proactive threat hunting, and sector-specific feeds", "description": "Intelligence-led security operations" }
+      ]
     }
   ]
 }

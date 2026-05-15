@@ -18,6 +18,20 @@ const client = ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'your_key_here'
 const PILLAR_ORDER = ['identity', 'devices', 'networks', 'applications', 'data', 'visibility'];
 const TARGET_MATURITY = 3; // Advanced — realistic ZT target for most organizations
 
+// In-flight guard — prevents concurrent Claude calls from double-submits
+let analysisInFlight = false;
+
+// Resolve maturity labels from the first selected framework that has 4 labels;
+// falls back to CISA ZTMM labels if none match.
+const CISA_LABELS = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+function resolveMaturityLabels(frameworkIds = []) {
+  for (const id of frameworkIds) {
+    const fw = frameworksData.frameworks.find(f => f.id === id);
+    if (fw?.maturityLabels?.length === 4) return fw.maturityLabels;
+  }
+  return CISA_LABELS;
+}
+
 export const analyzeRouter = Router();
 
 function scoreAnswers(answers) {
@@ -67,14 +81,14 @@ function pillarLabel(id) {
   return frameworksData.pillars.find(p => p.id === id)?.label || id;
 }
 
-function maturityLabel(score) {
-  if (score < 1.5) return 'Traditional';
-  if (score < 2.5) return 'Initial';
-  if (score < 3.5) return 'Advanced';
-  return 'Optimal';
+function maturityLabel(score, labels = CISA_LABELS) {
+  if (score < 1.5) return labels[0];
+  if (score < 2.5) return labels[1];
+  if (score < 3.5) return labels[2];
+  return labels[3];
 }
 
-async function generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds) {
+async function generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds, maturityLabels) {
   const frameworkNames = frameworkIds
     .map(id => frameworksData.frameworks.find(f => f.id === id)?.shortName)
     .filter(Boolean)
@@ -82,7 +96,7 @@ async function generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds
 
   const pillarSummary = PILLAR_ORDER.map(p => {
     const s = pillarScores[p];
-    return `${pillarLabel(p)}: ${maturityLabel(s.current)} (${s.current.toFixed(1)}/4.0) → target ${maturityLabel(s.target)}`;
+    return `${pillarLabel(p)}: ${maturityLabel(s.current, maturityLabels)} (${s.current.toFixed(1)}/4.0) → target ${maturityLabel(s.target, maturityLabels)}`;
   }).join('\n');
 
   const topGaps = PILLAR_ORDER
@@ -132,6 +146,12 @@ Keep the total under 350 words.`;
 }
 
 analyzeRouter.post('/', async (req, res) => {
+  // In-flight guard — reject concurrent submissions
+  if (analysisInFlight) {
+    return res.status(429).json({ error: 'Analysis already in progress. Please wait.' });
+  }
+
+  analysisInFlight = true;
   try {
     const { orgProfile, answers, frameworkIds } = req.body;
 
@@ -139,6 +159,14 @@ analyzeRouter.post('/', async (req, res) => {
       return res.status(400).json({ error: 'answers object required' });
     }
 
+    // Input validation — warn if answer count doesn't match question bank
+    const expectedCount = questions.length;
+    const receivedCount = Object.keys(answers).length;
+    if (receivedCount !== expectedCount) {
+      console.warn(`Incomplete answers: ${receivedCount}/${expectedCount} — defaulting missing to maturity 1`);
+    }
+
+    const maturityLabels = resolveMaturityLabels(frameworkIds || []);
     const pillarScores = scoreAnswers(answers);
     const roadmap = getControls(pillarScores);
 
@@ -147,7 +175,7 @@ analyzeRouter.post('/', async (req, res) => {
     let narrative = null;
     if (client) {
       try {
-        narrative = await generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds || []);
+        narrative = await generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds || [], maturityLabels);
       } catch (narrativeErr) {
         console.warn('Narrative generation skipped:', narrativeErr.message);
         // Non-fatal — scoring and roadmap are returned regardless
@@ -159,6 +187,7 @@ analyzeRouter.post('/', async (req, res) => {
       roadmap,
       overallScore: Math.round(overallScore * 10) / 10,
       narrative,
+      maturityLabels,
       meta: {
         orgProfile,
         frameworkIds,
@@ -168,5 +197,7 @@ analyzeRouter.post('/', async (req, res) => {
   } catch (err) {
     console.error('Analysis error:', err);
     res.status(500).json({ error: 'Analysis failed', detail: err.message });
+  } finally {
+    analysisInFlight = false;
   }
 });

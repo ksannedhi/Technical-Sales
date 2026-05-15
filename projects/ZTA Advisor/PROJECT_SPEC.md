@@ -26,7 +26,7 @@ Step 1: Org Profile
   → org name, industry, size, geography
   → geo auto-suggests frameworks (overridable)
 
-Step 2: Assessment (35 questions, 6 pillars)
+Step 2: Assessment (38 questions, 6 pillars)
   → pillar-by-pillar navigation via pill tabs (Identity, Devices, Networks,
     Applications & Workloads, Data, Visibility & Analytics)
   → global progress bar across the top — fills as questions are answered,
@@ -90,7 +90,7 @@ Geo → framework auto-suggestion:
 | GET | `/api/health` | Liveness check |
 | GET | `/api/frameworks` | All frameworks + pillar definitions + geo options |
 | GET | `/api/frameworks/suggest?geo=` | Suggested frameworks for a geo |
-| GET | `/api/questions` | Full 35-question bank |
+| GET | `/api/questions` | Full 38-question bank |
 | POST | `/api/analyze` | Score answers, generate roadmap, call Claude |
 | POST | `/api/export/pdf` | Render PDF from results payload |
 

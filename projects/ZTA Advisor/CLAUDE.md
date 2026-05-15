@@ -26,7 +26,7 @@ frontend/src/
   App.jsx                   — step router (Profile → Assessment → Results)
   components/
     OrgProfile.jsx          — Step 1: org name, industry, size, geo → framework suggest
-    QuestionnaireWizard.jsx — Step 2: 35-question unified bank, pillar-by-pillar
+    QuestionnaireWizard.jsx — Step 2: 38-question unified bank, pillar-by-pillar
     ResultsPanel.jsx        — Step 3: gap table, roadmap, narrative, PDF export
 
 backend/
@@ -55,6 +55,7 @@ identity → devices → networks → applications → data → visibility
 
 ## Adding questions
 Edit `backend/data/questions.json`. Each question needs: id, pillar, sequence, text, rationale, options (array with value 1–4).
+Current bank: 38 questions across 6 pillars (identity×7, devices×7, networks×6, applications×7, data×6, visibility×5).
 
 ## Adding controls
 Edit `backend/data/controls.json`. Keys are `"pillarId": { "N-to-N+1": [...] }`.

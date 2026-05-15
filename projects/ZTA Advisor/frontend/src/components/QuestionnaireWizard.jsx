@@ -108,21 +108,17 @@ export default function QuestionnaireWizard({
         }} />
       </div>
 
-      {/* Pillar nav — can only jump to completed pillars or the current one */}
+      {/* Pillar nav — all pillars freely navigable; completion enforced only at submit */}
       <div className="pillar-nav">
         {PILLAR_ORDER.map(p => {
           const complete = isPillarComplete(p);
           const isCurrent = activePillar === p;
-          const canClick = isCurrent || complete;
           return (
             <button
               key={p}
               className={`pillar-nav-btn ${isCurrent ? 'active' : ''} ${complete ? 'complete' : ''}`}
-              onClick={() => canClick && goToPillar(p)}
-              disabled={!canClick}
-              title={!canClick ? 'Complete earlier pillars first' : undefined}
+              onClick={() => goToPillar(p)}
               type="button"
-              style={!canClick ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               {complete && !isCurrent ? '✓ ' : ''}{PILLAR_LABELS[p]}
             </button>
