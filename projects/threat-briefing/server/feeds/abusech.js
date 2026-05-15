@@ -4,13 +4,13 @@ const BAZAAR_URL = 'https://mb-api.abuse.ch/api/v1/';
 
 export async function fetchAbusech() {
   try {
-    const params = new URLSearchParams({ query: 'get_recent', selector: '100' });
-    if (process.env.ABUSECH_API_KEY) params.append('api_key', process.env.ABUSECH_API_KEY);
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    if (process.env.ABUSECH_API_KEY) headers['Auth-Key'] = process.env.ABUSECH_API_KEY;
 
     const res = await fetch(BAZAAR_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    params.toString(),
+      headers,
+      body:    'query=get_recent&selector=100',
       signal:  AbortSignal.timeout(15_000)
     });
     if (!res.ok) throw new Error(`Abuse.ch HTTP ${res.status}`);
