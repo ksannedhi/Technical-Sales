@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const SESSION_KEY = 'zta-advisor-draft';
 import OrgProfile from './components/OrgProfile.jsx';
 import QuestionnaireWizard from './components/QuestionnaireWizard.jsx';
 import ResultsPanel from './components/ResultsPanel.jsx';
@@ -17,6 +19,34 @@ export default function App() {
   const [answers, setAnswers] = useState({});
   const [activePillar, setActivePillar] = useState('identity');
   const [results, setResults] = useState(null);
+  const [allFrameworks, setAllFrameworks] = useState([]);
+
+  // Restore draft session from localStorage + fetch frameworks for ResultsPanel chips
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SESSION_KEY);
+      if (saved) {
+        const { step: s, orgProfile: op, frameworkIds: fids, answers: ans, activePillar: ap } = JSON.parse(saved);
+        if (op) setOrgProfile(op);
+        if (fids?.length) setFrameworkIds(fids);
+        if (ans && Object.keys(ans).length) setAnswers(ans);
+        if (ap) setActivePillar(ap);
+        if (s && s >= 2 && s < 3) setStep(s); // never restore to results step
+      }
+    } catch {}
+    fetch('/api/frameworks')
+      .then(r => r.json())
+      .then(d => setAllFrameworks(d.frameworks || []))
+      .catch(() => {});
+  }, []);
+
+  // Auto-save to localStorage whenever session state changes
+  useEffect(() => {
+    if (!orgProfile && Object.keys(answers).length === 0) return;
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ step, orgProfile, frameworkIds, answers, activePillar }));
+    } catch {}
+  }, [step, orgProfile, frameworkIds, answers, activePillar]);
 
   function handleProfileComplete(profile, frameworks) {
     setOrgProfile(profile);
@@ -36,6 +66,7 @@ export default function App() {
     setAnswers({});
     setActivePillar('identity');
     setResults(null);
+    try { localStorage.removeItem(SESSION_KEY); } catch {}
   }
 
   return (
@@ -46,7 +77,6 @@ export default function App() {
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
           ZTA Advisor
-          <span className="topbar-brand-badge">Beta</span>
         </div>
         {step > 1 && (
           <span className="topbar-step-info">
@@ -82,6 +112,7 @@ export default function App() {
             results={results}
             orgProfile={orgProfile}
             frameworkIds={frameworkIds}
+            allFrameworks={allFrameworks}
             onReset={handleReset}
           />
         )}

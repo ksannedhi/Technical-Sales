@@ -88,6 +88,20 @@ function maturityLabel(score, labels = CISA_LABELS) {
   return labels[3];
 }
 
+const INDUSTRY_CONTEXT = {
+  'Financial Services': 'ZT gaps directly expose the organization to regulatory sanctions (PCI-DSS, SOX, DORA), fraud risk, and systemic breach liability. Threat actors prioritize financial institutions for credential theft and data exfiltration.',
+  'Healthcare': 'ZT gaps create HIPAA/HL7 exposure and patient safety risk. Ransomware targeting clinical systems has caused measurable care disruptions — access control and network segmentation are life-safety issues.',
+  'Government / Public Sector': 'ZT gaps conflict with executive mandates (e.g., EO 14028, CISA ZTMM) and expose sensitive citizen data and critical infrastructure to nation-state actors.',
+  'Defense / DoD': 'ZT gaps create classified data spillage risk and non-compliance with DoD ZT Reference Architecture mandates. Nation-state adversaries actively target defense supply chains.',
+  'Energy & Utilities': 'OT/IT convergence makes ZT gaps a critical infrastructure risk. NERC CIP compliance and ICS/SCADA protection require strict network segmentation between IT and operational environments.',
+  'Retail & E-commerce': 'ZT gaps expose payment card data (PCI-DSS) and customer PII at scale. Supply chain attacks and e-commerce fraud are primary threat vectors requiring strong application and API security.',
+  'Technology': 'ZT gaps in developer environments and CI/CD pipelines create intellectual property theft and supply chain compromise risk. Insider threats and compromised developer credentials are top attack vectors.',
+  'Manufacturing': 'ZT gaps at the IT/OT boundary create production disruption risk. Ransomware targeting manufacturing causes significant operational losses and supply chain cascades.',
+  'Education': 'ZT gaps expose student PII and research IP. Academic networks are highly permissive by design, making micro-segmentation and identity controls the most impactful ZT investments.',
+  'Telecommunications': 'ZT gaps in carrier infrastructure risk subscriber data exposure and network availability. Regulatory obligations and interconnect security require strong identity and encryption controls.',
+  'Legal & Professional Services': 'ZT gaps expose privileged client data and work product. Targeted attacks by adversaries seeking M&A intelligence or litigation strategy make data classification and access control critical.',
+};
+
 async function generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds, maturityLabels) {
   const frameworkNames = frameworkIds
     .map(id => frameworksData.frameworks.find(f => f.id === id)?.shortName)
@@ -114,12 +128,15 @@ async function generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds
 Write in a clear, authoritative, and concise tone suitable for a CISO or CTO audience.
 Be specific and data-driven. Avoid vague filler phrases. Do not use bullet points in the narrative — write in paragraphs.`;
 
+  const industryContext = INDUSTRY_CONTEXT[orgProfile.industry] || '';
+
   const userPrompt = `Prepare a Zero Trust maturity assessment narrative for the following organization:
 
 Organization: ${orgProfile.orgName || 'the organization'}
 Industry: ${orgProfile.industry || 'not specified'}
 Size: ${orgProfile.orgSize || 'not specified'}
 Frameworks: ${frameworkNames}
+${industryContext ? `Industry risk context: ${industryContext}` : ''}
 
 Current ZT maturity by pillar (scale 1-4):
 ${pillarSummary}

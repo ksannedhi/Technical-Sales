@@ -18,12 +18,46 @@ const TIMELINE_CONFIG = [
 
 const ROADMAP_CAP = 5;
 const CISA_LABELS = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+const RADAR_LABELS = {
+  identity: 'Identity', devices: 'Devices', networks: 'Networks',
+  applications: 'Apps', data: 'Data', visibility: 'Visibility'
+};
 
 function maturityLabel(score, labels = CISA_LABELS) {
   if (score < 1.5) return labels[0];
   if (score < 2.5) return labels[1];
   if (score < 3.5) return labels[2];
   return labels[3];
+}
+
+function RadarChart({ pillarScores }) {
+  const SIZE = 280, cx = 140, cy = 140, R = 95;
+  const pillars = PILLAR_ORDER;
+  const N = pillars.length;
+
+  function toXY(i, fraction) {
+    const rad = (-90 + i * (360 / N)) * Math.PI / 180;
+    return [cx + R * fraction * Math.cos(rad), cy + R * fraction * Math.sin(rad)];
+  }
+
+  function points(fractions) {
+    return fractions.map((f, i) => toXY(i, f).join(',')).join(' ');
+  }
+
+  const scores = pillars.map(p => (pillarScores[p]?.current || 1) / 4);
+  const grids = [0.25, 0.5, 0.75, 1];
+
+  return (
+    <svg width={SIZE} height={SIZE} style={{ display: 'block', margin: '0 auto' }}>
+      {grids.map(f => <polygon key={f} points={points(pillars.map(() => f))} fill="none" stroke="#e5e7eb" strokeWidth="1" />)}
+      {pillars.map((_, i) => { const [x, y] = toXY(i, 1); return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#e5e7eb" strokeWidth="1" />; })}
+      <polygon points={points(pillars.map(() => 3 / 4))} fill="#3b82f610" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4 3" />
+      <polygon points={points(scores)} fill="#0f172a20" stroke="#0f172a" strokeWidth="2" />
+      {pillars.map((p, i) => { const f = (pillarScores[p]?.current || 1) / 4; const [x, y] = toXY(i, f); return <circle key={p} cx={x} cy={y} r="4" fill={maturityColor(pillarScores[p]?.current || 1)} stroke="#fff" strokeWidth="1.5" />; })}
+      {pillars.map((p, i) => { const [x, y] = toXY(i, 1.25); return <text key={p} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="11" fill="#374151" fontWeight="600">{RADAR_LABELS[p]}</text>; })}
+      {grids.map(f => { const [x, y] = toXY(0, f); return <text key={f} x={x + 5} y={y} fontSize="9" fill="#9ca3af" dominantBaseline="middle">{f * 4}</text>; })}
+    </svg>
+  );
 }
 
 function maturityColor(score) {
@@ -40,12 +74,13 @@ function gapBadge(gap) {
   return { label: 'On Target', color: '#10b981', bg: '#f0fdf4' };
 }
 
-export default function ResultsPanel({ results, orgProfile, frameworkIds, onReset }) {
+export default function ResultsPanel({ results, orgProfile, frameworkIds, allFrameworks = [], onReset }) {
   const { pillarScores, roadmap, overallScore, narrative, maturityLabels } = results;
   const labels = Array.isArray(maturityLabels) && maturityLabels.length === 4 ? maturityLabels : CISA_LABELS;
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError] = useState(null);
   const [expanded, setExpanded] = useState({ short: false, medium: false, long: false });
+  const [notes, setNotes] = useState('');
 
   const overallColor = maturityColor(overallScore);
   const overallLabel = maturityLabel(overallScore, labels);
@@ -58,7 +93,7 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
       const res = await fetch('/api/export/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...results, meta: { orgProfile, frameworkIds, assessedAt: new Date().toISOString() } })
+        body: JSON.stringify({ ...results, notes, meta: { orgProfile, frameworkIds, assessedAt: new Date().toISOString() } })
       });
       if (!res.ok) throw new Error('PDF generation failed');
       const blob = await res.blob();
@@ -113,13 +148,26 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
           </p>
           {frameworkIds?.length > 0 && (
             <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {frameworkIds.map(id => (
-                <span key={id} style={{ background: '#1e3a5f', color: '#93c5fd', fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
-                  {id.toUpperCase()}
-                </span>
-              ))}
+              {frameworkIds.map(id => {
+                const fw = allFrameworks.find(f => f.id === id);
+                return (
+                  <span key={id} style={{ background: '#1e3a5f', color: '#93c5fd', fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>
+                    {fw?.shortName || id.toUpperCase()}
+                  </span>
+                );
+              })}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Radar chart */}
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="card-title">Maturity Radar</div>
+        <RadarChart pillarScores={pillarScores} />
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20, marginTop: 12, fontSize: 11, color: 'var(--muted)' }}>
+          <span><span style={{ display: 'inline-block', width: 24, height: 2, background: '#0f172a', verticalAlign: 'middle', marginRight: 4 }} />Current</span>
+          <span><span style={{ display: 'inline-block', width: 24, height: 2, background: '#3b82f6', borderTop: '2px dashed #3b82f6', verticalAlign: 'middle', marginRight: 4 }} />Target (3.0)</span>
         </div>
       </div>
 
@@ -164,7 +212,7 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
                       </span>
                     </div>
                   </td>
-                  <td style={{ color: 'var(--muted)', fontSize: 13 }}>Advanced (3.0)</td>
+                  <td style={{ color: 'var(--muted)', fontSize: 13 }}>{labels[2]} (3.0)</td>
                   <td>
                     <span className="badge" style={{ background: badge.bg, color: badge.color }}>
                       {badge.label}
@@ -234,6 +282,18 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, onRese
             All pillars are at or above target maturity. Excellent ZT posture!
           </div>
         )}
+      </div>
+
+      {/* PE session notes */}
+      <div className="card" style={{ marginTop: 20 }}>
+        <div className="card-title">Session Notes <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--muted)' }}>— PE only · included in PDF export</span></div>
+        <textarea
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder="Capture key prospect statements, agreed next steps, follow-up owners, or context not covered by the structured questions…"
+          rows={5}
+          style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', fontSize: 13, padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text)', background: 'var(--surface)', lineHeight: 1.6 }}
+        />
       </div>
     </div>
   );

@@ -59,10 +59,12 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, maturityLabels: passedLabels }) {
+function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, maturityLabels: passedLabels, notes }) {
   const { orgProfile, frameworkIds, assessedAt } = meta;
   const dateStr = new Date(assessedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const frameworks = (frameworkIds || []).join(', ').toUpperCase() || 'N/A';
+  const frameworks = (frameworkIds || [])
+    .map(id => frameworksData.frameworks.find(f => f.id === id)?.shortName || id.toUpperCase())
+    .join(', ') || 'N/A';
 
   const labels = resolveMaturityLabels(passedLabels, frameworkIds || []);
 
@@ -86,7 +88,7 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
             <span style="font-size:12px;font-weight:600;color:${maturityColor(s.current)};min-width:70px;">${escapeHtml(maturityLabel(s.current, labels))} (${s.current.toFixed(1)})</span>
           </div>
         </td>
-        <td style="padding:10px 12px;color:#6b7280;">Advanced (3.0)</td>
+        <td style="padding:10px 12px;color:#6b7280;">${escapeHtml(labels[2])} (3.0)</td>
         <td style="padding:10px 12px;">
           <span style="background:${badge.color}20;color:${badge.color};font-weight:600;padding:3px 10px;border-radius:12px;font-size:12px;">${badge.label}</span>
         </td>
@@ -191,6 +193,13 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
     <h2 style="font-size:16px;font-weight:700;color:#111827;border-bottom:2px solid #e5e7eb;padding-bottom:8px;margin-bottom:16px;">Prioritized Remediation Roadmap</h2>
     ${roadmapHtml}
   </section>
+
+  ${notes ? `
+  <!-- PE Session Notes -->
+  <section style="margin-bottom:36px;">
+    <h2 style="font-size:16px;font-weight:700;color:#111827;border-bottom:2px solid #e5e7eb;padding-bottom:8px;margin-bottom:16px;">Session Notes</h2>
+    <div style="font-size:13px;color:#374151;line-height:1.8;white-space:pre-wrap;background:#f9fafb;border-radius:6px;padding:14px 16px;border-left:3px solid #e5e7eb;">${escapeHtml(notes)}</div>
+  </section>` : ''}
 
   <!-- Footer -->
   <div style="border-top:1px solid #e5e7eb;padding-top:16px;font-size:11px;color:#9ca3af;display:flex;justify-content:space-between;">

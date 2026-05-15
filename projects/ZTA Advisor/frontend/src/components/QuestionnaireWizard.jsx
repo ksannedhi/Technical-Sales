@@ -34,6 +34,14 @@ export default function QuestionnaireWizard({
       });
   }, []);
 
+  // Warn before accidental page close if assessment is in progress
+  useEffect(() => {
+    if (Object.keys(answers).length === 0) return;
+    const handler = e => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [answers]);
+
   function pillarQuestions(pillar) {
     return questions.filter(q => q.pillar === pillar);
   }
@@ -121,6 +129,9 @@ export default function QuestionnaireWizard({
               type="button"
             >
               {complete && !isCurrent ? '✓ ' : ''}{PILLAR_LABELS[p]}
+              <span style={{ fontSize: 10, opacity: 0.7, marginLeft: 4 }}>
+                ({pillarQuestions(p).filter(q => answers[q.id] !== undefined).length}/{pillarQuestions(p).length})
+              </span>
             </button>
           );
         })}
