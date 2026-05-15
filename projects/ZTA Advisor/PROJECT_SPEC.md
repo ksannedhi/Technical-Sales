@@ -27,9 +27,16 @@ Step 1: Org Profile
   → geo auto-suggests frameworks (overridable)
 
 Step 2: Assessment (35 questions, 6 pillars)
-  → pillar-by-pillar navigation
-  → structured options (1–4 maturity mapping)
-  → all pillars must be complete to submit
+  → pillar-by-pillar navigation via pill tabs (Identity, Devices, Networks,
+    Applications & Workloads, Data, Visibility & Analytics)
+  → global progress bar across the top — fills as questions are answered,
+    turns green when all 35 are complete
+  → answered / total count per pillar shown next to the pillar header bar
+  → remaining question count shown below the navigation buttons
+  → pillar tab turns green with ✓ prefix when all questions in it are answered
+  → structured options (1–4 maturity mapping) per question
+  → all pillars must be complete before "Generate Assessment" button enables
+  → inputs and pillar position are retained when navigating back to Step 1
 
 Step 3: Results
   → deterministic pillar scoring
