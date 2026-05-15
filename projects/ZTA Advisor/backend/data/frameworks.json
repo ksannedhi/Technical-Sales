@@ -68,7 +68,17 @@
       "description": "ISO 27001:2022 includes ZT-relevant controls in Annex A covering access control, cryptography, network security, and threat intelligence.",
       "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
       "maturityLabels": ["Non-conformant", "Partial", "Substantial", "Certified"],
-      "geos": ["APAC", "Global"]
+      "geos": ["APAC", "Global", "ME-GCC"]
+    },
+    {
+      "id": "sama-csf",
+      "name": "SAMA Cyber Security Framework",
+      "shortName": "SAMA CSF",
+      "version": "1.0",
+      "description": "The Saudi Arabian Monetary Authority Cyber Security Framework mandates ZT-aligned controls for financial institutions across the GCC, covering identity, access, data protection, and continuous monitoring.",
+      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "maturityLabels": ["None", "Partial", "Defined", "Managed"],
+      "geos": ["ME-GCC"]
     }
   ],
   "geoMapping": {
@@ -77,6 +87,7 @@
     "UK": ["ncsc-zt"],
     "EU": ["enisa-zt", "nis2"],
     "APAC": ["iso-27001"],
+    "ME-GCC": ["sama-csf", "nist-800-207", "iso-27001"],
     "Global": ["nist-800-207", "iso-27001"]
   },
   "geoOptions": [
@@ -85,6 +96,7 @@
     { "value": "UK", "label": "United Kingdom" },
     { "value": "EU", "label": "European Union" },
     { "value": "APAC", "label": "Asia-Pacific" },
+    { "value": "ME-GCC", "label": "Middle East / GCC" },
     { "value": "Global", "label": "Global / Multi-region" }
   ],
   "pillars": [

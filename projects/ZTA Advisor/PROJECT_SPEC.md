@@ -80,6 +80,7 @@ Geo → framework auto-suggestion:
 | UK | NCSC ZT |
 | EU | ENISA ZT, NIS2 |
 | APAC | ISO 27001 |
+| ME-GCC | SAMA CSF, NIST 800-207, ISO 27001 |
 | Global | NIST 800-207, ISO 27001 |
 
 ## API surface
