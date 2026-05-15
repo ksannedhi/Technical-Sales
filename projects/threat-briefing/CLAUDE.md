@@ -93,6 +93,7 @@ On every server start, `server/index.js` runs this logic before accepting reques
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Claude API key from console.anthropic.com |
 | `OTX_API_KEY` | No | AlienVault OTX — skipped gracefully if absent |
+| `ABUSECH_API_KEY` | No | MalwareBazaar API key — register free at bazaar.abuse.ch; feed returns 0 without it |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if cache is moved |
 | `TZ` | No | Set to `Asia/Kuwait` to pin process clock to AST — makes `'0 6 * * *'` fire at 06:00 AST on any host timezone |
@@ -129,7 +130,7 @@ Dark mode preference is stored in `localStorage` (`darkMode: true/false`) and ap
 | Issue | Cause | Status |
 |-------|-------|--------|
 | Feed stats show 0 after a second manual generate in quick succession | OTX rate-limits repeated API calls on the same key; returns empty result silently instead of an HTTP error | Known — wait ~15 min between manual generates |
-| Abuse.ch returning HTTP 401 | MalwareBazaar API auth requirements changed | Known — feed silently returns 0; check Abuse.ch API docs if Bazaar data is needed |
+| Abuse.ch returning HTTP 401 | MalwareBazaar API now requires authentication | Fixed — add `ABUSECH_API_KEY` to `.env` (register free at bazaar.abuse.ch). Key is appended to POST body when set; feed degrades gracefully to 0 if absent |
 | All feed counts show 0 on a quiet day | OTX and CISA KEV filter to the last 24 hours; if no new pulses or KEVs were published, 0 is correct | Expected behaviour — not a bug |
 | CISA KEV always 0 | CISA does not add new KEVs every day; some days are genuinely empty | Expected behaviour |
 | Generation fails with JSON parse error on large OTX feeds | Claude response exceeded `max_tokens` and was truncated before the closing `</result>` tag | Mitigated — `max_tokens` raised to 8000 and parser hardened to handle missing closing tag; may recur if feeds grow very large |

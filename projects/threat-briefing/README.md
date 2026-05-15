@@ -105,6 +105,7 @@ A briefing with all-zero counters is still valid. Claude generates a low-activit
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | From [console.anthropic.com](https://console.anthropic.com) |
 | `OTX_API_KEY` | No | From [otx.alienvault.com](https://otx.alienvault.com) |
+| `ABUSECH_API_KEY` | No | From [bazaar.abuse.ch](https://bazaar.abuse.ch) — free registration; feed returns 0 without it |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |
 | `TZ` | No | Set to `Asia/Kuwait` (pre-filled in `.env.example`) — pins process clock so the daily cron fires at 06:00 AST on any host timezone |
