@@ -114,3 +114,15 @@ Health check: `GET http://localhost:3004/api/health` → `{ status: "ok", domain
 ## Launcher convention
 
 Single `.cmd` file — no PS1. Follows the same pattern as `threat-briefing`. Clears ports, installs on first run, bootstraps `.env`, opens backend and frontend in separate PowerShell windows with a 3-second stagger.
+
+## Jurisdiction scoping rules
+
+Do not weaken these — they are baked into `server/prompt.js`:
+
+- **NCA-ECC and SAMA-CSF**: Saudi-only. Explicitly omitted for UAE, Kuwait, Qatar, Bahrain, Oman.
+- **CBK**: Kuwait banking only. Not for Kuwait government, CNI, or non-financial sector.
+- **PDPL-UAE**: Omitted for UAE central bank / federal government entities (exempt under Federal Decree-Law No. 45/2021). Mandatory only for private-sector UAE orgs.
+- **PDPL-QAT**: Omitted for single-country non-Qatar orgs. Requires actual Qatar branch/presence.
+- **PCI-DSS**: Contractual (not mandatory) for central bank profiles even if payment card data is selected.
+- **NIST-CSF**: Upgraded from voluntary to contractual for stock-exchange-listed entities.
+- **QATAR-NIAS**: Eligible for weight-tier upgrade on listing.

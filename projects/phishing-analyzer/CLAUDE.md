@@ -124,3 +124,11 @@ At the end of **every** session, before closing:
 - Persistent analysis history
 - Authentication or multi-user support
 - Production deployment (demo/pre-sales tool)
+
+## Engine patterns
+
+- **MITRE technique accuracy** — T1056.003 for credential harvesting (not T1078); T1657 for financial/prize fraud (not T1114); T1036.005 + T1583 for impersonation; T1027 only for malware_delivery OR confirmed CSS obfuscation.
+- **CSS junk blob detection** — `detectCssObfuscation()` in `emailParser.js`; fires if any `<style>` block has ≥ 100 commas. Surfaces as `content-css-obfuscation` finding (medium).
+- **Auth absent ≠ auth fail** — `authSignals()` tracks spfNone/dkimNone/dmarcWeakened separately from fail. Absent → medium; failed → high.
+- **Brand domain mismatch** — `isBrandDomainMismatch()` catches lookalike domains, not just free-mail senders.
+- **Dual-framework PDF** — always renders both NCA ECC and ISO 27001 sections; no framework param threading needed.

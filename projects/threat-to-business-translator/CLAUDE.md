@@ -139,3 +139,17 @@ No `.env` file required. The engine is fully deterministic and offline.
 - Authentication or multi-user support
 - Live threat feed integration
 - Production deployment (local pre-sales demo tool)
+
+## Engine patterns
+
+- **Minimum match threshold** — gate template binding behind `MINIMUM_MATCH_SCORE = 4`. Without it a single generic token silently binds the wrong template.
+- **Generic token weights** — keep catch-all tokens (CVE prefix, file extensions, "vulnerable") at weight 1 (tiebreakers only). Decisive signals (product names, technique IDs) should be 4–5.
+- **Fallback signal cap** — when no template matches, cap inherited exploitability/threat_activity at a conservative ceiling. Template values reflect confirmed incidents.
+- **Never hardcode service IDs in cross-sector lookup** — use `_SERVICE_CONCEPT_KEYWORDS` to search dynamically against the live domain's services. Hardcoded IDs from one sector don't exist in others.
+- **Resilient scenario lookup** — `_scenario_by_id()` must not raise `KeyError`. Use fallback chain: exact ID → known-safe fallback ID → `domain["scenarios"][0]`.
+- **CVSS base score is authoritative, not additive** — use it to replace keyword-inferred exploitability entirely. Active exploitation (KEV) is the only additive boost. Store `cvss_base_score` and `cvss_attack_vector` in `signal_factors`.
+- **CVSS vector false-positive guard** — score regex must not match the version prefix in a full vector string (`CVSS:3.1/AV:N/...` → score must not be 3.1). Use negative lookahead `(?!\d+\.\d*/)`.
+- **Sector-aware domain loading** — `load_domain(sector)` is the single entry point. Never call it internally when the caller already has the domain object.
+- **Conditional language detection** — always test new CVE classes for hedging phrases ("under specific configuration", "may allow"). These lower real-world exploitability and must reduce the score.
+- **Executive trigger generation** — use a sentence-aware extractor (split at `.`, truncate at word boundary) not a raw `[:N]` slice.
+- **Test with real CVEs across vendors and classes** — auth bypass, injection, path traversal, DoS, cryptographic. Check matched template, signal scores, and business context for each.

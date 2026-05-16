@@ -91,3 +91,44 @@ Copy `.env.example` → `.env` and add `ANTHROPIC_API_KEY` for full functionalit
 - Multi-user collaboration
 - Production deployment (local-first tool)
 - Vendor-specific diagram rendering (output is generic Excalidraw JSON)
+
+## Diagram quality patterns
+
+Accumulated learnings — apply when modifying generator, layout, or follow-up logic.
+
+### Cache
+- **Bump cache version in `generate.ts` after any layout or generator change** — the cache stores fully-rendered elements. Old entries serve stale colors, connections, and sizes until the key changes. Always bump AFTER the fix, not before (wrong diagram may already be cached).
+- **Cache key is `"generate-vN"`** — increment N in `backend/src/routes/generate.ts`.
+
+### Pattern routing (`patternLibrary.ts` + `architectureGenerator.ts`)
+- **`shouldUseModelFallback` confidence gating** — `classification.confidence < 0.8` always routes to Claude. `analysis.confidence < 0.75` alone must NOT route when classification is strong (≥ 0.88). Correct check: `if (classification.confidence < 0.88 && analysis.confidence < 0.75)`. NDR and zero-trust are in `VENDOR_AWARE_STATIC_PATTERNS` — they use the static template even with vendor-specific prompts.
+- **Pattern test regexes must use word boundaries** — broad alternates like `workload` or `visibility` create false positives against unrelated prompts. Every non-compound term needs `\b` guards or explicit phrase context.
+- **Avoid duplicate terms in techCount regex** — each match inflates the tech count. Duplicate `siem` caused "SIEM + WAF + IPS" to reach the 4-tech threshold and route to Claude incorrectly.
+
+### Static patterns (`buildScenarioArchitecture`)
+- **Never place identity or monitoring components in a security-zone that also contains security-controls** — `enforceArchitecturalConstraints` Rules 1 & 2 will silently evict them to new auto-created zones, bloating the diagram. Give each a dedicated zone in the static template directly.
+- **`"Allowed Traffic"` label is a quality red flag** — replace with specific protocol names (HTTPS, IPSec) or omit. System prompt already forbids it for Claude output; enforce the same in static patterns.
+- **Bidirectional arrows between zones look cluttered** — model auth round-trips as one directional arrow (identity→app) rather than two. The response is implicit from the flow direction.
+
+### Titles and summaries (`deriveTitle` / `deriveSummary`)
+- **`deriveTitle` overwrites the static pattern title before `layoutArchitecture` runs** — `preferredZoneOrders` match strings must target the title `deriveTitle` produces, not the original static title. Every new pattern needs entries in both `deriveTitle` and `deriveSummary`; if the title string changes, the zone order silently falls back to ZONE_TYPE_ORDER.
+
+### Layout (`layoutArchitecture.ts`)
+- **`preferredZoneOrders` is required for every static pattern** — ZONE_TYPE_ORDER alone mis-orders patterns where a security-zone belongs below a cloud zone (e.g. hybrid-identity-cloud).
+- **Monitoring zones must sort last within their type group** — Claude generates monitoring zones as `type: "security-zone"` (rank 2), which sorts above `internal` (rank 4). This produces upward arrows from app components to monitoring. Fix: push zones whose id/label contains `"monitor"` to the end within their type group in `sortZones`.
+- **`routeArrow` upward path starts at `from.y` (top of box)** — correct for genuine upward connections but a visual surprise when it happens due to wrong zone ordering. Prevent wrong zone ordering rather than patching the arrow.
+- **Same-row adjacent connections cannot carry labels** — COMPONENT_GAP_X is 42 px; a label needs ~150 px. `shouldRenderConnectionLabel` suppresses labels when gap < 80 px.
+- **Arrow label width must be explicit in the layout seed** — formula: `Math.max(160, labelText.length * 12 + 24)`.
+
+### Normalizer (`enforceArchitecturalConstraints`)
+- **Rules 1 & 2 check `c.type`, not label regex** — `c.type === "security-control"` catches "Workload Protection", "CASB", "NDR Sensor" that label regexes would miss.
+- **Rule 3 uses zone array index, not semantic level** — `architecture.zones[i]` order is authoritative. A semantic level map (data-center=5, security-zone=2) produces false positives on legitimate cross-type connections.
+- **`enforceArchitecturalConstraints` must run in the followup route** — the followup route calls Claude directly without the generator. Without calling the normalizer on Claude's output, zone violations accumulate across edits.
+
+### Follow-up (`applyFollowupInstruction`)
+- **Handle removal instructions first and return early** — keyword-based add-blocks (waf, siem, log) run unconditionally. If removal detection runs after them and `changed=true`, the `!changed` gate blocks the removal. "Remove the WAF" was adding WAF instead of removing it.
+- **Zone lookup must use `type`, not `id`** — `zones.find(z => z.id === "internal")` returns undefined for most patterns (partner-api, sandbox, zero-trust, etc.). Use `zone.type === "internal"` with a `"security-zone"` fallback, then `zones[zones.length - 1]`.
+
+### Excalidraw rendering (`frontend/src/lib/excalidraw.ts`)
+- **`convertToExcalidrawElements` ignores input width** — it re-measures with internal font metrics (5–15 px narrower than browser canvas). Post-process: override text element widths with layout-computed values after conversion.
+- **`strokeStyle` must be passed explicitly for rectangles** — omitting it causes dashed-border components (logical constructs like VPN tunnels) to render solid.
