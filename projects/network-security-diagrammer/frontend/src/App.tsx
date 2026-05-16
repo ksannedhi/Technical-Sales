@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PromptAnalysis } from "@shared/types/analysis";
 import type { DiagramResponse } from "@shared/types/diagram";
 import { AssumptionsPanel } from "./components/AssumptionsPanel";
@@ -24,10 +24,20 @@ export default function App() {
   const [analysis, setAnalysis] = useState<PromptAnalysis | null>(null);
   const [diagram, setDiagram] = useState<DiagramResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refinedFromPrompt, setRefinedFromPrompt] = useState<string | null>(null);
   const assumptions = diagram?.architecture.assumptions ?? [];
   const appliedChanges = diagram?.architecture.appliedChanges ?? [];
+
+  useEffect(() => {
+    if (!loading) {
+      setIsAiLoading(false);
+      return;
+    }
+    const timer = setTimeout(() => setIsAiLoading(true), 3000);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   async function submitPrompt() {
     const submittedPrompt = prompt.trim();
@@ -201,6 +211,15 @@ export default function App() {
                 onSubmit={applyFollowUp}
               />
             </>
+          ) : loading ? (
+            <section className="panel loading-state">
+              <div className="loading-spinner" />
+              <p className="loading-message">
+                {isAiLoading
+                  ? "Designing with AI — this may take a few seconds…"
+                  : "Analyzing your prompt…"}
+              </p>
+            </section>
           ) : (
             <section className="panel empty-state">
               <svg className="empty-state-icon" viewBox="0 0 120 80" fill="none" aria-hidden="true">

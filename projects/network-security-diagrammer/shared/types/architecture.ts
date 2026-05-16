@@ -21,6 +21,7 @@ export interface ArchitectureZone {
   id: string;
   label: string;
   type: ZoneType;
+  row?: number; // zones sharing the same row value render side-by-side
 }
 
 export interface ArchitectureComponent {

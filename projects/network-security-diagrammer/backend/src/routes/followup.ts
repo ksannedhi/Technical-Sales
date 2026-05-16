@@ -3,6 +3,7 @@ import type { DiagramResponse } from "../../../shared/types/diagram.js";
 import { layoutArchitecture } from "../layout/layoutArchitecture.js";
 import { followupRequestSchema } from "../schemas/architectureSchema.js";
 import { editArchitectureWithModel } from "../services/followupEditor.js";
+import { enforceArchitecturalConstraints } from "../services/architectureGenerator.js";
 import { createCacheKey, readCache, writeCache } from "../services/cache.js";
 import { getModelCacheIdentity } from "../services/anthropic.js";
 import type { PromptAnalysis } from "../../../shared/types/analysis.js";
@@ -41,7 +42,8 @@ export async function followupRoute(req: Request, res: Response) {
       return res.json(cached);
     }
 
-    const architecture = await editArchitectureWithModel(parsed.data.architecture, parsed.data.instruction);
+    const rawArchitecture = await editArchitectureWithModel(parsed.data.architecture, parsed.data.instruction);
+    const architecture = enforceArchitecturalConstraints(rawArchitecture);
     const { layout, elements } = layoutArchitecture(architecture);
     const response: DiagramResponse = {
       analysis: buildFollowupAnalysis(parsed.data),

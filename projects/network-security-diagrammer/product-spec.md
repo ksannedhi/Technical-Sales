@@ -40,12 +40,13 @@ The current flow is:
 4. lay out the model locally
 5. render the scene in Excalidraw
 
-OpenAI is optional and currently used for:
+Claude (Anthropic) is optional and currently used for:
 
-- prompt analysis
-- follow-up editing assistance
+- prompt analysis and classification (Haiku — fast, lightweight)
+- architecture generation for high-specificity or vendor-specific prompts (Sonnet)
+- follow-up editing of existing diagrams (Sonnet)
 
-OpenAI is not the primary author of the final base topology. The architecture model and layout engine are deterministic and local.
+For generic or pattern-matched prompts, architecture generation is fully local and deterministic. Claude is not involved in those cases.
 
 ## Prompt Analysis
 

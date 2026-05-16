@@ -226,6 +226,140 @@ function normalizeGeneratedArchitecture(architecture: ArchitectureModel) {
   } satisfies ArchitectureModel;
 }
 
+
+/**
+ * Post-generation structural validator.
+ *
+ * Catches classes of violations that Claude produces despite system-prompt rules.
+ * Applied to EVERY generated architecture (local patterns and Claude output alike).
+ * Idempotent — running on a correct architecture makes no changes.
+ *
+ * Rules enforced:
+ *   1. Identity components must not share a zone with network enforcement components.
+ *   2. Monitoring components must not share a zone with network enforcement components.
+ *   3. Upward connections (from a deeper zone to a shallower zone, 2+ level jump) are removed.
+ */
+export function enforceArchitecturalConstraints(architecture: ArchitectureModel): ArchitectureModel {
+  // ── Build zone → component list ──────────────────────────────────────────
+  const byZone = new Map<string, ArchitectureComponent[]>();
+  for (const comp of architecture.components) {
+    const list = byZone.get(comp.zoneId) ?? [];
+    list.push(comp);
+    byZone.set(comp.zoneId, list);
+  }
+
+  const updatedZones: ArchitectureZone[] = [...architecture.zones];
+  const updatedComponents: ArchitectureComponent[] = architecture.components.map((c) => ({ ...c }));
+
+  const getOrCreateZone = (id: string, label: string, type: ArchitectureZone["type"]): string => {
+    if (!updatedZones.find((z) => z.id === id)) {
+      updatedZones.push({ id, label, type });
+    }
+    return id;
+  };
+
+  const moveComponent = (compId: string, newZoneId: string) => {
+    const idx = updatedComponents.findIndex((c) => c.id === compId);
+    if (idx !== -1) updatedComponents[idx] = { ...updatedComponents[idx]!, zoneId: newZoneId };
+  };
+
+  // ── Rule 1 & 2: Split misplaced identity / monitoring out of enforcement zones ──
+  // Trigger on ANY security-control component in the zone — not just label-matched ones.
+  // This catches "Workload Protection", "EDR Agent", etc. that don't match the firewall regex.
+  for (const zone of architecture.zones) {
+    const zoneComps = byZone.get(zone.id) ?? [];
+    const hasAnySecurityControl = zoneComps.some((c) => c.type === "security-control");
+    if (!hasAnySecurityControl) continue;
+
+    const misplacedIdp = zoneComps.filter((c) => c.type === "identity");
+    if (misplacedIdp.length > 0) {
+      const zoneId = getOrCreateZone("identity-tier", "Identity", "security-zone");
+      for (const comp of misplacedIdp) {
+        console.log(`[normalizer] moving identity "${comp.label}" out of enforcement zone "${zone.label}"`);
+        moveComponent(comp.id, zoneId);
+      }
+    }
+
+    const misplacedMonitoring = zoneComps.filter((c) => c.type === "monitoring");
+    if (misplacedMonitoring.length > 0) {
+      const zoneId = getOrCreateZone("monitoring-tier", "Monitoring", "internal");
+      for (const comp of misplacedMonitoring) {
+        console.log(`[normalizer] moving monitoring "${comp.label}" out of enforcement zone "${zone.label}"`);
+        moveComponent(comp.id, zoneId);
+      }
+    }
+  }
+
+  // ── Rule 3: Remove upward connections using zone array order ──
+  // Claude outputs zones top-to-bottom (internet-facing first, deepest last).
+  // A connection from zone[i] → zone[j] where i > j skips backward — remove it.
+  // Newly created zones (identity-tier, monitoring-tier) are appended after original
+  // zones so connections TO them are never flagged as upward.
+  const zoneOrderIndex = new Map<string, number>();
+  architecture.zones.forEach((z, i) => zoneOrderIndex.set(z.id, i));
+  // Assign new zones indices beyond the original array length
+  updatedZones.forEach((z, i) => {
+    if (!zoneOrderIndex.has(z.id)) zoneOrderIndex.set(z.id, architecture.zones.length + i);
+  });
+
+  const compZone = new Map<string, string>();
+  for (const comp of updatedComponents) compZone.set(comp.id, comp.zoneId);
+
+  const filteredConnections = architecture.connections.filter((conn) => {
+    const fromZoneId = compZone.get(conn.from);
+    const toZoneId = compZone.get(conn.to);
+    if (!fromZoneId || !toZoneId || fromZoneId === toZoneId) return true;
+
+    const fromIdx = zoneOrderIndex.get(fromZoneId) ?? 0;
+    const toIdx = zoneOrderIndex.get(toZoneId) ?? 0;
+
+    if (fromIdx > toIdx) {
+      console.log(`[normalizer] removing upward connection "${conn.from}" → "${conn.to}" (zone[${fromIdx}] → zone[${toIdx}])`);
+      return false;
+    }
+    return true;
+  });
+
+  // ── Rule 4: Auto-connect isolated security-control / identity components ──
+  // Any such component with zero connections gets wired to the nearest application
+  // or network component in a shallower zone (earlier in the zones array).
+  const connectedIds = new Set<string>();
+  for (const conn of filteredConnections) {
+    connectedIds.add(conn.from);
+    connectedIds.add(conn.to);
+  }
+
+  const autoConnections: ArchitectureConnection[] = [];
+  for (const comp of updatedComponents) {
+    if (connectedIds.has(comp.id)) continue;
+    if (comp.type !== "security-control" && comp.type !== "identity") continue;
+
+    const compZoneIdx = zoneOrderIndex.get(comp.zoneId) ?? 0;
+    // Find the best candidate: application or network component in a shallower zone
+    const candidate = updatedComponents.find((c) => {
+      if (c.id === comp.id) return false;
+      const cIdx = zoneOrderIndex.get(c.zoneId) ?? 0;
+      return (c.type === "application" || c.type === "network" || c.type === "data") && cIdx < compZoneIdx;
+    });
+
+    if (candidate) {
+      const connId = `${candidate.id}-to-${comp.id}-auto`;
+      const connStyle: "solid" | "dashed" = comp.type === "identity" ? "dashed" : "solid";
+      autoConnections.push({ id: connId, from: candidate.id, to: comp.id, style: connStyle });
+      connectedIds.add(comp.id);
+      connectedIds.add(candidate.id);
+      console.log(`[normalizer] auto-connecting isolated "${comp.label}" ← "${candidate.label}"`);
+    }
+  }
+
+  return {
+    ...architecture,
+    zones: updatedZones,
+    components: updatedComponents,
+    connections: [...filteredConnections, ...autoConnections],
+  };
+}
+
 async function generateArchitectureWithModel(
   prompt: string,
   analysis: PromptAnalysis,
@@ -234,8 +368,11 @@ async function generateArchitectureWithModel(
   const client = getAnthropicClient();
 
   if (!client) {
+    console.error("[model] Anthropic client not initialised — ANTHROPIC_API_KEY missing or empty");
     return null;
   }
+
+  console.log(`[model] calling Claude for pattern="${classification.pattern}" prompt="${prompt.slice(0, 80)}"`);
 
   try {
     const response = await client.messages.create({
@@ -253,21 +390,45 @@ async function generateArchitectureWithModel(
         "- Security controls (firewalls, gateways, proxies, policy engines) belong in their own zone between external and internal zones — never mixed into user or application zones.",
         "- Use a dedicated 'cloud' zone for cloud-hosted services; a 'branch' zone for remote sites; a 'data-center' zone for on-prem DC resources.",
         "- Keep total components between 5 and 12. Keep connections at most 14.",
+        "- HYBRID ON-PREM-TO-CLOUD zone order (VPN / ExpressRoute / Direct Connect patterns): On-Prem Data Center → Transit/Gateway layer (VPN Gateway, AWS Transit Gateway, ExpressRoute GW — this is where the tunnel terminates) → Security Enforcement (NGFW, Network Firewall, WAF) → Application/Data zone → Monitoring/Identity. The transit layer RECEIVES on-prem traffic before security inspection — placing Security Enforcement above the Transit layer creates impossible upward connections and is architecturally wrong.",
         "",
         "NAMING RULES:",
         "- Use vendor-specific names when inferable: Cisco ASA / Palo Alto NGFW for firewalls; Zscaler / Netskope for SASE/ZTNA; Splunk / Microsoft Sentinel for SIEM; CrowdStrike for EDR; F5 / Imperva for WAF; Okta / Entra ID for identity.",
         "- Preserve every explicit product name from the prompt (AWS, Azure, Fortinet, Check Point, Exchange, etc.).",
         "- Component labels must be concise — 2 to 4 words maximum. Avoid parenthetical qualifiers.",
+        "- Active-active topology: when the prompt explicitly requests active-active, label every region zone as '(Active)' — never '(Primary)' or '(Secondary)'. Primary/Secondary implies active-passive standby, which contradicts active-active.",
+        "- Parallel zone rendering: for active-active or multi-region topologies, assign the same integer `row` value (e.g. row: 1) to every sibling region zone so the renderer places them side-by-side instead of stacking them vertically. Zones without a `row` field render as full-width bands as normal.",
         "",
         "CONNECTION RULES:",
         "- Label connections with the specific protocol or control name where meaningful: IPSec/IKEv2, HTTPS, SAML 2.0, syslog/514, SD-WAN, ZTNA, BGP, SMTP, MAPI.",
         "- Use dashed style for out-of-band or monitoring flows (syslog, SNMP, telemetry); solid for primary data paths.",
         "- Only connect components that have a direct and meaningful relationship — skip transitive hops.",
+        "- Every component must have at least one connection (incoming or outgoing). An isolated component with zero connections is always an error — add the most architecturally appropriate edge. On-prem workloads/servers connect to the on-prem core router or network device. Identity providers connect to the application components they authenticate.",
+        "- Use at most ONE labeled connection between any pair of adjacent zones. Multiple labeled arrows in the same inter-zone corridor overlap and become unreadable. Combine related flows into a single connection with a composite label (e.g. 'Replication / Telemetry') or drop the label on the secondary connection.",
+        "- Active-active fan-out: when a load balancer or global router distributes to multiple active regions, add an explicit connection from that component to EACH region zone. Omitting a region's inbound connection makes it appear passive/standby even if labeled Active.",
+        "- Identity provider connections (SAML 2.0, OIDC, OAuth2) must go directly from the identity component to the consuming application component — never routed through or attributed to a WAF or firewall.",
+        "- Never generate upward connections (from a lower zone back to a higher zone). All data-plane connections flow top-to-bottom. Config distribution from a shared services zone must be modelled as a dashed out-of-band pull, not a push arrow going upward.",
         "",
         "SECURITY PERSPECTIVE:",
         "- Design as a security architect, not a network engineer. Emphasise where inspection, authentication, and policy enforcement occur.",
         "- Every architecture must have at least one security-control component (firewall, gateway, proxy, policy engine, or identity provider) marked importance: critical.",
         "- Include a securityRationale array of exactly 3 concise bullet strings explaining the key security design decisions.",
+        "- Only include components that participate in the data-plane, security-plane, or observability-plane. Infrastructure-as-code tools (Terraform, Ansible, Chef, Puppet) are out of scope — omit them.",
+        "- Any component with type 'monitoring' (SIEM, log aggregator, telemetry collector, Splunk, Sentinel, QRadar, CloudWatch, Datadog, Elastic, etc.) must always be placed in its own dedicated monitoring zone — never in the same zone as enforcement components (NGFW, WAF, IPS, workload protection, firewall). This applies regardless of the component's label.",
+        "- Identity providers (Okta, Entra ID, Ping Identity, Auth0, Duo, etc.) must never be placed in a network enforcement zone alongside firewalls, IPS, or WAF components. Place them in a dedicated identity zone (type: security-zone) or the application/internal zone.",
+        "- Connections TO a monitoring platform must always use dashed style — they are out-of-band log/telemetry flows, not primary data paths. Never model them as solid enforcement connections.",
+        "- Label enforcement-to-enforcement connections with the specific protocol or handoff name (e.g. 'Filtered Traffic', 'HTTPS', 'BGP'). Never use vague terms like 'Allowed Traffic', 'Filtered Telemetry', or 'Traffic'. If no meaningful label applies, omit the label entirely.",
+        "- Security control components (workload protection, EDR, WAF, secrets manager, identity broker, policy engine) MUST have at least one connection to the workload or application component they protect or serve. A security control with zero connections is never correct — it has no effect on anything.",
+        "",
+        "PRE-OUTPUT VERIFICATION CHECKLIST — check every item before returning JSON:",
+        "1. Fan-out: count zones labeled (Active). Count connections FROM the load balancer / global router. These two numbers must be equal — one connection per active region, no exceptions.",
+        "2. Corridor labels: for every adjacent zone pair, count connections that have a non-empty label. If count > 1, remove labels from all but the highest-priority connection in that corridor.",
+        "3. Intra-zone arrow direction: connections between components within the same zone must flow left-to-right. If component A sends traffic to B, A must be the 'from' end. Never generate a right-to-left intra-zone arrow.",
+        "4. Identity routing: search for any connection whose label contains 'SAML', 'OIDC', or 'OAuth'. Verify its 'from' is an identity component and its 'to' is an application component — not a firewall, WAF, or gateway. Also verify no identity provider (Okta, Entra ID, Ping, Auth0) shares a zone with any firewall, IPS, WAF, or proxy component — if so, move the identity provider to a separate zone.",
+        "5. No upward arrows: every connection must go from a zone higher in the list to a zone lower in the list (or within the same zone). Connections that go from a lower zone back to a higher zone are forbidden.",
+        "6. Isolated components (BLOCKING): list every component id. For each, search the connections array for any entry where 'from' or 'to' equals that id. If ANY component has zero matches — DO NOT return the JSON yet. Add the missing connection first: security controls connect to the workload/app they protect; on-prem workloads connect to the on-prem network; identity brokers connect to the app tier. Only return JSON when every component id appears at least once in connections.",
+        "7. Monitoring zone (BLOCKING): list every component with type 'monitoring'. If ANY monitoring component shares a zone with a security-control component — DO NOT return the JSON yet. Move the monitoring component to a dedicated monitoring zone (create one if needed, type: security-zone, label: 'Monitoring'). Only return JSON after this is fixed.",
+        "8. Hybrid transit order: if the architecture has both a transit/gateway zone and a security-enforcement zone, confirm the transit zone appears EARLIER in the zones array than security enforcement. Swap them if needed.",
         "",
         "ALLOWED VALUES:",
         "- zone types: external, dmz, security-zone, internal, cloud, branch, data-center",
@@ -290,7 +451,7 @@ async function generateArchitectureWithModel(
               assumptions: ["string"],
               appliedChanges: [],
               securityRationale: ["string — key security design decision, 3–4 items"],
-              zones: [{ id: "string", label: "string", type: "external|dmz|security-zone|internal|cloud|branch|data-center" }],
+              zones: [{ id: "string", label: "string", type: "external|dmz|security-zone|internal|cloud|branch|data-center", row: "number (optional — same value = side-by-side)" }],
               components: [
                 {
                   id: "string",
@@ -314,19 +475,36 @@ async function generateArchitectureWithModel(
     }
 
     const cleaned = content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
-    const parsed = architectureSchema.parse(JSON.parse(cleaned));
+
+    let rawJson: unknown;
+    try {
+      rawJson = JSON.parse(cleaned);
+    } catch (err) {
+      console.error("[model] JSON parse failed:", err instanceof Error ? err.message : err);
+      console.error("[model] raw content:", cleaned.slice(0, 500));
+      return null;
+    }
+
+    const result = architectureSchema.safeParse(rawJson);
+    if (!result.success) {
+      console.error("[model] schema validation failed:", JSON.stringify(result.error.flatten(), null, 2));
+      return null;
+    }
+
     const normalized = normalizeGeneratedArchitecture({
-      ...parsed,
+      ...result.data,
       assumptions: analysis.assumptions,
       appliedChanges: [],
     });
 
     if (!normalized) {
+      console.error("[model] normalizeGeneratedArchitecture returned null — all connections may have failed to resolve");
       return null;
     }
 
     return refreshArchitectureText(normalized, { prompt, classification });
-  } catch {
+  } catch (err) {
+    console.error("[model] unexpected error:", err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -339,6 +517,8 @@ const VENDOR_AWARE_STATIC_PATTERNS: ArchitecturePatternId[] = [
   "sase-network",
   "hybrid-identity-cloud",
   "waf-dmz",
+  "ndr-visibility",
+  "zero-trust",
 ];
 
 function hasHighSpecificity(prompt: string): boolean {
@@ -353,7 +533,9 @@ function shouldUseModelFallback(
 ) {
   if (classification.pattern === "generic-secure-architecture") return true;
   if (classification.confidence < 0.8) return true;
-  if (analysis.confidence < 0.75) return true;
+  // Only check analysis confidence for borderline pattern matches — a strong pattern match
+  // (0.88) is authoritative; don't let uncertain prompt analysis override it.
+  if (classification.confidence < 0.88 && analysis.confidence < 0.75) return true;
   // Route to Claude when prompt has vendor-specific detail that static templates can't reflect
   if (hasHighSpecificity(prompt) && !VENDOR_AWARE_STATIC_PATTERNS.includes(classification.pattern)) return true;
   // Cloud infrastructure prompts with VPC/subnet/resource-level detail
@@ -478,10 +660,6 @@ function deriveTitle(
       return "Secure Hybrid Connectivity Between On-Prem and GCP";
     }
     return "Secure Hybrid Connectivity";
-  }
-
-  if (classification?.pattern === "remote-access") {
-    return "Remote User VPN Access to Office Applications";
   }
 
   if (classification?.pattern === "email-security") {
@@ -1059,7 +1237,7 @@ function buildScenarioArchitecture(
         createConnection("home-router", "isp-infrastructure", "VPN Connection"),
         createConnection("isp-infrastructure", "encrypted-vpn-tunnel"),
         createConnection("encrypted-vpn-tunnel", "vpn-gateway", "IPSec/IKEv2"),
-        createConnection("vpn-gateway", "core-switch", "Auth & Decapsulation"),
+        createConnection("vpn-gateway", "core-switch"),
         createConnection("core-switch", "application-server"),
         createConnection("application-server", "internal-database"),
       ],
@@ -1089,9 +1267,7 @@ function buildScenarioArchitecture(
         createComponent(explicitExchange ? "Exchange Email Server" : "Internal Messaging Service", "application", "internal", "critical"),
         createComponent(explicitExchange ? "Active Directory" : "Identity Directory", "identity", "internal"),
         createComponent(explicitExchange ? "Mailbox Database" : "Message Store", "data", "internal"),
-        createComponent("Outlook Desktop", "user", "clients"),
-        createComponent("Mobile Client", "user", "clients"),
-        createComponent("Web Mail Access", "user", "clients"),
+        createComponent("End User Devices", "user", "clients"),
       ],
       connections: [
         createConnection("external-sender", "external-firewall", "SMTP"),
@@ -1116,9 +1292,7 @@ function buildScenarioArchitecture(
           explicitExchange ? "mailbox-database" : "message-store",
           "Mailbox Data",
         ),
-        createConnection(explicitExchange ? "exchange-email-server" : "internal-messaging-service", "outlook-desktop", "MAPI / HTTPS"),
-        createConnection(explicitExchange ? "exchange-email-server" : "internal-messaging-service", "mobile-client", "ActiveSync"),
-        createConnection(explicitExchange ? "exchange-email-server" : "internal-messaging-service", "web-mail-access", "HTTPS"),
+        createConnection(explicitExchange ? "exchange-email-server" : "internal-messaging-service", "end-user-devices", "MAPI / HTTPS"),
       ],
     }, { prompt, classification });
   }
@@ -1190,27 +1364,24 @@ function buildScenarioArchitecture(
         createZone("onprem", "On-Prem Data Center", "data-center"),
         createZone("connectivity", "Secure Connectivity", "security-zone"),
         createZone("cloud", cloudLabel, "cloud"),
+        createZone("monitoring", "Shared Monitoring", "security-zone"),
       ],
       components: [
-        createComponent("On-Prem Core Network", "network", "onprem"),
-        createComponent("On-Prem Application Segment", "application", "onprem"),
-        createComponent("Identity / Directory", "identity", "onprem"),
+        createComponent("On-Prem Core Network", "network", "onprem", "normal", 0),
+        createComponent("On-Prem Application Segment", "application", "onprem", "normal", 1),
         createComponent("Connectivity Gateway", "security-control", "connectivity", "critical"),
-        createComponent("Encrypted Tunnel", "security-control", "connectivity", "critical"),
         createComponent("Cloud Edge Gateway", "security-control", "cloud", "critical"),
         createComponent(networkLabel, "network", "cloud"),
         createComponent(appLabel, "application", "cloud"),
-        createComponent("Shared Monitoring", "monitoring", "cloud"),
+        createComponent("Monitoring Platform", "monitoring", "monitoring"),
       ],
       connections: [
         createConnection("on-prem-core-network", "on-prem-application-segment"),
-        createConnection("identity-directory", "on-prem-application-segment", "Policy"),
         createConnection("on-prem-core-network", "connectivity-gateway"),
-        createConnection("connectivity-gateway", "encrypted-tunnel", "Protected Connectivity"),
-        createConnection("encrypted-tunnel", "cloud-edge-gateway"),
+        createConnection("connectivity-gateway", "cloud-edge-gateway", "IPSec/IKEv2 Tunnel"),
         createConnection("cloud-edge-gateway", slug(networkLabel)),
         createConnection(slug(networkLabel), slug(appLabel)),
-        createConnection("cloud-edge-gateway", "shared-monitoring", "Telemetry", "dashed"),
+        createConnection("cloud-edge-gateway", "monitoring-platform", "Telemetry", "dashed"),
       ],
     }, { prompt, classification });
   }
@@ -1250,15 +1421,14 @@ function buildScenarioArchitecture(
         createConnection("reverse-proxy-server", "internal-firewall"),
         createConnection("internal-firewall", "application-server-cluster"),
         createConnection("application-server-cluster", "database-server"),
-        createConnection("on-prem-waf-appliance", "security-management-console", "Logs / Alerts", "dashed"),
-        createConnection("security-management-console", "on-prem-waf-appliance", "Policy Updates", "dashed"),
+        createConnection("internal-firewall", "security-management-console", "Logs / Alerts", "dashed"),
       ],
     }, { prompt, classification });
   }
 
   if (classification.pattern === "ndr-visibility") {
     return refreshArchitectureText({
-      title: "NDR Visibility Pattern",
+      title: "NDR Visibility Across Network Zones",
       summary: "",
       assumptions: analysis.assumptions,
       appliedChanges: [],
@@ -1266,23 +1436,40 @@ function buildScenarioArchitecture(
         createZone("dmz", "DMZ", "dmz"),
         createZone("core", "Core Network", "security-zone"),
         createZone("server", "Server Farm", "internal"),
+        createZone("ndr", "NDR Management", "security-zone"),
       ],
       components: [
-        createComponent("DMZ Traffic", "network", "dmz"),
-        createComponent("Core Traffic", "network", "core"),
-        createComponent("Server Farm Traffic", "network", "server"),
-        createComponent("Network Sensors", "security-control", "core", "critical"),
-        createComponent("Traffic Mirror / TAP", "network", "core"),
-        createComponent("NDR Analytics Platform", "security-control", "server", "critical"),
-        createComponent("Alerting / SOC", "monitoring", "server"),
+        // DMZ — real infrastructure + sensor rightmost
+        createComponent("Perimeter Firewall", "security-control", "dmz", "critical", 0),
+        createComponent("NDR Sensor - DMZ", "security-control", "dmz", "normal", 1),
+        // Core Network — switch + sensor rightmost
+        createComponent("Core Switch", "network", "core", "normal", 0),
+        createComponent("Internal Firewall", "security-control", "core", "critical", 1),
+        createComponent("NDR Sensor - Core", "security-control", "core", "normal", 2),
+        // Server Farm — servers + sensor rightmost
+        createComponent("Application Server", "application", "server", "normal", 0),
+        createComponent("Database Server", "data", "server", "normal", 1),
+        createComponent("NDR Sensor - Server Farm", "security-control", "server", "normal", 2),
+        // NDR Management
+        createComponent("NDR Analytics Platform", "security-control", "ndr", "critical", 0),
+        createComponent("SOC Console", "monitoring", "ndr", "normal", 1),
       ],
       connections: [
-        createConnection("dmz-traffic", "traffic-mirror-tap", "Mirrored Traffic", "dashed"),
-        createConnection("core-traffic", "traffic-mirror-tap", "Mirrored Traffic", "dashed"),
-        createConnection("server-farm-traffic", "traffic-mirror-tap", "Mirrored Traffic", "dashed"),
-        createConnection("traffic-mirror-tap", "network-sensors"),
-        createConnection("network-sensors", "ndr-analytics-platform", "Telemetry"),
-        createConnection("ndr-analytics-platform", "alerting-soc", "Findings"),
+        // Primary traffic flow (solid)
+        createConnection("perimeter-firewall", "core-switch"),
+        createConnection("core-switch", "internal-firewall"),
+        createConnection("internal-firewall", "application-server", "Allowed Traffic"),
+        createConnection("application-server", "database-server"),
+        // SPAN/mirror feeds to sensors (intra-zone, dashed)
+        createConnection("perimeter-firewall", "ndr-sensor-dmz", "SPAN / Mirror", "dashed"),
+        createConnection("core-switch", "ndr-sensor-core", "SPAN / Mirror", "dashed"),
+        createConnection("application-server", "ndr-sensor-server-farm", "SPAN / Mirror", "dashed"),
+        // Sensors feed NDR platform (dashed telemetry)
+        createConnection("ndr-sensor-dmz", "ndr-analytics-platform", "Telemetry", "dashed"),
+        createConnection("ndr-sensor-core", "ndr-analytics-platform", "Telemetry", "dashed"),
+        createConnection("ndr-sensor-server-farm", "ndr-analytics-platform", "Telemetry", "dashed"),
+        // NDR platform → SOC
+        createConnection("ndr-analytics-platform", "soc-console", "Findings"),
       ],
     }, { prompt, classification });
   }
@@ -1359,40 +1546,38 @@ function buildScenarioArchitecture(
 
   if (classification.pattern === "zero-trust") {
     return refreshArchitectureText({
-      title: "Zero Trust Access Pattern",
+      title: "Zero Trust Access Architecture",
       summary: "",
       assumptions: analysis.assumptions,
       appliedChanges: [],
       zones: [
         createZone("users", "Users / Devices", "external"),
-        createZone("control", "Identity and Policy", "security-zone"),
-        createZone("apps", "Protected Applications", "internal"),
+        createZone("identity", "Identity", "security-zone"),
+        createZone("policy", "Policy Enforcement", "security-zone"),
+        createZone("apps", "Protected Resources", "internal"),
+        createZone("monitoring", "Monitoring", "security-zone"),
       ],
       components: [
-        createComponent("Users", "user", "users"),
-        createComponent("Managed Devices", "network", "users"),
-        createComponent("Unmanaged Devices", "network", "users"),
-        createComponent("Identity Platform", "identity", "control", "critical"),
-        createComponent("Device Posture Check", "security-control", "control"),
-        createComponent("Policy Decision Point", "security-control", "control", "critical"),
-        createComponent("Access Proxy", "security-control", "control", "critical"),
-        createComponent("CASB", "security-control", "control"),
-        createComponent("Internal Apps", "application", "apps"),
-        createComponent("SaaS Apps", "application", "apps"),
-        createComponent("Audit Logging", "monitoring", "apps"),
+        createComponent("Users", "user", "users", "normal", 0),
+        createComponent("Managed Devices", "network", "users", "normal", 1),
+        createComponent("Unmanaged Devices", "network", "users", "normal", 2),
+        createComponent("Identity Platform", "identity", "identity", "critical"),
+        createComponent("Device Posture Check", "security-control", "policy", "normal", 0),
+        createComponent("Policy Decision Point", "security-control", "policy", "critical", 1),
+        createComponent("Access Proxy", "security-control", "policy", "critical", 2),
+        createComponent("Internal Apps", "application", "apps", "normal", 0),
+        createComponent("SaaS Apps", "application", "apps", "normal", 1),
+        createComponent("Audit Logging", "monitoring", "monitoring"),
       ],
       connections: [
         createConnection("users", "managed-devices"),
-        createConnection("users", "unmanaged-devices"),
         createConnection("managed-devices", "identity-platform", "Authenticate"),
         createConnection("unmanaged-devices", "identity-platform", "Authenticate"),
-        createConnection("identity-platform", "device-posture-check", "Device Context"),
-        createConnection("device-posture-check", "policy-decision-point", "Posture Signal"),
         createConnection("identity-platform", "policy-decision-point", "Identity Context"),
+        createConnection("device-posture-check", "policy-decision-point", "Posture Signal"),
         createConnection("policy-decision-point", "access-proxy", "Access Decision"),
         createConnection("access-proxy", "internal-apps", "HTTPS"),
-        createConnection("access-proxy", "casb", "Cloud App Inspect"),
-        createConnection("casb", "saas-apps", "CASB Proxy"),
+        createConnection("access-proxy", "saas-apps", "HTTPS"),
         createConnection("access-proxy", "audit-logging", "Session Logs", "dashed"),
       ],
     }, { prompt, classification });
@@ -1537,6 +1722,42 @@ function buildScenarioArchitecture(
     }, { prompt, classification });
   }
 
+  if (classification.pattern === "core-dmz") {
+    return refreshArchitectureText({
+      title: "Enterprise Core Network with DMZ",
+      summary: "",
+      assumptions: analysis.assumptions,
+      appliedChanges: [],
+      zones: [
+        createZone("internet", "Internet", "external"),
+        createZone("dmz", "DMZ", "dmz"),
+        createZone("core", "Core Network", "security-zone"),
+        createZone("internal", "Internal Servers", "internal"),
+      ],
+      components: [
+        createComponent("External Users", "user", "internet"),
+        // DMZ: traffic flows left-to-right through firewall → IDS/IPS → proxy
+        createComponent("Perimeter Firewall", "security-control", "dmz", "critical", 0),
+        createComponent("IDS / IPS", "security-control", "dmz", "normal", 1),
+        createComponent("Reverse Proxy", "network", "dmz", "normal", 2),
+        // Core: clean traffic hits switch first, then internal firewall gates the servers
+        createComponent("Core Switch", "network", "core", "normal", 0),
+        createComponent("Internal Firewall", "security-control", "core", "critical", 1),
+        createComponent("Application Server", "application", "internal"),
+        createComponent("Database Server", "data", "internal"),
+      ],
+      connections: [
+        createConnection("external-users", "perimeter-firewall", "HTTPS"),
+        createConnection("perimeter-firewall", "ids-ips", "Traffic Inspection"),
+        createConnection("ids-ips", "reverse-proxy", "Cleared"),
+        createConnection("reverse-proxy", "core-switch", "Clean Traffic"),
+        createConnection("core-switch", "internal-firewall"),
+        createConnection("internal-firewall", "application-server", "Allowed Traffic"),
+        createConnection("application-server", "database-server"),
+      ],
+    }, { prompt, classification });
+  }
+
   return refreshArchitectureText({
     title: "Generic Secure Architecture Pattern",
     summary: "",
@@ -1546,23 +1767,24 @@ function buildScenarioArchitecture(
       createZone("sources", "Sources / Users", "external"),
       createZone("control", "Security and Connectivity Layer", "security-zone"),
       createZone("services", "Protected Services", "internal"),
+      createZone("monitoring", "Monitoring", "internal"),
     ],
     components: [
       createComponent("Users / Source Systems", "user", "sources"),
       createComponent("Secure Gateway", "security-control", "control", "critical"),
       createComponent("Inspection Control", "security-control", "control", "critical"),
-      createComponent("Application Services", "application", "services"),
       createComponent("Identity Service", "identity", "services"),
-      createComponent("Monitoring Platform", "monitoring", "services"),
+      createComponent("Application Services", "application", "services"),
       createComponent("Data Services", "data", "services"),
+      createComponent("Monitoring Platform", "monitoring", "monitoring"),
     ],
     connections: [
       createConnection("users-source-systems", "secure-gateway"),
       createConnection("secure-gateway", "inspection-control"),
-      createConnection("inspection-control", "application-services", "Allowed Traffic"),
-      createConnection("identity-service", "application-services", "Policy"),
+      createConnection("inspection-control", "identity-service", "Allowed Traffic"),
+      createConnection("identity-service", "application-services", "Policy Check"),
       createConnection("application-services", "data-services"),
-      createConnection("inspection-control", "monitoring-platform", "Logs", "dashed"),
+      createConnection("application-services", "monitoring-platform", "Logs", "dashed"),
     ],
   }, { prompt, classification });
 }
@@ -1576,13 +1798,14 @@ export async function generateArchitecture(
   if (shouldUseModelFallback(analysis, classification, prompt)) {
     const modelGenerated = await generateArchitectureWithModel(prompt, analysis, classification);
     if (modelGenerated) {
-      return modelGenerated;
+      return enforceArchitecturalConstraints(modelGenerated);
     }
   }
 
   const arch = buildScenarioArchitecture(prompt, analysis, classification);
   const rationale = PATTERN_RATIONALE[classification.pattern];
-  return rationale ? { ...arch, securityRationale: rationale } : arch;
+  const result = rationale ? { ...arch, securityRationale: rationale } : arch;
+  return enforceArchitecturalConstraints(result);
 }
 
 export function applyFollowupInstruction(

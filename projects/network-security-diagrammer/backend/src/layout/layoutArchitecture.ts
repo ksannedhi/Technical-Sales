@@ -92,8 +92,16 @@ const preferredZoneOrders: Array<{
   order: string[];
 }> = [
   {
+    match: (architecture) => architecture.title.includes("Zero Trust"),
+    order: ["users", "identity", "policy", "apps", "monitoring"],
+  },
+  {
+    match: (architecture) => architecture.title.toLowerCase().includes("ndr"),
+    order: ["dmz", "core", "server", "ndr"],
+  },
+  {
     match: (architecture) => architecture.title.includes("Hybrid Connectivity"),
-    order: ["onprem", "connectivity", "cloud"],
+    order: ["onprem", "connectivity", "cloud", "monitoring"],
   },
   {
     match: (architecture) => architecture.title.includes("WAF"),
@@ -134,6 +142,14 @@ const preferredZoneOrders: Array<{
   {
     match: (architecture) => architecture.title.includes("Secure Remote Access"),
     order: ["home", "internet", "gateway", "internal"],
+  },
+  {
+    match: (architecture) => architecture.title.includes("Enterprise Network Security"),
+    order: ["sources", "control", "services", "monitoring"],
+  },
+  {
+    match: (architecture) => architecture.title.includes("Enterprise Core Network with DMZ"),
+    order: ["internet", "dmz", "core", "internal"],
   },
 ];
 
@@ -258,16 +274,35 @@ function getRows(components: ArchitectureComponent[]) {
   return rows;
 }
 
+// Default zone type order — used when no preferredZoneOrders entry matches.
+// Ensures Claude-generated architectures always render internet-facing zones first.
+const ZONE_TYPE_ORDER: Record<ArchitectureZone["type"], number> = {
+  external:        0,
+  dmz:             1,
+  "security-zone": 2,
+  branch:          3,
+  cloud:           3,
+  internal:        4,
+  "data-center":   5,
+};
+
 function sortZones(architecture: ArchitectureModel) {
   const preferred = preferredZoneOrders.find((entry) => entry.match(architecture));
-  if (!preferred) {
-    return architecture.zones;
+  if (preferred) {
+    return [...architecture.zones].sort((a, b) => {
+      const ai = preferred.order.indexOf(a.id);
+      const bi = preferred.order.indexOf(b.id);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
   }
 
+  // No preferred order — sort by zone type so external/DMZ always renders above internal.
   return [...architecture.zones].sort((a, b) => {
-    const ai = preferred.order.indexOf(a.id);
-    const bi = preferred.order.indexOf(b.id);
-    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    const ai = ZONE_TYPE_ORDER[a.type] ?? 3;
+    const bi = ZONE_TYPE_ORDER[b.type] ?? 3;
+    if (ai !== bi) return ai - bi;
+    // Stable tie-break: preserve original array order
+    return architecture.zones.indexOf(a) - architecture.zones.indexOf(b);
   });
 }
 
@@ -335,8 +370,10 @@ function rightX(box: Box) {
   return box.x + box.width;
 }
 
-function routeArrow(from: Box, to: Box, index: number): { startX: number; startY: number; points: Array<[number, number]> } {
-  const sameRow = Math.abs(from.y - to.y) < Math.max(from.height, to.height) * 0.6;
+function routeArrow(from: Box, to: Box, index: number, crossZone = false): { startX: number; startY: number; points: Array<[number, number]> } {
+  // cross-zone connections can never be same-row regardless of Y proximity —
+  // they connect components in distinct bands and must always route vertically.
+  const sameRow = !crossZone && Math.abs(from.y - to.y) < Math.max(from.height, to.height) * 0.6;
   const horizontalNeighbor =
     sameRow && (to.x >= from.x + from.width - 4 || from.x >= to.x + to.width - 4);
 
@@ -351,7 +388,8 @@ function routeArrow(from: Box, to: Box, index: number): { startX: number; startY
 
       // Non-adjacent same-row: route below the row to avoid cutting through the intermediate box.
       // Path: bottom-center of `from` → drop 20px → sweep to target left edge →
-      // rise to target center Y → enter target from the left side.
+      // arrive at target center Y. End exactly at the left edge so the arrowhead
+      // appears at the box border, not inside the box.
       if (dx > from.width + COMPONENT_GAP_X) {
         const fromBottomX = centerX(from);
         const fromBottomY = from.y + from.height;
@@ -366,7 +404,6 @@ function routeArrow(from: Box, to: Box, index: number): { startX: number; startY
             [0, DROP],
             [targetLeftX - fromBottomX, DROP],
             [targetLeftX - fromBottomX, targetCenterY - fromBottomY],
-            [centerX(to) - fromBottomX, targetCenterY - fromBottomY],
           ],
         };
       }
@@ -405,7 +442,7 @@ function routeArrow(from: Box, to: Box, index: number): { startX: number; startY
     const startX = centerX(from);
     const startY = from.y;
     const endX = centerX(to);
-    const endY = to.y;
+    const endY = to.y + to.height; // arrive at bottom edge, not top — arrow comes from below
     const dx = endX - startX;
     const dy = endY - startY;
 
@@ -487,9 +524,19 @@ function arrowLabelPosition(
     if (isHorizontal) {
       return { x: midX - labelWidth / 2, y: midY - 20 };
     }
-    // For vertical arrows clamp label Y so it never dips into the target box.
-    const rawY = midY + getLabelOffset(index);
+    const arrowHeight = Math.abs(endPoint[1]);
     const targetTopY = startY + endPoint[1];
+    // Long straight vertical arrows (> 150px) span multiple zones.
+    // Placing the label at the midpoint drops it inside a zone interior where the
+    // zone background obscures the text. Instead anchor it 40px below the source —
+    // this always lands in the first inter-zone gap regardless of total arrow length.
+    if (arrowHeight > 150) {
+      const nearTopY = startY + 40;
+      const clampedY = Math.min(nearTopY, targetTopY - TEXT_LINE_HEIGHT - 4);
+      return { x: midX + LABEL_CLEARANCE, y: clampedY };
+    }
+    // Short vertical arrow — midpoint label is fine.
+    const rawY = midY + getLabelOffset(index);
     const clampedY = Math.min(rawY, targetTopY - TEXT_LINE_HEIGHT - 4);
     return { x: midX + LABEL_CLEARANCE, y: clampedY };
   }
@@ -497,9 +544,12 @@ function arrowLabelPosition(
   const midPoint = points[1] ?? [0, 0];
   const laneY = startY + midPoint[1];
   const midX = (startX + endX) / 2;
+  // For downward arrows (endY > startY) place the label BELOW the lane point so it sits
+  // in the middle of the inter-zone gap rather than touching the source zone's bottom border.
+  // For upward arrows keep it above the lane (further from the destination zone).
   return {
     x: midX - labelWidth / 2,
-    y: laneY + (endY > startY ? -LABEL_CLEARANCE - 2 : LABEL_CLEARANCE + 2),
+    y: laneY + (endY > startY ? LABEL_CLEARANCE + 2 : -LABEL_CLEARANCE - 2),
   };
 }
 
@@ -515,16 +565,13 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
   let currentY = CANVAS_PADDING;
   let maxWidth = 0;
 
-  // ── Pass 1: collect rows and title sizes ──────────────────────────────────
-  // We need row counts per zone before we can compute box widths, and we need
-  // box widths before we can compute row heights. Resolve by using CANVAS_MIN_WIDTH
-  // as the zone width for the initial pass (which determines unifiedZoneWidth anyway).
-
+  // ── Pass 1: determine unified zone width ──────────────────────────────────
   type ZoneMeta = {
     title: ReturnType<typeof getTitleSize>;
     rows: ArchitectureComponent[][];
     rowHeights: number[];
     height: number;
+    zoneWidth: number; // actual rendered width (narrower for parallel zones)
   };
 
   const zoneMeta = new Map<string, ZoneMeta>();
@@ -537,121 +584,162 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
   }
   const unifiedZoneWidth = minZoneWidth;
 
-  // ── Pass 2: compute row heights now that boxWidths are known ──────────────
+  // ── Group zones by row value ───────────────────────────────────────────────
+  // Zones sharing the same numeric `row` render side-by-side. Zones without a
+  // `row` value each occupy their own full-width row group.
+  type ZoneGroup = { row: number | undefined; zones: ArchitectureZone[] };
+  const zoneGroups: ZoneGroup[] = [];
   for (const zone of zoneOrder) {
-    const components = sortComponents(architecture, zone.id);
-    const rows = getRows(components);
-    const title = getTitleSize(zone.label);
+    if (zone.row !== undefined) {
+      const existing = zoneGroups.find((g) => g.row === zone.row);
+      if (existing) {
+        existing.zones.push(zone);
+      } else {
+        zoneGroups.push({ row: zone.row, zones: [zone] });
+      }
+    } else {
+      zoneGroups.push({ row: undefined, zones: [zone] });
+    }
+  }
 
-    const rowHeights = rows.map((row) => {
-      const boxWidth = computeBoxWidth(row.length, unifiedZoneWidth);
-      return row.reduce((h, component) => {
-        const size = getComponentSize(component.label, boxWidth);
-        return Math.max(h, size.height);
-      }, MIN_COMPONENT_HEIGHT);
-    });
+  function perZoneWidth(groupSize: number): number {
+    if (groupSize <= 1) return unifiedZoneWidth;
+    return Math.floor((unifiedZoneWidth - (groupSize - 1) * ZONE_GAP) / groupSize);
+  }
 
-    const height =
-      title.height +
-      ZONE_PADDING_Y * 2 +
-      rowHeights.reduce((sum, rh) => sum + rh, 0) +
-      Math.max(0, rowHeights.length - 1) * COMPONENT_GAP_Y;
+  // ── Pass 2: compute row heights now that boxWidths are known ──────────────
+  for (const group of zoneGroups) {
+    const zw = perZoneWidth(group.zones.length);
+    for (const zone of group.zones) {
+      const components = sortComponents(architecture, zone.id);
+      const rows = getRows(components);
+      const title = getTitleSize(zone.label);
 
-    zoneMeta.set(zone.id, { title, rows, rowHeights, height });
+      const rowHeights = rows.map((row) => {
+        const boxWidth = computeBoxWidth(row.length, zw);
+        return row.reduce((h, component) => {
+          const size = getComponentSize(component.label, boxWidth);
+          return Math.max(h, size.height);
+        }, MIN_COMPONENT_HEIGHT);
+      });
+
+      const height =
+        title.height +
+        ZONE_PADDING_Y * 2 +
+        rowHeights.reduce((sum, rh) => sum + rh, 0) +
+        Math.max(0, rowHeights.length - 1) * COMPONENT_GAP_Y;
+
+      zoneMeta.set(zone.id, { title, rows, rowHeights, height, zoneWidth: zw });
+    }
   }
 
   // ── Render zones ──────────────────────────────────────────────────────────
-  zoneOrder.forEach((zone) => {
-    const meta = zoneMeta.get(zone.id);
-    if (!meta) return;
+  for (const group of zoneGroups) {
+    const groupHeight = Math.max(...group.zones.map((z) => zoneMeta.get(z.id)?.height ?? 0));
+    const zw = perZoneWidth(group.zones.length);
 
-    const { title, rows, rowHeights, height: zoneHeight } = meta;
-    const zoneWidth = unifiedZoneWidth;
-    const zoneX = CANVAS_PADDING;
-    const zoneY = currentY;
-    const zoneColors = zoneColor(zone.type);
+    group.zones.forEach((zone, groupIndex) => {
+      const meta = zoneMeta.get(zone.id);
+      if (!meta) return;
 
-    elements.push({
-      id: `${zone.id}-container`,
-      type: "rectangle",
-      x: zoneX,
-      y: zoneY,
-      width: zoneWidth,
-      height: zoneHeight,
-      strokeColor: zoneColors.stroke,
-      backgroundColor: zoneColors.background,
-      fillStyle: "solid",
-      roughness: 0,
-    });
+      const { title, rows, rowHeights } = meta;
+      const zoneWidth = zw;
+      const zoneX = CANVAS_PADDING + groupIndex * (zoneWidth + ZONE_GAP);
+      const zoneY = currentY;
+      const zoneColors = zoneColor(zone.type);
 
-    // Zone title — give the full zone width so it never truncates
-    elements.push({
-      id: `${zone.id}-title`,
-      type: "text",
-      x: zoneX + 16,
-      y: zoneY + 10,
-      width: zoneWidth - 20,
-      text: title.lines.join("\n"),
-      fontSize: 22,
-      strokeColor: zoneColors.titleColor,
-    });
+      // Stretch the last zone to fill any rounding remainder
+      const isLast = groupIndex === group.zones.length - 1;
+      const renderedWidth = isLast
+        ? unifiedZoneWidth - groupIndex * (zoneWidth + ZONE_GAP)
+        : zoneWidth;
 
-    let runningY = zoneY + title.height + ZONE_PADDING_Y;
-
-    rows.forEach((row, rowIndex) => {
-      // All components in the row share equal width; the row fills the zone exactly.
-      const boxWidth = computeBoxWidth(row.length, zoneWidth);
-      let componentX = zoneX + ZONE_PADDING_X;
-      const componentY = runningY;
-
-      row.forEach((component) => {
-        const size = getComponentSize(component.label, boxWidth);
-        const style = componentStyle(component, architecture);
-
-        elements.push({
-          id: `${component.id}-box`,
-          type: "rectangle",
-          x: componentX,
-          y: componentY,
-          width: size.width,
-          height: rowHeights[rowIndex],   // all boxes in row share the same height
-          strokeColor: style.stroke,
-          backgroundColor: style.bg,
-          fillStyle: isLogicalConstruct(component.label) ? "hachure" : "solid",
-          strokeStyle: isLogicalConstruct(component.label) ? "dashed" : "solid",
-          roughness: 0,
-        });
-
-        elements.push({
-          id: `${component.id}-label`,
-          type: "text",
-          x: componentX + 8,
-          y: componentY + 14,
-          width: size.width,              // full box width — frontend uses this directly as bounding box
-          text: size.lines.join("\n"),
-          fontSize: 18,
-          strokeColor: "#18181b",
-          containerId: `${component.id}-box`,
-        });
-
-        componentBoxes.set(component.id, {
-          x: componentX,
-          y: componentY,
-          width: size.width,
-          height: rowHeights[rowIndex],
-        });
-
-        componentX += boxWidth + COMPONENT_GAP_X;
+      elements.push({
+        id: `${zone.id}-container`,
+        type: "rectangle",
+        x: zoneX,
+        y: zoneY,
+        width: renderedWidth,
+        height: groupHeight,            // all sibling zones share the same height
+        strokeColor: zoneColors.stroke,
+        backgroundColor: zoneColors.background,
+        fillStyle: "solid",
+        roughness: 0,
       });
 
-      runningY += rowHeights[rowIndex] + COMPONENT_GAP_Y;
+      // Zone title — give the full zone width so it never truncates
+      elements.push({
+        id: `${zone.id}-title`,
+        type: "text",
+        x: zoneX + 16,
+        y: zoneY + 10,
+        width: renderedWidth - 20,
+        text: title.lines.join("\n"),
+        fontSize: 22,
+        strokeColor: zoneColors.titleColor,
+      });
+
+      let runningY = zoneY + title.height + ZONE_PADDING_Y;
+
+      rows.forEach((row, rowIndex) => {
+        // All components in the row share equal width; the row fills the zone exactly.
+        const boxWidth = computeBoxWidth(row.length, renderedWidth);
+        let componentX = zoneX + ZONE_PADDING_X;
+        const componentY = runningY;
+
+        row.forEach((component) => {
+          const size = getComponentSize(component.label, boxWidth);
+          const style = componentStyle(component, architecture);
+
+          elements.push({
+            id: `${component.id}-box`,
+            type: "rectangle",
+            x: componentX,
+            y: componentY,
+            width: size.width,
+            height: rowHeights[rowIndex],   // all boxes in row share the same height
+            strokeColor: style.stroke,
+            backgroundColor: style.bg,
+            fillStyle: "solid",
+            strokeStyle: isLogicalConstruct(component.label) ? "dashed" : "solid",
+            roughness: 0,
+          });
+
+          elements.push({
+            id: `${component.id}-label`,
+            type: "text",
+            x: componentX + 8,
+            y: componentY + 14,
+            width: size.width,              // full box width — frontend uses this directly as bounding box
+            text: size.lines.join("\n"),
+            fontSize: 18,
+            strokeColor: "#18181b",
+            containerId: `${component.id}-box`,
+          });
+
+          componentBoxes.set(component.id, {
+            x: componentX,
+            y: componentY,
+            width: size.width,
+            height: rowHeights[rowIndex],
+          });
+
+          componentX += boxWidth + COMPONENT_GAP_X;
+        });
+
+        runningY += rowHeights[rowIndex] + COMPONENT_GAP_Y;
+      });
     });
 
-    currentY += zoneHeight + ZONE_GAP;
-    maxWidth = Math.max(maxWidth, zoneWidth + CANVAS_PADDING * 2);
-  });
+    currentY += groupHeight + ZONE_GAP;
+    maxWidth = Math.max(maxWidth, unifiedZoneWidth + CANVAS_PADDING * 2);
+  }
 
   // ── Render connections ────────────────────────────────────────────────────
+  // Build component → zoneId map so routeArrow can distinguish cross-zone connections.
+  const componentToZone = new Map<string, string>();
+  for (const comp of architecture.components) componentToZone.set(comp.id, comp.zoneId);
+
   const renderedTargetLabels = new Map<string, Set<string>>();
   const labeledConnectionsPerSource = new Map<string, number>();
 
@@ -661,7 +749,10 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
     if (!from || !to) {
       return;
     }
-    const { startX, startY, points } = routeArrow(from, to, index);
+    const fromZone = componentToZone.get(connection.from);
+    const toZone = componentToZone.get(connection.to);
+    const crossZone = fromZone !== undefined && toZone !== undefined && fromZone !== toZone;
+    const { startX, startY, points } = routeArrow(from, to, index, crossZone);
 
     elements.push({
       id: connection.id,
@@ -697,12 +788,28 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       }
 
       const { x: labelX, y: labelY } = arrowLabelPosition(startX, startY, points, index, labelText);
+      const labelWidth = Math.max(160, labelText.length * 12 + 24);
+      const labelHeight = TEXT_LINE_HEIGHT + 4;
+      // White backing rectangle — rendered before the text so zone backgrounds
+      // and dashed arrow lines never bleed through the label characters.
+      elements.push({
+        id: `${connection.id}-label-bg`,
+        type: "rectangle",
+        x: labelX - 3,
+        y: labelY - 1,
+        width: labelWidth + 6,
+        height: labelHeight,
+        strokeColor: "#ffffff",
+        backgroundColor: "#ffffff",
+        fillStyle: "solid",
+        roughness: 0,
+      });
       elements.push({
         id: `${connection.id}-label`,
         type: "text",
         x: labelX,
         y: labelY,
-        width: Math.max(160, labelText.length * 12 + 24),  // generous — prevents same clipping as zone/component labels
+        width: labelWidth,
         text: labelText,
         fontSize: 16,
         strokeColor: "#3f3f46",

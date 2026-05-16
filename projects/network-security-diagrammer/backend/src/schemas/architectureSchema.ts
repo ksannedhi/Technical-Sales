@@ -21,6 +21,7 @@ export const architectureSchema = z.object({
         "branch",
         "data-center",
       ]),
+      row: z.number().optional(),
     }),
   ),
   components: z.array(

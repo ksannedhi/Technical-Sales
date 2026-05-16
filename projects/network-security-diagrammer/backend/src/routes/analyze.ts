@@ -11,7 +11,7 @@ export async function analyzeRoute(req: Request, res: Response) {
   }
 
   const key = createCacheKey({
-    type: "analysis-v4",
+    type: "analysis-v5",
     prompt: parsed.data.prompt,
     model: getModelCacheIdentity(),
   });

@@ -242,6 +242,12 @@ export async function analyzePromptWithModel(prompt: string): Promise<PromptAnal
       assumptions: sanitizeAssumptions(parsed.assumptions),
     };
 
+    // Local "clear" is authoritative — don't let Claude downgrade it to ambiguous
+    if (baseline.status === "clear" && sanitized.status === "ambiguous") {
+      return { ...sanitized, status: "clear" };
+    }
+
+    // Local "ambiguous" is also authoritative — don't let Claude clear it
     if (baseline.status === "ambiguous" && sanitized.status === "clear") {
       return { ...sanitized, status: "ambiguous" };
     }

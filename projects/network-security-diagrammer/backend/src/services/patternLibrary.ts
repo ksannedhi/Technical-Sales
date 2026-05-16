@@ -17,6 +17,7 @@ export type ArchitecturePatternId =
   | "sase-network"
   | "cloud-workload"
   | "perimeter-firewall"
+  | "core-dmz"
   | "generic-secure-architecture";
 
 export interface PatternMatch {
@@ -190,6 +191,22 @@ const patternRules: Array<{
       if (/ztna/i.test(prompt)) score += 3;
       if (/sd-wan/i.test(prompt) && /security/i.test(prompt)) score += 2;
       if (/casb|swg|cloud firewall/i.test(prompt)) score += 2;
+      return score;
+    },
+  },
+  {
+    pattern: "core-dmz",
+    test: (prompt) =>
+      /\bdmz\b/i.test(prompt) &&
+      /(core|enterprise|campus|data.?center|internal network)/i.test(prompt) &&
+      // Don't steal from WAF-specific prompts
+      !/waf|web application firewall/i.test(prompt),
+    score: (prompt) => {
+      let score = 0;
+      if (/\bdmz\b/i.test(prompt)) score += 4;
+      if (/(core network|core switch|core layer)/i.test(prompt)) score += 3;
+      if (/(enterprise|campus|large)/i.test(prompt)) score += 2;
+      if (/(firewall|router|gateway)/i.test(prompt)) score += 1;
       return score;
     },
   },

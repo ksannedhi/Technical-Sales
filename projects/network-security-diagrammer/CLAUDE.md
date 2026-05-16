@@ -31,7 +31,7 @@ curl http://localhost:8787/api/health
 
 ## Architecture
 
-A **local-first network and cybersecurity diagrammer** that converts natural language prompts into Excalidraw diagrams. Pattern-based topology inference runs entirely locally; Claude (via Anthropic API) is optional for advanced prompt analysis and follow-up edits.
+A **local-first network and cybersecurity diagrammer** that converts natural language prompts into Excalidraw diagrams. Pattern-based topology inference runs entirely locally; Claude (via Anthropic API) is optional for prompt analysis, high-specificity architecture generation, and follow-up diagram edits.
 
 ```
 frontend/src/           React SPA — prompt input, Excalidraw canvas, follow-up chat
@@ -52,7 +52,7 @@ shared/                 Types and schemas shared between backend and frontend
 
 - **TypeScript throughout** — backend uses `tsx watch` for hot-reload during dev; `tsc` for production builds.
 - **Pattern-first inference** — base topology (star, mesh, hybrid, DMZ) is determined locally without AI, making the tool usable offline.
-- **Claude optional** — if `ANTHROPIC_API_KEY` is absent, `/api/analyze` falls back to regex-based pattern matching. `/api/generate` and `/api/followup` require the key.
+- **Claude optional** — if `ANTHROPIC_API_KEY` is absent, `/api/analyze` falls back to regex-based pattern matching and `/api/generate` falls back to local deterministic patterns. Claude Haiku is used for `/api/analyze`; Claude Sonnet for `/api/generate` (high-specificity prompts only) and `/api/followup`.
 - **Excalidraw output** — generates native Excalidraw JSON that can be pasted directly into excalidraw.com or the desktop app.
 - **Monorepo with workspaces** — `backend`, `frontend`, and `shared` are npm workspaces under the root `package.json`.
 
