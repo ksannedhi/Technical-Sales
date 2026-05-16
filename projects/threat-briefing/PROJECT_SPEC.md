@@ -55,8 +55,8 @@ Primary users:
 
 - API endpoint: `https://mb-api.abuse.ch/api/v1/`
 - Queries the 100 most recent malware samples via POST
-- No authentication required
-- Each sample is mapped to: `source`, `sha256`, `fileName`, `fileType`, `malwareFamily`, `deliveryMethod`, `publishedAt`
+- Optional authentication via `ABUSECH_API_KEY` — sent as `Auth-Key` HTTP header; feed degrades gracefully to 0 if absent
+- Each sample is mapped to: `source`, `sha256`, `fileName`, `fileType`, `malwareFamily`, `malwareTags`, `deliveryMethod`, `publishedAt`
 
 ## 5. Normalisation Layer
 
@@ -219,6 +219,7 @@ This ensures the server always has a briefing ready to serve immediately after r
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Claude API key from console.anthropic.com — server exits immediately if not set |
 | `OTX_API_KEY` | No | AlienVault OTX API key — skipped gracefully if absent |
+| `ABUSECH_API_KEY` | No | MalwareBazaar API key — register free at bazaar.abuse.ch; sent as `Auth-Key` header; feed returns 0 without it |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |
 | `TZ` | No | Set to `Asia/Kuwait` (included in `.env.example`) — pins process clock for portable cron scheduling |
@@ -235,6 +236,7 @@ This ensures the server always has a briefing ready to serve immediately after r
 | `CisaKEV` | KEV highlights with CVE IDs, ransomware indicator, patch deadline, feed footer |
 | `Recommendations` | Action list with owner and timeframe pills |
 | `ExportButton` | Triggers PDF generation and browser download |
+| `FeedWarnings` | Dismissible amber banner for OTX feed warnings (missing key, rate-limit) |
 
 ## 13. Model and Cost Strategy
 
@@ -319,6 +321,7 @@ Puppeteer requires a Chromium binary. `pdf.js` uses `PUPPETEER_EXECUTABLE_PATH` 
 - `client/src/components/CisaKEV.jsx`
 - `client/src/components/Recommendations.jsx`
 - `client/src/components/ExportButton.jsx`
+- `client/src/components/FeedWarnings.jsx` — dismissible OTX feed warning banner
 
 ## 18. Future Enhancements
 
@@ -347,13 +350,18 @@ The project currently includes:
 - stale briefing fallback if catch-up pipeline fails
 - `briefingAge` exposed on `/api/health` endpoint
 - on-demand and scheduled pipeline triggers (daily at 06:00 AST via `TZ=Asia/Kuwait` + system cron)
-- React dashboard with all eight UI components
+- React dashboard with nine UI components
 - Puppeteer PDF export using env-var-configurable Chrome path
 - Windows single-click launcher (`Launch Threat Briefing.cmd`)
 - ground-truth feed stat counters set server-side after Claude response is parsed
 - hardened JSON parser handles truncated Claude responses (missing `</result>` tag)
 - `ANTHROPIC_API_KEY` validated at startup — server exits immediately with a clear message if not set
-- 60-second timeout on Claude API fetch — pipeline cannot hang indefinitely
+- 120-second timeout on Claude API fetch — pipeline cannot hang indefinitely
+- in-flight pipeline guard — concurrent `/api/briefing/generate` calls return 429
 - HTML escaping on all Claude-generated fields in the PDF template
 - `Recommendations` component shows empty state message when no recommendations are returned
 - cron scheduling portable across host timezones via `TZ` environment variable
+- OTX feed warnings surfaced as dismissible amber banner (`FeedWarnings` component)
+- `abusechUnavailable` flag on briefing JSON drives "feed unavailable" subtext in stat card
+- optional Abuse.ch authentication via `ABUSECH_API_KEY` (`Auth-Key` HTTP header)
+- `malwareTags` array on each MalwareBazaar sample for full tag enrichment
