@@ -118,3 +118,4 @@ Geo → framework auto-suggestion:
 - No vendor product recommendations (capability categories only)
 - No absolute paths in any documentation file
 - `.env` never committed — `.env.example` provided
+- AI-generated narrative (Executive Summary, Critical Findings, Strategic Path Forward) is not directly editable by the PE — supplementary commentary via Session Notes only
