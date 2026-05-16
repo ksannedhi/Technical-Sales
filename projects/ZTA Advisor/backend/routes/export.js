@@ -59,6 +59,58 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+const RADAR_LABELS = {
+  identity: 'Identity', devices: 'Devices', networks: 'Networks',
+  applications: 'Apps', data: 'Data', visibility: 'Visibility'
+};
+
+function buildRadarSvg(pillarScores) {
+  const cx = 140, cy = 140, R = 95, N = 6;
+  const pillars = ['identity', 'devices', 'networks', 'applications', 'data', 'visibility'];
+
+  function toXY(i, fraction) {
+    const rad = (-90 + i * (360 / N)) * Math.PI / 180;
+    return [cx + R * fraction * Math.cos(rad), cy + R * fraction * Math.sin(rad)];
+  }
+
+  function pts(fractions) {
+    return fractions.map((f, i) => toXY(i, f).join(',')).join(' ');
+  }
+
+  const scores = pillars.map(p => (pillarScores[p]?.current || 1) / 4);
+  const grids = [0.25, 0.5, 0.75, 1];
+
+  const gridLines = grids.map(f =>
+    `<polygon points="${pts(pillars.map(() => f))}" fill="none" stroke="#e5e7eb" stroke-width="1"/>`
+  ).join('');
+
+  const axes = pillars.map((_, i) => {
+    const [x, y] = toXY(i, 1);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`;
+  }).join('');
+
+  const target = `<polygon points="${pts(pillars.map(() => 3 / 4))}" fill="#3b82f610" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+  const scorePolygon = `<polygon points="${pts(scores)}" fill="#0f172a20" stroke="#0f172a" stroke-width="2"/>`;
+
+  const dots = pillars.map((p, i) => {
+    const f = (pillarScores[p]?.current || 1) / 4;
+    const [x, y] = toXY(i, f);
+    return `<circle cx="${x}" cy="${y}" r="4" fill="${maturityColor(pillarScores[p]?.current || 1)}" stroke="#fff" stroke-width="1.5"/>`;
+  }).join('');
+
+  const labelEls = pillars.map((p, i) => {
+    const [x, y] = toXY(i, 1.28);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="#374151" font-weight="600">${RADAR_LABELS[p]}</text>`;
+  }).join('');
+
+  const gridValues = grids.map(f => {
+    const [x, y] = toXY(0, f);
+    return `<text x="${x + 5}" y="${y}" font-size="9" fill="#9ca3af" dominant-baseline="middle">${f * 4}</text>`;
+  }).join('');
+
+  return `<svg width="280" height="280" xmlns="http://www.w3.org/2000/svg">${gridLines}${axes}${target}${scorePolygon}${dots}${labelEls}${gridValues}</svg>`;
+}
+
 function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, maturityLabels: passedLabels, notes }) {
   const { orgProfile, frameworkIds, assessedAt } = meta;
   const dateStr = new Date(assessedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -169,6 +221,27 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
   </div>
 
   ${narrativeHtml}
+
+  <!-- Maturity Radar -->
+  <section style="margin-bottom:36px;">
+    <h2 style="font-size:16px;font-weight:700;color:#111827;border-bottom:2px solid #e5e7eb;padding-bottom:8px;margin-bottom:16px;">Maturity Radar</h2>
+    <div style="display:flex;align-items:center;gap:40px;">
+      <div style="flex-shrink:0;">${buildRadarSvg(pillarScores)}</div>
+      <div style="font-size:12px;color:#6b7280;line-height:2;">
+        <div style="margin-bottom:8px;"><span style="display:inline-block;width:24px;height:2px;background:#0f172a;vertical-align:middle;margin-right:6px;"></span>Current maturity</div>
+        <div><span style="display:inline-block;width:24px;border-top:2px dashed #3b82f6;vertical-align:middle;margin-right:6px;"></span>Target (3.0)</div>
+        <div style="margin-top:16px;border-top:1px solid #e5e7eb;padding-top:12px;">
+          ${['identity','devices','networks','applications','data','visibility'].map(p => {
+            const s = pillarScores[p];
+            return `<div style="display:flex;justify-content:space-between;gap:24px;margin-bottom:4px;">
+              <span style="font-weight:600;color:#374151;">${PILLAR_LABELS[p]}</span>
+              <span style="color:${maturityColor(s.current)};font-weight:600;">${s.current.toFixed(1)}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- Gap Analysis -->
   <section style="margin-bottom:36px;">
