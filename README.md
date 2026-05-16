@@ -1,6 +1,6 @@
 # Technical-Sales
 
-Cybersecurity presales resources: a Claude Code skill for bid drafting and 9 standalone demo tools.
+Cybersecurity presales resources: a Claude Code skill for bid drafting and 10 standalone demo tools.
 
 ---
 
@@ -117,7 +117,7 @@ Docs: `projects/regulatory-lens/README.md`
 
 ### ZTA Advisor
 - Path: `projects/ZTA Advisor`
-- Purpose: presales Zero Trust Architecture assessment tool — 35-question structured interview across 6 ZT pillars, geo-based framework suggestion (CISA ZTMM, NIST 800-207, NCSC ZT, ENISA, NIS2, ISO 27001, DoD ZT), deterministic maturity scoring (1–4), gap analysis table, prioritised remediation roadmap, AI-generated executive narrative, and PDF export.
+- Purpose: presales Zero Trust Architecture assessment tool — 38-question structured interview across 6 ZT pillars, geo-based framework suggestion (CISA ZTMM, NIST 800-207, NCSC ZT, ENISA, NIS2, ISO 27001, DoD ZT, SAMA CSF), deterministic maturity scoring (1–4), gap analysis table, prioritised remediation roadmap, AI-generated executive narrative, and PDF export.
 - One-click launch (Windows):
 ```
 cd "projects/ZTA Advisor" && "Launch ZTA Advisor.cmd"

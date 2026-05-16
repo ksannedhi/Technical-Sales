@@ -6,7 +6,7 @@ This file provides guidance to Claude Code when working from the `Downloads` dir
 
 ## What lives here
 
-9 standalone cybersecurity presales tools, each in its own folder. Every standalone has a synced copy in the GitHub repo under `Technical-Sales\projects\<project-name>\`.
+10 standalone cybersecurity presales tools, each in its own folder. Every standalone has a synced copy in the GitHub repo under `Technical-Sales\projects\<project-name>\`.
 
 ## Standalone projects
 
@@ -21,6 +21,7 @@ This file provides guidance to Claude Code when working from the `Downloads` dir
 | `presales-deal-gating`            | 8020         | —             |
 | `multi-vendor-decision-copilot`   | 8501         | —             |
 | `regulatory-lens`                 | 3004         | 5179          |
+| `ZTA Advisor`                     | 3005         | 5180          |
 
 All standalone folder names match their `projects/` counterparts in the repo exactly.
 
@@ -50,6 +51,7 @@ cmd.exe /c "robocopy \"<Downloads>\<project>\" \"<Downloads>\Technical-Sales\pro
 | `presales-deal-gating`            | Python / wsgiref               | Server-rendered HTML |
 | `multi-vendor-decision-copilot`   | Python / Streamlit             | Streamlit            |
 | `regulatory-lens`                 | Node / Express (ESM)           | Vite + React         |
+| `ZTA Advisor`                     | Node / Express (ESM)           | Vite + React         |
 
 ## Key conventions
 
@@ -74,6 +76,7 @@ Each standalone has its own `CLAUDE.md` with commands, architecture, and key fil
 At the end of **every** session, before closing:
 
 1. **Update `Downloads\MEMORY.md`** — add any new rules, patterns, decisions, or corrections that would be useful in a future session. This is the cross-project memory file. It is separate from the per-project `.claude\projects\...\memory\MEMORY.md` — both must be updated.
-2. **Sync and push** — confirm the repo is up to date with all changes made during the session.
+2. **Review all four documentation files** — README.md, CLAUDE.md, PROJECT_SPEC.md, and `Downloads\MEMORY.md`. All four must be checked for staleness, not just PROJECT_SPEC and MEMORY.
+3. **Sync and push** — confirm the repo is up to date with all changes made during the session.
 
 `Downloads\MEMORY.md` is the most commonly skipped step. It must be updated even when the user does not ask.
