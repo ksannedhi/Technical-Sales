@@ -10,10 +10,17 @@ const { remediationControls } = JSON.parse(readFileSync(join(__dirname, '../data
 const frameworksData = JSON.parse(readFileSync(join(__dirname, '../data/frameworks.json'), 'utf8'));
 
 // Only instantiate if a real key is present — avoids MissingAPIKeyError at module load
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const ANTHROPIC_API_KEY = (process.env.ANTHROPIC_API_KEY || '').trim();
 const client = ANTHROPIC_API_KEY && ANTHROPIC_API_KEY !== 'your_key_here'
   ? new Anthropic({ apiKey: ANTHROPIC_API_KEY })
   : null;
+
+// Startup diagnostic — visible in backend terminal on every server start
+if (client) {
+  console.log(`[ZTA] Claude client ready — model: ${process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001'}`);
+} else {
+  console.warn('[ZTA] ANTHROPIC_API_KEY missing or placeholder — narrative generation disabled');
+}
 
 const PILLAR_ORDER = ['identity', 'devices', 'networks', 'applications', 'data', 'visibility'];
 const TARGET_MATURITY = 3; // Advanced — realistic ZT target for most organizations
@@ -192,11 +199,15 @@ analyzeRouter.post('/', async (req, res) => {
     let narrative = null;
     if (client) {
       try {
+        console.log('[ZTA] Generating narrative…');
         narrative = await generateNarrative(orgProfile, pillarScores, roadmap, frameworkIds || [], maturityLabels);
+        console.log('[ZTA] Narrative generated successfully');
       } catch (narrativeErr) {
-        console.warn('Narrative generation skipped:', narrativeErr.message);
+        console.error('[ZTA] Narrative generation failed:', narrativeErr.message);
         // Non-fatal — scoring and roadmap are returned regardless
       }
+    } else {
+      console.warn('[ZTA] Skipping narrative — no Claude client');
     }
 
     res.json({
