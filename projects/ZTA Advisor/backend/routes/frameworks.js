@@ -12,12 +12,21 @@ frameworksRouter.get('/', (_req, res) => {
   res.json({ frameworks: data.frameworks, pillars: data.pillars, geoOptions: data.geoOptions });
 });
 
+// Industry → additional framework IDs to inject regardless of geo
+const INDUSTRY_FRAMEWORK_NUDGE = {
+  'Defense / DoD': ['dod-zt'],
+};
+
 frameworksRouter.get('/suggest', (req, res) => {
-  const { geo } = req.query;
+  const { geo, industry } = req.query;
   if (!geo) return res.status(400).json({ error: 'geo parameter required' });
 
-  const suggested = data.geoMapping[geo] || data.geoMapping['Global'];
-  const frameworks = suggested.map(id => data.frameworks.find(f => f.id === id)).filter(Boolean);
+  const geoIds = data.geoMapping[geo] || data.geoMapping['Global'];
+  const nudgeIds = INDUSTRY_FRAMEWORK_NUDGE[industry] || [];
+
+  // Merge, preserving order and deduplicating
+  const merged = [...new Set([...geoIds, ...nudgeIds])];
+  const frameworks = merged.map(id => data.frameworks.find(f => f.id === id)).filter(Boolean);
 
   res.json({ suggested: frameworks, all: data.frameworks });
 });

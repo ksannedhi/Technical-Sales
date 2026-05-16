@@ -39,7 +39,9 @@ export default function OrgProfile({ onComplete, initialProfile, initialFramewor
 
   useEffect(() => {
     if (!form.geo) { setSuggested([]); return; }
-    fetch(`/api/frameworks/suggest?geo=${encodeURIComponent(form.geo)}`)
+    const params = new URLSearchParams({ geo: form.geo });
+    if (form.industry) params.set('industry', form.industry);
+    fetch(`/api/frameworks/suggest?${params}`)
       .then(r => r.json())
       .then(d => {
         setSuggested(d.suggested || []);
@@ -55,7 +57,7 @@ export default function OrgProfile({ onComplete, initialProfile, initialFramewor
       })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.geo]);
+  }, [form.geo, form.industry]);
 
   function set(field, val) {
     setForm(f => ({ ...f, [field]: val }));
