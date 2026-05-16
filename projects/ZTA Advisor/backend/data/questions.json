@@ -459,13 +459,13 @@
       "id": "vis-03",
       "pillar": "visibility",
       "sequence": 36,
-      "text": "Is User and Entity Behavior Analytics (UEBA) deployed to detect insider threats and compromised accounts?",
-      "rationale": "ZT assumes breach — UEBA detects anomalous behavior that bypasses perimeter controls, identifying compromised credentials and insider risk before damage occurs.",
+      "text": "What is the organization's Security Operations Center (SOC) operating model?",
+      "rationale": "ZT requires continuous monitoring — the SOC model determines whether detections are acted on in real time or discovered hours later. Coverage gaps directly increase dwell time.",
       "options": [
-        { "value": 1, "label": "No behavioral analytics — threat detection relies on signature-based rules only", "description": "No anomaly detection capability" },
-        { "value": 2, "label": "Basic anomaly detection for privileged accounts only", "description": "Limited behavioral baseline coverage" },
-        { "value": 3, "label": "UEBA deployed across user and service accounts with risk scoring and alerting", "description": "Broad behavioral analytics coverage" },
-        { "value": 4, "label": "UEBA integrated with ZT policy engine — risk score dynamically adjusts access rights in real time", "description": "Adaptive access driven by behavioral risk" }
+        { "value": 1, "label": "No formal SOC — security alerts reviewed ad-hoc by IT staff", "description": "No dedicated detection and response capability" },
+        { "value": 2, "label": "Business-hours SOC with on-call coverage — alerts may go unactioned overnight", "description": "Partial coverage with response gaps" },
+        { "value": 3, "label": "24/7 in-house or MDR/MSSP SOC with defined escalation playbooks", "description": "Continuous monitoring with structured response" },
+        { "value": 4, "label": "24/7 SOC with ZT-integrated playbooks — automated containment and policy enforcement on confirmed detections", "description": "Closed-loop detection and automated ZT response" }
       ]
     },
     {
