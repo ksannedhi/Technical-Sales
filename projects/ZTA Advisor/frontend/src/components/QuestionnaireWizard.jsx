@@ -60,7 +60,7 @@ export default function QuestionnaireWizard({
     onAnswersChange(prev => ({ ...prev, [qId]: val }));
   }
 
-  function goToPillar(pillar) { onActivePillarChange(pillar); }
+  function goToPillar(pillar) { onActivePillarChange(pillar); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
   async function handleSubmit() {
     setSubmitting(true);
