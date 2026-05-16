@@ -32,13 +32,13 @@ frontend/src/
 backend/
   server.js                 — Express entry point (port 3005)
   routes/
-    frameworks.js           — GET /api/frameworks, GET /api/frameworks/suggest?geo=
+    frameworks.js           — GET /api/frameworks, GET /api/frameworks/suggest?geo=&industry=
     questions.js            — GET /api/questions
     analyze.js              — POST /api/analyze  (scoring + Claude narrative)
     export.js               — POST /api/export/pdf (Puppeteer)
   data/
     frameworks.json         — framework definitions + geo mapping
-    questions.json          — 35-question unified bank (6 pillars)
+    questions.json          — 38-question unified bank (6 pillars)
     controls.json           — gap-to-remediation control mapping
 ```
 
@@ -48,7 +48,8 @@ backend/
 - ANTHROPIC_API_KEY missing → narrative section omitted, rest of app still works
 - Target maturity hardcoded to 3 (Advanced) — adjust `TARGET_MATURITY` in `analyze.js`
 - Framework selection: geo → auto-suggest, always overridable by user
-- No authentication, no session persistence — single-sitting PE tool
+- No authentication — single-sitting PE tool
+- Session state in `sessionStorage` — survives page refresh, clears on tab/browser close (no cross-session data leakage between prospects)
 
 ## Pillar order
 identity → devices → networks → applications → data → visibility

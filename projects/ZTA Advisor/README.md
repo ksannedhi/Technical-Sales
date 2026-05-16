@@ -7,7 +7,7 @@ A presales tool that guides engineers through a structured Zero Trust Architectu
 ## What it does
 
 1. **Profile** — Captures org name, industry, size, and geography; auto-suggests ZTA frameworks by region with override
-2. **Assess** — 35-question structured interview across 6 ZTA pillars (Identity, Devices, Networks, Applications, Data, Visibility)
+2. **Assess** — 38-question structured interview across 6 ZTA pillars (Identity, Devices, Networks, Applications, Data, Visibility)
 3. **Report** — Deterministic maturity scoring (1–4 per pillar), gap analysis table, prioritized roadmap, Claude-generated executive summary, and PDF export
 
 ## Supported frameworks
@@ -19,6 +19,7 @@ A presales tool that guides engineers through a structured Zero Trust Architectu
 | UK | NCSC Zero Trust Principles |
 | EU | ENISA ZT Guidelines, NIS2 Directive |
 | APAC | ISO/IEC 27001:2022 |
+| Middle East / GCC | SAMA CSF, NIST SP 800-207, ISO/IEC 27001:2022 |
 | Global | NIST SP 800-207, ISO 27001 |
 
 ## Stack
