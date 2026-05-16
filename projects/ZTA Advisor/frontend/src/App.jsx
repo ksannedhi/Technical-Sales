@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
 const SESSION_KEY = 'zta-advisor-draft';
+const storage = window.sessionStorage;
 import OrgProfile from './components/OrgProfile.jsx';
 import QuestionnaireWizard from './components/QuestionnaireWizard.jsx';
 import ResultsPanel from './components/ResultsPanel.jsx';
@@ -24,7 +25,7 @@ export default function App() {
   // Restore draft session from localStorage + fetch frameworks for ResultsPanel chips
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(SESSION_KEY);
+      const saved = storage.getItem(SESSION_KEY);
       if (saved) {
         const { step: s, orgProfile: op, frameworkIds: fids, answers: ans, activePillar: ap } = JSON.parse(saved);
         if (op) setOrgProfile(op);
@@ -44,7 +45,7 @@ export default function App() {
   useEffect(() => {
     if (!orgProfile && Object.keys(answers).length === 0) return;
     try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ step, orgProfile, frameworkIds, answers, activePillar }));
+      storage.setItem(SESSION_KEY, JSON.stringify({ step, orgProfile, frameworkIds, answers, activePillar }));
     } catch {}
   }, [step, orgProfile, frameworkIds, answers, activePillar]);
 
@@ -71,7 +72,7 @@ export default function App() {
     setAnswers({});
     setActivePillar('identity');
     setResults(null);
-    try { localStorage.removeItem(SESSION_KEY); } catch {}
+    try { storage.removeItem(SESSION_KEY); } catch {}
   }
 
   return (
