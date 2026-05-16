@@ -34,6 +34,11 @@ export default function QuestionnaireWizard({
       });
   }, []);
 
+  // Scroll to top after new pillar content renders
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activePillar]);
+
   // Warn before accidental page close if assessment is in progress
   useEffect(() => {
     if (Object.keys(answers).length === 0) return;
@@ -60,7 +65,7 @@ export default function QuestionnaireWizard({
     onAnswersChange(prev => ({ ...prev, [qId]: val }));
   }
 
-  function goToPillar(pillar) { onActivePillarChange(pillar); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function goToPillar(pillar) { onActivePillarChange(pillar); }
 
   async function handleSubmit() {
     setSubmitting(true);
