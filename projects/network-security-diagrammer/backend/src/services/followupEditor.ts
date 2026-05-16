@@ -34,7 +34,17 @@ export async function editArchitectureWithModel(
         "Preserve the current architecture unless the instruction explicitly replaces part of it.",
         "Keep the result architect-level, simple, and vendor-neutral unless explicitly requested.",
         "Maintain 16 components max and 15 connections max whenever possible.",
-      ].join(" "),
+        "",
+        "STRUCTURAL RULES (same as generation — enforce on every edit):",
+        "- Monitoring components (SIEM, log aggregator, telemetry) must always be in their own dedicated monitoring zone — never in a zone that also contains security-control components.",
+        "- Identity providers must never share a zone with firewall, WAF, or IPS components. Place them in a dedicated identity zone or the application/internal zone.",
+        "- All connections must flow top-to-bottom (from a zone earlier in the zones array to one later). Never add upward connections.",
+        "- Every component must have at least one connection. An isolated component with zero connections is always wrong.",
+        "- Connections TO monitoring components must use dashed style (out-of-band log/telemetry flows).",
+        "- Never use vague connection labels like 'Allowed Traffic', 'Traffic', or 'Filtered Telemetry'. Use specific protocol names (HTTPS, IPSec, syslog) or omit the label.",
+        "- Security controls must connect to the workload or application they protect.",
+        "- Use at most ONE labeled connection between any adjacent zone pair — combine or drop labels on secondary connections.",
+      ].join("\n"),
       messages: [
         {
           role: "user",

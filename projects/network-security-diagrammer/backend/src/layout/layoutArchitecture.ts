@@ -120,19 +120,19 @@ const preferredZoneOrders: Array<{
     order: ["upstream", "wireless", "ssid", "devices"],
   },
   {
-    match: (architecture) => architecture.title.includes("Partner API Security"),
+    match: (architecture) => architecture.title.includes("Securing APIs Exposed"),
     order: ["partner", "edge", "api", "identity", "backend"],
   },
   {
-    match: (architecture) => architecture.title.includes("Hybrid Identity and Cloud"),
+    match: (architecture) => architecture.title.includes("Secure Hybrid Cloud"),
     order: ["cloud", "identity", "onprem"],
   },
   {
     match: (architecture) => architecture.title.includes("SASE"),
-    order: ["users", "sase", "resources"],
+    order: ["users", "identity", "sase", "resources"],
   },
   {
-    match: (architecture) => architecture.title.includes("Secure Messaging Protection"),
+    match: (architecture) => architecture.title.includes("On-Prem Email Security"),
     order: ["internet", "dmz", "internal", "clients"],
   },
   {
@@ -144,12 +144,20 @@ const preferredZoneOrders: Array<{
     order: ["home", "internet", "gateway", "internal"],
   },
   {
-    match: (architecture) => architecture.title.includes("Enterprise Network Security"),
-    order: ["sources", "control", "services", "monitoring"],
-  },
-  {
     match: (architecture) => architecture.title.includes("Enterprise Core Network with DMZ"),
     order: ["internet", "dmz", "core", "internal"],
+  },
+  {
+    match: (architecture) => architecture.title.includes("Branch Networking"),
+    order: ["branch", "wan", "hub"],
+  },
+  {
+    match: (architecture) => architecture.title.includes("Centralized Logging and SIEM"),
+    order: ["sources", "collection", "operations"],
+  },
+  {
+    match: (architecture) => architecture.title.includes("Cloud Workload Protection"),
+    order: ["cloud", "control", "ops"],
   },
 ];
 
@@ -301,6 +309,11 @@ function sortZones(architecture: ArchitectureModel) {
     const ai = ZONE_TYPE_ORDER[a.type] ?? 3;
     const bi = ZONE_TYPE_ORDER[b.type] ?? 3;
     if (ai !== bi) return ai - bi;
+    // Monitoring zones always render last within their type group — prevents upward arrows
+    // from application components when Claude generates monitoring as security-zone type.
+    const aIsMonitor = /monitor/i.test(a.id) || /monitor/i.test(a.label);
+    const bIsMonitor = /monitor/i.test(b.id) || /monitor/i.test(b.label);
+    if (aIsMonitor !== bIsMonitor) return aIsMonitor ? 1 : -1;
     // Stable tie-break: preserve original array order
     return architecture.zones.indexOf(a) - architecture.zones.indexOf(b);
   });

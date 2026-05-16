@@ -158,11 +158,11 @@ const patternRules: Array<{
   },
   {
     pattern: "ndr-visibility",
-    test: (prompt) => /ndr|east-west|visibility|server farm|dmz, core/i.test(prompt),
+    test: (prompt) => /ndr|east-west|server farm|dmz, core/i.test(prompt),
     score: (prompt) => {
       let score = 0;
       if (/ndr/i.test(prompt)) score += 4;
-      if (/east-west|visibility/i.test(prompt)) score += 2;
+      if (/east-west/i.test(prompt)) score += 2;
       if (/server farm|dmz, core/i.test(prompt)) score += 2;
       return score;
     },
@@ -228,8 +228,8 @@ const patternRules: Array<{
   },
   {
     pattern: "cloud-workload",
-    test: (prompt) => /cloud workload|landing zone|workload/i.test(prompt),
-    score: (prompt) => (/cloud workload|landing zone|workload/i.test(prompt) ? 4 : 0),
+    test: (prompt) => /cloud workload|landing zone|workload protection/i.test(prompt),
+    score: (prompt) => (/cloud workload|landing zone|workload protection/i.test(prompt) ? 4 : 0),
   },
   {
     pattern: "segmentation",

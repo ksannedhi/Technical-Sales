@@ -546,7 +546,7 @@ function shouldUseModelFallback(
   // Explicit multi-location lists (three or more named sites)
   if ((prompt.match(/\b(site|office|location|data.?center|branch)\b/gi) ?? []).length >= 3) return true;
   // Prompts that name 4+ distinct networking or security technologies (complex integration)
-  const techCount = (prompt.match(/\b(firewall|ids|ips|siem|edr|xdr|dlp|casb|waf|iam|pam|nac|soa[rp]|siem|ndr|ueba|deception|honeypot)\b/gi) ?? []).length;
+  const techCount = (prompt.match(/\b(firewall|ids|ips|siem|edr|xdr|dlp|casb|waf|iam|pam|nac|soa[rp]|ndr|ueba|deception|honeypot)\b/gi) ?? []).length;
   if (techCount >= 4) return true;
   return false;
 }
@@ -605,6 +605,34 @@ function deriveSummary(architecture: ArchitectureModel) {
 
   if (architecture.title.includes("Perimeter Firewall")) {
     return "Internet traffic enters through a perimeter router and is inspected by a stateful firewall before reaching the internal core switch, which distributes connectivity to server and user segments.";
+  }
+
+  if (architecture.title.includes("Centralized Logging and SIEM")) {
+    return "Log sources feed into a central collection and enrichment pipeline that normalizes events before ingestion by the SIEM, with SOAR automation closing the gap between alert and analyst action.";
+  }
+
+  if (architecture.title.includes("Threat Analysis Sandbox")) {
+    return "Suspicious files from email, network, and manual sources are submitted through a gateway and detonated in an isolated sandbox, with verdict results driving alerting and automated response workflows.";
+  }
+
+  if (architecture.title.includes("Secure Remote Access")) {
+    return "A remote user reaches internal business services through a VPN-based access path with encrypted transport, gateway enforcement, and identity validation.";
+  }
+
+  if (architecture.title.includes("NDR Visibility")) {
+    return "Passive sensors tap traffic across the DMZ, core network, and server farm, feeding an NDR analytics platform that correlates east-west patterns and surfaces findings to the SOC console.";
+  }
+
+  if (architecture.title.includes("Branch Networking")) {
+    return "Branch users connect through local security controls and an SD-WAN overlay to a central security gateway at HQ, with policy enforcement and telemetry maintained centrally across all sites.";
+  }
+
+  if (architecture.title.includes("Cloud Workload Protection")) {
+    return "Workload protection and identity controls enforce runtime security at the cloud compute layer, with telemetry flowing to a security operations team for SOC visibility.";
+  }
+
+  if (architecture.title.includes("Enterprise Core Network with DMZ")) {
+    return "External traffic passes through a DMZ with perimeter firewall and IDS/IPS inspection before reaching an internal firewall and application tier, keeping untrusted flows isolated from core servers.";
   }
 
   const zoneLabels = architecture.zones.map((zone) => zone.label).slice(0, 3);
@@ -703,6 +731,26 @@ function deriveTitle(
 
   if (classification?.pattern === "sandbox-analysis") {
     return "Threat Analysis Sandbox Architecture";
+  }
+
+  if (classification?.pattern === "remote-access") {
+    return "Secure Remote Access Architecture";
+  }
+
+  if (classification?.pattern === "ndr-visibility") {
+    return "NDR Visibility Across Network Zones";
+  }
+
+  if (classification?.pattern === "branch-networking") {
+    return "Branch Networking Architecture";
+  }
+
+  if (classification?.pattern === "cloud-workload") {
+    return "Cloud Workload Protection Architecture";
+  }
+
+  if (classification?.pattern === "core-dmz") {
+    return "Enterprise Core Network with DMZ";
   }
 
   if (prompt) {
@@ -1458,7 +1506,7 @@ function buildScenarioArchitecture(
         // Primary traffic flow (solid)
         createConnection("perimeter-firewall", "core-switch"),
         createConnection("core-switch", "internal-firewall"),
-        createConnection("internal-firewall", "application-server", "Allowed Traffic"),
+        createConnection("internal-firewall", "application-server"),
         createConnection("application-server", "database-server"),
         // SPAN/mirror feeds to sensors (intra-zone, dashed)
         createConnection("perimeter-firewall", "ndr-sensor-dmz", "SPAN / Mirror", "dashed"),
@@ -1591,25 +1639,25 @@ function buildScenarioArchitecture(
       appliedChanges: [],
       zones: [
         createZone("users", "Users and Devices", "external"),
+        createZone("identity", "Identity Provider", "security-zone"),
         createZone("sase", "SASE Cloud Platform", "cloud"),
         createZone("resources", "Corporate Resources", "internal"),
       ],
       components: [
         createComponent("Remote Users", "user", "users"),
         createComponent("Branch Offices", "network", "users"),
+        createComponent("Identity Provider", "identity", "identity", "critical"),
         createComponent("ZTNA Access Proxy", "security-control", "sase", "critical"),
         createComponent("Cloud Firewall / SWG", "security-control", "sase", "critical"),
         createComponent("CASB", "security-control", "sase"),
         createComponent("SD-WAN Gateway", "network", "sase", "critical"),
-        createComponent("Identity Provider", "identity", "sase"),
         createComponent("Internal Applications", "application", "resources"),
         createComponent("SaaS Applications", "application", "resources"),
         createComponent("Data Center", "data", "resources"),
       ],
       connections: [
-        createConnection("remote-users", "ztna-access-proxy", "ZTNA Tunnel"),
+        createConnection("remote-users", "identity-provider", "Authenticate"),
         createConnection("branch-offices", "sd-wan-gateway", "SD-WAN / IPSec"),
-        createConnection("ztna-access-proxy", "identity-provider", "Identity Verify"),
         createConnection("identity-provider", "ztna-access-proxy", "Auth Token", "dashed"),
         createConnection("ztna-access-proxy", "cloud-firewall-swg", "Policy Enforcement"),
         createConnection("sd-wan-gateway", "cloud-firewall-swg", "Traffic Inspection"),
@@ -1636,16 +1684,14 @@ function buildScenarioArchitecture(
         createComponent("Cloud Workloads", "application", "cloud"),
         createComponent("Data Services", "data", "cloud"),
         createComponent("Workload Protection", "security-control", "control", "critical"),
-        createComponent("Identity / Secrets", "identity", "control"),
-        createComponent("Telemetry / Logs", "monitoring", "control"),
+        createComponent("Identity / Secrets", "identity", "ops"),
         createComponent("Security Operations", "monitoring", "ops"),
       ],
       connections: [
         createConnection("workload-protection", "cloud-workloads", "Protection"),
-        createConnection("identity-secrets", "cloud-workloads", "Identity"),
+        createConnection("identity-secrets", "cloud-workloads", "Identity Check", "dashed"),
         createConnection("cloud-workloads", "data-services"),
-        createConnection("cloud-workloads", "telemetry-logs", "Telemetry", "dashed"),
-        createConnection("telemetry-logs", "security-operations"),
+        createConnection("cloud-workloads", "security-operations", "Telemetry", "dashed"),
       ],
     }, { prompt, classification });
   }
@@ -1683,7 +1729,7 @@ function buildScenarioArchitecture(
         ...(hasDmz
           ? [createConnection("perimeter-firewall", "dmz-segment", "Screened Traffic")]
           : []),
-        createConnection("perimeter-firewall", "internal-core-switch", "Allowed Traffic"),
+        createConnection("perimeter-firewall", "internal-core-switch"),
         createConnection("internal-core-switch", "application-servers"),
         // Left-to-right in same row — clean arrow
         createConnection("application-servers", "file-and-data-services"),
@@ -1715,7 +1761,7 @@ function buildScenarioArchitecture(
       connections: [
         createConnection("users-sources", "policy-enforcement-firewall"),
         createConnection("policy-enforcement-firewall", "inspection-control"),
-        createConnection("inspection-control", "application-zone", "Allowed Traffic"),
+        createConnection("inspection-control", "application-zone", "HTTPS"),
         createConnection("application-zone", "sensitive-data-zone"),
         createConnection("inspection-control", "monitoring-platform", "Security Logs", "dashed"),
       ],
@@ -1752,7 +1798,7 @@ function buildScenarioArchitecture(
         createConnection("ids-ips", "reverse-proxy", "Cleared"),
         createConnection("reverse-proxy", "core-switch", "Clean Traffic"),
         createConnection("core-switch", "internal-firewall"),
-        createConnection("internal-firewall", "application-server", "Allowed Traffic"),
+        createConnection("internal-firewall", "application-server"),
         createConnection("application-server", "database-server"),
       ],
     }, { prompt, classification });
@@ -1781,7 +1827,7 @@ function buildScenarioArchitecture(
     connections: [
       createConnection("users-source-systems", "secure-gateway"),
       createConnection("secure-gateway", "inspection-control"),
-      createConnection("inspection-control", "identity-service", "Allowed Traffic"),
+      createConnection("inspection-control", "identity-service"),
       createConnection("identity-service", "application-services", "Policy Check"),
       createConnection("application-services", "data-services"),
       createConnection("application-services", "monitoring-platform", "Logs", "dashed"),
@@ -1817,6 +1863,26 @@ export function applyFollowupInstruction(
   let changed = false;
   const appliedChanges: string[] = [];
 
+  // Removal instructions must be handled first and return early — keyword checks
+  // below (waf, siem, log) would otherwise fire on "remove the WAF" and add
+  // the component instead of removing it.
+  const isRemoveInstruction =
+    lower.includes("remove") || lower.includes("delete") ||
+    lower.includes("drop") || lower.includes("without");
+  if (isRemoveInstruction) {
+    const removableComponent = findComponentByInstruction(next.components, instruction);
+    if (removableComponent) {
+      next.components = next.components.filter((component) => component.id !== removableComponent.id);
+      rewireAroundComponent(next, removableComponent.id);
+      appliedChanges.push(`Removed ${removableComponent.label}.`);
+      changed = true;
+    }
+    if (changed) {
+      next.appliedChanges = [...(next.appliedChanges ?? []), ...appliedChanges];
+      return refreshArchitectureText(next);
+    }
+  }
+
   const ensureComponent = (
     label: string,
     type: ArchitectureComponent["type"],
@@ -1834,7 +1900,10 @@ export function applyFollowupInstruction(
   };
 
   if (lower.includes("siem")) {
-    const monitoringZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
+    const monitoringZone =
+      next.zones.find((zone) => zone.type === "internal")?.id ??
+      next.zones.find((zone) => zone.type === "security-zone")?.id ??
+      next.zones[next.zones.length - 1]?.id ?? "";
     const siemId = ensureComponent("SIEM", "monitoring", monitoringZone);
     next.components
       .filter((component) => component.type === "security-control")
@@ -1850,7 +1919,10 @@ export function applyFollowupInstruction(
   }
 
   if (lower.includes("monitor")) {
-    const monitoringZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
+    const monitoringZone =
+      next.zones.find((zone) => zone.type === "internal")?.id ??
+      next.zones.find((zone) => zone.type === "security-zone")?.id ??
+      next.zones[next.zones.length - 1]?.id ?? "";
     const beforeCount = next.components.length;
     ensureComponent("Monitoring Console", "monitoring", monitoringZone);
     if (next.components.length > beforeCount) {
@@ -1859,7 +1931,10 @@ export function applyFollowupInstruction(
   }
 
   if (lower.includes("logging") || lower.includes("log")) {
-    const internalZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
+    const internalZone =
+      next.zones.find((zone) => zone.type === "internal")?.id ??
+      next.zones.find((zone) => zone.type === "security-zone")?.id ??
+      next.zones[next.zones.length - 1]?.id ?? "";
     const logId = ensureComponent("Central Log Store", "monitoring", internalZone);
     next.components
       .filter((component) => ["security-control", "application", "network"].includes(component.type))
@@ -1898,7 +1973,10 @@ export function applyFollowupInstruction(
   }
 
   if (lower.includes("identity") || lower.includes("mfa") || lower.includes("sso")) {
-    const internalZone = next.zones.find((zone) => zone.id === "internal")?.id ?? next.zones[0]?.id ?? "";
+    const internalZone =
+      next.zones.find((zone) => zone.type === "internal")?.id ??
+      next.zones.find((zone) => zone.type === "security-zone")?.id ??
+      next.zones[next.zones.length - 1]?.id ?? "";
     const identityId = ensureComponent("Identity Platform", "identity", internalZone, "critical");
     next.components
       .filter((component) => component.type === "application" || component.type === "security-control")
@@ -1938,20 +2016,6 @@ export function applyFollowupInstruction(
 
   if ((lower.includes("replace") || lower.includes("instead of")) && !changed) {
     changed = true;
-  }
-
-  if (
-    (lower.includes("remove") || lower.includes("delete") || lower.includes("drop") || lower.includes("without")) &&
-    !changed
-  ) {
-    const removableComponent = findComponentByInstruction(next.components, instruction);
-
-    if (removableComponent) {
-      next.components = next.components.filter((component) => component.id !== removableComponent.id);
-      rewireAroundComponent(next, removableComponent.id);
-      appliedChanges.push(`Removed ${removableComponent.label}.`);
-      changed = true;
-    }
   }
 
   if (!changed && instruction.trim()) {
