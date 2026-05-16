@@ -147,7 +147,6 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
       </tr>`;
   }).join('');
 
-  const ROADMAP_CAP = 5;
   const roadmapSections = [
     { key: 'short', label: 'Immediate (0–90 days)', color: '#dc2626', bg: '#fef2f2' },
     { key: 'medium', label: 'Medium-term (90–180 days)', color: '#f59e0b', bg: '#fffbeb' },
@@ -157,9 +156,7 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
   const roadmapHtml = roadmapSections.map(({ key, label, color, bg }) => {
     const items = roadmap[key] || [];
     if (!items.length) return '';
-    const visible = items.slice(0, ROADMAP_CAP);
-    const hidden = items.length - ROADMAP_CAP;
-    const itemsHtml = visible.map(ctrl => `
+    const itemsHtml = items.map(ctrl => `
       <div style="background:#fff;border-radius:6px;padding:12px 14px;margin-bottom:8px;border-left:3px solid ${color};">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
@@ -169,10 +166,6 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
           <span style="background:#f3f4f6;padding:2px 8px;border-radius:10px;font-size:11px;color:#374151;white-space:nowrap;margin-left:12px;">${escapeHtml(PILLAR_LABELS[ctrl.pillar] || ctrl.pillar)}</span>
         </div>
       </div>`).join('');
-    const moreHtml = hidden > 0
-      ? `<div style="font-size:12px;color:#6b7280;font-style:italic;margin-top:4px;">+ ${hidden} additional action${hidden !== 1 ? 's' : ''} — see full roadmap in the advisory session.</div>`
-      : '';
-
     return `
       <div style="margin-bottom:24px;">
         <div style="background:${bg};border-radius:8px;padding:8px 14px;margin-bottom:12px;display:inline-block;">
@@ -180,7 +173,6 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
           <span style="color:${color};font-size:12px;margin-left:8px;">${items.length} action${items.length !== 1 ? 's' : ''}</span>
         </div>
         ${itemsHtml}
-        ${moreHtml}
       </div>`;
   }).join('');
 
