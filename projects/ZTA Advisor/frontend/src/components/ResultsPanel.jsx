@@ -117,22 +117,8 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, allFra
           <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)' }}>Assessment Results</h2>
           <p className="text-muted mt-4">{orgProfile?.orgName} · {totalActions} remediation actions identified</p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn btn-outline" onClick={onReset} type="button">New Assessment</button>
-          <button
-            className="btn btn-pdf"
-            onClick={handleExportPdf}
-            disabled={exportLoading}
-            type="button"
-          >
-            {exportLoading ? <><span className="spinner" /> Exporting…</> : '↓ Export PDF'}
-          </button>
-        </div>
+        <button className="btn btn-outline" onClick={onReset} type="button">New Assessment</button>
       </div>
-
-      {exportError && (
-        <div style={{ color: 'var(--red)', fontSize: 13, marginBottom: 12 }}>{exportError}</div>
-      )}
 
       {/* Score hero */}
       <div className="score-hero" style={{ marginBottom: 24 }}>
@@ -294,6 +280,20 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, allFra
           rows={5}
           style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit', fontSize: 13, padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text)', background: 'var(--surface)', lineHeight: 1.6 }}
         />
+      </div>
+
+      {/* Bottom action row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 }}>
+        {exportError && <span style={{ color: 'var(--red)', fontSize: 13 }}>{exportError}</span>}
+        <span /> {/* spacer when no error */}
+        <button
+          className="btn btn-pdf"
+          onClick={handleExportPdf}
+          disabled={exportLoading}
+          type="button"
+        >
+          {exportLoading ? <><span className="spinner" /> Exporting…</> : '↓ Export PDF'}
+        </button>
       </div>
     </div>
   );
