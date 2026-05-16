@@ -1,8 +1,5 @@
-import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-// Load .env from project root (one level above backend/)
-config({ path: join(dirname(fileURLToPath(import.meta.url)), '../.env') });
+// .env is loaded via --env-file=../.env flag in the launch command (Node 20+)
+// ESM hoisting means dotenv config() runs after imports — --env-file avoids this entirely
 import express from 'express';
 import cors from 'cors';
 import { frameworksRouter } from './routes/frameworks.js';

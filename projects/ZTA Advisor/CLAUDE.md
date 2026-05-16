@@ -7,7 +7,7 @@
 ## Dev commands
 ```bash
 # Backend
-cd backend && npm install && node --watch server.js
+cd backend && npm install && node --env-file=../.env --watch server.js
 
 # Frontend
 cd frontend && npm install && npm run dev
