@@ -49,6 +49,11 @@ export default function App() {
   }, [step, orgProfile, frameworkIds, answers, activePillar]);
 
   function handleProfileComplete(profile, frameworks) {
+    // Clear answers when switching to a different org — preserve if returning to same session
+    if (orgProfile?.orgName !== profile.orgName) {
+      setAnswers({});
+      setActivePillar('identity');
+    }
     setOrgProfile(profile);
     setFrameworkIds(frameworks);
     setStep(2);
