@@ -176,6 +176,11 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
       </div>`;
   }).join('');
 
+  const totalActions = ['short','medium','long'].reduce((s, k) => s + (roadmap[k]?.length || 0), 0);
+  const excellentHtml = totalActions === 0
+    ? `<div style="color:#10b981;font-weight:600;padding:12px 0;font-size:14px;">All pillars are at or above target maturity. Excellent ZT posture!</div>`
+    : '';
+
   const narrativeHtml = narrative
     ? `<section style="margin-bottom:36px;">
         <h2 style="font-size:16px;font-weight:700;color:#111827;border-bottom:2px solid #e5e7eb;padding-bottom:8px;margin-bottom:16px;">Executive Summary</h2>
@@ -256,6 +261,7 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
   <!-- Roadmap -->
   <section style="margin-bottom:36px;">
     <h2 style="font-size:16px;font-weight:700;color:#111827;border-bottom:2px solid #e5e7eb;padding-bottom:8px;margin-bottom:16px;">Prioritized Remediation Roadmap</h2>
+    ${excellentHtml}
     ${roadmapHtml}
   </section>
 
