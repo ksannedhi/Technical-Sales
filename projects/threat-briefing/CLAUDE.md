@@ -124,16 +124,17 @@ Dark mode preference is stored in `localStorage` (`darkMode: true/false`) and ap
 - `client/src/components/CisaKEV.jsx`
 - `client/src/components/Recommendations.jsx`
 - `client/src/components/ExportButton.jsx`
+- `client/src/components/FeedWarnings.jsx` — dismissible amber banner for OTX feed warnings
 
 ## Known issues and limitations
 
 | Issue | Cause | Status |
 |-------|-------|--------|
 | Feed stats show 0 after a second manual generate in quick succession | OTX rate-limits repeated API calls on the same key; returns empty result silently instead of an HTTP error | Known — wait ~15 min between manual generates |
-| Abuse.ch returning HTTP 401 | MalwareBazaar API now requires authentication | Fixed — add `ABUSECH_API_KEY` to `.env` (register free at bazaar.abuse.ch). Key is appended to POST body when set; feed degrades gracefully to 0 if absent |
+| Abuse.ch returning HTTP 401 | MalwareBazaar API now requires authentication | Fixed — add `ABUSECH_API_KEY` to `.env` (register free at bazaar.abuse.ch). Key is sent as `Auth-Key` HTTP header; feed degrades gracefully to 0 if absent |
 | All feed counts show 0 on a quiet day | OTX and CISA KEV filter to the last 24 hours; if no new pulses or KEVs were published, 0 is correct | Expected behaviour — not a bug |
 | CISA KEV always 0 | CISA does not add new KEVs every day; some days are genuinely empty | Expected behaviour |
-| Generation fails with JSON parse error on large OTX feeds | Claude response exceeded `max_tokens` and was truncated before the closing `</result>` tag | Mitigated — `max_tokens` raised to 8000 and parser hardened to handle missing closing tag; may recur if feeds grow very large |
+| Generation fails with JSON parse error on large OTX feeds | Claude response exceeded `max_tokens` and was truncated before the closing `</result>` tag | Mitigated — `max_tokens` raised to 16000 and parser hardened to handle missing closing tag; may recur if feeds grow very large |
 | Cron did not fire with `{ timezone }` option | node-cron v3 timezone option uses `Intl.DateTimeFormat.format()` then feeds the result to `new Date()`, which returns `Invalid Date` on Windows, silently preventing all matches | Fixed — timezone option removed; `TZ=Asia/Kuwait` in `.env` pins process clock so cron fires at 06:00 AST on any host |
 | PDF export ECONNRESET (persistent) | Puppeteer failed to launch Chrome (stale hardcoded executable path in `pdf.js`) | Fixed — removed hardcoded path; now uses `PUPPETEER_EXECUTABLE_PATH` env var or Puppeteer auto-detection |
 | PDF export ECONNRESET (first export after restart) | Puppeteer cold-start latency — Chrome takes several seconds to launch on first use; Vite proxy times out before the PDF comes back | Expected intermittent behaviour — retry once and it succeeds. Not worth fixing for a presales tool; would require a persistent browser instance to eliminate |
