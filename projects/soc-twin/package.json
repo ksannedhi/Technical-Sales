@@ -15,7 +15,7 @@
                     "scenario:ransomware":  "node scripts/trigger-scenario.js ransomware-precursor",
                     "scenario:cloud-identity":  "node scripts/trigger-scenario.js cloud-identity-abuse",
                     "scenario:stop":  "node scripts/stop-scenarios.js",
-                    "demo:launch":  "powershell -ExecutionPolicy Bypass -File .\\Start-SocTwin.ps1"
+                    "demo:launch":  "cmd.exe /c \"Launch SOC Twin.cmd\""
                 },
     "dependencies":  {
                          "@anthropic-ai/sdk": "^0.39.0",
