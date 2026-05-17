@@ -81,7 +81,7 @@ function Table({ columns, rows, rowStyle }) {
             rows.map((row, idx) => (
               <tr key={idx} style={rowStyle ? rowStyle(row) : undefined}>
                 {columns.map((c) => (
-                  <td key={c.key}>{c.render ? c.render(row[c.key], row) : row[c.key]}</td>
+                  <td key={c.key}>{c.render ? c.render(row[c.key], row, idx) : row[c.key]}</td>
                 ))}
               </tr>
             ))
@@ -641,7 +641,7 @@ export default function App() {
               : undefined
           }
           columns={[
-            { key: "id", label: "ID" },
+            { key: "id", label: "#", render: (_, __, idx) => idx + 1 },
             { key: "project_name", label: "Project" },
             { key: "framework", label: "Framework" },
             { key: "rows_processed", label: "Rows" },
