@@ -308,7 +308,7 @@ frontend/
 start.cmd                 One-click launcher
 CLAUDE.md                 Developer guidance for Claude Code
 README.md                 This file
-Security_Tools_Mapping_Navigator_MVP_Spec.md   Full specification (this document)
+Security_Controls_Gap_Analyzer_MVP_Spec.md     Full specification (this document)
 ```
 
 ---
@@ -316,7 +316,7 @@ Security_Tools_Mapping_Navigator_MVP_Spec.md   Full specification (this document
 ## 15. Startup
 
 ```cmd
-cd security-tools-mapping-navigator
+cd security-controls-gap-analyzer
 start.cmd
 ```
 

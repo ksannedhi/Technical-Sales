@@ -18,12 +18,12 @@ and a dynamic phased roadmap — all without an AI API or internet connection.
 
 ## Documentation
 
-- Full product spec: [Security_Tools_Mapping_Navigator_MVP_Spec.md](Security_Tools_Mapping_Navigator_MVP_Spec.md)
+- Full product spec: [Security_Controls_Gap_Analyzer_MVP_Spec.md](Security_Controls_Gap_Analyzer_MVP_Spec.md)
 
 ## Quick start
 
 ```cmd
-cd security-tools-mapping-navigator
+cd security-controls-gap-analyzer
 start.cmd
 ```
 
