@@ -1,4 +1,4 @@
-# Security Tools Mapping Navigator
+# Security Controls Gap Analyzer
 
 GUI-first presales tool that ingests a security tools-controls mapping CSV and produces a
 framework-aligned gap analysis, redundancy audit, domain coverage summary, tool recommendations,

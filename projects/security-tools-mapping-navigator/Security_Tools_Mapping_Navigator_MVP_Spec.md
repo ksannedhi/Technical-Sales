@@ -1,4 +1,4 @@
-# Security Tools Mapping Navigator — Project Specification
+# Security Controls Gap Analyzer — Project Specification
 
 Version: 0.4.0
 Date: 2026-04-24
@@ -7,7 +7,7 @@ Date: 2026-04-24
 
 ## 1. Executive Summary
 
-Security Tools Mapping Navigator is a GUI-based presales tool that analyses an organisation's
+Security Controls Gap Analyzer is a GUI-based presales tool that analyses an organisation's
 security tool inventory against NIST CSF 2.0 and CIS Controls v8.1, producing:
 
 - Domain Coverage at a Glance (per-domain tool mapping and control status)

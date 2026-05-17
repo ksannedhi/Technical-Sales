@@ -551,7 +551,7 @@ export default function App() {
   return (
     <div className="container">
       <section className="hero">
-        <h1>Security Tools Mapping Navigator</h1>
+        <h1>Security Controls Gap Analyzer</h1>
         <p>
           Map your existing security tools to NIST CSF 2.0 and CIS Controls v8.1, identify
           coverage gaps, flag redundancies, and generate a prioritised remediation roadmap.

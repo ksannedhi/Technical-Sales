@@ -21,7 +21,7 @@ from .services.storage import (
 )
 
 
-app = FastAPI(title="Security Tools Mapping Navigator API", version="0.3.0")
+app = FastAPI(title="Security Controls Gap Analyzer API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -78,7 +78,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
             content={
                 "detail": (
                     f"API route not found: {request.method} {request.url.path}. "
-                    "Check that the Security Tools Mapping Navigator backend is running "
+                    "Check that the Security Controls Gap Analyzer backend is running "
                     "and that the frontend is calling the correct API."
                 )
             },
@@ -103,7 +103,7 @@ async def validation_exception_handler(_: Request, exc: RequestValidationError) 
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"message": "Security Tools Mapping Navigator API is running."}
+    return {"message": "Security Controls Gap Analyzer API is running."}
 
 
 @app.get("/health")

@@ -27,7 +27,7 @@ Docs: `projects/soc-twin/README.md`
 
 ---
 
-### Security Tools Mapping Navigator
+### Security Controls Gap Analyzer
 - Path: `projects/security-tools-mapping-navigator`
 - Purpose: Upload a security tools inventory CSV and get a framework-aligned gap analysis (NIST CSF 2.0 / CIS Controls v8.1 / both), capability-filtered redundancy audit with consolidation savings, domain coverage summary, per-control vendor recommendations, dynamic phased roadmap, copyable Executive Summary, and Print/PDF export. No AI API required — fully deterministic and offline.
 - One-click launch (Windows):

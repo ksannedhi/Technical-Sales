@@ -49,7 +49,7 @@ echo [Launcher] Starting frontend in new window...
 start "Navigator Frontend" cmd /k "cd /d %FRONTEND% && npm.cmd run dev"
 
 echo.
-echo [Launcher] Security Tools Mapping Navigator is starting.
+echo [Launcher] Security Controls Gap Analyzer is starting.
 echo [Launcher] Frontend URL: http://localhost:5176
 echo [Launcher] API URL: http://127.0.0.1:8010
 echo [Launcher] Use Ctrl+C in each spawned terminal to stop services.
