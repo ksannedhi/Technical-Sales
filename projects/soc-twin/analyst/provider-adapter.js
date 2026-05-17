@@ -68,6 +68,7 @@ async function triageWithAnthropic(apiKey, model, alert, context = {}) {
         model: candidate,
         max_tokens: 500,
         temperature: 0.2,
+        system: "Return only valid JSON with no markdown, no code fences, and no extra text.",
         messages: [
           {
             role: "user",
@@ -96,7 +97,11 @@ async function triageWithAnthropic(apiKey, model, alert, context = {}) {
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    const cleaned = text
+      .replace(/^```(?:json)?\s*/m, "")
+      .replace(/\s*```$/m, "")
+      .trim();
+    parsed = JSON.parse(cleaned);
   } catch {
     throw new Error("Anthropic triage response was not valid JSON.");
   }
