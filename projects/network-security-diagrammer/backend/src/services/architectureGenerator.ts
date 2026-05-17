@@ -133,7 +133,8 @@ function createConnection(
   label?: string,
   style: ArchitectureConnection["style"] = "solid",
 ): ArchitectureConnection {
-  return { id: `${from}-${to}`, from, to, label, style };
+  const suffix = label ? `-${slug(label)}` : "";
+  return { id: `${from}-${to}${suffix}`, from, to, label, style };
 }
 
 function uniqueSlug(value: string, used: Set<string>, fallbackPrefix: string) {
@@ -335,12 +336,15 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     if (comp.type !== "security-control" && comp.type !== "identity") continue;
 
     const compZoneIdx = zoneOrderIndex.get(comp.zoneId) ?? 0;
-    // Find the best candidate: application or network component in a shallower zone
-    const candidate = updatedComponents.find((c) => {
-      if (c.id === comp.id) return false;
-      const cIdx = zoneOrderIndex.get(c.zoneId) ?? 0;
-      return (c.type === "application" || c.type === "network" || c.type === "data") && cIdx < compZoneIdx;
-    });
+    // Find the nearest candidate: application/network/data component in the closest shallower zone.
+    // Sort by zone index descending so the immediately-adjacent zone wins over a distant one.
+    const candidate = updatedComponents
+      .filter((c) => {
+        if (c.id === comp.id) return false;
+        const cIdx = zoneOrderIndex.get(c.zoneId) ?? 0;
+        return (c.type === "application" || c.type === "network" || c.type === "data") && cIdx < compZoneIdx;
+      })
+      .sort((a, b) => (zoneOrderIndex.get(b.zoneId) ?? 0) - (zoneOrderIndex.get(a.zoneId) ?? 0))[0];
 
     if (candidate) {
       const connId = `${candidate.id}-to-${comp.id}-auto`;

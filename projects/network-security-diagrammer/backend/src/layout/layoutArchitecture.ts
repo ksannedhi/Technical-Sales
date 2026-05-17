@@ -15,6 +15,7 @@ const MAX_ROW_COMPONENTS = 3;
 const STRAIGHT_ARROW_THRESHOLD = 24;
 const LABEL_CLEARANCE = 18;
 const SOLID_LABEL_MAX_CHARS = 22;
+const DASHED_LABEL_MAX_CHARS = 32;
 const TITLE_MAX_CHARS_PER_LINE = 22;
 const ZONE_TITLE_CHAR_WIDTH = 15;       // used only for zone-title min-width estimate
 
@@ -365,7 +366,7 @@ function shouldRenderConnectionLabel(label: string, from: Box, to: Box, style?: 
     if (gap < 80) return false;
   }
 
-  if (style === "dashed") return true;
+  if (style === "dashed") return label.length <= DASHED_LABEL_MAX_CHARS;
   return label.length <= SOLID_LABEL_MAX_CHARS;
 }
 

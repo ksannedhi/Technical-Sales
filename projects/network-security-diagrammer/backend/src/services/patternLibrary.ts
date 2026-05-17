@@ -153,8 +153,8 @@ const patternRules: Array<{
   },
   {
     pattern: "branch-networking",
-    test: (prompt) => /branch|sd-wan|hq|branch office/i.test(prompt),
-    score: (prompt) => (/branch|branch office/i.test(prompt) ? 4 : 0) + (/sd-wan|hq/i.test(prompt) ? 2 : 0),
+    test: (prompt) => /branch|sd-wan|\bhq\b|branch office/i.test(prompt),
+    score: (prompt) => (/branch|branch office/i.test(prompt) ? 4 : 0) + (/sd-wan|\bhq\b/i.test(prompt) ? 2 : 0),
   },
   {
     pattern: "ndr-visibility",
