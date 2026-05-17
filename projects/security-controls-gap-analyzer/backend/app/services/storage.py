@@ -58,7 +58,7 @@ def list_project_results(limit: int = 100) -> list[dict[str, Any]]:
             """
             SELECT id, project_name, framework, rows_processed, created_at
             FROM project_results
-            ORDER BY id DESC
+            ORDER BY id ASC
             LIMIT ?
             """,
             (limit,),
