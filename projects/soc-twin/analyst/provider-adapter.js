@@ -1,10 +1,12 @@
 const Anthropic = require("@anthropic-ai/sdk");
 
 const MODEL_FALLBACKS = {
-  "claude-3-5-haiku-latest": ["claude-3-5-haiku-20241022", "claude-3-haiku-20240307"],
-  "claude-3-5-haiku-20241022": ["claude-3-haiku-20240307"],
-  "claude-3-5-sonnet-latest": ["claude-3-5-sonnet-20241022", "claude-3-sonnet-20240229"],
-  "claude-3-7-sonnet-latest": ["claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022"]
+  "claude-haiku-4-5": [],
+  "claude-3-5-haiku-latest": ["claude-haiku-4-5"],
+  "claude-3-5-haiku-20241022": ["claude-haiku-4-5"],
+  "claude-sonnet-4-6": [],
+  "claude-3-5-sonnet-latest": ["claude-sonnet-4-6"],
+  "claude-3-7-sonnet-latest": ["claude-sonnet-4-6"]
 };
 
 function summarizeAlert(alert, context = {}) {
