@@ -574,6 +574,8 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
   elements: DiagramSeed[];
 } {
   const elements: DiagramSeed[] = [];
+  const connectionElements: DiagramSeed[] = [];
+  const componentElements: DiagramSeed[] = [];
   const componentBoxes = new Map<string, Box>();
   const zoneOrder = sortZones(architecture);
   let currentY = CANVAS_PADDING;
@@ -705,7 +707,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
           const size = getComponentSize(component.label, boxWidth);
           const style = componentStyle(component, architecture);
 
-          elements.push({
+          componentElements.push({
             id: `${component.id}-box`,
             type: "rectangle",
             x: componentX,
@@ -719,7 +721,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
             roughness: 0,
           });
 
-          elements.push({
+          componentElements.push({
             id: `${component.id}-label`,
             type: "text",
             x: componentX + 8,
@@ -768,7 +770,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
     const crossZone = fromZone !== undefined && toZone !== undefined && fromZone !== toZone;
     const { startX, startY, points } = routeArrow(from, to, index, crossZone);
 
-    elements.push({
+    connectionElements.push({
       id: connection.id,
       type: "arrow",
       x: startX,
@@ -806,7 +808,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       const labelHeight = TEXT_LINE_HEIGHT + 4;
       // White backing rectangle — rendered before the text so zone backgrounds
       // and dashed arrow lines never bleed through the label characters.
-      elements.push({
+      connectionElements.push({
         id: `${connection.id}-label-bg`,
         type: "rectangle",
         x: labelX - 3,
@@ -818,7 +820,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
         fillStyle: "solid",
         roughness: 0,
       });
-      elements.push({
+      connectionElements.push({
         id: `${connection.id}-label`,
         type: "text",
         x: labelX,
@@ -830,6 +832,12 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       });
     }
   });
+
+  // Z-order: zone backgrounds → connections (drawn under) → component boxes (drawn on top).
+  // Component boxes must render last so they occlude arrow lines that pass through
+  // intermediate zones, preventing the visual artifact where a skip-zone arrow appears
+  // to originate from the top of an intervening component.
+  elements.push(...connectionElements, ...componentElements);
 
   return {
     layout: {
