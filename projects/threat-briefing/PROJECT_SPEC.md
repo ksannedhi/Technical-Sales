@@ -1,4 +1,4 @@
-# Threat Intel Briefing Builder — Project Spec
+# AI Threat Intelligence Briefing — Project Spec
 
 ## 1. Purpose
 

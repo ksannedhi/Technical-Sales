@@ -1,6 +1,6 @@
-# Threat Intel Briefing Builder
+# AI Threat Intelligence Briefing
 
-AI-powered daily threat intelligence briefing tool for enterprise security teams in the GCC region.
+Daily OSINT briefings for enterprise security teams, synthesised by Claude AI — tuned for the GCC region.
 
 ## What It Does
 
