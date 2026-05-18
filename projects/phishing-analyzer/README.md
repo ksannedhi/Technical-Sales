@@ -1,6 +1,6 @@
 # Phishing Analyzer
 
-Demo-first AI-powered phishing email analyzer built for CISO and presales conversations.
+AI-powered phishing email analyzer combining deterministic rule checks with OpenAI-generated narrative — risk scoring, MITRE ATT&CK mapping, and NCA ECC / ISO 27001 compliance gap analysis in a single report.
 
 ## Documentation
 
