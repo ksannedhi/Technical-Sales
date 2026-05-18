@@ -242,6 +242,8 @@ function normalizeGeneratedArchitecture(architecture: ArchitectureModel) {
  *   4. Isolated security-control / identity components are auto-connected.
  *   5. Intra-zone connections flow left-to-right: `from` is forced left of `to`.
  *   6. Cross-zone inbound targets render in their zone's first row (displayOrder = 0).
+ *   7. Cross-row intra-zone connections are removed — no routing avoids the diagonal
+ *      crossing lines they produce when a hub fans out to endpoints across rows.
  */
 export function enforceArchitecturalConstraints(architecture: ArchitectureModel): ArchitectureModel {
   // ── Build zone → component list ──────────────────────────────────────────
@@ -427,11 +429,53 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     }
   }
 
+  // ── Rule 7: Remove cross-row intra-zone connections ───────────────────────
+  // A zone with > 3 components renders in multiple rows. Connections between
+  // components in different rows produce diagonal lines that cross each other —
+  // no routing path avoids this cleanly. Remove them; same-row connections
+  // (hub → adjacent endpoint) adequately represent fan-out topologies.
+  const MAX_ZONE_ROW = 3; // mirrors MAX_ROW_COMPONENTS in layoutArchitecture.ts
+  const TYPE_SORT_WEIGHT: Record<string, number> = {
+    user: 0, network: 1, "security-control": 2, identity: 3,
+    application: 4, data: 5, monitoring: 6, integration: 7,
+  };
+
+  // Rebuild zone→components map using the final updatedComponents
+  // (Rules 5 & 6 may have changed displayOrder).
+  const finalByZone = new Map<string, ArchitectureComponent[]>();
+  for (const comp of updatedComponents) {
+    const list = finalByZone.get(comp.zoneId) ?? [];
+    list.push(comp);
+    finalByZone.set(comp.zoneId, list);
+  }
+
+  const compRowIdx = new Map<string, number>(); // compId → layout row within zone
+  for (const [, comps] of finalByZone) {
+    if (comps.length <= MAX_ZONE_ROW) continue; // single-row zone — nothing to do
+    const sorted = [...comps].sort((a, b) => {
+      if (a.displayOrder !== undefined && b.displayOrder !== undefined) return a.displayOrder - b.displayOrder;
+      if (a.displayOrder !== undefined) return -1;
+      if (b.displayOrder !== undefined) return 1;
+      return (TYPE_SORT_WEIGHT[a.type] ?? 4) - (TYPE_SORT_WEIGHT[b.type] ?? 4);
+    });
+    sorted.forEach((comp, idx) => compRowIdx.set(comp.id, Math.floor(idx / MAX_ZONE_ROW)));
+  }
+
+  const finalConnections = allConns.filter((conn) => {
+    const fromRow = compRowIdx.get(conn.from);
+    const toRow = compRowIdx.get(conn.to);
+    if (fromRow !== undefined && toRow !== undefined && fromRow !== toRow) {
+      console.log(`[normalizer] Rule 7: removing cross-row intra-zone "${conn.from}"→"${conn.to}" (row ${fromRow}→${toRow})`);
+      return false;
+    }
+    return true;
+  });
+
   return {
     ...architecture,
     zones: updatedZones,
     components: updatedComponents,
-    connections: allConns,
+    connections: finalConnections,
   };
 }
 
