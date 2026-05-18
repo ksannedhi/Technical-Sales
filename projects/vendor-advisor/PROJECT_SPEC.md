@@ -1,4 +1,4 @@
-# VendorLens — Product Spec
+# VendorAdvisor — Product Spec
 
 ## 1. Purpose
 
