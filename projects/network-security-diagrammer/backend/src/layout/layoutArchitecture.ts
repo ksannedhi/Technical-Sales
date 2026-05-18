@@ -534,6 +534,7 @@ function arrowLabelPosition(
   points: Array<[number, number]>,
   index: number,
   labelText: string,
+  crossZone = false,
 ): { x: number; y: number } {
   const endPoint = points[points.length - 1] ?? [0, 0];
   const endX = startX + endPoint[0];
@@ -549,11 +550,15 @@ function arrowLabelPosition(
     }
     const arrowHeight = Math.abs(endPoint[1]);
     const targetTopY = startY + endPoint[1];
-    // Long straight vertical arrows (> 150px) span multiple zones.
-    // Placing the label at the midpoint drops it inside a zone interior where the
-    // zone background obscures the text. Instead anchor it 40px below the source —
-    // this always lands in the first inter-zone gap regardless of total arrow length.
+    // Long straight vertical arrows spanning zones: anchor label inside the
+    // source component (just above its bottom edge) so it never floats in the
+    // inter-zone gap where there is no background behind the text.
     if (arrowHeight > 150) {
+      if (crossZone && endY > startY) {
+        // startY = bottom of source component for downward cross-zone arrows.
+        // Place text just inside that component, clear of the gap.
+        return { x: midX + LABEL_CLEARANCE, y: startY - TEXT_LINE_HEIGHT - 8 };
+      }
       const nearTopY = startY + 40;
       const clampedY = Math.min(nearTopY, targetTopY - TEXT_LINE_HEIGHT - 4);
       return { x: midX + LABEL_CLEARANCE, y: clampedY };
@@ -567,6 +572,12 @@ function arrowLabelPosition(
   const midPoint = points[1] ?? [0, 0];
   const laneY = startY + midPoint[1];
   const midX = (startX + endX) / 2;
+  // For cross-zone downward bent-path arrows the horizontal lane segment sits in
+  // the inter-zone gap (28–56 px below source bottom). Anchor the label inside
+  // the source component instead so it always has a zone background behind it.
+  if (crossZone && endY > startY) {
+    return { x: midX + LABEL_CLEARANCE, y: startY - TEXT_LINE_HEIGHT - 8 };
+  }
   // For downward arrows (endY > startY) place the label BELOW the lane point so it sits
   // in the middle of the inter-zone gap rather than touching the source zone's bottom border.
   // For upward arrows keep it above the lane (further from the destination zone).
@@ -812,7 +823,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
         labeledConnectionsPerSource.set(connection.from, sourceCount + 1);
       }
 
-      const { x: labelX, y: labelY } = arrowLabelPosition(startX, startY, points, index, labelText);
+      const { x: labelX, y: labelY } = arrowLabelPosition(startX, startY, points, index, labelText, crossZone);
       const labelWidth = Math.max(160, labelText.length * 12 + 24);
       const labelHeight = TEXT_LINE_HEIGHT + 4;
       // White backing rectangle — rendered before the text so zone backgrounds
