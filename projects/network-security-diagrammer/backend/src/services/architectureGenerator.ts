@@ -244,6 +244,9 @@ function normalizeGeneratedArchitecture(architecture: ArchitectureModel) {
  *   6. Cross-zone inbound targets render in their zone's first row (displayOrder = 0).
  *   7. Cross-row intra-zone connections are removed — no routing avoids the diagonal
  *      crossing lines they produce when a hub fans out to endpoints across rows.
+ *   8. Cross-zone downward connections from non-last-row components are redirected
+ *      to the last-row component in the same zone, eliminating the visible stub
+ *      in the inter-row gap above the redirected component.
  */
 export function enforceArchitecturalConstraints(architecture: ArchitectureModel): ArchitectureModel {
   // ── Build zone → component list ──────────────────────────────────────────
@@ -471,11 +474,51 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     return true;
   });
 
+  // ── Rule 8: Redirect non-last-row cross-zone connections to last-row ────────
+  // When a cross-zone downward connection starts from a component in row 0..N-1
+  // of a multi-row zone, the arrow passes through the inter-row gap (28 px) —
+  // visible as a stub with no arrowhead. Redirect `conn.from` to the first
+  // component in the zone's last row so the arrow originates at the zone's
+  // actual bottom edge and the stub disappears entirely.
+  const zoneMaxRow = new Map<string, number>();
+  for (const [zId, comps] of finalByZone) {
+    if (comps.length <= MAX_ZONE_ROW) continue;
+    let maxRow = 0;
+    for (const comp of comps) {
+      const row = compRowIdx.get(comp.id) ?? 0;
+      if (row > maxRow) maxRow = row;
+    }
+    zoneMaxRow.set(zId, maxRow);
+  }
+
+  const redirectedConnections = finalConnections.map((conn) => {
+    const fzId = compZone.get(conn.from);
+    const tzId = compZone.get(conn.to);
+    if (!fzId || !tzId || fzId === tzId) return conn; // same-zone: skip
+
+    const fOrdIdx = zoneOrderIndex.get(fzId) ?? 0;
+    const tOrdIdx = zoneOrderIndex.get(tzId) ?? 0;
+    if (fOrdIdx >= tOrdIdx) return conn; // not a downward connection: skip
+
+    const fromRow = compRowIdx.get(conn.from);
+    const maxRow = zoneMaxRow.get(fzId);
+    if (fromRow === undefined || maxRow === undefined || fromRow >= maxRow) return conn;
+
+    // Source is in an upper row — find the first last-row component in the zone
+    const lastRowComps = updatedComponents.filter(
+      (c) => c.zoneId === fzId && (compRowIdx.get(c.id) ?? 0) === maxRow,
+    );
+    if (lastRowComps.length === 0) return conn;
+    const redirect = lastRowComps[0]!;
+    console.log(`[normalizer] Rule 8: redirecting "${conn.id}" from "${conn.from}" → last-row "${redirect.id}"`);
+    return { ...conn, from: redirect.id };
+  });
+
   return {
     ...architecture,
     zones: updatedZones,
     components: updatedComponents,
-    connections: finalConnections,
+    connections: redirectedConnections,
   };
 }
 
