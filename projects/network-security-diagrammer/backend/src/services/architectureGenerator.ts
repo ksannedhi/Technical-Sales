@@ -464,11 +464,32 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     sorted.forEach((comp, idx) => compRowIdx.set(comp.id, Math.floor(idx / MAX_ZONE_ROW)));
   }
 
+  // Pre-count same-zone incoming connections per component so Rule 7 can
+  // detect when removing a cross-row connection would leave a component with
+  // zero uplinks — in that case the connection is kept (one diagonal is better
+  // than an architecturally orphaned endpoint).
+  const sameZoneIncoming = new Map<string, number>();
+  for (const conn of allConns) {
+    const fzId = compZone.get(conn.from);
+    const tzId = compZone.get(conn.to);
+    if (fzId && tzId && fzId === tzId) {
+      sameZoneIncoming.set(conn.to, (sameZoneIncoming.get(conn.to) ?? 0) + 1);
+    }
+  }
+
   const finalConnections = allConns.filter((conn) => {
     const fromRow = compRowIdx.get(conn.from);
     const toRow = compRowIdx.get(conn.to);
     if (fromRow !== undefined && toRow !== undefined && fromRow !== toRow) {
-      console.log(`[normalizer] Rule 7: removing cross-row intra-zone "${conn.from}"→"${conn.to}" (row ${fromRow}→${toRow})`);
+      // Exception: keep if this is the last same-zone incoming connection for
+      // the target. Removing it would leave the component with no uplink at all.
+      const remaining = (sameZoneIncoming.get(conn.to) ?? 1) - 1;
+      sameZoneIncoming.set(conn.to, remaining);
+      if (remaining <= 0) {
+        console.log(`[normalizer] Rule 7: keeping last uplink to "${conn.to}" (cross-row but sole incoming)`);
+        return true;
+      }
+      console.log(`[normalizer] Rule 7: removing cross-row "${conn.from}"→"${conn.to}" (row ${fromRow}→${toRow})`);
       return false;
     }
     return true;
@@ -560,6 +581,7 @@ async function generateArchitectureWithModel(
         "- Component labels must be concise — 2 to 4 words maximum. Avoid parenthetical qualifiers.",
         "- Active-active topology: when the prompt explicitly requests active-active, label every region zone as '(Active)' — never '(Primary)' or '(Secondary)'. Primary/Secondary implies active-passive standby, which contradicts active-active.",
         "- Parallel zone rendering: for active-active or multi-region topologies, assign the same integer `row` value (e.g. row: 1) to every sibling region zone so the renderer places them side-by-side instead of stacking them vertically. Zones without a `row` field render as full-width bands as normal.",
+        "- Maximum 3 components per zone. If a topology requires more (e.g. 4 workstations, 3 servers), split them across multiple adjacent zones with descriptive names (e.g. 'Workstations A', 'Workstations B'). Never put more than 3 components in a single zone.",
         "",
         "CONNECTION RULES:",
         "- Label connections with the specific protocol or control name where meaningful: IPSec/IKEv2, HTTPS, SAML 2.0, syslog/514, SD-WAN, ZTNA, BGP, SMTP, MAPI.",
