@@ -595,7 +595,7 @@ export default function App() {
               </div>
             </>
           ) : (
-            <div className="empty-state">Select any of the five scenarios to restore its outcome, or optionally add customer-specific input.</div>
+            <div className="empty-state">Select a scenario to restore its built-in outcome, or optionally add customer-specific input.</div>
           )}
         </section>
       </section>
