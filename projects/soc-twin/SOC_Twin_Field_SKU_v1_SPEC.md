@@ -69,7 +69,7 @@ Analyst Module
 | Frontend | React + Vite (port 5173) |
 | Backend | Node.js + Express + Socket.io (port 3001) |
 | Store | In-memory singleton — no database |
-| AI analyst | Anthropic API (`claude-3-5-haiku-latest`) with deterministic local fallback |
+| AI analyst | Anthropic API (`claude-haiku-4-5`) with deterministic local fallback |
 | Packaging | npm scripts; `Launch SOC Twin.cmd` for Windows one-click start |
 
 No Tailwind. No SQLite. The `globals.css` file owns all styling.

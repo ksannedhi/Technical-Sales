@@ -126,7 +126,7 @@ Copy `.env.example` to `.env`. Key vars:
 |---|---|---|
 | `PORT` | `3001` | Backend listen port |
 | `ANTHROPIC_API_KEY` | _(empty)_ | If unset, ARIA uses local fallback |
-| `ANTHROPIC_MODEL` | `claude-3-5-haiku-latest` | Model for triage; has fallback chain |
+| `ANTHROPIC_MODEL` | `claude-haiku-4-5` | Model for triage; has fallback chain |
 | `EVENT_RATE_MS` | `3200` | Background noise interval (ms) |
 | `SCENARIO_NOISE_MS` | `1200` | Noise interval during active scenario |
 
