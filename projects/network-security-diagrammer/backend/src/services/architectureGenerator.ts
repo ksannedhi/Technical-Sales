@@ -1937,6 +1937,7 @@ function buildScenarioArchitecture(
         createZone("edge", "External / User Zone", "external"),
         createZone("policy", "Inspection and Segmentation", "security-zone"),
         createZone("internal", "Protected Internal Zones", "internal"),
+        createZone("monitoring", "Security Monitoring", "security-zone"),
       ],
       components: [
         createComponent("Users / Sources", "user", "edge"),
@@ -1944,14 +1945,14 @@ function buildScenarioArchitecture(
         createComponent("Inspection Control", "security-control", "policy", "critical"),
         createComponent("Application Zone", "application", "internal"),
         createComponent("Sensitive Data Zone", "data", "internal"),
-        createComponent("Monitoring Platform", "monitoring", "internal"),
+        createComponent("Monitoring Platform", "monitoring", "monitoring"),
       ],
       connections: [
         createConnection("users-sources", "policy-enforcement-firewall"),
         createConnection("policy-enforcement-firewall", "inspection-control"),
         createConnection("inspection-control", "application-zone", "HTTPS"),
         createConnection("application-zone", "sensitive-data-zone"),
-        createConnection("inspection-control", "monitoring-platform", "Security Logs", "dashed"),
+        createConnection("application-zone", "monitoring-platform", "Security Logs", "dashed"),
       ],
     }, { prompt, classification });
   }

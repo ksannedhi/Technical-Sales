@@ -160,6 +160,10 @@ const preferredZoneOrders: Array<{
     match: (architecture) => architecture.title.includes("Cloud Workload Protection"),
     order: ["cloud", "control", "ops"],
   },
+  {
+    match: (architecture) => architecture.title.includes("Segmentation and Inspection"),
+    order: ["edge", "policy", "internal", "monitoring"],
+  },
 ];
 
 function zoneColor(zoneType: ArchitectureZone["type"]) {
