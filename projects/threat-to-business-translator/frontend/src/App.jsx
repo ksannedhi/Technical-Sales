@@ -33,6 +33,14 @@ function slugify(value) {
     .slice(0, 80);
 }
 
+const SERVICE_PLACEHOLDER = {
+  "financial-services": "e.g. payroll, customer portal, supply chain, digital banking",
+  "healthcare":         "e.g. EHR platform, patient portal, medical device network, claims processing",
+  "manufacturing":      "e.g. MES, ICS/SCADA, supplier logistics, ERP",
+  "retail":             "e.g. e-commerce platform, POS network, payment processing, loyalty platform",
+  "technology":         "e.g. SaaS platform, CI/CD pipeline, IAM platform, cloud infrastructure",
+};
+
 const DEFAULT_SECTORS = [
   { id: "financial-services", label: "Financial Services" },
   { id: "healthcare",         label: "Healthcare" },
@@ -359,7 +367,7 @@ export default function App() {
                   type="text"
                   value={affectedService}
                   onChange={(event) => setAffectedService(event.target.value)}
-                  placeholder="e.g. payroll, customer portal, supply chain, digital banking"
+                  placeholder={SERVICE_PLACEHOLDER[sector] ?? SERVICE_PLACEHOLDER["financial-services"]}
                 />
               </div>
             </div>
