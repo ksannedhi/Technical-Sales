@@ -38,14 +38,14 @@ Docs: `projects/security-tools-mapping-navigator/README.md`
 
 ---
 
-### Multi-Vendor Decision Copilot
-- Path: `projects/multi-vendor-decision-copilot`
-- Purpose: conversational cybersecurity copilot that explains categories and products in plain English, compares named vendors with weighted scoring, and gives ranked recommendations — fully offline, no AI API.
+### VendorLens
+- Path: `projects/vendor-lens`
+- Purpose: cybersecurity vendor recommendation tool that explains categories and products in plain English, compares named vendors with weighted scoring, and gives ranked recommendations — fully offline, no AI API.
 - Quick launch (Windows):
 ```
-cd projects/multi-vendor-decision-copilot && start.cmd
+cd projects/vendor-lens && start.cmd
 ```
-Docs: `projects/multi-vendor-decision-copilot/README.md`
+Docs: `projects/vendor-lens/README.md`
 
 ---
 
@@ -71,14 +71,14 @@ Docs: `projects/phishing-analyzer/README.md`
 
 ---
 
-### Presales Deal Gating
-- Path: `projects/presales-deal-gating`
+### Presales Deal Reviewer
+- Path: `projects/presales-deal-reviewer`
 - Purpose: local web app for reviewing deal readiness across requirements, architecture, proposal, and supporting notes.
 - One-click launch (Windows):
 ```
-cd projects/presales-deal-gating && start.cmd
+cd projects/presales-deal-reviewer && start.cmd
 ```
-Docs: `projects/presales-deal-gating/README.md`
+Docs: `projects/presales-deal-reviewer/README.md`
 
 ---
 

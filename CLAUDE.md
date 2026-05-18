@@ -26,8 +26,8 @@ Generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a c
 | `security-tools-mapping-navigator`| 8010         | 5176          |
 | `threat-briefing`                 | 3003         | 5177          |
 | `threat-to-business-translator`   | 8000         | 5178          |
-| `presales-deal-gating`            | 8020         | —             |
-| `multi-vendor-decision-copilot`   | 8501         | —             |
+| `presales-deal-reviewer`          | 8020         | —             |
+| `vendor-lens`                     | 8501         | —             |
 | `regulatory-lens`                 | 3004         | 5179          |
 | `zta-advisor`                     | 3005         | 5180          |
 
@@ -56,14 +56,14 @@ cmd.exe /c "robocopy \"<Downloads>\<project>\" \"<Downloads>\Technical-Sales\pro
 | `security-tools-mapping-navigator`| Python / FastAPI               | Vite + React         |
 | `threat-briefing`                 | Node / Express + Puppeteer     | Vite + React         |
 | `threat-to-business-translator`   | Python / FastAPI               | Vite + React         |
-| `presales-deal-gating`            | Python / wsgiref               | Server-rendered HTML |
-| `multi-vendor-decision-copilot`   | Python / Streamlit             | Streamlit            |
+| `presales-deal-reviewer`          | Python / wsgiref               | Server-rendered HTML |
+| `vendor-lens`                     | Python / Streamlit             | Streamlit            |
 | `regulatory-lens`                 | Node / Express (ESM)           | Vite + React         |
 | `zta-advisor`                     | Node / Express (ESM)           | Vite + React         |
 
 ## Key conventions
 
-- **No external AI API** in `presales-deal-gating` and `multi-vendor-decision-copilot` — fully local/offline
+- **No external AI API** in `presales-deal-reviewer` and `vendor-lens` — fully local/offline
 - **PYTHONPATH=src** required for all Python projects before running or testing
 - **Ports are unique** — no two services share a port; see table above before adding new servers
 - **`.env` files are not committed** — each project has a `.env.example` template
