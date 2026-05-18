@@ -363,8 +363,13 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
 
   // ── Rule 5: Fix intra-zone right-to-left connections ─────────────────────
   // Same-zone connections must flow left-to-right (`from` renders LEFT of `to`).
-  // If the effective display-order rank puts `from` after `to`, explicitly
-  // reassign displayOrder so the layout places `from` first.
+  // Two cases warrant a displayOrder swap:
+  //   a) `to` has an explicit displayOrder placing it before `from`, but `from`
+  //      has no explicit order and its type rank would land it after `to`.
+  //   b) Both have explicit displayOrder values and `from` > `to`.
+  // Equal-rank components with no explicit order are left alone — swapping them
+  // causes cascading conflicts when a hub (e.g. switch) fans out to many endpoints
+  // of the same type (e.g. workstations), all of which share typeRank = 0.
   const COMP_TYPE_RANK: Record<string, number> = {
     user: 0, network: 1, "security-control": 2, identity: 3,
     application: 4, data: 5, monitoring: 6, integration: 7,
@@ -380,14 +385,21 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
 
     const fc = updatedComponents[fi]!;
     const tc = updatedComponents[ti]!;
-    const fRank = fc.displayOrder ?? COMP_TYPE_RANK[fc.type] ?? 4;
-    const tRank = tc.displayOrder ?? COMP_TYPE_RANK[tc.type] ?? 4;
 
-    if (fRank >= tRank) {
-      // `from` renders at same position or RIGHT of `to` — fix it
-      const lo = Math.min(fRank, tRank);
-      updatedComponents[fi] = { ...fc, displayOrder: lo > 0 ? lo - 1 : 0 };
-      updatedComponents[ti] = { ...tc, displayOrder: lo > 0 ? lo : lo + 1 };
+    const needsSwap =
+      // Case a: `to` has explicit displayOrder placing it before `from` (no explicit order)
+      (fc.displayOrder === undefined &&
+        tc.displayOrder !== undefined &&
+        (COMP_TYPE_RANK[fc.type] ?? 4) > tc.displayOrder) ||
+      // Case b: both explicit, `from` renders to the right of `to`
+      (fc.displayOrder !== undefined &&
+        tc.displayOrder !== undefined &&
+        fc.displayOrder > tc.displayOrder);
+
+    if (needsSwap) {
+      const temp = fc.displayOrder;
+      updatedComponents[fi] = { ...fc, displayOrder: tc.displayOrder };
+      updatedComponents[ti] = { ...tc, displayOrder: temp };
       console.log(`[normalizer] Rule 5: intra-zone l→r "${fc.label}" before "${tc.label}"`);
     }
   }
