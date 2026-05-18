@@ -400,24 +400,18 @@ function routeArrow(from: Box, to: Box, index: number, crossZone = false): { sta
       const dx = endX - startX;
       const dy = endY - startY;
 
-      // Non-adjacent same-row: route below the row to avoid cutting through the intermediate box.
-      // Path: bottom-center of `from` → drop 20px → sweep to target left edge →
-      // arrive at target center Y. End exactly at the left edge so the arrowhead
-      // appears at the box border, not inside the box.
+      // Non-adjacent same-row: straight line from right edge of `from` to left
+      // edge of `to` at center Y. Component boxes render on top of connections
+      // (z-order), so any intermediate box hides the overlapping segment.
+      // The previous DROP routing placed a horizontal band in the inter-row gap
+      // (28 px) which was fully visible — this avoids it.
       if (dx > from.width + COMPONENT_GAP_X) {
-        const fromBottomX = centerX(from);
-        const fromBottomY = from.y + from.height;
-        const DROP = 20;
-        const targetLeftX = to.x;
-        const targetCenterY = centerY(to);
         return {
-          startX: fromBottomX,
-          startY: fromBottomY,
+          startX: rightX(from),
+          startY: centerY(from),
           points: [
             [0, 0],
-            [0, DROP],
-            [targetLeftX - fromBottomX, DROP],
-            [targetLeftX - fromBottomX, targetCenterY - fromBottomY],
+            [to.x - rightX(from), centerY(to) - centerY(from)],
           ],
         };
       }
@@ -493,6 +487,21 @@ function routeArrow(from: Box, to: Box, index: number, crossZone = false): { sta
   const dy = endY - startY;
 
   if (Math.abs(dx) <= STRAIGHT_ARROW_THRESHOLD) {
+    return {
+      startX,
+      startY,
+      points: [
+        [0, 0],
+        [dx, dy],
+      ],
+    };
+  }
+
+  // Intra-zone cross-row with small dy: skip the bent lane.
+  // A bent path with dy < 80 px places its horizontal segment inside the
+  // ~28 px inter-row gap — fully visible, no component box covers it.
+  // A direct diagonal avoids the gap entirely.
+  if (!crossZone && dy < 80) {
     return {
       startX,
       startY,
