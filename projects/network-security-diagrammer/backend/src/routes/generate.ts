@@ -30,7 +30,7 @@ export async function generateRoute(req: Request, res: Response) {
     }
 
     const key = createCacheKey({
-      type: "generate-v61",
+      type: "generate-v62",
       prompt: parsed.data.prompt,
       confirmedAssumptions: parsed.data.confirmedAssumptions,
       secureAlternative: parsed.data.secureAlternative,

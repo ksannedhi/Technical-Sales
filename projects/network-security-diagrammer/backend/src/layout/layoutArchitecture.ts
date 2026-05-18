@@ -563,9 +563,10 @@ function arrowLabelPosition(
     // never floats in the inter-zone gap and never overlaps the component.
     if (arrowHeight > 150) {
       if (crossZone && endY > startY) {
-        // startY = bottom of source component; ZONE_PADDING_Y = 28px below it
-        // is the zone border. +8 lands 20px above the zone border — on zone bg.
-        return { x: startX + LABEL_CLEARANCE, y: startY + 8 };
+        // Anchor just above destination component, inside destination zone's
+        // top padding (ZONE_PADDING_Y = 28px). Label height = TEXT_LINE_HEIGHT+4
+        // = 26px, leaving 2px margin at top — fully inside zone, no gap float.
+        return { x: endX + LABEL_CLEARANCE, y: endY - TEXT_LINE_HEIGHT - 4 };
       }
       const nearTopY = startY + 40;
       const clampedY = Math.min(nearTopY, targetTopY - TEXT_LINE_HEIGHT - 4);
@@ -580,11 +581,10 @@ function arrowLabelPosition(
   const midPoint = points[1] ?? [0, 0];
   const laneY = startY + midPoint[1];
   const midX = (startX + endX) / 2;
-  // For cross-zone downward bent-path arrows: anchor label in source zone's
-  // bottom padding (below component, above zone border) using source X so the
-  // label is clearly tied to the source and never floats in the gap.
+  // For cross-zone downward bent-path arrows: anchor just above destination
+  // component inside destination zone top padding — same rule as straight case.
   if (crossZone && endY > startY) {
-    return { x: startX + LABEL_CLEARANCE, y: startY + 8 };
+    return { x: endX + LABEL_CLEARANCE, y: endY - TEXT_LINE_HEIGHT - 4 };
   }
   // For downward arrows (endY > startY) place the label BELOW the lane point so it sits
   // in the middle of the inter-zone gap rather than touching the source zone's bottom border.
