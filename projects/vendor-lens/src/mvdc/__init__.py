@@ -1,4 +1,4 @@
-"""Multi-Vendor Decision Copilot package."""
+"""VendorLens package."""
 
 from .engine import DecisionEngine
 

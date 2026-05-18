@@ -1,4 +1,4 @@
-# Multi-Vendor Decision Copilot
+# VendorLens
 
 Customer-facing cybersecurity recommendation app with transparent filtering, weighted scoring, and category-aware explanations. Fully offline — no external AI API.
 

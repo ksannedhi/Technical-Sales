@@ -1,4 +1,4 @@
-# Multi-Vendor Decision Copilot — Product Spec
+# VendorLens — Product Spec
 
 ## 1. Purpose
 

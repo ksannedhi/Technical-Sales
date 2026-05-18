@@ -13,7 +13,7 @@ if str(SRC) not in sys.path:
 
 from mvdc import DecisionEngine
 
-st.set_page_config(page_title="Multi-Vendor Decision Copilot", page_icon="shield", layout="wide")
+st.set_page_config(page_title="VendorLens", page_icon="shield", layout="wide")
 
 st.markdown("""
 <style>
