@@ -1,5 +1,21 @@
+// Attempt one fetch; on a network-level failure (TypeError — ECONNRESET,
+// ECONNREFUSED) retry once after a short delay. This absorbs the brief
+// unavailability window when node --watch restarts the server after its
+// initial file-scan pass without surfacing an error to the user.
+async function fetchWithRetry(url, options, retries = 1, retryDelayMs = 2000) {
+  try {
+    return await fetch(url, options);
+  } catch (err) {
+    if (retries > 0 && err instanceof TypeError) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+      return fetchWithRetry(url, options, retries - 1, retryDelayMs);
+    }
+    throw err;
+  }
+}
+
 export async function analyzeEmail(payload) {
-  const response = await fetch('/api/analyze', {
+  const response = await fetchWithRetry('/api/analyze', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
