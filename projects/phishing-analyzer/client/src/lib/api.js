@@ -2,7 +2,7 @@
 // ECONNREFUSED) retry once after a short delay. This absorbs the brief
 // unavailability window when node --watch restarts the server after its
 // initial file-scan pass without surfacing an error to the user.
-async function fetchWithRetry(url, options, retries = 1, retryDelayMs = 2000) {
+async function fetchWithRetry(url, options, retries = 1, retryDelayMs = 1000) {
   try {
     return await fetch(url, options);
   } catch (err) {
