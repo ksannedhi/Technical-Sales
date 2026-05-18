@@ -9,7 +9,7 @@ from .services.data_loader import list_scenario_cards, list_sectors
 from .services.translator import analyze_raw_input, default_profile, translate_scenario
 
 
-app = FastAPI(title="Threat-to-Business Translator API", version="0.3.0")
+app = FastAPI(title="CyberRisk Narrator API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,

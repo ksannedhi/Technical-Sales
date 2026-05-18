@@ -1,6 +1,6 @@
-# Threat-to-Business Translator
+# CyberRisk Narrator
 
-Threat-to-Business Translator is a local-first MVP that converts technical security evidence into executive cyber risk narratives. It supports built-in synthetic scenarios as well as optional customer-specific inputs such as CVEs, SOC alerts, and vulnerability scan reports, then translates them into quantified business impact, urgency, and recommended leadership actions.
+CyberRisk Narrator is a local-first MVP that converts technical security evidence into executive cyber risk narratives. It supports built-in synthetic scenarios as well as optional customer-specific inputs such as CVEs, SOC alerts, and vulnerability scan reports, then translates them into quantified business impact, urgency, and recommended leadership actions.
 
 ## Why this project exists
 
@@ -93,7 +93,7 @@ When a scan report contains multiple findings, the app now:
 
 ### Option 1: one-click launcher
 
-Double-click `Launch Threat-to-Business Translator.cmd` from the project root.
+Double-click `Launch CyberRisk Narrator.cmd` from the project root.
 
 The launcher will:
 - create the backend virtual environment if needed

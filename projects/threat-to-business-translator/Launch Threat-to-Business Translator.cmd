@@ -6,7 +6,7 @@ set VENV_PYTHON=%BACKEND%\.venv\Scripts\python.exe
 set VENV_ACTIVATE=%BACKEND%\.venv\Scripts\activate.bat
 
 echo.
-echo  Starting Threat-to-Business Translator...
+echo  Starting CyberRisk Narrator...
 echo.
 
 REM -- Create Python virtual environment if missing --
@@ -35,12 +35,12 @@ if not exist "%ROOT%frontend\node_modules" (
 )
 
 REM -- Open backend in a new window (activate venv then run uvicorn) --
-start "Threat-to-Business Translator - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%BACKEND%'; .\.venv\Scripts\Activate.ps1; uvicorn app.main:app --reload"
+start "CyberRisk Narrator - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%BACKEND%'; .\.venv\Scripts\Activate.ps1; uvicorn app.main:app --reload"
 
 timeout /t 3 /nobreak >nul
 
 REM -- Open frontend in a new window --
-start "Threat-to-Business Translator - Frontend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%frontend'; npm.cmd run dev"
+start "CyberRisk Narrator - Frontend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%ROOT%frontend'; npm.cmd run dev"
 
 echo.
 echo  Backend and frontend launch windows opened.

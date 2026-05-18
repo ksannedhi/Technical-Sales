@@ -1,8 +1,8 @@
-# Threat-to-Business Translator Specs
+# CyberRisk Narrator Specs
 
 ## Product Summary
 
-Threat-to-Business Translator is an executive-facing cyber risk translation engine. It converts technical security signals such as CVEs, SOC alerts, synthetic incidents, and vulnerability scan findings into quantified business impact, leadership narratives, and board-ready risk framing.
+CyberRisk Narrator is an executive-facing cyber risk translation engine. It converts technical security signals such as CVEs, SOC alerts, synthetic incidents, and vulnerability scan findings into quantified business impact, leadership narratives, and board-ready risk framing.
 
 The current implementation is an MVP focused on:
 - synthetic enterprise scenarios
@@ -18,7 +18,7 @@ The current implementation is an MVP focused on:
 
 ## Core Problem
 
-Security teams usually receive technical evidence in forms that are not directly useful for executive decision-making. Threat-to-Business Translator bridges that gap by answering:
+Security teams usually receive technical evidence in forms that are not directly useful for executive decision-making. CyberRisk Narrator bridges that gap by answering:
 - what happened
 - why it matters to the business
 - what the likely impact range is

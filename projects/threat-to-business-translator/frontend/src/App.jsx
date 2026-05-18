@@ -188,7 +188,7 @@ export default function App() {
     const inputSlug = inputFull.slice(0, 60);
 
     const lines = [
-      "# Threat-to-Business Translator Analysis",
+      "# CyberRisk Narrator Analysis",
       "",
       isAdHoc || isScanReport
         ? `Input: ${inputFull}`
@@ -289,7 +289,7 @@ export default function App() {
     <main className="app-shell">
       <section className="hero-band">
         <div className="hero-meta">
-          <p className="eyebrow">Threat-to-Business Translator</p>
+          <p className="eyebrow">CyberRisk Narrator</p>
           <p className="hero-copy">
             Select the customer&apos;s industry sector to load sector-appropriate scenarios. Customer-specific inputs are
             optional and can be applied only when you want to tailor the outcome.
