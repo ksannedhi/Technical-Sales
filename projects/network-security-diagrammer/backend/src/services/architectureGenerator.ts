@@ -728,6 +728,10 @@ function shouldUseModelFallback(
   if (/\b(vpc|subnet|security group|ec2|eks|aks|gke|lambda|s3 bucket|rds|load balancer|igw|nat gateway|transit gateway|vnet|resource group)\b/i.test(prompt)) return true;
   // Cloud platform–specific prompts (Azure, AWS, GCP) need vendor-accurate output
   if (/\b(azure|aws|amazon web services|gcp|google cloud platform)\b/i.test(prompt)) return true;
+  // IoT segmentation, NAS, or trusted-LAN — specific home/branch topology the wireless static template cannot represent
+  if (/\b(iot|nas)\b/i.test(prompt) || /\btrusted[\s-](lan|vlan|network)\b/i.test(prompt)) return true;
+  // Explicit arrow-chain topology (A → B → C) with 2+ hops — user is specifying exact layout, not asking for a generic template
+  if ((prompt.match(/→/g) ?? []).length >= 2) return true;
   // Multi-site or campus-scale prompts that static templates can't represent
   if (/\b(hq|headquarters)\b.*\b(branch|data.?center|dc|office)\b|\b(branch|data.?center|dc|office)\b.*\b(hq|headquarters)\b/i.test(prompt) &&
       /(two|three|four|five|multiple|several|\d+)\s+(branch|site|office|data.?center)/i.test(prompt)) return true;
