@@ -30,7 +30,7 @@ Step 2: Assessment (38 questions, 6 pillars)
   → pillar-by-pillar navigation via pill tabs (Identity, Devices, Networks,
     Applications & Workloads, Data, Visibility & Analytics)
   → global progress bar across the top — fills as questions are answered,
-    turns green when all 35 are complete
+    turns green when all 38 are complete
   → answered / total count per pillar shown next to the pillar header bar
   → remaining question count shown below the navigation buttons
   → pillar tab turns green with ✓ prefix when all questions in it are answered
@@ -99,7 +99,7 @@ Geo → framework auto-suggestion:
 | File | Purpose |
 |---|---|
 | `backend/data/frameworks.json` | Framework definitions, geo mapping, pillar metadata |
-| `backend/data/questions.json` | 35-question unified bank across 6 pillars |
+| `backend/data/questions.json` | 38-question unified bank across 6 pillars |
 | `backend/data/controls.json` | Remediation controls per pillar per maturity transition |
 
 ## Pillars (order fixed)
