@@ -29,7 +29,7 @@ Generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a c
 | `presales-deal-gating`            | 8020         | —             |
 | `multi-vendor-decision-copilot`   | 8501         | —             |
 | `regulatory-lens`                 | 3004         | 5179          |
-| `ZTA Advisor`                     | 3005         | 5180          |
+| `zta-advisor`                     | 3005         | 5180          |
 
 All standalone folder names match their `projects/` counterparts in the repo exactly.
 
@@ -59,7 +59,7 @@ cmd.exe /c "robocopy \"<Downloads>\<project>\" \"<Downloads>\Technical-Sales\pro
 | `presales-deal-gating`            | Python / wsgiref               | Server-rendered HTML |
 | `multi-vendor-decision-copilot`   | Python / Streamlit             | Streamlit            |
 | `regulatory-lens`                 | Node / Express (ESM)           | Vite + React         |
-| `ZTA Advisor`                     | Node / Express (ESM)           | Vite + React         |
+| `zta-advisor`                     | Node / Express (ESM)           | Vite + React         |
 
 ## Key conventions
 
