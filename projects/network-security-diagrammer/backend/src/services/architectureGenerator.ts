@@ -238,7 +238,10 @@ function normalizeGeneratedArchitecture(architecture: ArchitectureModel) {
  * Rules enforced:
  *   1. Identity components must not share a zone with network enforcement components.
  *   2. Monitoring components must not share a zone with network enforcement components.
- *   3. Upward connections (from a deeper zone to a shallower zone, 2+ level jump) are removed.
+ *   3. Upward connections (from a deeper zone to a shallower zone) are removed.
+ *   4. Isolated security-control / identity components are auto-connected.
+ *   5. Intra-zone connections flow left-to-right: `from` is forced left of `to`.
+ *   6. Cross-zone inbound targets render in their zone's first row (displayOrder = 0).
  */
 export function enforceArchitecturalConstraints(architecture: ArchitectureModel): ArchitectureModel {
   // ── Build zone → component list ──────────────────────────────────────────
@@ -356,11 +359,67 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     }
   }
 
+  const allConns = [...filteredConnections, ...autoConnections];
+
+  // ── Rule 5: Fix intra-zone right-to-left connections ─────────────────────
+  // Same-zone connections must flow left-to-right (`from` renders LEFT of `to`).
+  // If the effective display-order rank puts `from` after `to`, explicitly
+  // reassign displayOrder so the layout places `from` first.
+  const COMP_TYPE_RANK: Record<string, number> = {
+    user: 0, network: 1, "security-control": 2, identity: 3,
+    application: 4, data: 5, monitoring: 6, integration: 7,
+  };
+  for (const conn of allConns) {
+    const fzId = compZone.get(conn.from);
+    const tzId = compZone.get(conn.to);
+    if (!fzId || !tzId || fzId !== tzId) continue; // same-zone only
+
+    const fi = updatedComponents.findIndex((c) => c.id === conn.from);
+    const ti = updatedComponents.findIndex((c) => c.id === conn.to);
+    if (fi === -1 || ti === -1) continue;
+
+    const fc = updatedComponents[fi]!;
+    const tc = updatedComponents[ti]!;
+    const fRank = fc.displayOrder ?? COMP_TYPE_RANK[fc.type] ?? 4;
+    const tRank = tc.displayOrder ?? COMP_TYPE_RANK[tc.type] ?? 4;
+
+    if (fRank >= tRank) {
+      // `from` renders at same position or RIGHT of `to` — fix it
+      const lo = Math.min(fRank, tRank);
+      updatedComponents[fi] = { ...fc, displayOrder: lo > 0 ? lo - 1 : 0 };
+      updatedComponents[ti] = { ...tc, displayOrder: lo > 0 ? lo : lo + 1 };
+      console.log(`[normalizer] Rule 5: intra-zone l→r "${fc.label}" before "${tc.label}"`);
+    }
+  }
+
+  // ── Rule 6: Cross-zone inbound targets render in their zone's first row ───
+  // A component receiving a downward cross-zone connection is the entry point
+  // of its zone. Setting displayOrder = 0 guarantees it lands in row 1 so
+  // inbound arrows arrive without threading through rows above it.
+  // Only applied when no explicit displayOrder was set by the static pattern.
+  for (const conn of allConns) {
+    const fzId = compZone.get(conn.from);
+    const tzId = compZone.get(conn.to);
+    if (!fzId || !tzId || fzId === tzId) continue; // cross-zone only
+
+    const fOrdIdx = zoneOrderIndex.get(fzId) ?? 0;
+    const tOrdIdx = zoneOrderIndex.get(tzId) ?? 0;
+    if (fOrdIdx >= tOrdIdx) continue; // downward only
+
+    const ti = updatedComponents.findIndex((c) => c.id === conn.to);
+    if (ti === -1) continue;
+    const tc = updatedComponents[ti]!;
+    if (tc.displayOrder === undefined) {
+      updatedComponents[ti] = { ...tc, displayOrder: 0 };
+      console.log(`[normalizer] Rule 6: zone entry point "${tc.label}" → displayOrder 0`);
+    }
+  }
+
   return {
     ...architecture,
     zones: updatedZones,
     components: updatedComponents,
-    connections: [...filteredConnections, ...autoConnections],
+    connections: allConns,
   };
 }
 
