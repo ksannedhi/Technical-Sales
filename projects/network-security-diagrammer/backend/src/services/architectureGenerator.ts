@@ -726,6 +726,8 @@ function shouldUseModelFallback(
   if (hasHighSpecificity(prompt) && !VENDOR_AWARE_STATIC_PATTERNS.includes(classification.pattern)) return true;
   // Cloud infrastructure prompts with VPC/subnet/resource-level detail
   if (/\b(vpc|subnet|security group|ec2|eks|aks|gke|lambda|s3 bucket|rds|load balancer|igw|nat gateway|transit gateway|vnet|resource group)\b/i.test(prompt)) return true;
+  // Cloud platform–specific prompts (Azure, AWS, GCP) need vendor-accurate output
+  if (/\b(azure|aws|amazon web services|gcp|google cloud platform)\b/i.test(prompt)) return true;
   // Multi-site or campus-scale prompts that static templates can't represent
   if (/\b(hq|headquarters)\b.*\b(branch|data.?center|dc|office)\b|\b(branch|data.?center|dc|office)\b.*\b(hq|headquarters)\b/i.test(prompt) &&
       /(two|three|four|five|multiple|several|\d+)\s+(branch|site|office|data.?center)/i.test(prompt)) return true;
@@ -1874,10 +1876,10 @@ function buildScenarioArchitecture(
         createComponent("Security Operations", "monitoring", "ops"),
       ],
       connections: [
-        createConnection("workload-protection", "cloud-workloads", "Protection"),
-        createConnection("identity-secrets", "cloud-workloads", "Identity Check", "dashed"),
         createConnection("cloud-workloads", "data-services"),
-        createConnection("cloud-workloads", "security-operations", "Telemetry", "dashed"),
+        createConnection("cloud-workloads", "workload-protection", "Protect"),
+        createConnection("workload-protection", "identity-secrets", "Identity", "dashed"),
+        createConnection("workload-protection", "security-operations", "Telemetry", "dashed"),
       ],
     }, { prompt, classification });
   }

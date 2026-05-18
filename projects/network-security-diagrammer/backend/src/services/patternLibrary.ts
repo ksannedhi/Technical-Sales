@@ -228,8 +228,8 @@ const patternRules: Array<{
   },
   {
     pattern: "cloud-workload",
-    test: (prompt) => /cloud workload|landing zone|workload protection/i.test(prompt),
-    score: (prompt) => (/cloud workload|landing zone|workload protection/i.test(prompt) ? 4 : 0),
+    test: (prompt) => /cloud workload|workload protection/i.test(prompt),
+    score: (prompt) => (/cloud workload|workload protection/i.test(prompt) ? 4 : 0),
   },
   {
     pattern: "segmentation",
