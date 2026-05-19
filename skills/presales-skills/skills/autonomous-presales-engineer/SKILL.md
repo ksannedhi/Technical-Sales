@@ -1,7 +1,7 @@
 ---
 name: autonomous-presales-engineer
 description: Build reusable presales bid drafts from customer RFPs, current-opportunity vendor documentation, and prior gold proposals. Use when the user needs SoW, HLD, and Technical Proposal deliverables in Markdown and DOCX, plus requirement extraction, BOQ alignment, inline figure insertion, and reseller-tone packaging for cybersecurity opportunities.
-version: 1.1.0
+version: 1.0.0
 ---
 
 # Autonomous Presales Engineer
@@ -11,33 +11,27 @@ Generate first-pass or revision bid packs for cybersecurity opportunities using:
 
 ## Inputs
 Collect these before drafting:
-1. `opportunity_name` — used for output file and folder naming (do not infer from file paths).
-2. `reseller_name` — appears on cover page and document headers (do not infer from gold proposal).
-3. `customer_name` — appears on cover page and in scope sections (do not infer from gold proposal).
-4. RFP file path (PDF or DOCX).
-5. Vendor documentation path or folder (PDF/DOCX/PPT/images; folder input enumerates all supported files automatically).
-6. Gold proposal file path (DOCX preferred).
-7. Output root folder path.
-8. Required deliverables (default: SoW, HLD, Technical Proposal).
-9. Tone target (default: standard reseller submission tone).
+1. RFP file path (PDF or DOCX).
+2. Vendor documentation paths for the current bid (PDF/DOCX/PPT/images as available).
+3. Gold proposal file path (DOCX preferred).
+4. Output folder path.
+5. Required deliverables (default: SoW, HLD, Technical Proposal).
+6. Tone target (default: standard reseller submission tone).
 
 ## Workflow
-1. Detect scanned vs. text-layer PDF upfront (check char count after pypdf extraction); branch to Word COM only when needed.
-2. Extract source text from RFP, vendor documentation, and gold proposal.
-3. Validate extraction quality before drafting.
-4. Warn the user if vendor documentation total extracted text is under 10,000 characters before proceeding — thin content produces thin technical sections.
-5. Build requirements matrix from RFP.
-6. After BOQ extraction from scanned RFP, print extracted part numbers and quantities for user confirmation before writing them into any document.
-7. If vendor documentation includes multiple files or a folder, extract each file in one batched pass, retain source attribution, and merge into one working set.
-8. Identify candidate figures from vendor documentation for each deliverable and section in one batched pass — do not review images sequentially one-by-one.
-9. Draft SoW, HLD, and Technical Proposal with planned figure locations.
-10. Insert inline contextual images into Markdown and DOCX drafts.
-11. Run quality gate checks.
-12. Export Markdown and DOCX outputs to `<output_root>/<opportunity_name>/`.
+1. Extract source text from RFP, vendor documentation, and gold proposal.
+2. Validate extraction quality before drafting.
+3. Build requirements matrix from RFP.
+4. If vendor documentation includes multiple files or a folder, extract each file, retain source attribution, and merge the useful technical content into one working set.
+5. Identify candidate figures from vendor documentation for each deliverable and section.
+6. Draft SoW, HLD, and Technical Proposal with planned figure locations.
+7. Insert inline contextual images into Markdown and DOCX drafts.
+8. Run quality gate checks.
+9. Export Markdown and DOCX outputs.
 
 ## Extraction Rules
 1. Prefer direct DOCX XML body extraction for DOCX files.
-2. For PDF in Windows environments, first check char count from pypdf extraction; use Word COM conversion (PDF -> DOCX) only when pypdf yields blank or sparse text.
+2. For PDF in Windows environments, use Word COM conversion (PDF -> DOCX) when Python PDF libraries are unavailable.
 3. Never assume extraction succeeded; verify with sample lines and character count.
 4. If extracted text is blank or mostly line breaks, retry using alternate path (Word conversion first, then XML extraction).
 5. Treat vendor documentation as the primary technical-content and figure source for the current bid.
@@ -54,7 +48,6 @@ Collect these before drafting:
 6. Use concise, formal reseller language.
 7. Place figures directly inside the section where they add technical clarity (architecture, flow, performance, support model, or implementation method).
 8. Do not create a standalone `Contextual Figures`, `Figures`, or similar catch-all section unless the user explicitly asks for one.
-9. Use `opportunity_name`, `reseller_name`, and `customer_name` exactly as provided — never infer them from file paths or gold proposal content.
 
 ## Inline Image Insertion Rules
 1. Prefer figures extracted from current-opportunity vendor documentation before using any external source.
@@ -78,36 +71,54 @@ Use [references/docx-submission-format.md](references/docx-submission-format.md)
 ## Submission-Ready DOCX Requirements
 1. Convert Markdown drafts into DOCX only after technical content is stable.
 2. Remove Markdown artifacts from DOCX (`#`, `##`, table pipes if rendered poorly).
-3. Apply a full-page styled cover page (no header/footer on cover): opportunity title, customer name, reseller name, date, and confidentiality label.
-4. Insert a Word ToC field (`\o "1-3"`) — not static Markdown text — so it auto-updates when headings change.
-5. Add explicit page breaks between major sections (SoW phases, HLD sections, Proposal sections).
-6. Add header/footer with proposal identity and page numbers (excluding the cover page).
-7. Apply heading styles (`Heading 1-3`) and consistent body style.
-8. Ensure tables are readable and aligned for BOQ and SLA sections.
-9. Insert relevant figures inline contextually in all deliverables where relevant.
-10. Prefer figures extracted from current-opportunity vendor documentation.
-11. Do not create a standalone figure gallery or `Contextual Figures` section unless the user explicitly requests it.
-12. If user asks for online figures, include only relevant product architecture visuals and cite source links in the response.
+3. Apply cover block: title, customer, prepared-by, date, confidentiality line.
+4. Add table of contents and update it before delivery.
+5. Add header/footer with proposal identity and page numbers.
+6. Apply heading styles (`Heading 1-3`) and consistent body style.
+7. Ensure tables are readable and aligned for BOQ and SLA sections.
+8. Insert relevant figures inline contextually in all deliverables where relevant.
+9. Prefer figures extracted from current-opportunity vendor documentation.
+10. Do not create a standalone figure gallery or `Contextual Figures` section unless the user explicitly requests it.
+11. If user asks for online figures, include only relevant product architecture visuals and cite source links in the response.
 
 ## Output Contract
-All outputs are written to `<output_root>/<opportunity_name>/`. Generate all of the following unless user narrows scope:
-1. <opportunity_name>_SoW_Draft.md
-2. <opportunity_name>_SoW_Draft.docx
-3. <opportunity_name>_HLD_Draft.md
-4. <opportunity_name>_HLD_Draft.docx
-5. <opportunity_name>_Technical_Proposal_Draft.md
-6. <opportunity_name>_Technical_Proposal_Draft.docx
+Generate all of the following unless user narrows scope:
+1. <Opportunity>_SoW_Draft.md
+2. <Opportunity>_SoW_Draft.docx
+3. <Opportunity>_HLD_Draft.md
+4. <Opportunity>_HLD_Draft.docx
+5. <Opportunity>_Technical_Proposal_Draft.md
+6. <Opportunity>_Technical_Proposal_Draft.docx
+
+## Known Limitations
+
+### DOCX generation — `python-docx` not available in `ctx_execute` sandbox
+`ctx_execute` and `ctx_execute_file` run in an isolated sandbox that does not have `python-docx` installed. Attempting to generate DOCX files inside the sandbox will fail with `ModuleNotFoundError: No module named 'docx'`.
+
+**Workaround**: Write the DOCX generation script to disk (e.g. `generate_docx.py` in the output folder) and execute it via PowerShell:
+```powershell
+python "C:\path\to\output\generate_docx.py"
+```
+This runs against the system Python environment where `python-docx` is installed.
+
+### `ctx_batch_execute` runs bash, not PowerShell
+On Windows, `ctx_batch_execute` shell commands execute in bash (Git Bash / WSL), not PowerShell. PowerShell-specific expressions (e.g. `Get-ChildItem` with calculated columns, `@{N=...; E={...}}` syntax) will fail or produce no output.
+
+**Workaround**: Use Python (`os.path.getsize()`, `os.listdir()`) or POSIX-compatible bash commands (`ls -lh`, `wc -l`) for any file inspection steps inside `ctx_batch_execute`.
+
+### Arabic or non-English RFPs
+If the RFP body is in Arabic or another non-Latin script, Python text extraction libraries return the script correctly but the skill's requirement-extraction step relies on English pattern matching. Requirements embedded only in the non-English body will not be captured automatically.
+
+**Workaround**: Extract English fragments with a targeted regex (e.g. `re.findall(r'[A-Za-z][A-Za-z0-9 .,()/-]{15,}', text)`) and have a native-language reader verify no scope clauses were missed before submission.
 
 ## Completion Checklist
-1. Confirm `opportunity_name`, `reseller_name`, and `customer_name` were collected explicitly — not inferred.
-2. Confirm source files and extraction method used.
-3. Confirm vendor doc character count reported and thin-doc warning issued if under 10,000 chars.
-4. Confirm BOQ line items were printed for user confirmation before being written to documents.
-5. Confirm all requested formats are created in `<output_root>/<opportunity_name>/`.
-6. Confirm inline contextual images are inserted and visible in Markdown and DOCX outputs.
-7. Confirm vendor documentation was reviewed in a batched pass for usable figures per deliverable.
-8. Confirm figure provenance is primarily from current-opportunity vendor documentation.
-9. Confirm gold proposal was used primarily for structure/style guidance.
-10. Confirm all relevant vendor files were processed when multiple vendor documents were provided.
-11. Provide absolute output paths.
-12. State caveats (for example OCR quality or scanned PDF limitations).
+1. Confirm source files and extraction method used.
+2. Confirm BOQ references captured.
+3. Confirm all requested formats are created.
+4. Confirm inline contextual images are inserted and visible in Markdown and DOCX outputs.
+5. Confirm vendor documentation was actively reviewed for usable figures per deliverable.
+6. Confirm figure provenance is primarily from current-opportunity vendor documentation.
+7. Confirm gold proposal was used primarily for structure/style guidance.
+8. Confirm all relevant vendor files were processed when multiple vendor documents were provided.
+9. Provide absolute output paths.
+10. State caveats (for example OCR quality, scanned PDF limitations, or non-English RFP body).
