@@ -108,6 +108,41 @@ button.active {
   min-width: unset;
 }
 
+.scenario-chain {
+  background: #0f172a;
+  border: 1px solid #1e3a5f;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.chain-stage {
+  display: grid;
+  grid-template-columns: 18px 130px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border-left: 2px solid transparent;
+}
+.chain-stage-num {
+  color: #64748b;
+  font-weight: 600;
+  text-align: center;
+}
+.chain-stage-tactic { color: #94a3b8; }
+.chain-stage-event  { color: #e2e8f0; }
+.chain-stage-host   { color: #64748b; font-family: monospace; font-size: 10px; }
+
+.chain-stage-done    { opacity: 0.4; }
+.chain-stage-active  { background: #0c2340; border-left-color: #38bdf8; }
+.chain-stage-active .chain-stage-num   { color: #38bdf8; }
+.chain-stage-active .chain-stage-event { color: #7dd3fc; }
+.chain-stage-pending { opacity: 0.3; }
+
 .timeline {
   display: flex;
   flex-direction: column;

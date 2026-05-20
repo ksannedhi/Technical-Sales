@@ -92,7 +92,13 @@ function runScenario(state, io, scenarioId, speedMultiplier = 1) {
   }, Math.max(500, Number(traffic.background_rate_ms || incidentRateMs)));
 
   state.scenarioRuns.set(playbook.id, run);
-  io.emit("scenario:started", { scenario_id: playbook.id, speedMultiplier, total_events: playbook.events.length, name: playbook.name });
+  io.emit("scenario:started", {
+    scenario_id: playbook.id,
+    speedMultiplier,
+    total_events: playbook.events.length,
+    name: playbook.name,
+    chain: playbook.events.map(e => ({ tactic: e.mitre_tactic, event_type: e.event_type, host: e.dest_hostname }))
+  });
   return playbook;
 }
 

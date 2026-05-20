@@ -49,7 +49,8 @@ export default function App() {
   const [ticketCreateState, setTicketCreateState] = useState("idle");
   const [privilegedHitsCount, setPrivilegedHitsCount] = useState(0);
   const [speedMultiplier, setSpeedMultiplier] = useState(1);
-  const [scenarioProgress, setScenarioProgress] = useState({ name: "", step: 0, total: 0 });
+  const [scenarioProgress, setScenarioProgress] = useState({ name: "", step: 0, total: 0, chain: [] });
+  const [scenarioExpanded, setScenarioExpanded] = useState(false);
   const [connected, setConnected] = useState(true);
 
   const riskBand = (score) => {
@@ -138,13 +139,15 @@ export default function App() {
     };
 
     const onScenarioStarted = (data) => {
-      setScenarioProgress({ name: data.name || data.scenario_id, step: 0, total: data.total_events || 0 });
+      setScenarioProgress({ name: data.name || data.scenario_id, step: 0, total: data.total_events || 0, chain: data.chain || [] });
+      setScenarioExpanded(false);
       refreshHealth();
       fetchIncidents();
     };
 
     const onScenarioEnded = () => {
-      setScenarioProgress({ name: "", step: 0, total: 0 });
+      setScenarioProgress({ name: "", step: 0, total: 0, chain: [] });
+      setScenarioExpanded(false);
       refreshHealth();
       fetchIncidents();
     };
@@ -742,11 +745,36 @@ export default function App() {
           {exportState === "working" ? "Exporting..." : "Export Current View"}
         </button>
         {scenarioRunning && (
-          <p className="info-banner banner-warning" style={{ marginTop: "8px" }}>
-            {scenarioProgress.total > 0
-              ? `▶ ${scenarioProgress.name} — Stage ${scenarioProgress.step}/${scenarioProgress.total}${scenarioProgress.lastEvent ? `: ${scenarioProgress.lastEvent}` : ""}`
-              : `▶ ${runningScenarioLabel} running`}
-          </p>
+          <div style={{ marginTop: "8px" }}>
+            <div
+              className="info-banner banner-warning"
+              style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", userSelect: "none", borderRadius: scenarioExpanded ? "6px 6px 0 0" : undefined }}
+              onClick={() => setScenarioExpanded(e => !e)}
+            >
+              <span>
+                {scenarioProgress.total > 0
+                  ? `▶ ${scenarioProgress.name} — Stage ${scenarioProgress.step}/${scenarioProgress.total}${scenarioProgress.lastEvent ? `: ${scenarioProgress.lastEvent}` : ""}`
+                  : `▶ ${runningScenarioLabel} running`}
+              </span>
+              <span style={{ fontSize: "10px", marginLeft: "8px" }}>{scenarioExpanded ? "▲" : "▼"}</span>
+            </div>
+            {scenarioExpanded && scenarioProgress.chain.length > 0 && (
+              <div className="scenario-chain">
+                {scenarioProgress.chain.map((stage, i) => {
+                  const stageNum = i + 1;
+                  const status = stageNum < scenarioProgress.step ? "done" : stageNum === scenarioProgress.step ? "active" : "pending";
+                  return (
+                    <div key={i} className={`chain-stage chain-stage-${status}`}>
+                      <span className="chain-stage-num">{stageNum}</span>
+                      <span className="chain-stage-tactic">{stage.tactic}</span>
+                      <span className="chain-stage-event">{stage.event_type}</span>
+                      <span className="chain-stage-host">{stage.host}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
