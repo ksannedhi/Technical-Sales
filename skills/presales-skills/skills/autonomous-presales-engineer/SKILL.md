@@ -92,24 +92,11 @@ Generate all of the following unless user narrows scope:
 
 ## Known Limitations
 
-### DOCX generation — `python-docx` not available in `ctx_execute` sandbox
-`ctx_execute` and `ctx_execute_file` run in an isolated sandbox that does not have `python-docx` installed. Attempting to generate DOCX files inside the sandbox will fail with `ModuleNotFoundError: No module named 'docx'`.
-
-**Workaround**: Write the DOCX generation script to disk (e.g. `generate_docx.py` in the output folder) and execute it via PowerShell:
-```powershell
-python "C:\path\to\output\generate_docx.py"
-```
-This runs against the system Python environment where `python-docx` is installed.
-
-### `ctx_batch_execute` runs bash, not PowerShell
-On Windows, `ctx_batch_execute` shell commands execute in bash (Git Bash / WSL), not PowerShell. PowerShell-specific expressions (e.g. `Get-ChildItem` with calculated columns, `@{N=...; E={...}}` syntax) will fail or produce no output.
-
-**Workaround**: Use Python (`os.path.getsize()`, `os.listdir()`) or POSIX-compatible bash commands (`ls -lh`, `wc -l`) for any file inspection steps inside `ctx_batch_execute`.
-
-### Arabic or non-English RFPs
-If the RFP body is in Arabic or another non-Latin script, Python text extraction libraries return the script correctly but the skill's requirement-extraction step relies on English pattern matching. Requirements embedded only in the non-English body will not be captured automatically.
-
-**Workaround**: Extract English fragments with a targeted regex (e.g. `re.findall(r'[A-Za-z][A-Za-z0-9 .,()/-]{15,}', text)`) and have a native-language reader verify no scope clauses were missed before submission.
+| # | Limitation | Fix |
+|---|---|---|
+| 1 | **DOCX generation fails inside Claude's sandbox** — `python-docx` is not installed in the `ctx_execute` environment. | Write the generation script to disk, then run it via `Bash`: `python generate_docx.py`. This uses your system Python where `python-docx` is installed. |
+| 2 | **Shell commands run in bash, not PowerShell** — on Windows, `ctx_batch_execute` uses bash (Git Bash). PowerShell syntax will fail silently. | Use Python or POSIX bash commands for any file inspection steps (e.g. `ls -lh`, `wc -l`, `os.path.getsize()`). |
+| 3 | **Non-English RFPs miss requirements** — requirement extraction uses English pattern matching. Requirements written only in Arabic or another non-Latin script will not be captured. | Have a native-language reader verify scope sections before submission. |
 
 ## Completion Checklist
 1. Confirm source files and extraction method used.
