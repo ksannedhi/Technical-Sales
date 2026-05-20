@@ -9,7 +9,7 @@ Success criteria:
 - Reset time: under 30 seconds.
 - Repeatability: 10 consecutive dry runs pass with no state contamination.
 - Story value: analyst, SOC manager, and CISO views driven from the same event stream, each showing distinct stakeholder outcomes.
-- Customer ticket loop: auto-ticket fires within 35 s of scenario start; ticket resolution reflects in CISO risk posture in real time.
+- Customer ticket loop: auto-ticket fires within 35 s of scenario start; ticket resolution reflects in CISO and SOC Manager views in real time.
 
 ## 2) Scope
 
