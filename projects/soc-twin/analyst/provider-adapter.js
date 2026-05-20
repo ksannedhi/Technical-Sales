@@ -97,13 +97,18 @@ async function triageWithAnthropic(apiKey, model, alert, context = {}) {
 
   let parsed;
   try {
-    const cleaned = text
+    // Strip markdown fences, then extract the outermost JSON object
+    const stripped = text
       .replace(/^```(?:json)?\s*/m, "")
       .replace(/\s*```$/m, "")
       .trim();
-    parsed = JSON.parse(cleaned);
-  } catch {
-    throw new Error("Anthropic triage response was not valid JSON.");
+    const start = stripped.indexOf("{");
+    const end = stripped.lastIndexOf("}");
+    if (start === -1 || end === -1) throw new Error("no JSON object found");
+    parsed = JSON.parse(stripped.slice(start, end + 1));
+  } catch (err) {
+    console.error("[ARIA] Raw model response that failed to parse:\n", text);
+    throw new Error(`Anthropic triage response was not valid JSON: ${err.message}`);
   }
 
   return {
