@@ -303,7 +303,7 @@ Available in all modes. Shows:
 | Reset | Clears alerts and incidents; tickets persist; CISO/Manager retain orphaned ticket context |
 | Seed | Injects low/medium baseline history |
 
-Scenario progress banner: `▶ {Scenario Name} — Stage N/Total: {last event type}`. Persists until Stop Scenario is clicked.
+Scenario progress banner: `▶ {Scenario Name} — Stage N/Total: {last event type}`. Persists until Stop Scenario is clicked. Clicking the banner toggles an expandable chain panel listing each stage's tactic, event type, and target host — completed stages dim, active stage highlights in blue, pending stages fade. Chain data is sourced from the `scenario:started` socket event (`chain[]`) to avoid frontend hardcoding.
 
 ### Orphaned ticket handling
 

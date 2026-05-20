@@ -102,7 +102,7 @@ Ticket fields: `id`, `source` (auto/analyst), `assignee` ("MDR Operations" for a
 
 ### Scenario lifecycle
 
-Scenarios run indefinitely once started — there is no `duration_seconds` auto-end timer. The only way to end a scenario is `stopAllScenarios()` (triggered by the Stop Scenario button or `npm run scenario:stop`). `scenario:started` now includes `{ total_events, name }` so the frontend can display a progress indicator.
+Scenarios run indefinitely once started — there is no `duration_seconds` auto-end timer. The only way to end a scenario is `stopAllScenarios()` (triggered by the Stop Scenario button or `npm run scenario:stop`). `scenario:started` now includes `{ total_events, name, chain }` so the frontend can display a progress indicator. The `chain` array (`[{ tactic, event_type, host }]`) powers the expandable stage panel — clicking the progress banner toggles it; completed stages dim, active stage highlights in blue, pending stages fade.
 
 ### Speed multiplier
 

@@ -89,7 +89,7 @@ All scenario controls are in the top bar:
 - **Start / Stop Scenario** — scenarios run indefinitely until manually stopped
 - **Reset** — clears alerts and incidents; tickets persist
 - **Health dot** — green/red indicator showing live backend connectivity
-- **Scenario progress** — once a scenario starts, shows "▶ Phishing to Lateral Movement — Stage 2/3: Password Spray Detected"
+- **Scenario progress** — once a scenario starts, shows "▶ Phishing to Lateral Movement — Stage 2/3: Password Spray Detected". Click the banner to expand a step-by-step chain panel showing each stage's tactic, event, and target host — completed stages dim, active stage highlights, pending stages fade.
 
 ## Customer Tickets tab
 
