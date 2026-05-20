@@ -120,11 +120,11 @@ button.active {
 }
 .chain-stage {
   display: grid;
-  grid-template-columns: 18px 130px 1fr auto;
-  gap: 8px;
+  grid-template-columns: 22px 150px 1fr auto;
+  gap: 10px;
   align-items: center;
-  font-size: 11px;
-  padding: 4px 6px;
+  font-size: 13px;
+  padding: 5px 8px;
   border-radius: 4px;
   border-left: 2px solid transparent;
 }
@@ -135,7 +135,7 @@ button.active {
 }
 .chain-stage-tactic { color: #94a3b8; }
 .chain-stage-event  { color: #e2e8f0; }
-.chain-stage-host   { color: #64748b; font-family: monospace; font-size: 10px; }
+.chain-stage-host   { color: #64748b; font-family: monospace; font-size: 12px; }
 
 .chain-stage-done    { opacity: 0.4; }
 .chain-stage-active  { background: #0c2340; border-left-color: #38bdf8; }
