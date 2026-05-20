@@ -71,8 +71,8 @@ Use [references/docx-submission-format.md](references/docx-submission-format.md)
 ## Submission-Ready DOCX Requirements
 1. Convert Markdown drafts into DOCX only after technical content is stable.
 2. Remove Markdown artifacts from DOCX (`#`, `##`, table pipes if rendered poorly).
-3. Apply cover block: title, customer, prepared-by, date, confidentiality line.
-4. Add table of contents and update it before delivery.
+3. Apply a full-page cover using `Normal` or custom paragraph styles only — never `Heading 1/2/3` on the cover. Cover content (title, customer, prepared-by, reference, version, date, confidentiality) styled as headings will incorrectly appear in the ToC.
+4. Insert a page break after the cover page, then add the ToC on a new page.
 5. Add header/footer with proposal identity and page numbers.
 6. Apply heading styles (`Heading 1-3`) and consistent body style.
 7. Ensure tables are readable and aligned for BOQ and SLA sections.
