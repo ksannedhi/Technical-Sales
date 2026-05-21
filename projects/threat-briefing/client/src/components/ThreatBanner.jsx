@@ -1,5 +1,8 @@
 export default function ThreatBanner({ briefing }) {
   const level = briefing.threatLevel || 'medium';
+  const brief = briefing.executiveSummary
+    ? briefing.executiveSummary.split('.')[0] + '.'
+    : '';
   return (
     <div className={`threat-banner ${level}`}>
       <div className={`threat-level-badge ${level}`}>
@@ -8,7 +11,7 @@ export default function ThreatBanner({ briefing }) {
       </div>
       <div className="banner-text">
         <p>Today's regional threat level: {level.charAt(0).toUpperCase() + level.slice(1)}</p>
-        <p>{briefing.executiveSummary}</p>
+        <p>{brief}</p>
       </div>
     </div>
   );
