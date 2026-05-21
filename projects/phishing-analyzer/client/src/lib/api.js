@@ -1,10 +1,13 @@
-// Attempt one fetch; on a network-level failure (TypeError — ECONNRESET,
-// ECONNREFUSED) retry once after a short delay. This absorbs the brief
-// unavailability window when node --watch restarts the server after its
-// initial file-scan pass without surfacing an error to the user.
+// Retry once on transient connection failures. Two cases:
+//   1. TypeError — fetch itself threw (ECONNREFUSED before Vite proxy was reached)
+//   2. 503 with retryable:true — Vite proxy caught ECONNRESET from the backend
+//      and returned a structured 503 rather than its default plain-text 500.
+// Both happen during the brief window when node --watch restarts the server
+// after its initial file-scan pass.
 async function fetchWithRetry(url, options, retries = 1, retryDelayMs = 1000) {
+  let response;
   try {
-    return await fetch(url, options);
+    response = await fetch(url, options);
   } catch (err) {
     if (retries > 0 && err instanceof TypeError) {
       await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
@@ -12,6 +15,21 @@ async function fetchWithRetry(url, options, retries = 1, retryDelayMs = 1000) {
     }
     throw err;
   }
+
+  if (response.status === 503 && retries > 0) {
+    const body = await response.json().catch(() => ({}));
+    if (body.retryable) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+      return fetchWithRetry(url, options, retries - 1, retryDelayMs);
+    }
+    // Non-retryable 503 — return as-is for caller to handle
+    return new Response(JSON.stringify(body), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+
+  return response;
 }
 
 export async function analyzeEmail(payload) {
