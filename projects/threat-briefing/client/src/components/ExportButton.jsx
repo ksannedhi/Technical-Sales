@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+
 export default function ExportButton({ briefing }) {
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(null);
@@ -8,7 +10,7 @@ export default function ExportButton({ briefing }) {
     setExporting(true);
     setExportError(null);
     try {
-      const res = await fetch('/api/briefing/export', {
+      const res = await fetch(`${API_BASE}/api/briefing/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ briefing })

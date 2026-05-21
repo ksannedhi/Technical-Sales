@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
 import BriefingHeader   from './components/BriefingHeader.jsx';
 import ThreatBanner     from './components/ThreatBanner.jsx';
 import StatsRow         from './components/StatsRow.jsx';
@@ -31,7 +33,7 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const res  = await fetch('/api/briefing/latest');
+      const res  = await fetch(`${API_BASE}/api/briefing/latest`);
       if (!res.ok) throw new Error('No briefing available yet. Click "Generate latest" to create one.');
       const data = await res.json();
       setBriefing(data);
@@ -47,7 +49,7 @@ export default function App() {
     setGenerating(true);
     setError(null);
     try {
-      const res  = await fetch('/api/briefing/generate', { method: 'POST' });
+      const res  = await fetch(`${API_BASE}/api/briefing/generate`, { method: 'POST' });
       if (!res.ok) throw new Error('Generation failed — check server logs.');
       const data = await res.json();
       setBriefing(data);

@@ -31,7 +31,10 @@ if (!process.env.ANTHROPIC_API_KEY) {
 const app  = express();
 const PORT = process.env.PORT || 3003;
 
-app.use(cors());
+const allowedOrigin = process.env.ALLOWED_ORIGIN;
+app.use(cors({
+  origin: allowedOrigin ? allowedOrigin.split(',').map(o => o.trim()) : '*',
+}));
 app.use(express.json({ limit: '2mb' }));
 
 // ── Persistent cache ─────────────────────────────────────────────────────────
@@ -189,6 +192,13 @@ let pipelineRunning = false;
 
 // On-demand generate
 app.post('/api/briefing/generate', async (req, res) => {
+  const secret = process.env.GENERATE_SECRET;
+  if (secret) {
+    const auth = req.headers['authorization'];
+    if (auth !== `Bearer ${secret}`) {
+      return res.status(401).json({ error: 'Unauthorised.' });
+    }
+  }
   if (pipelineRunning) {
     return res.status(429).json({ error: 'Generation already in progress — please wait.' });
   }
