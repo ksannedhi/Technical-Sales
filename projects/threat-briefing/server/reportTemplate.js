@@ -107,8 +107,13 @@ export function buildReportHTML(r) {
     </div>
     <div class="banner-text">
       <h2>Regional threat level: ${esc((r.threatLevel || '').toUpperCase())}</h2>
-      <p>${esc(r.executiveSummary)}</p>
+      <p>${esc(r.executiveSummary ? r.executiveSummary.split('.')[0] + '.' : '')}</p>
     </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">Executive summary</div>
+    <div class="box">${esc(r.executiveSummary)}</div>
   </div>
 
   <div class="section">
