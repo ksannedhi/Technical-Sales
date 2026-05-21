@@ -222,7 +222,7 @@ This ensures the server always has a briefing ready to serve immediately after r
 | `ABUSECH_API_KEY` | No | MalwareBazaar API key — register free at bazaar.abuse.ch; sent as `Auth-Key` header; feed returns 0 without it |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |
-| `TZ` | No | Set to `Asia/Kuwait` (included in `.env.example`) — pins process clock for portable cron scheduling |
+| `TZ` | No | Set to `Asia/Kuwait` (included in `.env.example`) — pins process clock so cron fires at 06:00 AST on any host. Remove to fire at 06:00 local host time instead |
 
 ## 12. UI Components
 

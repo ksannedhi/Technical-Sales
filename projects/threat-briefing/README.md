@@ -108,4 +108,4 @@ A briefing with all-zero counters is still valid. Claude generates a low-activit
 | `ABUSECH_API_KEY` | No | From [bazaar.abuse.ch](https://bazaar.abuse.ch) — free registration; feed returns 0 without it |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if not using default cache location |
-| `TZ` | No | Set to `Asia/Kuwait` (pre-filled in `.env.example`) — pins process clock so the daily cron fires at 06:00 AST on any host timezone |
+| `TZ` | No | Set to `Asia/Kuwait` (pre-filled in `.env.example`) — pins process clock so the daily cron fires at 06:00 AST on any host timezone. To fire at 06:00 local time instead, remove this variable from `.env` |

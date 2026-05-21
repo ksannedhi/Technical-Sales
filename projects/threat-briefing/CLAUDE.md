@@ -96,7 +96,7 @@ On every server start, `server/index.js` runs this logic before accepting reques
 | `ABUSECH_API_KEY` | No | MalwareBazaar API key — register free at bazaar.abuse.ch; feed returns 0 without it |
 | `PORT` | No | Server port, defaults to `3003` |
 | `PUPPETEER_EXECUTABLE_PATH` | No | Override Chrome path if cache is moved |
-| `TZ` | No | Set to `Asia/Kuwait` to pin process clock to AST — makes `'0 6 * * *'` fire at 06:00 AST on any host timezone |
+| `TZ` | No | Set to `Asia/Kuwait` to pin process clock to AST — makes `'0 6 * * *'` fire at 06:00 AST on any host timezone. Remove to fire at 06:00 local host time instead |
 
 ## Dark mode
 
