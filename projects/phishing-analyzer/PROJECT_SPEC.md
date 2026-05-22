@@ -187,6 +187,7 @@ All structured data — verdict, risk score, findings, IOCs, score breakdown, MI
 | Finding ID | Signal |
 |---|---|
 | `sender-typosquat` | ASCII substitutions and Unicode/homograph/Punycode domains |
+| `sender-display-name-spoof` | From display name claims a known brand but sending domain is unrelated |
 | `sender-domain-recently-registered` | RDAP domain age < 30 days |
 | `headers-replyto-mismatch` | Reply-To domain ≠ From domain |
 | `headers-returnpath-mismatch` | Return-Path root ≠ From root |
@@ -200,6 +201,7 @@ All structured data — verdict, risk score, findings, IOCs, score breakdown, MI
 | `impersonation-high-profile` | Named executive impersonation |
 | `financial-fraud-prize-theme` | Prize/lottery/advance-fee language (EN/DE/FR/AR) |
 | `content-reply-lure` | Reply-and-confirm social engineering |
+| `payload-attachment` | MIME attachment present, or explicit payload-activation language (macro, enable content, zip file) |
 | `content-css-obfuscation` | Oversized CSS style block (≥100 commas) |
 
 Domain age lookups use rdap.org with a 3.5s timeout and 24h in-memory cache. Checks run async without blocking if the lookup fails.

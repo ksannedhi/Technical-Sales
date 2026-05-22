@@ -29,6 +29,34 @@ const BRAND_DOMAIN_MAP = [
   { terms: ['docusign'], domain: 'docusign.com', alts: [] }
 ];
 
+// Extract the display name portion of a From header value.
+// "Microsoft Support <attacker@evil.com>" → "microsoft support"
+// "attacker@evil.com"                     → "" (no display name)
+function extractDisplayName(fromHeader) {
+  const match = fromHeader.match(/^([^<@]+)<[^>]+>/);
+  return match ? match[1].trim().replace(/^["']+|["']+$/g, '').toLowerCase() : '';
+}
+
+// Returns {brand, officialDomain} when the From display name claims a known
+// brand but the actual sending domain is unrelated to that brand.
+// e.g. "Microsoft Support <noreply@login-secure.net>" → match on 'microsoft'
+function detectDisplayNameSpoof(fromHeader, fromDomain) {
+  if (!fromHeader || !fromDomain) return null;
+  const displayName = extractDisplayName(fromHeader);
+  if (!displayName) return null;
+
+  for (const mapping of BRAND_DOMAIN_MAP) {
+    if (!mapping.terms.some((t) => displayName.includes(t))) continue;
+    const isOfficial =
+      fromDomain.endsWith(mapping.domain) ||
+      mapping.alts.some((alt) => fromDomain.endsWith(alt));
+    if (!isOfficial) {
+      return { brand: mapping.terms[0], officialDomain: mapping.domain };
+    }
+  }
+  return null;
+}
+
 function isBrandDomainMismatch(fromDomain, combinedText) {
   const lowered = combinedText.toLowerCase();
   if (!fromDomain || OFFICIAL_BRAND_DOMAINS.some((d) => fromDomain.endsWith(d))) {
@@ -212,7 +240,8 @@ function detectThreatProfiles({ combinedText, parsedEmail, fromDomain, replyToDo
   if (
     HIGH_PROFILE_IMPERSONATION_TERMS.some((term) => lowered.includes(term)) ||
     (BRAND_KEYWORDS.some((term) => lowered.includes(term)) && fromDomain && FREE_MAIL.includes(fromDomain)) ||
-    isBrandDomainMismatch(fromDomain, combinedText)
+    isBrandDomainMismatch(fromDomain, combinedText) ||
+    detectDisplayNameSpoof(parsedEmail.headers.from, fromDomain)
   ) {
     threatProfiles.add('impersonation');
   }
@@ -278,6 +307,21 @@ export async function runDeterministicChecks(parsedEmail) {
       excerpt: parsedEmail.headers.from,
       deterministic: true,
       eccExplanation: 'Email authentication and sender reputation controls should treat newly registered domains as high-risk senders and apply additional scrutiny or quarantine.'
+    });
+  }
+
+  // Display name spoofing — "Microsoft Support <noreply@login-secure.net>"
+  const displayNameSpoof = detectDisplayNameSpoof(parsedEmail.headers.from, fromDomain);
+  if (displayNameSpoof) {
+    addFinding(findings, threatProfiles, {
+      id: 'sender-display-name-spoof',
+      category: 'sender',
+      severity: 'high',
+      title: 'Display name impersonates a trusted brand',
+      detail: `The From display name references "${displayNameSpoof.brand}" but the actual sending domain (${fromDomain}) is unrelated to the official domain (${displayNameSpoof.officialDomain}). This is one of the most common techniques used to deceive recipients before they inspect the email address.`,
+      excerpt: parsedEmail.headers.from,
+      deterministic: true,
+      eccExplanation: 'Inbound filtering should evaluate the actual sending domain rather than the display name, and flag messages where the two are inconsistent with the claimed brand identity.'
     });
   }
 
@@ -462,6 +506,24 @@ export async function runDeterministicChecks(parsedEmail) {
       excerpt: body.split('\n').find((line) => REPLY_LURE_TERMS.some((term) => line.toLowerCase().includes(term))) || body.slice(0, 180),
       deterministic: true,
       eccExplanation: 'User awareness and suspicious-message reporting are important even when the scam relies on replies rather than links or attachments.'
+    });
+  }
+
+  const hasExplicitPayloadLanguage = /enable content|macro|zip file|html attachment|open the file/i.test(combinedText);
+  if (parsedEmail.attachmentDetected || hasExplicitPayloadLanguage) {
+    addFinding(findings, threatProfiles, {
+      id: 'payload-attachment',
+      category: 'payload',
+      severity: hasExplicitPayloadLanguage ? 'high' : 'medium',
+      title: hasExplicitPayloadLanguage
+        ? 'Attachment combined with payload-activation language'
+        : 'Attachment detected',
+      detail: hasExplicitPayloadLanguage
+        ? 'The message contains an attachment alongside language directing the recipient to enable content, run macros, or open the file — a pattern consistent with malware delivery via weaponised documents.'
+        : 'The message includes an attachment. Attachments are the primary delivery vector for malware in phishing campaigns and should be treated with elevated scrutiny.',
+      excerpt: parsedEmail.headers.subject || '',
+      deterministic: true,
+      eccExplanation: 'Email security controls should sandbox or scan all attachments before delivery, particularly documents with macro-capable formats (Office, PDF, ZIP, ISO).'
     });
   }
 
