@@ -189,12 +189,12 @@ All structured data — verdict, risk score, findings, IOCs, score breakdown, MI
 | `sender-typosquat` | ASCII substitutions and Unicode/homograph/Punycode domains |
 | `sender-display-name-spoof` | From display name claims a known brand but sending domain is unrelated |
 | `sender-domain-recently-registered` | RDAP domain age < 30 days |
-| `headers-replyto-mismatch` | Reply-To domain ≠ From domain |
+| `headers-replyto-mismatch` | Reply-To root domain ≠ From root domain (medium; ESP subdomain variants excluded) |
 | `headers-returnpath-mismatch` | Return-Path root ≠ From root |
 | `headers-authentication-failure` | SPF/DKIM/DMARC fail or absent |
 | `links-domain-mismatch` | Embedded URL root ≠ sender root |
 | `links-text-href-mismatch` | Link text claims brand X, href goes to non-official domain |
-| `urgency-pressure-language` | Urgency terms (EN/DE/FR/AR) |
+| `urgency-pressure-language` | Urgency terms (EN/DE/FR/AR) (medium; keyword signal, lower confidence than infrastructure signals) |
 | `impersonation-brand-abuse` | Brand keywords from free-mail or lookalike domain |
 | `credential-harvesting-lure` | Verify/login/sign-in language + URL |
 | `financial-fraud-cue` | Invoice/payment/wire-transfer language |

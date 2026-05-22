@@ -327,11 +327,15 @@ export async function runDeterministicChecks(parsedEmail) {
 
   // --- Header checks ---
 
-  if (replyToDomain && fromDomain && replyToDomain !== fromDomain) {
+  // rootDomain comparison mirrors the Return-Path check — prevents ESP
+  // subdomains (mail.company.com vs company.com) from firing as mismatches.
+  // Severity reduced to medium: Reply-To differences are routine in legitimate
+  // bulk and automated mail; critical overstated the confidence of this signal.
+  if (replyToDomain && fromDomain && rootDomain(replyToDomain) !== rootDomain(fromDomain)) {
     addFinding(findings, threatProfiles, {
       id: 'headers-replyto-mismatch',
       category: 'headers',
-      severity: 'critical',
+      severity: 'medium',
       title: 'Reply-To domain differs from sender domain',
       detail: 'The message routes responses to a different domain, which is a common credential-harvesting or redirection signal.',
       excerpt: `From: ${parsedEmail.headers.from}\nReply-To: ${parsedEmail.headers.replyTo}`,
@@ -412,11 +416,16 @@ export async function runDeterministicChecks(parsedEmail) {
 
   // --- Content and urgency checks ---
 
+  // Reduced to medium: urgency keywords ("urgent", "immediately", "within 24
+  // hours") appear routinely in legitimate security alerts, SLA notices, and
+  // deadline reminders. This is a behavioural keyword signal, not an
+  // infrastructure signal, and carries less inherent confidence than domain-
+  // or link-level findings.
   if (URGENCY_TERMS.some((term) => combinedText.toLowerCase().includes(term))) {
     addFinding(findings, threatProfiles, {
       id: 'urgency-pressure-language',
       category: 'urgency',
-      severity: 'high',
+      severity: 'medium',
       title: 'Urgency language used to force immediate action',
       detail: 'The message applies time pressure to suppress verification and speed up user response.',
       excerpt: body.split('\n').find((line) => URGENCY_TERMS.some((term) => line.toLowerCase().includes(term))) || subject,
