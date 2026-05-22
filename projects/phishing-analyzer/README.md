@@ -115,6 +115,9 @@ The engine is a deterministic rule set, not a trained model. It catches what the
 - Obfuscated urgency language — spaced characters, zero-width insertions, or languages beyond EN/DE/FR/AR
 - Redirect chains and URL shorteners — the engine sees the first hop, not the final destination
 - Targeted BEC written as clean, contextual prose with no suspicious keywords or infrastructure signals
+- **Callback / TOAD phishing** — lure contains only a phone number ("call us to cancel your subscription"); no malicious URL or attachment for the engine to inspect
+- **QR code phishing (quishing)** — malicious URL is embedded in an image-based QR code rather than a plain-text href; URL extraction sees nothing to analyse
+- **Link-based malware delivery** — drive-by download URLs and weaponised landing pages that deliver malware without an attachment; the malware delivery profile currently triggers on MIME attachments and explicit payload language only
 
 **What it may over-flag:**
 - Transactional and marketing mail routed through ESPs — Return-Path and link domain mismatches are expected and normal for legitimate bulk senders (common tracking domains are allowlisted; edge cases remain)

@@ -58,6 +58,16 @@ Performance target: under 10 seconds end-to-end (practical result near that depe
 - Impersonation (brand, executive, lookalike domain)
 - Invoice fraud / finance-related social engineering
 
+## Threat Types Out of Scope
+
+These vectors are not detected by the current engine due to architectural constraints (no image analysis, no phone number IOC extraction):
+
+| Threat | Reason not covered |
+|---|---|
+| Callback / TOAD phishing | Lure contains only a phone number — no URL or attachment for the engine to inspect |
+| QR code phishing (quishing) | Malicious URL is embedded inside an image-based QR code; URL extraction sees nothing |
+| Link-based malware delivery | Drive-by download URLs are a distinct vector from attachment-based delivery; the malware delivery profile triggers on MIME attachments and explicit payload language only |
+
 ## Functional Requirements
 
 ### Input Experience
