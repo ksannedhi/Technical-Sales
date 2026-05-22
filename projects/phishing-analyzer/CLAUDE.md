@@ -59,7 +59,7 @@ Puppeteer               Headless Chrome — HTML report → PDF
 ## Key design decisions
 
 - **Hybrid analysis** — deterministic engine computes all structured data (verdict, risk score, findings, MITRE tactics, compliance gaps, recommendations); OpenAI is called only for the narrative layer (summaries, compliance explanation text, confidence score).
-- **Dual-framework compliance** — every analysis produces both NCA ECC-2:2024 and ISO 27001 gap sets; the frontend toggle switches views without re-analyzing. The PDF export reflects whichever framework was active at download time.
+- **Dual-framework compliance** — every analysis produces both NCA ECC-2:2024 and ISO 27001 gap sets; the frontend toggle switches views without re-analyzing. The PDF always renders both framework sections regardless of which toggle was active at download time.
 - **OpenAI structured output** — uses `narrativeJsonSchema` (4-field schema) with the Responses API, `reasoning: { effort: 'minimal' }`, and `max_output_tokens: 1500` for low-latency narration. Default model: `gpt-5-nano`.
 - **Async deterministic checks** — `runDeterministicChecks(parsedEmail)` is async; it awaits RDAP domain age lookups. Always `await` it in `routes/analyze.js`.
 - **Puppeteer for PDF** — `page.pdf()` returns `Uint8Array` in Puppeteer v22+; always wrap with `Buffer.from()` before `res.send()`.
