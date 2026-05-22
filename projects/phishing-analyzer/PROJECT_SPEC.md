@@ -86,10 +86,10 @@ These vectors are not detected by the current engine due to architectural constr
 - `findings[]` — each includes severity, category, detail, excerpt, eccControls, isoControls
 - `attackTactics[]` — MITRE ATT&CK tactic + technique + relevance
 - `eccComplianceGaps[]` and `isoComplianceGaps[]`
-- `recommendations[]` — action, owner, timeframe, rationale
+- `recommendations[]` — action, owner, timeframe, rationale (capped at 4; base actions scale with verdict: `suspicious` → advise caution + escalate; `likely_phishing` / `phishing` → block + quarantine)
 - `iocs` — senderDomains, replyToDomains, returnPathDomains, embeddedUrls, uniqueDomains
 - `scoreBreakdown[]` — labelled score contributions per finding and threat profile
-- `metadata` — timestamps, emailFrom, subject, linkCount, attachmentDetected, analysisSource, campaignMatch
+- `metadata` — timestamps, emailFrom, replyTo, subject, linkCount, attachmentDetected, analysisSource, campaignMatch
 
 ### Findings Presentation
 
@@ -212,8 +212,10 @@ Additive model in `computeFallbackRisk`:
 
 - Base: 22 (findings present) or 12 (no findings)
 - Per finding: critical +24, high +16, medium +9, low +4
-- Per threat profile: credential_harvesting +12, BEC +10, financial_fraud +10, malware_delivery +10, invoice_fraud +8, impersonation +8
+- Per threat profile: credential_harvesting +12, BEC +10, financial_fraud +10, malware_delivery +10, invoice_fraud +8, impersonation +8, phishing +6
 - Hard cap: 100
+
+The `phishing` profile is the generic catch-all that fires on broad suspicious signals. Its +6 bonus ensures a single-signal generic phishing email (only `phishing` profile, no specific sub-profile) scores at minimum `suspicious` rather than `clean`. Specific sub-profiles carry larger bonuses and stack on top of it.
 
 Score breakdown is returned as a labelled array alongside the final score.
 
@@ -339,7 +341,7 @@ npm run dev
 Fully functional demo tool. Capabilities:
 
 - MIME multipart decoding — engine sees actual decoded HTML body from real `.eml` files
-- 15 deterministic detection signals across sender, headers, links, content, and payload categories
+- 17 deterministic detection signals across sender, headers, links, content, and payload categories
 - Multilingual detection: English, German, French, and Arabic urgency and prize-fraud terms
 - Homograph and Punycode domain detection
 - RDAP domain age lookup with cache

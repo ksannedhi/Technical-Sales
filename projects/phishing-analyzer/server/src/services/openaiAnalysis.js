@@ -29,7 +29,11 @@ function computeFallbackRisk(findings, threatProfiles) {
     breakdown.push({ label: finding.title, points: pts });
   });
 
+  // Gap 5: phishing profile gets a small bonus so generic phishing emails
+  // (only phishing profile, no specific sub-profile) score Suspicious rather
+  // than potentially Clean. Specific sub-profiles carry larger bonuses on top.
   const profileBoosts = [
+    ['phishing', 6, 'Phishing profile'],
     ['credential_harvesting', 12, 'Credential harvesting profile'],
     ['business_email_compromise', 10, 'Business email compromise profile'],
     ['financial_fraud', 10, 'Financial fraud profile'],
@@ -109,21 +113,40 @@ function buildDeterministicAttackTactics(threatProfiles, findings) {
   return tactics;
 }
 
-function buildDeterministicRecommendations(threatProfiles) {
-  const recommendations = [
-    {
-      action: 'Block the sender and destination domains at the email and web security layers.',
-      owner: 'SOC',
-      timeframe: 'immediate',
-      rationale: 'This cuts off further user exposure while triage is underway.'
-    },
-    {
-      action: 'Identify recipients of the message and quarantine matching copies across mailboxes.',
-      owner: 'SOC',
-      timeframe: 'immediate',
-      rationale: 'Removing duplicates reduces the chance of additional clicks or replies.'
-    }
-  ];
+// Gap 4: base recommendations scale with verdict severity.
+// suspicious → advise caution and escalate for review (premature to block).
+// likely_phishing / phishing → immediate containment (block + quarantine).
+function buildDeterministicRecommendations(threatProfiles, verdict = 'phishing') {
+  const isSuspicious = verdict === 'suspicious';
+  const recommendations = isSuspicious
+    ? [
+        {
+          action: 'Do not act on any links, attachments, or financial instructions in this message until the sender identity is confirmed through an independent channel.',
+          owner: 'IT',
+          timeframe: 'immediate',
+          rationale: 'The message shows suspicious indicators that warrant caution but have not yet been confirmed as malicious.'
+        },
+        {
+          action: 'Escalate to the security team for manual header inspection and sender verification before taking containment action.',
+          owner: 'SOC',
+          timeframe: 'immediate',
+          rationale: 'A manual review can confirm or clear the suspicious indicators without prematurely blocking a legitimate sender.'
+        }
+      ]
+    : [
+        {
+          action: 'Block the sender and destination domains at the email and web security layers.',
+          owner: 'SOC',
+          timeframe: 'immediate',
+          rationale: 'This cuts off further user exposure while triage is underway.'
+        },
+        {
+          action: 'Identify recipients of the message and quarantine matching copies across mailboxes.',
+          owner: 'SOC',
+          timeframe: 'immediate',
+          rationale: 'Removing duplicates reduces the chance of additional clicks or replies.'
+        }
+      ];
 
   if (threatProfiles.includes('credential_harvesting')) {
     recommendations.push({
@@ -181,12 +204,14 @@ function mergeNarrativeIntoGaps(deterministicGaps, eccGapExplanations = []) {
   }));
 }
 
-async function fetchNarrative({ parsedEmail, findings, threatProfiles, riskScore, verdict, eccGaps }) {
+// Gap 3: isoGaps passed so the prompt sends all compliance control IDs
+// (NCA + ISO) and the AI returns narrative for both frameworks.
+async function fetchNarrative({ parsedEmail, findings, threatProfiles, riskScore, verdict, eccGaps, isoGaps }) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const { system, user } = buildNarrativeMessages({ parsedEmail, findings, threatProfiles, riskScore, verdict, eccGaps });
+  const { system, user } = buildNarrativeMessages({ parsedEmail, findings, threatProfiles, riskScore, verdict, eccGaps, isoGaps });
 
   const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    model: process.env.OPENAI_MODEL || 'gpt-5-nano',
     reasoning: { effort: 'minimal' },
     max_output_tokens: 1500,
     input: [
@@ -236,7 +261,7 @@ export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inp
   const verdict = scoreToVerdict(riskScore);
   const attackTactics = buildDeterministicAttackTactics(threatProfiles, findings);
   const recommendations = findings.length
-    ? buildDeterministicRecommendations(threatProfiles)
+    ? buildDeterministicRecommendations(threatProfiles, verdict)
     : [{ action: 'No immediate containment action required; retain the message for monitoring or tuning.', owner: 'SOC', timeframe: '1-week', rationale: 'The supplied evidence does not currently justify a stronger response.' }];
   const eccGaps = buildComplianceGaps(findings, threatProfiles, 'nca_ecc');
   const isoGaps = buildComplianceGaps(findings, threatProfiles, 'iso27001');
@@ -260,7 +285,7 @@ export async function analyzeWithOpenAI({ parsedEmail, deterministicSignals, inp
 
   if (process.env.OPENAI_API_KEY) {
     try {
-      const narrative = await fetchNarrative({ parsedEmail, findings: normalizedFindings, threatProfiles, riskScore, verdict, eccGaps });
+      const narrative = await fetchNarrative({ parsedEmail, findings: normalizedFindings, threatProfiles, riskScore, verdict, eccGaps, isoGaps });
 
       return analysisResultSchema.parse({
         riskScore,
