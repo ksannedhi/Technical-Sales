@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+import io
 import re
 from collections import Counter
 from copy import deepcopy
@@ -1068,19 +1070,135 @@ def _derive_signal_factors(raw_text: str, defaults: dict) -> dict:
     return result
 
 
+# ---------------------------------------------------------------------------
+# CSV column normalisation
+# Keys = internal field names; values = known CSV header variants (lowercase)
+# covering Nessus, Qualys, Rapid7 InsightVM, Tenable, OpenVAS, and generic
+# pen-test exports.
+# ---------------------------------------------------------------------------
+_CSV_COLUMN_MAP: dict[str, list[str]] = {
+    "title":           ["name", "title", "vulnerability title", "plugin name",
+                        "nvt name", "vulnerability", "finding", "issue",
+                        "check name", "vuln name"],
+    "severity":        ["risk", "severity", "priority", "risk level",
+                        "cvss severity", "threat level", "criticality",
+                        "risk rating"],
+    "cve":             ["cve", "cve id", "cve ids", "cve-id", "cves",
+                        "cve number", "cve references"],
+    "asset":           ["host", "ip", "ip address", "asset", "asset ip address",
+                        "dns", "asset names", "target", "hostname", "system",
+                        "affected host", "device"],
+    "description":     ["synopsis", "description", "summary", "details",
+                        "plugin output", "vulnerability insight",
+                        "specific result", "finding detail"],
+    "recommendations": ["solution", "recommendation", "fix", "remediation",
+                        "how to fix", "mitigation", "corrective action"],
+}
+
+_SEVERITY_NORMALISE: dict[str, str] = {
+    "critical": "critical", "5": "critical",
+    "high":     "high",     "4": "high",
+    "medium":   "medium",   "3": "medium",   "moderate": "medium",
+    "low":      "low",      "2": "low",      "1": "low",
+    "info":     "low",      "informational": "low", "0": "low", "none": "low",
+}
+
+
+def _detect_csv(raw_text: str) -> bool:
+    """Return True when raw_text looks like a CSV with a recognisable header row."""
+    first_line = raw_text.strip().split("\n")[0]
+    parts = [p.strip().strip('"').lower() for p in first_line.split(",")]
+    if len(parts) < 3:
+        return False
+    known: set[str] = set()
+    for synonyms in _CSV_COLUMN_MAP.values():
+        known.update(synonyms)
+    return any(p in known for p in parts)
+
+
+def _parse_csv_report(raw_text: str) -> list[dict]:
+    """Parse a CSV vulnerability export into the standard finding dict list.
+
+    Handles Nessus, Qualys, Rapid7 InsightVM, Tenable, OpenVAS, and any
+    generic CSV whose first row contains at least a title-like and
+    severity-like column.
+    """
+    reader = csv.DictReader(io.StringIO(raw_text.strip()))
+
+    # Map each CSV header to an internal field name (first synonym match wins).
+    col_map: dict[str, str] = {}
+    for header in (reader.fieldnames or []):
+        h = header.strip().lower()
+        for field, synonyms in _CSV_COLUMN_MAP.items():
+            if h in synonyms and field not in col_map.values():
+                col_map[header] = field
+                break
+
+    findings: list[dict] = []
+    for i, row in enumerate(reader, start=1):
+        norm: dict[str, str] = {}
+        for csv_col, norm_field in col_map.items():
+            val = (row.get(csv_col) or "").strip()
+            if val and norm_field not in norm:
+                norm[norm_field] = val
+
+        title = norm.get("title", "")
+        if not title:
+            continue
+
+        raw_sev = norm.get("severity", "medium").lower()
+        severity = _SEVERITY_NORMALISE.get(raw_sev, "medium")
+
+        block = "\n".join(f"{k.title()}: {v}" for k, v in norm.items() if v)
+        findings.append({
+            "finding_id": f"finding-{i}",
+            "title": title,
+            "severity": severity,
+            "cve": norm.get("cve", ""),
+            "description": norm.get("description", ""),
+            "affected_asset": norm.get("asset", ""),
+            "business_impact": "",
+            "recommendations": _split_recommendations(norm.get("recommendations", "")),
+            "raw_text": block,
+        })
+    return findings
+
+
 def _parse_scan_report(raw_text: str) -> list[dict]:
-    matches = list(
+    """Parse a structured vulnerability report into a list of finding dicts.
+
+    Tries four formats in priority order, returning the first that yields ≥ 2
+    findings:
+
+    1. CSV export  — Nessus / Qualys / Rapid7 / Tenable / OpenVAS / generic
+    2. Labelled blocks — ``Finding N:``, ``Vulnerability N:``, ``Issue N:``
+    3. Numbered list  — ``1. Title`` or ``1) Title`` with inline field lines
+    4. Severity-prefixed — ``[Critical] Title`` or ``CRITICAL: Title``
+    """
+    # --- 1. CSV ---
+    if _detect_csv(raw_text):
+        csv_findings = _parse_csv_report(raw_text)
+        if len(csv_findings) >= 2:
+            return csv_findings
+
+    # --- 2. Labelled blocks (Finding N / Vulnerability N / Issue N) ---
+    labelled = list(
         re.finditer(
-            r"Finding\s+(?P<number>\d+)\s*:\s*(?P<title>[^\r\n]+)\s*(?P<body>.*?)(?=Finding\s+\d+\s*:|Conclusion|$)",
+            r"(?:Finding|Vulnerability|Issue|Vuln)\s+(?P<number>\d+)\s*:\s*"
+            r"(?P<title>[^\r\n]+)\s*(?P<body>.*?)"
+            r"(?=(?:Finding|Vulnerability|Issue|Vuln)\s+\d+\s*:|Conclusion|$)",
             raw_text,
             flags=re.IGNORECASE | re.DOTALL,
         )
     )
-    findings: list[dict] = []
-    for match in matches:
-        block = f"Finding {match.group('number')}: {match.group('title').strip()}\n{match.group('body').strip()}".strip()
-        findings.append(
-            {
+    if len(labelled) >= 2:
+        findings: list[dict] = []
+        for match in labelled:
+            block = (
+                f"{match.group('number')}: {match.group('title').strip()}\n"
+                f"{match.group('body').strip()}"
+            ).strip()
+            findings.append({
                 "finding_id": f"finding-{match.group('number')}",
                 "title": match.group("title").strip(),
                 "severity": _extract_field(block, "Severity", default="medium").lower(),
@@ -1088,11 +1206,74 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
                 "description": _extract_field(block, "Description"),
                 "affected_asset": _extract_field(block, "Affected Asset"),
                 "business_impact": _extract_field(block, "Business Impact"),
-                "recommendations": _split_recommendations(_extract_field(block, "Recommendation")),
+                "recommendations": _split_recommendations(
+                    _extract_field(block, r"Recommendation(?:s)?")
+                ),
                 "raw_text": block,
-            }
+            })
+        return findings
+
+    # --- 3. Numbered list  (1. Title … 2. Title) ---
+    numbered = list(
+        re.finditer(
+            r"^(?P<number>\d+)[.)]\s+(?P<title>[^\r\n]+)(?P<body>.*?)"
+            r"(?=^\d+[.)]\s|\Z)",
+            raw_text,
+            flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
         )
-    return findings
+    )
+    if len(numbered) >= 2:
+        findings = []
+        for match in numbered:
+            block = f"{match.group('title').strip()}\n{match.group('body').strip()}".strip()
+            findings.append({
+                "finding_id": f"finding-{match.group('number')}",
+                "title": match.group("title").strip(),
+                "severity": _extract_field(block, "Severity", default="medium").lower(),
+                "cve": _extract_field(block, "CVE"),
+                "description": _extract_field(block, "Description"),
+                "affected_asset": _extract_field(block, "Affected Asset"),
+                "business_impact": _extract_field(block, "Business Impact"),
+                "recommendations": _split_recommendations(
+                    _extract_field(block, r"Recommendation(?:s)?")
+                ),
+                "raw_text": block,
+            })
+        return findings
+
+    # --- 4. Severity-prefixed  ([Critical] Title  or  CRITICAL: Title) ---
+    severity_prefixed = list(
+        re.finditer(
+            r"(?:^\[(?P<sev1>Critical|High|Medium|Low|Info(?:ormational)?)\]\s+"
+            r"|^(?P<sev2>Critical|High|Medium|Low|Info(?:ormational)?)\s*:\s+)"
+            r"(?P<title>[^\r\n]+)(?P<body>.*?)"
+            r"(?=^\[(?:Critical|High|Medium|Low|Info)|^(?:Critical|High|Medium|Low|Info)\s*:|\Z)",
+            raw_text,
+            flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+        )
+    )
+    if len(severity_prefixed) >= 2:
+        findings = []
+        for i, match in enumerate(severity_prefixed, start=1):
+            raw_sev = (match.group("sev1") or match.group("sev2") or "medium").lower()
+            severity = _SEVERITY_NORMALISE.get(raw_sev, "medium")
+            block = f"{match.group('title').strip()}\n{match.group('body').strip()}".strip()
+            findings.append({
+                "finding_id": f"finding-{i}",
+                "title": match.group("title").strip(),
+                "severity": severity,
+                "cve": _extract_field(block, "CVE"),
+                "description": _extract_field(block, "Description"),
+                "affected_asset": _extract_field(block, "Affected Asset"),
+                "business_impact": _extract_field(block, "Business Impact"),
+                "recommendations": _split_recommendations(
+                    _extract_field(block, r"Recommendation(?:s)?")
+                ),
+                "raw_text": block,
+            })
+        return findings
+
+    return []
 
 
 def _extract_field(block: str, label: str, default: str = "") -> str:
