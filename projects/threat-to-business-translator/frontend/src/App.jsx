@@ -379,28 +379,28 @@ export default function App() {
               <details className="optional-profile">
                 <summary>Optional customer assumptions</summary>
                 <div className="profile-grid">
-                  <ProfileField label="Annual revenue (USD M)">
+                  <ProfileField label="Annual revenue (USD M)" hint="Scales loss estimates and impact band calculations to the organisation's size.">
                     <input type="number" min="10" value={profile.annual_revenue_musd} onChange={(event) => handleProfileChange("annual_revenue_musd", event.target.value)} />
                   </ProfileField>
-                  <ProfileField label="Employee count">
+                  <ProfileField label="Employee count" hint="Affects people-affected figures and operational disruption estimates.">
                     <input type="number" min="50" value={profile.employee_count} onChange={(event) => handleProfileChange("employee_count", event.target.value)} />
                   </ProfileField>
-                  <ProfileField label="Internet exposure">
+                  <ProfileField label="Internet exposure" hint="1 = air-gapped or minimal exposure · 5 = fully internet-facing (cloud-first, public APIs, SaaS-heavy).">
                     <select value={profile.internet_exposure} onChange={(event) => handleProfileChange("internet_exposure", event.target.value)}>
                       {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}/5</option>)}
                     </select>
                   </ProfileField>
-                  <ProfileField label="Security maturity">
+                  <ProfileField label="Security maturity" hint="1 = ad hoc, no formal program · 5 = advanced SOC, threat intel, and mature controls in place.">
                     <select value={profile.security_maturity} onChange={(event) => handleProfileChange("security_maturity", event.target.value)}>
                       {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}/5</option>)}
                     </select>
                   </ProfileField>
-                  <ProfileField label="Regulatory sensitivity">
+                  <ProfileField label="Regulatory sensitivity" hint="1 = minimal obligations · 5 = heavily regulated (e.g. HIPAA, PCI-DSS, financial services prudential rules).">
                     <select value={profile.regulatory_sensitivity} onChange={(event) => handleProfileChange("regulatory_sensitivity", event.target.value)}>
                       {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}/5</option>)}
                     </select>
                   </ProfileField>
-                  <ProfileField label="Crown jewel dependency">
+                  <ProfileField label="Crown jewel dependency" hint="1 = scenario touches non-critical systems · 5 = directly involves mission-critical or sensitive customer-data assets.">
                     <select value={profile.crown_jewel_dependency} onChange={(event) => handleProfileChange("crown_jewel_dependency", event.target.value)}>
                       {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}/5</option>)}
                     </select>
@@ -618,11 +618,12 @@ function profileToParams(profile) {
   return Object.fromEntries(Object.entries(profile).map(([key, value]) => [key, String(value)]));
 }
 
-function ProfileField({ label, children }) {
+function ProfileField({ label, hint, children }) {
   return (
     <label className="profile-field">
       <span>{label}</span>
       {children}
+      {hint ? <span className="profile-field-hint">{hint}</span> : null}
     </label>
   );
 }
