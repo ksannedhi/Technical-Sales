@@ -188,18 +188,18 @@
             "id": "email-platform-compromise",
             "name": "Email platform compromise exposing clinical communications",
             "category": "Email / collaboration",
-            "service_id": "patient-portal",
-            "primary_asset_id": "patient-portal-web",
-            "asset_ids": ["patient-portal-web"],
+            "service_id": "ehr-platform",
+            "primary_asset_id": "ehr-app-server",
+            "asset_ids": ["ehr-app-server"],
             "identity_ids": ["admin-clinician"],
-            "technical_signal": "The healthcare organisation's email platform has been compromised, exposing internal clinical communications, patient appointment data, and potentially PHI transmitted by email.",
-            "executive_trigger": "A compromise of the clinical email platform exposing protected health information",
+            "technical_signal": "The healthcare organisation's email and clinical communications platform has been compromised, exposing internal clinical communications, patient appointment data, and potentially PHI transmitted by email.",
+            "executive_trigger": "A compromise of the clinical communications platform exposing protected health information",
             "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
             "recommended_actions": [
-                "Patch the email platform and reset credentials for all impacted accounts.",
-                "Audit email audit logs for signs of PHI exfiltration or forwarding rule tampering.",
+                "Patch the affected platform and reset credentials for all impacted clinical accounts.",
+                "Audit communication logs for signs of PHI exfiltration or forwarding rule tampering.",
                 "Notify privacy officer to assess HIPAA notification obligations.",
-                "Issue internal communication advisory on the risk of email-based impersonation."
+                "Issue internal advisory on the risk of email-based impersonation targeting clinical staff."
             ]
         },
         {
@@ -273,6 +273,46 @@
                 "Block suspicious source IP ranges and implement adaptive authentication.",
                 "Audit recently accessed patient records for unauthorised access.",
                 "Notify privacy officer and assess HIPAA reportability of account takeover incidents."
+            ]
+        },
+        {
+            "id": "clinical-imaging-breach",
+            "name": "PACS server vulnerability exposing patient imaging data",
+            "category": "Clinical imaging / data exposure",
+            "service_id": "clinical-imaging",
+            "primary_asset_id": "pacs-server",
+            "asset_ids": ["pacs-server"],
+            "identity_ids": ["radiology-admin"],
+            "library_visible": true,
+            "technical_signal": "A vulnerability in the PACS imaging server or radiology information system has been identified, creating risk of unauthorised access to patient imaging studies, DICOM records, and radiology workflow data.",
+            "executive_trigger": "A vulnerability in the PACS imaging server threatening access to patient imaging studies",
+            "signal_factors": { "exploitability": 3, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Apply vendor patch to the PACS server and RIS within the advisory timeline.",
+                "Restrict PACS access to authorised radiology workstations and modality gateways only.",
+                "Audit DICOM access logs for signs of unauthorised study retrieval.",
+                "Notify the privacy officer of potential patient imaging data exposure.",
+                "Assess HIPAA reportability with legal if unauthorised access is confirmed."
+            ]
+        },
+        {
+            "id": "claims-gateway-breach",
+            "name": "EDI claims gateway compromise exposing insurance and billing data",
+            "category": "Revenue cycle / data exposure",
+            "service_id": "claims-processing",
+            "primary_asset_id": "claims-gateway",
+            "asset_ids": ["claims-gateway"],
+            "identity_ids": [],
+            "library_visible": true,
+            "technical_signal": "The EDI claims gateway used for payer connectivity has been compromised or found to have a critical vulnerability, threatening the confidentiality of insurance claims, patient billing data, and revenue cycle operations.",
+            "executive_trigger": "A compromise of the EDI claims gateway threatening revenue cycle continuity and patient billing data",
+            "signal_factors": { "exploitability": 3, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Isolate the claims gateway from payer connectivity pending patch or vendor remediation.",
+                "Audit EDI transaction logs for unauthorised claim submissions or data extraction.",
+                "Notify the Director of Revenue Cycle and assess impact on claims in-flight.",
+                "Engage payer partners to flag potential data exposure on shared EDI channels.",
+                "Notify the privacy officer and assess HIPAA breach notification obligations."
             ]
         },
         {
