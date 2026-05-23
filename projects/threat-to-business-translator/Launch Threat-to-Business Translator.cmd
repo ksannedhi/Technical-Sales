@@ -35,7 +35,7 @@ if not exist "%ROOT%frontend\node_modules" (
 )
 
 REM -- Open backend in a new window (activate venv then run uvicorn) --
-start "CyberRisk Narrator - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%BACKEND%'; .\.venv\Scripts\Activate.ps1; uvicorn app.main:app --reload"
+start "CyberRisk Narrator - Backend" powershell -NoExit -NoProfile -ExecutionPolicy Bypass -Command "cd '%BACKEND%'; .\.venv\Scripts\Activate.ps1; uvicorn app.main:app --reload --no-access-log"
 
 timeout /t 3 /nobreak >nul
 
