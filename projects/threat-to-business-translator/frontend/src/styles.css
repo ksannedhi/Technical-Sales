@@ -753,25 +753,9 @@ details[open] .toggle-hint {
   opacity: 0;
 }
 
-/* ── Recommended Actions — full-width panel with divider rows ── */
+/* ── Recommended Actions — full-width panel ── */
 .panel-actions {
   grid-column: 1 / -1;
-}
-
-.action-list {
-  margin: 0;
-}
-
-.action-row-item {
-  color: var(--muted);
-  line-height: 1.55;
-  padding: 8px 0;
-  border-top: 1px solid var(--border);
-}
-
-.action-row-item:first-child {
-  border-top: none;
-  padding-top: 0;
 }
 
 /* ── Exposure bar — qualitative tone label ── */
