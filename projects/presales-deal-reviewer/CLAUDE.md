@@ -30,7 +30,7 @@ python -m py_compile app.py src\presales_gate_engine.py src\file_ingest.py tests
 
 ## Architecture
 
-A **local presales deal gating tool** built on Python's built-in `wsgiref` WSGI server — no external web framework or frontend build step. All UI is rendered server-side as HTML.
+A **local presales deal reviewer** built on Python's built-in `wsgiref` WSGI server — no external web framework or frontend build step. All UI is rendered server-side as HTML.
 
 ```
 app.py                      WSGI server + all route handlers + HTML rendering
@@ -81,3 +81,23 @@ data/gate_config.json       Tunable scoring weights, thresholds, and heuristic s
 - Persistent deal history across restarts
 - Document generation output
 - Cloud/SaaS deployment
+
+## Engine patterns
+
+- **Gate weights** — Requirements 45%, Architecture 25%, Proposal 30% (source of truth: `data/gate_config.json`).
+- **Solution family detection** — up to 5 families active per deal; scored by keyword hits across RFP + proposal + supporting_context. Proposal-fallback fires when RFP hits = 0 AND proposal has ≥1 anchor keyword (threshold: ≥2 for renewals, ≥4 otherwise). `iam_pam` excluded from proposal-fallback (too many false positives from integration boilerplate).
+- **TippingPoint / SIEM suppression** — TippingPoint detected within `firewall_network` → swaps in IPS-specific questions. When `firewall_network` is primary AND `log_destination` signals appear, all SIEM sizing findings and questions are suppressed (SIEM is a log sink, not the solution).
+- **Renewal vs. expansion** — `is_renewal` from `RENEWAL_SIGNALS`; `is_expansion = is_renewal AND seat_expansion keywords`. Renewal softens HA/DR to LOW; suppresses SIEM/retention/identity-gap findings; replaces endpoint Q1 (seat count) with OS/agent compatibility question. Expansion asks whether existing architecture extends to new scope.
+- **Sector→framework mapping** — `REGULATED_SECTOR_SIGNALS` triggers; `SECTOR_COMPLIANCE_MAP` supplies hint text (e.g. healthcare → HIPAA, GDPR, ISO 27001).
+- **Assumption extraction** — `_extract_assumption_sentences()` quotes up to 3 actual sentences from the proposal (assumed that / tbd / to be confirmed) instead of a generic flag.
+- **Re-run delta** — `GET /?rerun=<id>` pre-fills the form; POST computes score delta vs. prior run; `render_delta_banner()` shows green ⬆ / red ⬇ / neutral ➡.
+- **Key keyword lists live in `presales_gate_engine.py`** (not gate_config.json): `KEYWORDS`, `SOLUTION_FAMILY_KEYWORDS`, `SOLUTION_FAMILY_QUESTIONS`, `REGULATED_SECTOR_SIGNALS`, `SECTOR_COMPLIANCE_MAP`, `RENEWAL_SIGNALS`, `FAMILY_ANCHOR_KEYWORDS`, `PROPOSAL_FALLBACK_EXCLUDED`.
+
+## wsgiref runtime patterns
+
+- **`_QuietHandler`** — subclass `WSGIRequestHandler` and override `log_request`/`log_message` to no-ops. Prevents CMD Quick Edit Mode from pausing the server when the user clicks the terminal window.
+- **Favicon fast-path** — return `204 No Content` immediately for `/favicon.ico` to avoid a full page render per browser request.
+- **Daemon thread for SQLite writes** — `threading.Thread(target=..., daemon=True).start()` inside the POST handler. SQLite writes on Windows can stall 10–40 ms (Defender scan, journal flush). Never write synchronously in the request handler.
+- **Lazy SeedDataset** — load data files on first property access, not in `__init__`. Server socket binds before any disk reads.
+- **POST → 303 → GET** — after a POST that creates a review, redirect to `GET /?review=<id>`. Pass one-time messages via `FLASH_MESSAGES` dict (keyed by review_id, consumed on GET) to survive the redirect without re-render.
+- **gitignore** — `data/analyses.db`, `data/analyses.db-journal`, `data/analyses.db-wal`, `data/analyses.db-shm`, `timing_log.txt`.

@@ -138,3 +138,7 @@ Frontend uses `VITE_API_URL` and `VITE_WS_URL` (both default to `http://127.0.0.
 - Alert array is capped at 500 entries in memory; the frontend keeps the latest 60.
 - All containment actions are simulated — no real infrastructure calls are made.
 - Server is localhost-only (middleware blocks non-127.0.0.1/::1 requests).
+
+## Project naming
+
+Standalone folder and GitHub repo project folder are both `soc-twin`. The old name `live-soc-twin-field-sku` is retired — never use it in paths, scripts, or documentation.

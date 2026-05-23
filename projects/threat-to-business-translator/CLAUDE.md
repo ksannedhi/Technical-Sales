@@ -153,3 +153,17 @@ No `.env` file required. The engine is fully deterministic and offline.
 - **Conditional language detection** — always test new CVE classes for hedging phrases ("under specific configuration", "may allow"). These lower real-world exploitability and must reduce the score.
 - **Executive trigger generation** — use a sentence-aware extractor (split at `.`, truncate at word boundary) not a raw `[:N]` slice.
 - **Test with real CVEs across vendors and classes** — auth bypass, injection, path traversal, DoS, cryptographic. Check matched template, signal scores, and business context for each.
+- **CVE analysis — use code, not manual tracing** — when assessing template coverage for multiple CVEs, use `ctx_execute` to run `_infer_scenario()` programmatically against each input. Manual keyword-by-keyword tracing across 20 templates is O(n²) and takes 10+ minutes.
+
+## GUI readability patterns
+
+Apply to any executive-facing report panel where the primary audience is leadership, not security analysts.
+
+- **Risk badge** — never display Overall Risk as plain text. Use `<strong className={`risk-badge risk-badge-${tone}`}>`. CSS: `risk-badge-critical` (#ef4444), `risk-badge-high` (#f97316), `risk-badge-moderate` (#eab308), `risk-badge-low` (#22c55e).
+- **Report banner accent** — apply `risk-${overall_risk}` class on the context banner; CSS adds `border-left: 4px solid <color>`.
+- **Featured metric cards** — Overall Risk and Likely Loss use `metric-card-featured` modifier (darker bg, accent border, 1.4rem value font). Pass `featured={true}` and `tone={tone}` as props.
+- **Board Brief** — always display the `board_brief` field below the executive summary, separated by a top-border divider. Never omit — it is the primary boardroom leave-behind.
+- **Collapsed technical input** — wrap in `<details className="technical-summary-toggle">`, closed by default. Summary label includes a `.toggle-hint` span that fades when open.
+- **Panel ordering** — top to bottom: Recommended Actions (full-width) → Parsed Findings (full-width) → Exposure Profile / Risk Reduction → Business Context / Impact Band → Active Assumptions / Control Posture → Scoring Rationale.
+- **Exposure bar tone labels** — each bar shows a qualitative label (`Critical / High / Moderate / Low`) beside the percentage. Use `.exposure-tone-label.tone-{level}` for color; group label + percentage in `.exposure-value-group` for right-aligned alignment.
+- **Recommended Actions** — render as plain `<p>` tags matching all other report panels. No ordered list, no grid, no bullets. One `<p>` per action inside `<Panel className="panel-actions">`.

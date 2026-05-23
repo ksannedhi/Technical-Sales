@@ -132,3 +132,10 @@ Accumulated learnings — apply when modifying generator, layout, or follow-up l
 ### Excalidraw rendering (`frontend/src/lib/excalidraw.ts`)
 - **`convertToExcalidrawElements` ignores input width** — it re-measures with internal font metrics (5–15 px narrower than browser canvas). Post-process: override text element widths with layout-computed values after conversion.
 - **`strokeStyle` must be passed explicitly for rectangles** — omitting it causes dashed-border components (logical constructs like VPN tunnels) to render solid.
+
+## Model split and caching
+
+- **Model split** — `ANTHROPIC_ANALYZE_MODEL` (default: haiku) for the lightweight `analyze` step; `ANTHROPIC_GENERATE_MODEL` (default: sonnet) for `generate` and `followup`. Sonnet is meaningfully more reliable for generating deeply nested Excalidraw JSON with cross-referenced IDs.
+- **JSON fence stripping** — Claude ignores `response_format: json_object`. Strip defensively before `JSON.parse` in all three services: `content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim()`.
+- **Cache version discipline** — the cache stores fully-rendered elements. After ANY change to `architectureGenerator.ts`, `layoutArchitecture.ts`, or `excalidraw.ts`, bump the version string in `generate.ts` (e.g. `"generate-v14"` → `"generate-v15"`). Model identity is encoded in the cache key via `getModelCacheIdentity()` — model changes auto-bust the cache.
+- **followup cache key includes full architecture object** — key = SHA-256 of `{ type, architecture, instruction, model }`. Different architecture + same instruction = different entry. Correct behaviour; slightly expensive on large objects, acceptable for a local demo tool.

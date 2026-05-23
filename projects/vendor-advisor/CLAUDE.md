@@ -143,3 +143,9 @@ Market position values: `leader` = 100, `strong` = 75, `challenger` = 50.
 - Persistent conversation history across restarts
 - Multi-user / SaaS deployment
 - Real-time vendor data sync (data files are static)
+
+## Engine constraints
+
+- **XDR + on-prem correctly returns `insufficient_data`** — all XDR products in the current dataset are SaaS-only. A query combining XDR with on-prem or data residency constraints excludes all products. This is intentional and honest — do not soften the constraint mapping to work around it.
+- **Test prompts must be realistic** — do not bundle unrelated compliance standards (e.g. HIPAA + banking) just to exercise two mechanisms at once. It produces misleading output.
+- **Package identity** — final app name is VendorAdvisor (was vendor-lens, then vendor-advisor). The internal Python package remains `src/mvdc` — do not rename it.
