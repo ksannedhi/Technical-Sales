@@ -74,7 +74,8 @@
         { "id": "plm-server",         "name": "plm-server",         "service_id": "plm-system",          "asset_type": "PLM application server",        "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "patch-sla-server", "database-hardening"] },
         { "id": "erp-app-server",     "name": "erp-app-server",     "service_id": "erp-platform",        "asset_type": "ERP application server",        "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "patch-sla-server", "segmentation-prod"] },
         { "id": "remote-access-gw",   "name": "remote-access-gw",   "service_id": "remote-plant-access", "asset_type": "Remote access gateway",         "criticality": "high",   "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-edge", "edr-gateway"] },
-        { "id": "supplier-vpn-hub",   "name": "supplier-vpn-hub",   "service_id": "supplier-logistics-hub","asset_type": "Supplier connectivity gateway","criticality": "medium", "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-edge"] }
+        { "id": "supplier-vpn-hub",   "name": "supplier-vpn-hub",   "service_id": "supplier-logistics-hub","asset_type": "Supplier connectivity gateway","criticality": "medium", "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-edge"] },
+        { "id": "supplier-api-server","name": "supplier-api-server","service_id": "supplier-logistics-hub","asset_type": "Supplier integration API server","criticality": "medium", "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-edge"] }
     ],
     "identities": [
         { "id": "ot-admin",         "name": "Marco Ferretti (OT Administrator)",   "role": "OT Systems Administrator",      "privilege_level": "high" },
@@ -246,8 +247,8 @@
             "name": "API or application endpoint vulnerability exposing manufacturing systems",
             "category": "API / application exposure",
             "service_id": "supplier-logistics-hub",
-            "primary_asset_id": "supplier-vpn-hub",
-            "asset_ids": ["supplier-vpn-hub"],
+            "primary_asset_id": "supplier-api-server",
+            "asset_ids": ["supplier-api-server"],
             "identity_ids": ["it-sysadmin"],
             "library_visible": false,
             "technical_signal": "A vulnerability in an API or application endpoint used by manufacturing or supply chain systems creates a path for unauthenticated access to operational data or system controls.",

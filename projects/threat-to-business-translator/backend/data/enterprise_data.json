@@ -268,6 +268,33 @@
                                            "waf-edge",
                                            "backup-core"
                                        ]
+                   },
+                   {
+                       "id":  "cloud-compute-cluster",
+                       "name":  "cloud-compute-cluster",
+                       "service_id":  "customer-onboarding-analytics",
+                       "asset_type":  "Cloud compute and analytics cluster",
+                       "criticality":  "high",
+                       "internet_exposed":  false,
+                       "control_ids":  [ "cloud-cspm", "patch-sla-server", "cloud-dlp" ]
+                   },
+                   {
+                       "id":  "idp-server",
+                       "name":  "idp-server",
+                       "service_id":  "customer-portal-experience",
+                       "asset_type":  "Identity and access management server",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [ "mfa-remote", "patch-sla-server" ]
+                   },
+                   {
+                       "id":  "corp-email-server",
+                       "name":  "corp-email-server",
+                       "service_id":  "customer-support-platform",
+                       "asset_type":  "Corporate email and communications server",
+                       "criticality":  "high",
+                       "internet_exposed":  true,
+                       "control_ids":  [ "patch-sla-server", "email-authentication", "segmentation-prod" ]
                    }
                ],
     "identities":  [
@@ -634,8 +661,8 @@
                           "name":  "Cloud hypervisor or container escape threatening workload integrity",
                           "category":  "Cloud / workload",
                           "service_id":  "customer-onboarding-analytics",
-                          "primary_asset_id":  "analytics-bucket-public",
-                          "asset_ids":  [ "analytics-bucket-public" ],
+                          "primary_asset_id":  "cloud-compute-cluster",
+                          "asset_ids":  [ "cloud-compute-cluster" ],
                           "identity_ids":  [ "svc-onboarding-analytics" ],
                           "library_visible":  false,
                           "technical_signal":  "A critical vulnerability in the virtualisation or container platform allows an attacker to escape isolation boundaries and access host-level resources or adjacent workloads.",
@@ -652,9 +679,9 @@
                           "id":  "identity-provider-compromise",
                           "name":  "Identity provider compromise enabling broad authentication bypass",
                           "category":  "Identity / SSO",
-                          "service_id":  "customer-support-platform",
-                          "primary_asset_id":  "support-crm-prod",
-                          "asset_ids":  [ "support-crm-prod", "admin-workstation-44" ],
+                          "service_id":  "customer-portal-experience",
+                          "primary_asset_id":  "idp-server",
+                          "asset_ids":  [ "idp-server" ],
                           "identity_ids":  [ "admin-rpatel" ],
                           "library_visible":  false,
                           "technical_signal":  "Indicators suggest the organisation's identity provider or SSO platform has been compromised, potentially allowing an attacker to forge authentication tokens and access any federated application.",
@@ -672,8 +699,8 @@
                           "name":  "Email platform compromise enabling data access and impersonation",
                           "category":  "Email / collaboration",
                           "service_id":  "customer-support-platform",
-                          "primary_asset_id":  "support-crm-prod",
-                          "asset_ids":  [ "support-crm-prod" ],
+                          "primary_asset_id":  "corp-email-server",
+                          "asset_ids":  [ "corp-email-server" ],
                           "identity_ids":  [ "admin-rpatel" ],
                           "library_visible":  false,
                           "technical_signal":  "A vulnerability or compromise of the email platform allows attacker access to mailboxes, calendar data, and internal communications, with potential for impersonation of senior staff.",

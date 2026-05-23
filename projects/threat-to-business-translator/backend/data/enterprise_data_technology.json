@@ -74,7 +74,8 @@
         { "id": "container-registry",  "name": "container-registry",  "service_id": "developer-cicd",        "asset_type": "Container image registry",          "criticality": "high",   "internet_exposed": false, "control_ids": ["patch-sla-server", "mfa-remote"] },
         { "id": "ci-pipeline",         "name": "ci-pipeline",         "service_id": "developer-cicd",        "asset_type": "CI/CD pipeline infrastructure",     "criticality": "high",   "internet_exposed": false, "control_ids": ["mfa-remote", "patch-sla-server"] },
         { "id": "idp-server",          "name": "idp-server",          "service_id": "iam-platform",          "asset_type": "Identity provider",                 "criticality": "high",   "internet_exposed": true,  "control_ids": ["mfa-remote", "patch-sla-server", "edr-endpoint"] },
-        { "id": "support-crm",         "name": "support-crm",         "service_id": "support-platform",      "asset_type": "Customer support CRM",              "criticality": "medium", "internet_exposed": true,  "control_ids": ["mfa-remote", "waf-edge"] }
+        { "id": "support-crm",         "name": "support-crm",         "service_id": "support-platform",      "asset_type": "Customer support CRM",              "criticality": "medium", "internet_exposed": true,  "control_ids": ["mfa-remote", "waf-edge"] },
+        { "id": "corp-email-server",   "name": "corp-email-server",   "service_id": "support-platform",      "asset_type": "Corporate email and communications server", "criticality": "high", "internet_exposed": true, "control_ids": ["mfa-remote", "patch-sla-server"] }
     ],
     "identities": [
         { "id": "sre-admin",       "name": "Elena Vasquez (SRE Lead)",        "role": "Site Reliability Engineer Lead",   "privilege_level": "high" },
@@ -249,8 +250,8 @@
             "name": "Corporate email platform compromise exposing customer and deal communications",
             "category": "Email / collaboration",
             "service_id": "support-platform",
-            "primary_asset_id": "support-crm",
-            "asset_ids": ["support-crm"],
+            "primary_asset_id": "corp-email-server",
+            "asset_ids": ["corp-email-server"],
             "identity_ids": ["sre-admin"],
             "library_visible": false,
             "technical_signal": "The corporate email platform has been compromised, exposing internal engineering discussions, customer deal communications, and support ticket data.",
