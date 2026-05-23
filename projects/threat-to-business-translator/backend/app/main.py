@@ -14,10 +14,11 @@ app = FastAPI(title="CyberRisk Narrator API", version="0.3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 def _profile_from_inputs(
@@ -112,7 +113,10 @@ async def analyze(
     file_name = None
     if source_file is not None:
         file_name = source_file.filename
-        file_text = _extract_file_text(await source_file.read(), file_name)
+        file_bytes = await source_file.read()
+        if len(file_bytes) > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="File exceeds 10 MB limit.")
+        file_text = _extract_file_text(file_bytes, file_name)
 
     combined_text = "\n\n".join(part for part in [raw_text.strip(), file_text.strip()] if part)
     if not combined_text:

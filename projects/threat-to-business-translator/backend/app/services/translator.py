@@ -546,7 +546,7 @@ def analyze_raw_input(
     domain = load_domain(sector)
     org_profile = normalize_profile(profile)
     parsed_findings = _parse_scan_report(raw_text)
-    if len(parsed_findings) >= 2:
+    if len(parsed_findings) >= 1:
         return _analyze_scan_report(raw_text, file_name, org_profile, domain, parsed_findings)
     return _analyze_single_input(raw_text, file_name, org_profile, domain, affected_service=affected_service)
 
@@ -1281,8 +1281,9 @@ def _parse_csv_report(raw_text: str) -> list[dict]:
 def _parse_scan_report(raw_text: str) -> list[dict]:
     """Parse a structured vulnerability report into a list of finding dicts.
 
-    Tries four formats in priority order, returning the first that yields ≥ 2
-    findings:
+    Tries four formats in priority order, returning the first that yields ≥ 1
+    finding. Each finding dict includes a ``source_type`` key so callers can
+    distinguish structured single-finding reports from plain free-text input.
 
     1. CSV export  — Nessus / Qualys / Rapid7 / Tenable / OpenVAS / generic
     2. Labelled blocks — ``Finding N:``, ``Vulnerability N:``, ``Issue N:``
@@ -1292,7 +1293,9 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
     # --- 1. CSV ---
     if _detect_csv(raw_text):
         csv_findings = _parse_csv_report(raw_text)
-        if len(csv_findings) >= 2:
+        if len(csv_findings) >= 1:
+            for f in csv_findings:
+                f.setdefault("source_type", "csv")
             return csv_findings
 
     # --- 2. Labelled blocks (Finding N / Vulnerability N / Issue N) ---
@@ -1305,7 +1308,7 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
             flags=re.IGNORECASE | re.DOTALL,
         )
     )
-    if len(labelled) >= 2:
+    if len(labelled) >= 1:
         findings: list[dict] = []
         for match in labelled:
             block = (
@@ -1324,6 +1327,7 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
                     _extract_field(block, r"Recommendation(?:s)?")
                 ),
                 "raw_text": block,
+                "source_type": "labelled",
             })
         return findings
 
@@ -1336,7 +1340,7 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
             flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
         )
     )
-    if len(numbered) >= 2:
+    if len(numbered) >= 1:
         findings = []
         for match in numbered:
             block = f"{match.group('title').strip()}\n{match.group('body').strip()}".strip()
@@ -1352,6 +1356,7 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
                     _extract_field(block, r"Recommendation(?:s)?")
                 ),
                 "raw_text": block,
+                "source_type": "numbered",
             })
         return findings
 
@@ -1366,7 +1371,7 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
             flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
         )
     )
-    if len(severity_prefixed) >= 2:
+    if len(severity_prefixed) >= 1:
         findings = []
         for i, match in enumerate(severity_prefixed, start=1):
             raw_sev = (match.group("sev1") or match.group("sev2") or "medium").lower()
@@ -1384,6 +1389,7 @@ def _parse_scan_report(raw_text: str) -> list[dict]:
                     _extract_field(block, r"Recommendation(?:s)?")
                 ),
                 "raw_text": block,
+                "source_type": "severity_prefixed",
             })
         return findings
 
