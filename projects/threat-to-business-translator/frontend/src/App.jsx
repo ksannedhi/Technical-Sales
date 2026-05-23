@@ -296,7 +296,7 @@ export default function App() {
           </p>
         </div>
         <div className="hero-title-wrap">
-          <h1>Translate CVEs, SOC alerts, and scan reports into executive impact.</h1>
+          <h1>Translate CVEs, SOC alerts, and Nessus, Qualys &amp; Rapid7 scan reports into executive impact.</h1>
         </div>
       </section>
 
