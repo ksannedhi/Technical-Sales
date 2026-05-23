@@ -93,7 +93,7 @@ Copy `.env.example` → `.env` and fill in `OPENAI_API_KEY`.
 - `server/src/routes/analyze.js` — hybrid phishing analysis (deterministic + OpenAI narrative); campaign fingerprint store
 - `server/src/routes/report.js` — Puppeteer PDF generation (accepts `framework` param and `analystNote`)
 - `server/src/parsing/emailParser.js` — MIME multipart decode, base64/QP, link pair extraction, CSS obfuscation detection
-- `server/src/rules/deterministicChecks.js` — all 15 detection signals, IOC extraction, domain age lookup (async)
+- `server/src/rules/deterministicChecks.js` — all 17 detection signals, IOC extraction, domain age lookup (async)
 - `server/src/services/domainAge.js` — RDAP lookup with 24h in-memory cache, 3.5s timeout
 - `server/src/mappings/eccMappings.js` — NCA ECC-2:2024 and ISO 27001 control libraries, framework-aware gap builder
 - `server/src/services/openaiAnalysis.js` — score breakdown (`computeFallbackRisk`), IOC assembly, OpenAI narrative fetch
@@ -132,3 +132,6 @@ At the end of **every** session, before closing:
 - **Auth absent ≠ auth fail** — `authSignals()` tracks spfNone/dkimNone/dmarcWeakened separately from fail. Absent → medium; failed → high.
 - **Brand domain mismatch** — `isBrandDomainMismatch()` catches lookalike domains, not just free-mail senders.
 - **Dual-framework PDF** — always renders both NCA ECC and ISO 27001 sections; no framework param threading needed.
+- **Credential harvesting regex** — pattern must be `sign[- .]in` to match hyphenated and period variants, not a plain `sign in` string.
+- **Return-path mismatch** — fires as medium severity when `rootDomain(returnPathDomain) !== rootDomain(fromDomain)`. Distinct from Reply-To mismatch (critical); envelope vs. displayed address are different signals.
+- **Impersonation risk bonus** — `computeFallbackRisk()` adds +8 for impersonation on top of standard finding-based scoring.

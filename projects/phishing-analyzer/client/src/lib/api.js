@@ -1,10 +1,11 @@
-// Retry once on transient connection failures. Two cases:
+// Retry up to twice on transient connection failures. Two error cases:
 //   1. TypeError — fetch itself threw (ECONNREFUSED before Vite proxy was reached)
 //   2. 503 with retryable:true — Vite proxy caught ECONNRESET from the backend
 //      and returned a structured 503 rather than its default plain-text 500.
 // Both happen during the brief window when node --watch restarts the server
-// after its initial file-scan pass.
-async function fetchWithRetry(url, options, retries = 1, retryDelayMs = 1000) {
+// after its initial file-scan pass. Two retries at 1.5s each cover servers
+// that take up to ~3s to rebind after a watch-triggered restart.
+async function fetchWithRetry(url, options, retries = 2, retryDelayMs = 1500) {
   let response;
   try {
     response = await fetch(url, options);
