@@ -353,11 +353,12 @@ export default function App() {
                   accept=".pdf,.txt,.csv,.json,.log"
                   onChange={(event) => setSourceFile(event.target.files?.[0] ?? null)}
                 />
-                <p className="field-hint">
-                  For multi-finding roll-up, label each finding as <span className="code-inline">Finding 1: Title</span>, <span className="code-inline">Finding 2: Title</span>, etc. Single CVEs and free-text alerts work without any special structure.
-                </p>
               </div>
             </div>
+
+            <p className="intake-format-hint">
+              CSV exports from Nessus, Qualys, Rapid7, and Tenable are parsed automatically. For plain-text reports, label findings as <span className="code-inline">Finding 1: Title</span>, <span className="code-inline">Finding 2: Title</span>, etc., or use a numbered list. Single CVEs and free-text alerts need no special structure.
+            </p>
 
             <div className="intake-row">
               <div className="intake-field grow">

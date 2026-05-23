@@ -287,6 +287,14 @@ select {
   line-height: 1.5;
 }
 
+.intake-format-hint {
+  margin: 6px 0 2px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  grid-column: 1 / -1;
+}
+
 .code-inline {
   font-family: ui-monospace, "Cascadia Code", monospace;
   font-size: 0.74rem;
