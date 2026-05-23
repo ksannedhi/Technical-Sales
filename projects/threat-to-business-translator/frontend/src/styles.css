@@ -288,7 +288,7 @@ select {
 }
 
 .intake-format-hint {
-  margin: 6px 0 2px;
+  margin: 14px 0 2px;
   color: var(--muted);
   font-size: 0.76rem;
   line-height: 1.55;

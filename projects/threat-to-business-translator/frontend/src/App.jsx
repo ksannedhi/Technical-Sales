@@ -291,12 +291,11 @@ export default function App() {
         <div className="hero-meta">
           <p className="eyebrow">CyberRisk Narrator</p>
           <p className="hero-copy">
-            Select the customer&apos;s industry sector to load sector-appropriate scenarios. Customer-specific inputs are
-            optional and can be applied only when you want to tailor the outcome.
+            Select the customer&apos;s industry sector to load sector-appropriate scenarios. Upload Nessus, Qualys, Rapid7, or Tenable scan exports — or paste any CVE or alert — to tailor the outcome.
           </p>
         </div>
         <div className="hero-title-wrap">
-          <h1>Translate CVEs, SOC alerts, and Nessus, Qualys &amp; Rapid7 scan reports into executive impact.</h1>
+          <h1>Translate CVEs, SOC alerts, and vulnerability scan reports into executive impact.</h1>
         </div>
       </section>
 
@@ -343,7 +342,7 @@ export default function App() {
               </div>
               <div className="intake-field compact">
                 <label className="input-label" htmlFor="sourceFile">
-                  Optional upload: structured vulnerability report (.pdf, .txt, .csv, .json, .log)
+                  Upload a Nessus, Qualys, Rapid7 or Tenable report (.csv · .pdf · .txt · .log)
                 </label>
                 <input
                   key={sourceFile ? sourceFile.name : "empty-file-input"}
