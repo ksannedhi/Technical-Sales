@@ -310,6 +310,46 @@
                 "Review WAF coverage for the patient-facing web tier.",
                 "Monitor for web exploitation attempts until patching is complete."
             ]
+        },
+        {
+            "id": "medical-device-iomt",
+            "name": "Connected medical device vulnerability threatening patient safety and data integrity",
+            "category": "IoMT / medical device",
+            "service_id": "medical-device-network",
+            "primary_asset_id": "medical-device-mgmt",
+            "asset_ids": ["medical-device-mgmt"],
+            "identity_ids": [],
+            "library_visible": false,
+            "technical_signal": "A vulnerability in a connected medical device or device management platform creates risk of device manipulation, unauthorised data access, or disruption to care delivery.",
+            "executive_trigger": "A vulnerability in connected medical devices with patient safety and data integrity implications",
+            "signal_factors": { "exploitability": 3, "threat_activity": 3, "evidence_quality": 3, "context_completeness": 3 },
+            "recommended_actions": [
+                "Apply vendor-issued firmware or software patch per advisory timeline.",
+                "Segment affected medical devices from the broader clinical network pending remediation.",
+                "Notify clinical engineering and biomedical team to assess device integrity.",
+                "Evaluate FDA reportability as a medical device cybersecurity incident.",
+                "Notify the CMO and patient safety officer of potential patient impact."
+            ]
+        },
+        {
+            "id": "network-protocol-exposure",
+            "name": "Unencrypted medical data transmission exposing PHI in transit",
+            "category": "Network / encryption",
+            "service_id": "medical-device-network",
+            "primary_asset_id": "medical-device-mgmt",
+            "asset_ids": ["medical-device-mgmt"],
+            "identity_ids": [],
+            "library_visible": false,
+            "technical_signal": "Medical data transmitted via an unencrypted or weakly authenticated protocol is vulnerable to eavesdropping or manipulation by attackers with network access.",
+            "executive_trigger": "Unencrypted medical data transmission vulnerable to interception on the clinical network",
+            "signal_factors": { "exploitability": 3, "threat_activity": 2, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Enable TLS or equivalent encryption for all medical data transmission channels.",
+                "Enforce encryption-in-transit policy across the clinical device network.",
+                "Segment the affected network to limit eavesdropping exposure.",
+                "Audit network traffic for signs of unauthorised capture or manipulation.",
+                "Notify the privacy officer of potential PHI interception risk."
+            ]
         }
     ]
 }
