@@ -300,6 +300,25 @@
                 "Audit data pipeline outputs for signs of tampering or exfiltration.",
                 "Notify the CPO and legal team of potential customer data integrity exposure."
             ]
+        },
+        {
+            "id": "customer-portal-outdated-web",
+            "name": "Web server or application vulnerability on customer-facing SaaS platform",
+            "category": "CVE / web application",
+            "service_id": "saas-platform",
+            "primary_asset_id": "saas-app-cluster",
+            "asset_ids": ["saas-app-cluster"],
+            "identity_ids": ["sre-admin"],
+            "library_visible": false,
+            "technical_signal": "A critical vulnerability in a web server or application framework (Apache, nginx, or similar) used by the SaaS platform creates a path for command injection, code execution, or unauthenticated access to customer data.",
+            "executive_trigger": "A web server or application framework vulnerability on the customer-facing SaaS platform",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Apply vendor patch to the affected web server or application framework immediately.",
+                "Review WAF rules and rate-limit rules for evidence of exploitation attempts.",
+                "Audit application access logs for anomalous requests targeting the vulnerable endpoint.",
+                "Notify engineering leadership and assess customer data exposure scope."
+            ]
         }
     ]
 }

@@ -260,6 +260,44 @@
                 "Review internet exposure of affected manufacturing or supply chain APIs.",
                 "Notify supply chain and operations leadership of potential data exposure."
             ]
+        },
+        {
+            "id": "network-protocol-exposure",
+            "name": "OT protocol or network encryption gap exposing plant communications",
+            "category": "Network / OT protocol exposure",
+            "service_id": "ics-scada",
+            "primary_asset_id": "scada-historian",
+            "asset_ids": ["scada-historian", "hmi-workstation"],
+            "identity_ids": ["ot-admin"],
+            "library_visible": false,
+            "technical_signal": "A missing encryption, plaintext protocol, or weak authentication vulnerability in OT network communications exposes plant control data to eavesdropping or tampering by an attacker with network access.",
+            "executive_trigger": "An unencrypted OT protocol or network authentication gap exposing plant control communications",
+            "signal_factors": { "exploitability": 3, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Audit OT network segments for unencrypted protocol usage (Modbus, DNP3, proprietary).",
+                "Enforce encrypted communications or compensating controls (VPN tunnel, network segmentation) on affected plant links.",
+                "Rotate any credentials transmitted in cleartext and review historian/HMI access logs.",
+                "Notify COO and OT Security Manager of communications integrity risk and remediation timeline."
+            ]
+        },
+        {
+            "id": "medical-device-iomt",
+            "name": "Industrial firmware or embedded device vulnerability on plant floor",
+            "category": "Firmware / embedded device",
+            "service_id": "ics-scada",
+            "primary_asset_id": "hmi-workstation",
+            "asset_ids": ["hmi-workstation", "scada-historian"],
+            "identity_ids": ["ot-admin"],
+            "library_visible": false,
+            "technical_signal": "A firmware or embedded device vulnerability — including hardcoded credentials, backdoors, or out-of-bounds write — in a plant-floor device exposes production control systems to manipulation or shutdown.",
+            "executive_trigger": "A firmware or embedded device vulnerability threatening plant-floor control system integrity",
+            "signal_factors": { "exploitability": 4, "threat_activity": 3, "evidence_quality": 4, "context_completeness": 3 },
+            "recommended_actions": [
+                "Apply vendor firmware patch or isolate the affected device from the OT network.",
+                "Audit the device for signs of exploitation — unexpected outbound connections, configuration changes.",
+                "Review vendor security advisories for related components using the same firmware base.",
+                "Notify plant management and COO of production continuity risk during remediation."
+            ]
         }
     ]
 }
