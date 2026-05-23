@@ -75,7 +75,8 @@
         { "id": "pacs-server",           "name": "pacs-server",            "service_id": "clinical-imaging",     "asset_type": "PACS imaging server",             "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "segmentation-prod"] },
         { "id": "medical-device-mgmt",   "name": "medical-device-mgmt",   "service_id": "medical-device-network","asset_type": "Device management platform",     "criticality": "high",   "internet_exposed": false, "control_ids": ["segmentation-prod", "patch-sla-server"] },
         { "id": "claims-gateway",        "name": "claims-gateway",         "service_id": "claims-processing",   "asset_type": "EDI claims gateway",              "criticality": "medium", "internet_exposed": true,  "control_ids": ["patch-sla-edge", "mfa-remote"] },
-        { "id": "research-data-store",   "name": "research-data-store",   "service_id": "research-data-platform","asset_type": "Research data repository",       "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "cloud-dlp", "database-hardening"] }
+        { "id": "research-data-store",   "name": "research-data-store",   "service_id": "research-data-platform","asset_type": "Research data repository",       "criticality": "high",   "internet_exposed": false, "control_ids": ["backup-core", "cloud-dlp", "database-hardening"] },
+        { "id": "clinical-email-server", "name": "clinical-email-server", "service_id": "ehr-platform",         "asset_type": "Clinical email and communications server", "criticality": "high", "internet_exposed": true, "control_ids": ["patch-sla-server", "mfa-remote", "segmentation-prod"] }
     ],
     "identities": [
         { "id": "admin-clinician",    "name": "Dr. Sarah Okonkwo (EHR Admin)", "role": "Clinical Systems Administrator", "privilege_level": "high" },
@@ -189,8 +190,8 @@
             "name": "Email platform compromise exposing clinical communications",
             "category": "Email / collaboration",
             "service_id": "ehr-platform",
-            "primary_asset_id": "ehr-app-server",
-            "asset_ids": ["ehr-app-server"],
+            "primary_asset_id": "clinical-email-server",
+            "asset_ids": ["clinical-email-server"],
             "identity_ids": ["admin-clinician"],
             "technical_signal": "The healthcare organisation's email and clinical communications platform has been compromised, exposing internal clinical communications, patient appointment data, and potentially PHI transmitted by email.",
             "executive_trigger": "A compromise of the clinical communications platform exposing protected health information",
