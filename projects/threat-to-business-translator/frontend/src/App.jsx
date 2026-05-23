@@ -343,7 +343,7 @@ export default function App() {
               </div>
               <div className="intake-field compact">
                 <label className="input-label" htmlFor="sourceFile">
-                  Optional upload: vulnerability scan report for analysis (.pdf, .txt, .csv, .json, .log)
+                  Optional upload: structured vulnerability report (.pdf, .txt, .csv, .json, .log)
                 </label>
                 <input
                   key={sourceFile ? sourceFile.name : "empty-file-input"}
@@ -353,6 +353,9 @@ export default function App() {
                   accept=".pdf,.txt,.csv,.json,.log"
                   onChange={(event) => setSourceFile(event.target.files?.[0] ?? null)}
                 />
+                <p className="field-hint">
+                  For multi-finding roll-up, label each finding as <span className="code-inline">Finding 1: Title</span>, <span className="code-inline">Finding 2: Title</span>, etc. Single CVEs and free-text alerts work without any special structure.
+                </p>
               </div>
             </div>
 
