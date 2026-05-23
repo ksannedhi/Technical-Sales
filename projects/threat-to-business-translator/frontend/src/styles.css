@@ -753,21 +753,25 @@ details[open] .toggle-hint {
   opacity: 0;
 }
 
-/* ── Recommended Actions — full-width panel with bullet list ── */
+/* ── Recommended Actions — full-width panel with divider rows ── */
 .panel-actions {
   grid-column: 1 / -1;
 }
 
 .action-list {
   margin: 0;
-  padding-left: 20px;
-  list-style: disc;
 }
 
-.action-list li {
+.action-row-item {
   color: var(--muted);
   line-height: 1.55;
-  padding: 3px 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.action-row-item:first-child {
+  border-top: none;
+  padding-top: 0;
 }
 
 /* ── Exposure bar — qualitative tone label ── */

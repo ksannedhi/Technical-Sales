@@ -520,11 +520,11 @@ export default function App() {
 
               <div className="detail-grid">
                 <Panel title="Recommended Actions" className="panel-actions">
-                  <ul className="action-list">
+                  <div className="action-list">
                     {report.leadership_output.recommended_actions.map((action) => (
-                      <li key={action}>{action}</li>
+                      <div key={action} className="action-row-item">{action}</div>
                     ))}
-                  </ul>
+                  </div>
                 </Panel>
 
                 {report.finding_summaries?.length ? (
