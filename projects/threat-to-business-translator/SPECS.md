@@ -40,7 +40,7 @@ Selecting a sector loads sector-appropriate business units, services, assets, id
 
 ### Built-in scenario library
 
-The application includes sector-specific visible synthetic scenarios per sector (5–7 library-visible scenarios per sector). The backend maintains 18 keyword-weighted SCENARIO_MATCHERS templates that classify ad hoc input across all sectors.
+The application includes sector-specific visible synthetic scenarios per sector (5–12 library-visible scenarios per sector, varying by sector depth). The backend maintains 20 keyword-weighted SCENARIO_MATCHERS templates that classify ad hoc input across all sectors.
 
 Each scenario is tied to a synthetic enterprise graph made up of:
 - business units
@@ -68,11 +68,13 @@ The uploaded or pasted content is matched to the closest scenario pattern using 
 
 ### Multi-finding scan report analysis
 
-If an uploaded scan report contains multiple findings, the backend:
-- parses each `Finding N` block
-- classifies each finding independently
+If an uploaded scan report contains one or more structured findings, the backend:
+- parses findings using one of four recognised formats, in priority order: CSV export (Nessus / Qualys / Rapid7 / Tenable / OpenVAS / generic), labelled blocks (`Finding N:` / `Vulnerability N:`), numbered list (`1. Title`), severity-prefixed lines (`[Critical] Title`)
+- classifies each finding independently against the SCENARIO_MATCHERS templates
 - builds per-finding risk summaries
 - builds a report-level roll-up with aggregate business context, exposure profile, and recommended actions
+
+Uploaded files are subject to a 10 MB size cap; requests exceeding the limit are rejected with HTTP 413.
 
 ### Optional organization assumptions
 
@@ -152,7 +154,7 @@ If the user does not apply custom assumptions, the app uses built-in defaults.
 - Changing sector reloads the scenario library with sector-appropriate scenarios.
 - The selected scenario and report always reload when sector changes, even if the first scenario ID in the new sector matches the previously selected ID.
 - All backend endpoints accept a `sector` parameter; the default is `financial-services`.
-- Each sector maps to a dedicated domain JSON file. The 18 SCENARIO_MATCHERS templates are shared across all sectors; `_scenario_by_id()` uses a resilient fallback chain so new matcher IDs work gracefully even if a domain file has not yet added a matching scenario stub.
+- Each sector maps to a dedicated domain JSON file. The 20 SCENARIO_MATCHERS templates are shared across all sectors; `_scenario_by_id()` uses a resilient fallback chain so new matcher IDs work gracefully even if a domain file has not yet added a matching scenario stub.
 
 ### FR13. Executive report readability
 - The Overall Risk value must be displayed as a color-coded badge (Critical/High/Moderate/Low).
@@ -198,7 +200,7 @@ The current synthetic graph should be replaceable later with real-world sources 
 - FastAPI
 - five sector-specific synthetic enterprise graphs stored in JSON (`enterprise_data*.json`)
 - deterministic enrichment and scoring engine
-- 18-template weighted SCENARIO_MATCHERS for ad hoc classification across all sectors
+- 20-template weighted SCENARIO_MATCHERS for ad hoc classification across all sectors
 - resilient `_scenario_by_id()` lookup with edr-identity-lateral fallback
 - CVSS v3 score and vector parser for authoritative exploitability
 - scan-report parsing and roll-up logic
