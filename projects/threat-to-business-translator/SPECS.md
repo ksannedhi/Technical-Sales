@@ -78,15 +78,18 @@ Uploaded files are subject to a 10 MB size cap; requests exceeding the limit are
 
 ### Optional organization assumptions
 
-Users may optionally tailor the report with assumptions such as:
-- annual revenue
-- employee count
-- internet exposure
-- security maturity
-- regulatory sensitivity
-- crown jewel dependency
+Users may optionally tailor the report with the following assumptions:
 
-If the user does not apply custom assumptions, the app uses built-in defaults.
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| Annual revenue (USD M) | Number | 250 | Scales loss estimates and impact band calculations to the organisation's size. |
+| Employee count | Number | 5000 | Affects people-affected figures and operational disruption estimates. |
+| Internet exposure | 1–5 | 4 | 1 = air-gapped or minimal exposure · 5 = fully internet-facing (cloud-first, public APIs, SaaS-heavy). |
+| Security maturity | 1–5 | 3 | 1 = ad hoc, no formal program · 5 = advanced SOC, threat intel, and mature controls in place. |
+| Regulatory sensitivity | 1–5 | 4 | 1 = minimal obligations · 5 = heavily regulated (e.g. HIPAA, PCI-DSS, financial services prudential rules). |
+| Crown jewel dependency | 1–5 | 4 | 1 = scenario touches non-critical systems · 5 = directly involves mission-critical or sensitive customer-data assets. |
+
+If the user does not apply custom assumptions, the app uses the defaults shown above.
 
 ## Functional Requirements
 
