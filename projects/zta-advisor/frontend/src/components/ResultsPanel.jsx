@@ -237,17 +237,30 @@ export default function ResultsPanel({ results, orgProfile, frameworkIds, allFra
                 </span>
               </div>
 
-              {visible.map((ctrl, i) => (
-                <div key={i} className="ctrl-card" style={{ borderLeftColor: color }}>
-                  <div className="ctrl-card-row">
-                    <div>
-                      <div className="ctrl-title">{ctrl.title}</div>
-                      <div className="ctrl-desc">{ctrl.description}</div>
+              {visible.map((ctrl, i) => {
+                const matchingFw = (ctrl.frameworks || [])
+                  .filter(id => frameworkIds?.includes(id))
+                  .map(id => allFrameworks.find(f => f.id === id)?.shortName)
+                  .filter(Boolean);
+                return (
+                  <div key={i} className="ctrl-card" style={{ borderLeftColor: color }}>
+                    <div className="ctrl-card-row">
+                      <div>
+                        <div className="ctrl-title">{ctrl.title}</div>
+                        <div className="ctrl-desc">{ctrl.description}</div>
+                        {matchingFw.length > 0 && (
+                          <div className="ctrl-fw-chips">
+                            {matchingFw.map(name => (
+                              <span key={name} className="ctrl-fw-chip">{name}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <span className="ctrl-pillar-chip">{PILLAR_LABELS[ctrl.pillar] || ctrl.pillar}</span>
                     </div>
-                    <span className="ctrl-pillar-chip">{PILLAR_LABELS[ctrl.pillar] || ctrl.pillar}</span>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {items.length > ROADMAP_CAP && (
                 <button

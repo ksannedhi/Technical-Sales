@@ -156,16 +156,26 @@ function buildHtml({ meta, pillarScores, roadmap, overallScore, narrative, matur
   const roadmapHtml = roadmapSections.map(({ key, label, color, bg }) => {
     const items = roadmap[key] || [];
     if (!items.length) return '';
-    const itemsHtml = items.map(ctrl => `
+    const itemsHtml = items.map(ctrl => {
+      const matchingFw = (ctrl.frameworks || [])
+        .filter(id => (frameworkIds || []).includes(id))
+        .map(id => frameworksData.frameworks.find(f => f.id === id)?.shortName)
+        .filter(Boolean);
+      const fwChips = matchingFw.length
+        ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${matchingFw.map(name => `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:#dbeafe;color:#1d4ed8;">${escapeHtml(name)}</span>`).join('')}</div>`
+        : '';
+      return `
       <div style="background:#fff;border-radius:6px;padding:12px 14px;margin-bottom:8px;border-left:3px solid ${color};">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
             <div style="font-weight:600;font-size:13px;color:#111827;">${escapeHtml(ctrl.title)}</div>
             <div style="font-size:12px;color:#6b7280;margin-top:4px;">${escapeHtml(ctrl.description)}</div>
+            ${fwChips}
           </div>
           <span style="background:#f3f4f6;padding:2px 8px;border-radius:10px;font-size:11px;color:#374151;white-space:nowrap;margin-left:12px;">${escapeHtml(PILLAR_LABELS[ctrl.pillar] || ctrl.pillar)}</span>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     return `
       <div style="margin-bottom:24px;">
         <div style="background:${bg};border-radius:8px;padding:8px 14px;margin-bottom:12px;display:inline-block;">
