@@ -246,6 +246,10 @@ app.get('/api/health', (req, res) => res.json({
   briefingAge: cachedBriefing ? `${Math.round(briefingAgeMs(cachedBriefing) / 3_600_000)}h` : null
 }));
 
+// Serve React frontend in production (must come after all /api routes)
+app.use(express.static(path.join(__dirname, '../client/dist')));
+app.get('*', (_req, res) => res.sendFile(path.join(__dirname, '../client/dist/index.html')));
+
 app.listen(PORT, () => {
   console.log(`[Server] Running on http://localhost:${PORT}`);
   console.log('[Server] Daily cron scheduled for 06:00 AST (system clock)');
