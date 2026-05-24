@@ -1,4 +1,4 @@
-# Presales Deal Gating
+# Presales Deal Reviewer
 
 Local web app for reviewing presales deal readiness across requirements, architecture, proposal, and supporting discovery notes.
 

@@ -1,8 +1,8 @@
-# Presales Deal Gating — Product Specification
+# Presales Deal Reviewer — Product Specification
 
 ## Overview
 
-Presales Deal Gating is a laptop-runnable local web app for reviewing presales opportunity readiness across customer and presales artifacts.
+Presales Deal Reviewer is a laptop-runnable local web app for reviewing presales opportunity readiness across customer and presales artifacts.
 
 The app is designed to help a presales engineer or solution architect:
 

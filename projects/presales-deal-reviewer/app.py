@@ -427,7 +427,7 @@ def render_page(state: dict[str, object]) -> str:
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Presales Deal Gating</title>
+  <title>Presales Deal Reviewer</title>
   <style>
     body {{ font-family: Segoe UI, Arial, sans-serif; margin: 0; background: #f5f1e8; color: #1f2933; }}
     .wrap {{ max-width: 1360px; margin: 0 auto; padding: 24px; }}
@@ -527,7 +527,7 @@ def render_page(state: dict[str, object]) -> str:
 </head>
 <body>
   <div class="wrap">
-    <h1>Presales Deal Gating</h1>
+    <h1>Presales Deal Reviewer</h1>
     <p class="hint">Know if your deal is ready before it reaches the customer. Upload your RFP, proposal, and discovery notes — get a weighted readiness verdict, specific gaps, and clarifying questions.</p>
     <div class="layout">
       <aside class="sticky">
@@ -949,7 +949,7 @@ def main() -> None:
     url = f"http://{HOST}:{PORT}"
     with make_server(HOST, PORT, application, handler_class=_QuietHandler) as server:
         elapsed = round((time.time() - t0) * 1000, 1)
-        print(f"Presales Deal Gating running at {url}  (ready in {elapsed} ms)")
+        print(f"Presales Deal Reviewer running at {url}  (ready in {elapsed} ms)")
         if os.environ.get("PDG_OPEN_BROWSER", "0") == "1":
             threading.Thread(target=open_browser_when_ready, args=(url,), daemon=True).start()
         server.serve_forever()
