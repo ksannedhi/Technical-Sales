@@ -93,7 +93,7 @@ When a scan report contains multiple findings, the app now:
 
 ### Option 1: one-click launcher
 
-Double-click `Launch CyberRisk Narrator.cmd` from the project root.
+Double-click `Launch Threat-to-Business Translator.cmd` from the project root.
 
 The launcher will:
 - create the backend virtual environment if needed
@@ -119,23 +119,6 @@ uvicorn app.main:app --reload
 cd ./frontend
 npm install
 npm run dev
-```
-
-### Environment configuration
-
-The frontend reads the API base from `VITE_API_URL` and falls back to `http://127.0.0.1:8000` for local development.
-
-To override it:
-
-```powershell
-cd ./frontend
-Copy-Item .env.example .env
-```
-
-Then edit `.env` as needed:
-
-```text
-VITE_API_URL=http://127.0.0.1:8000
 ```
 
 ### Local URLs
