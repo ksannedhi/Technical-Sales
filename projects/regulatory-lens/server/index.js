@@ -78,7 +78,9 @@ app.get('/api/taxonomy', (_, res) => res.json(taxonomy));
 app.post('/api/intake', async (req, res) => {
   try {
     // Stable cache key: sort object keys so field ordering doesn't create spurious misses
-    const cacheKey = JSON.stringify(req.body, Object.keys(req.body).sort());
+    // Exclude orgName — it's cosmetic and doesn't affect framework recommendations
+    const { orgName: _ignored, ...profileForCache } = req.body;
+    const cacheKey = JSON.stringify(profileForCache, Object.keys(profileForCache).sort());
     if (intakeCache.has(cacheKey)) {
       console.log('[/intake] cache hit — returning cached recommendation');
       return res.json(intakeCache.get(cacheKey));
