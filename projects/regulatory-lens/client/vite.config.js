@@ -7,13 +7,20 @@ export default defineConfig({
   server: {
     port: 5179,
     proxy: {
+      // SSE stream — must use a persistent connection; no keepAlive override
+      '/api/harmonise/stream': {
+        target: 'http://localhost:3004',
+        changeOrigin: true,
+        timeout: 0,             // no timeout — stream runs until all 24 domains complete
+        proxyTimeout: 0
+      },
+      // All other API calls — keepAlive disabled so stale connections from a
+      // server restart don't cause ECONNRESET on the first request after reboot
       '/api': {
         target: 'http://localhost:3004',
         changeOrigin: true,
-        timeout: 120000,        // 2 min — covers PDF ingestion + Claude extraction
+        timeout: 120000,
         proxyTimeout: 120000,
-        // Disable keep-alive so stale connections from a server restart
-        // don't cause ECONNRESET on the first request after reboot
         agent: new http.Agent({ keepAlive: false })
       }
     }
