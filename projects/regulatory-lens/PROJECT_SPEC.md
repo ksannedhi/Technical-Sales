@@ -190,6 +190,8 @@ Full-posture domains never count toward `criticalGaps`. Executive summary langua
 
 Each roadmap item includes: rank, priority, weighted score, mandatory framework gaps, recommended actions (3–5), estimated effort, and quick wins (1–2 things achievable in under 2 weeks).
 
+**`mandatoryFrameworkGaps` qualification rule** — a framework is only included in this list if all three conditions hold: weight = mandatory, coverage = partial (the framework partially addresses the domain), and posture = not-implemented or partial. Frameworks with `not-addressed` coverage are excluded even if mandatory — `not-addressed` means the framework has no controls in that domain, which is not an organisational gap.
+
 ### 5.7 Export
 
 - **Excel**: coverage matrix with one row per domain and one column per framework, colour-coded cells
