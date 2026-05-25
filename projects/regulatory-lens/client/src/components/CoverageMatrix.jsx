@@ -24,7 +24,7 @@ function DomainDetail({ domain, selectedFrameworks }) {
         </div>
       )}
 
-      {/* Most demanding + implementation guidance */}
+      {/* Most demanding framework */}
       {domain.mostDemandingFramework && (
         <div style={{ marginBottom: '12px' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>
@@ -33,9 +33,14 @@ function DomainDetail({ domain, selectedFrameworks }) {
               {domain.mostDemandingFramework}
             </span>
           </div>
-          {domain.implementationGuidance && (
-            <p style={{ color: '#334155', lineHeight: 1.65 }}>{domain.implementationGuidance}</p>
-          )}
+        </div>
+      )}
+
+      {/* Implementation guidance */}
+      {domain.implementationGuidance && (
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>Implementation guidance</div>
+          <p style={{ color: '#334155', lineHeight: 1.65 }}>{domain.implementationGuidance}</p>
         </div>
       )}
 
