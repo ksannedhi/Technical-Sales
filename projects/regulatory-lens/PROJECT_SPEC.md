@@ -425,8 +425,8 @@ The project currently includes:
 - abort-aware retry sleeps in harmonise.js — client disconnect cancels in-flight 429 backoff waits immediately rather than after the full delay
 - clickable domain expansion in coverage matrix surfacing harmonised summary, implementation guidance, typical technologies, most demanding framework, and per-framework key requirements
 - inline error banners replacing alert() for intake, harmonisation, and roadmap failures
-- back navigation at every step (frameworks → matrix → posture → roadmap)
-- "New analysis" reset button in topbar clearing all state and the server-side cache
+- back navigation on steps 2, 4, 5, 6 (frameworks → intake, matrix → frameworks, posture → matrix, roadmap → posture); no back button during harmonising progress step
+- "New analysis" button in topbar (visible on steps 2, 4, 5, 6; hidden during harmonising) — resets all client state including intake profile back to step 1 and clears the server-side harmonisation cache
 - Claude-powered framework recommendation with GCC-tuned jurisdiction scoping rules for all 14 built-in frameworks
 - jurisdiction OMIT rules preventing cross-border hallucination (NCA-ECC/SAMA-CSF Saudi-only, CBK Kuwait-banking-only, government entity PDPL-UAE exemption, central bank PCI-DSS downgrade)
 - multi-PDPL applicability logic: PDPL-KSA extraterritorial scope, data-subject-location trigger for multi-PDPL recommendations

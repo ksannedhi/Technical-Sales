@@ -81,7 +81,7 @@ GET http://localhost:3004/api/health
 | 6 | Roadmap | Weighted implementation roadmap with priority, gap analysis, recommended actions, and quick wins |
 | 7 | Export | Download Excel matrix or full PDF report |
 
-Each step has a back button to return to the previous screen. A **New analysis** button in the topbar resets all state and the server-side cache from step 2 onward.
+Steps 2, 4, 5, and 6 each have a back button to return to the previous screen (the harmonising progress step has no back button). A **New analysis** button appears in the topbar from step 2 onward — hidden during harmonising — and resets all state including the intake profile, returning to step 1, while also clearing the server-side cache.
 
 The Change Tracker tab is independent of the Harmoniser workflow and can be used at any time.
 
