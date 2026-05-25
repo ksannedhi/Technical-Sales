@@ -7,6 +7,7 @@ const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
 export async function generatePDF(harmonisationResults, roadmap, selectedFrameworks, taxonomy, orgName = '') {
   const browser = await puppeteer.launch({
     executablePath: CHROME_PATH,
+    headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   try {

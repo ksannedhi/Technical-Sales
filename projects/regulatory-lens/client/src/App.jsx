@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import IntakeForm        from './components/IntakeForm.jsx';
 import FrameworkSelector from './components/FrameworkSelector.jsx';
 import ProgressBar       from './components/ProgressBar.jsx';
@@ -25,8 +25,12 @@ export default function App() {
   const [postureMap,           setPostureMap]           = useState({});
   const [roadmap,              setRoadmap]              = useState(null);
 
+  // Ref to the active EventSource so it can be closed on reset or re-trigger
+  const esRef = useRef(null);
+
   // ── Reset all state to intake ───────────────────────────────────────────────
   function handleReset() {
+    if (esRef.current) { esRef.current.close(); esRef.current = null; }
     setStep('intake');
     setError(null);
     setIntakeProfile(null);
@@ -73,25 +77,29 @@ export default function App() {
     setStep('harmonising');
     setProgress({ completed: 0, total: 24, label: 'Starting…' });
 
+    // Close any in-flight stream before starting a new one
+    if (esRef.current) { esRef.current.close(); esRef.current = null; }
+
     const qs = `frameworks=${selected.join(',')}`;
     const es = new EventSource(`/api/harmonise/stream?${qs}`);
+    esRef.current = es;
 
     es.onmessage = (e) => {
       const msg = JSON.parse(e.data);
       if (msg.type === 'progress') {
         setProgress({ completed: msg.completed, total: msg.total, label: msg.domainLabel });
       } else if (msg.type === 'complete') {
-        es.close();
+        es.close(); esRef.current = null;
         setHarmonisationResults(msg.results);
         setStep('matrix');
       } else if (msg.type === 'error') {
-        es.close();
+        es.close(); esRef.current = null;
         setError('Harmonisation failed: ' + msg.message);
         setStep('frameworks');
       }
     };
     es.onerror = () => {
-      es.close();
+      es.close(); esRef.current = null;
       setError('Connection to the analysis server was lost. Please try again.');
       setStep('frameworks');
     };
