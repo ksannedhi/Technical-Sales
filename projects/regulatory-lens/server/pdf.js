@@ -4,14 +4,14 @@ import { buildReportHTML } from './reportTemplate.js';
 // Use PUPPETEER_EXECUTABLE_PATH env var if set (required when Chromium not bundled)
 const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
 
-export async function generatePDF(harmonisationResults, roadmap, selectedFrameworks, taxonomy) {
+export async function generatePDF(harmonisationResults, roadmap, selectedFrameworks, taxonomy, orgName = '') {
   const browser = await puppeteer.launch({
     executablePath: CHROME_PATH,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   try {
     const page = await browser.newPage();
-    const html = buildReportHTML(harmonisationResults, roadmap, selectedFrameworks, taxonomy);
+    const html = buildReportHTML(harmonisationResults, roadmap, selectedFrameworks, taxonomy, orgName);
     await page.setContent(html, { waitUntil: 'networkidle0' });
     const result = await page.pdf({
       format: 'A4',

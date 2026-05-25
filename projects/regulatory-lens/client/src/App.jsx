@@ -180,7 +180,7 @@ export default function App() {
           {step === 'roadmap' && (
             <>
               <Roadmap roadmap={roadmap} onBack={() => setStep('posture')} orgName={intakeProfile?.orgName} />
-              <ExportPanel harmonisationResults={harmonisationResults} roadmap={roadmap} selectedFrameworks={selectedFrameworks} frameworkWeights={frameworkWeights} />
+              <ExportPanel harmonisationResults={harmonisationResults} roadmap={roadmap} selectedFrameworks={selectedFrameworks} frameworkWeights={frameworkWeights} orgName={intakeProfile?.orgName} />
             </>
           )}
         </>

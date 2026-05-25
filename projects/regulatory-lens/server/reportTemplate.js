@@ -9,7 +9,7 @@ function esc(str) {
     .replace(/'/g, '&#39;');
 }
 
-export function buildReportHTML(harmonisationResults, roadmap, selectedFrameworks, taxonomy) {
+export function buildReportHTML(harmonisationResults, roadmap, selectedFrameworks, taxonomy, orgName = '') {
   const matrixRows = harmonisationResults.map(d => {
     const cells = selectedFrameworks.map(fwId => {
       const cov = d.coverageByFramework?.[fwId]?.coverage || 'unknown';
@@ -118,10 +118,11 @@ export function buildReportHTML(harmonisationResults, roadmap, selectedFramework
   <div class="header">
     <div>
       <div class="logo">Cross-Framework Harmoniser</div>
-      <div class="logo-sub">GCC Regulatory Compliance Report</div>
+      <div class="logo-sub">${orgName ? `${esc(orgName)} — ` : ''}GCC Regulatory Compliance Report</div>
     </div>
     <div class="meta">
       <div>Generated: ${new Date().toLocaleString('en-GB')}</div>
+      ${orgName ? `<div>Organisation: ${esc(orgName)}</div>` : ''}
       <div>Frameworks: ${selectedFrameworks.join(', ')}</div>
       <div>Domains analysed: ${harmonisationResults.length}</div>
     </div>

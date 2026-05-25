@@ -1,8 +1,11 @@
 import { useState } from 'react';
 
-export default function ExportPanel({ harmonisationResults, roadmap, selectedFrameworks, frameworkWeights }) {
+export default function ExportPanel({ harmonisationResults, roadmap, selectedFrameworks, frameworkWeights, orgName }) {
   const [exportingExcel, setExportingExcel] = useState(false);
   const [exportingPDF,   setExportingPDF]   = useState(false);
+
+  const today    = new Date().toISOString().slice(0, 10);
+  const slug     = orgName ? `-${orgName.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '')}` : '';
 
   async function exportExcel() {
     setExportingExcel(true);
@@ -10,13 +13,13 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
       const res  = await fetch('/api/export/excel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ harmonisationResults, selectedFrameworks, frameworkWeights })
+        body: JSON.stringify({ harmonisationResults, selectedFrameworks, frameworkWeights, orgName })
       });
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href = url;
-      a.download = `harmonisation-matrix-${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.download = `harmonisation-matrix${slug}-${today}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) { alert(e.message); }
@@ -29,13 +32,13 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
       const res  = await fetch('/api/export/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ harmonisationResults, roadmap, selectedFrameworks })
+        body: JSON.stringify({ harmonisationResults, roadmap, selectedFrameworks, orgName })
       });
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href = url;
-      a.download = `harmonisation-report-${new Date().toISOString().slice(0,10)}.pdf`;
+      a.download = `harmonisation-report${slug}-${today}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) { alert(e.message); }

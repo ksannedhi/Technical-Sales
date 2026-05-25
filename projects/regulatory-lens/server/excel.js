@@ -14,10 +14,11 @@ const COVERAGE_LABELS = {
   'unknown':       '?'
 };
 
-export async function generateExcel(harmonisationResults, selectedFrameworks, frameworkWeights, taxonomy) {
+export async function generateExcel(harmonisationResults, selectedFrameworks, frameworkWeights, taxonomy, orgName = '') {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Cross-Framework Harmoniser';
-  wb.created = new Date();
+  wb.creator  = 'Cross-Framework Harmoniser';
+  wb.created  = new Date();
+  if (orgName) wb.title = `${orgName} — GCC Regulatory Harmonisation`;
 
   // ── Sheet 1: Coverage Matrix ──────────────────────────────────────────────
   const matrixSheet = wb.addWorksheet('Coverage Matrix');

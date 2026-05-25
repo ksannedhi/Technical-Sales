@@ -155,8 +155,8 @@ app.post('/api/roadmap', async (req, res) => {
 // ── Excel export ──────────────────────────────────────────────────────────────
 app.post('/api/export/excel', async (req, res) => {
   try {
-    const { harmonisationResults, selectedFrameworks, frameworkWeights } = req.body;
-    const buffer = await generateExcel(harmonisationResults, selectedFrameworks, frameworkWeights, taxonomy);
+    const { harmonisationResults, selectedFrameworks, frameworkWeights, orgName } = req.body;
+    const buffer = await generateExcel(harmonisationResults, selectedFrameworks, frameworkWeights, taxonomy, orgName);
     res.set({
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename="harmonisation-matrix-${new Date().toISOString().slice(0,10)}.xlsx"`
@@ -171,8 +171,8 @@ app.post('/api/export/excel', async (req, res) => {
 // ── PDF export ────────────────────────────────────────────────────────────────
 app.post('/api/export/pdf', async (req, res) => {
   try {
-    const { harmonisationResults, roadmap, selectedFrameworks } = req.body;
-    const pdf = await generatePDF(harmonisationResults, roadmap, selectedFrameworks, taxonomy);
+    const { harmonisationResults, roadmap, selectedFrameworks, orgName } = req.body;
+    const pdf = await generatePDF(harmonisationResults, roadmap, selectedFrameworks, taxonomy, orgName);
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="harmonisation-report-${new Date().toISOString().slice(0,10)}.pdf"`
