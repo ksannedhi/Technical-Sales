@@ -49,23 +49,29 @@ export default function App() {
   async function handleIntakeSubmit(profile) {
     setError(null);
     setIntakeProfile(profile);
-    try {
-      const res  = await fetch('/api/intake', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile)
-      });
-      const data = await res.json();
+    // Retry once on network error (handles transient ECONNRESET after server restart)
+    let data;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await fetch('/api/intake', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(profile)
+        });
+        data = await res.json();
+        break;
+      } catch (e) {
+        if (attempt === 0) { await new Promise(r => setTimeout(r, 600)); continue; }
+        setError('Could not retrieve framework recommendations. Check your API key and try again.');
+        return;
+      }
+    }
       setRecommendedFrameworks(data.recommendedFrameworks || []);
       const preSelected = (data.recommendedFrameworks || []).map(f => f.frameworkId);
       const preWeights  = {};
       (data.recommendedFrameworks || []).forEach(f => { preWeights[f.frameworkId] = f.weight; });
       setSelectedFrameworks(preSelected);
       setFrameworkWeights(preWeights);
-    } catch (e) {
-      setError('Could not retrieve framework recommendations. Check your API key and try again.');
-      return;
-    }
     setStep('frameworks');
   }
 
