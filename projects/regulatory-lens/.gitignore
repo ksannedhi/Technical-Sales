@@ -3,4 +3,5 @@ dist/
 .env
 *.pdf
 *.xlsx
+*.log
 uploads/

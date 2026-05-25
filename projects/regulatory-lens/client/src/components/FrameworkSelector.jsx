@@ -77,7 +77,7 @@ const ALL_FRAMEWORKS = [
 
 const WEIGHT_OPTS = ['mandatory', 'contractual', 'voluntary'];
 
-export default function FrameworkSelector({ recommended, initialSelected, initialWeights, onStart, onBack }) {
+export default function FrameworkSelector({ recommended, initialSelected, initialWeights, onStart, onBack, orgName }) {
   const [selected,       setSelected]       = useState(initialSelected || []);
   const [weights,        setWeights]        = useState(initialWeights  || {});
   const [customFWs,      setCustomFWs]      = useState([]);
@@ -169,7 +169,7 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
   return (
     <div className="card">
       <div className="step-label">Step 2 of 5 — Framework selection</div>
-      <h2 className="step-title">Select active frameworks</h2>
+      <h2 className="step-title">Select active frameworks{orgName ? ` for ${orgName}` : ''}</h2>
       <p className="step-sub">Recommended frameworks are pre-selected. Adjust as needed, then assign regulatory weight.</p>
 
       {lostCustomIds.length > 0 && (
@@ -258,11 +258,6 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
           a national framework we haven't pre-loaded? Upload the PDF and Claude will extract its
           controls and map them to the domain taxonomy automatically.
         </p>
-        <p style={{ fontSize: '11px', color: '#A07000', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '6px', padding: '7px 10px', marginBottom: '12px', lineHeight: 1.6 }}>
-          <strong>Already built in — do not re-upload:</strong> NCA-ECC, SAMA-CSF, CBK, ISO 27001, NIST CSF, UAE NIAF, PCI-DSS, IEC-62443, SOC 2, PDPL-UAE, PDPL-QAT, PDPL-KSA, QATAR-NIAS, Kuwait NBCC.
-          Uploading a duplicate will create a conflicting second column in the matrix.
-        </p>
-
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ flex: '1', minWidth: '180px' }}>
             <div className="field-label" style={{ marginBottom: '4px' }}>Framework name (optional)</div>
@@ -303,6 +298,11 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
         {uploadError && (
           <div style={{ fontSize: '12px', color: '#A32D2D', marginTop: '8px' }}>{uploadError}</div>
         )}
+
+        <p style={{ fontSize: '11px', color: '#A07000', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '6px', padding: '7px 10px', marginTop: '12px', marginBottom: '0', lineHeight: 1.6 }}>
+          <strong>Already built in — do not re-upload:</strong> NCA-ECC, SAMA-CSF, CBK, ISO 27001, NIST CSF, UAE NIAF, PCI-DSS, IEC-62443, SOC 2, PDPL-UAE, PDPL-QAT, PDPL-KSA, QATAR-NIAS, Kuwait NBCC.
+          Uploading a duplicate will create a conflicting second column in the matrix.
+        </p>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px' }}>

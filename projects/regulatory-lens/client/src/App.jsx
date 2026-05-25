@@ -158,12 +158,12 @@ export default function App() {
       {inHarmoniser && (
         <>
           {step === 'intake'      && <IntakeForm onSubmit={handleIntakeSubmit} initialProfile={intakeProfile} />}
-          {step === 'frameworks'  && <FrameworkSelector recommended={recommendedFrameworks} initialSelected={selectedFrameworks} initialWeights={frameworkWeights} onStart={handleStartHarmonisation} onBack={() => setStep('intake')} />}
+          {step === 'frameworks'  && <FrameworkSelector recommended={recommendedFrameworks} initialSelected={selectedFrameworks} initialWeights={frameworkWeights} onStart={handleStartHarmonisation} onBack={() => setStep('intake')} orgName={intakeProfile?.orgName} />}
           {step === 'harmonising' && <ProgressBar progress={progress} total={24} />}
 
           {step === 'matrix' && (
             <>
-              <CoverageMatrix results={harmonisationResults} selectedFrameworks={selectedFrameworks} />
+              <CoverageMatrix results={harmonisationResults} selectedFrameworks={selectedFrameworks} orgName={intakeProfile?.orgName} />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
                 <button className="btn" onClick={() => setStep('frameworks')}>← Back to frameworks</button>
                 <button className="btn btn-primary" onClick={() => setStep('posture')}>Rate your posture →</button>
@@ -179,7 +179,7 @@ export default function App() {
 
           {step === 'roadmap' && (
             <>
-              <Roadmap roadmap={roadmap} onBack={() => setStep('posture')} />
+              <Roadmap roadmap={roadmap} onBack={() => setStep('posture')} orgName={intakeProfile?.orgName} />
               <ExportPanel harmonisationResults={harmonisationResults} roadmap={roadmap} selectedFrameworks={selectedFrameworks} frameworkWeights={frameworkWeights} />
             </>
           )}

@@ -4,12 +4,34 @@ const GEOS     = ['Saudi Arabia','Kuwait','UAE','Qatar','Bahrain','Oman','Multip
 const SECTORS  = ['Banking & financial services','Oil & gas','Government','Healthcare','Telecoms','Retail / e-commerce','Technology / SaaS','Other'];
 const DATA     = ['Personal data of GCC residents','Payment card data','CNI operator (central bank, utility, telecoms, government)'];
 
+const SECTOR_SUGGESTIONS = {
+  'Banking & financial services': ['Personal data of GCC residents', 'Payment card data'],
+  'Oil & gas':                    ['CNI operator (central bank, utility, telecoms, government)'],
+  'Government':                   ['CNI operator (central bank, utility, telecoms, government)'],
+  'Healthcare':                   ['Personal data of GCC residents'],
+  'Telecoms':                     ['CNI operator (central bank, utility, telecoms, government)'],
+  'Retail / e-commerce':          ['Personal data of GCC residents', 'Payment card data'],
+  'Technology / SaaS':            [],
+  'Other':                        [],
+};
+
 export default function IntakeForm({ onSubmit, initialProfile }) {
+  const [orgName,  setOrgName]  = useState(initialProfile?.orgName            || '');
   const [geo,      setGeo]      = useState(initialProfile?.geography          || '');
   const [sector,   setSector]   = useState(initialProfile?.sector             || '');
   const [dataTypes,setDataTypes]= useState(initialProfile?.dataTypes          || []);
   const [listed,   setListed]   = useState(initialProfile?.stockExchangeListed || false);
   const [loading,  setLoading]  = useState(false);
+
+  function handleSectorChange(s) {
+    const prevSuggestions = SECTOR_SUGGESTIONS[sector] || [];
+    const newSuggestions  = SECTOR_SUGGESTIONS[s]      || [];
+    setSector(s);
+    setDataTypes(prev => {
+      const withoutPrev = prev.filter(d => !prevSuggestions.includes(d));
+      return [...new Set([...withoutPrev, ...newSuggestions])];
+    });
+  }
 
   function toggleData(d) {
     setDataTypes(prev => prev.includes(d) ? prev.filter(x=>x!==d) : [...prev, d]);
@@ -18,7 +40,7 @@ export default function IntakeForm({ onSubmit, initialProfile }) {
   async function handleSubmit() {
     if (!geo || !sector) return;
     setLoading(true);
-    await onSubmit({ geography: geo, sector, dataTypes, stockExchangeListed: listed });
+    await onSubmit({ orgName: orgName.trim(), geography: geo, sector, dataTypes, stockExchangeListed: listed });
     setLoading(false);
   }
 
@@ -27,6 +49,17 @@ export default function IntakeForm({ onSubmit, initialProfile }) {
       <div className="step-label">Step 1 of 5 — Organisation profile</div>
       <h2 className="step-title">Tell us about your organisation</h2>
       <p className="step-sub">We'll recommend the regulatory frameworks most applicable to your situation.</p>
+
+      <div className="field">
+        <label className="field-label">Organisation name <span style={{ fontWeight: 400, color: '#999' }}>(optional)</span></label>
+        <input
+          type="text"
+          placeholder="e.g. Acme Bank, Ministry of Health…"
+          value={orgName}
+          onChange={e => setOrgName(e.target.value)}
+          style={{ width: '100%', maxWidth: '380px' }}
+        />
+      </div>
 
       <div className="field">
         <label className="field-label">Primary geography</label>
@@ -38,7 +71,7 @@ export default function IntakeForm({ onSubmit, initialProfile }) {
       <div className="field">
         <label className="field-label">Primary sector</label>
         <div className="chip-row">
-          {SECTORS.map(s => <button key={s} className={`chip ${sector===s?'chip-active':''}`} onClick={()=>setSector(s)}>{s}</button>)}
+          {SECTORS.map(s => <button key={s} className={`chip ${sector===s?'chip-active':''}`} onClick={()=>handleSectorChange(s)}>{s}</button>)}
         </div>
       </div>
 

@@ -119,10 +119,15 @@ Single `.cmd` file — no PS1. Follows the same pattern as `threat-briefing`. Cl
 
 Do not weaken these — they are baked into `server/prompt.js`:
 
+### Geographic include/exclude rules
 - **NCA-ECC and SAMA-CSF**: Saudi-only. Explicitly omitted for UAE, Kuwait, Qatar, Bahrain, Oman.
 - **CBK**: Kuwait banking only. Not for Kuwait government, CNI, or non-financial sector.
 - **PDPL-UAE**: Omitted for UAE central bank / federal government entities (exempt under Federal Decree-Law No. 45/2021). Mandatory only for private-sector UAE orgs.
 - **PDPL-QAT**: Omitted for single-country non-Qatar orgs. Requires actual Qatar branch/presence.
 - **PCI-DSS**: Contractual (not mandatory) for central bank profiles even if payment card data is selected.
+
+### Weight adjustment rules (apply on top of geographic scoping)
 - **NIST-CSF**: Upgraded from voluntary to contractual for stock-exchange-listed entities.
-- **QATAR-NIAS**: Eligible for weight-tier upgrade on listing.
+- **SOC2**: Upgraded to contractual for stock-exchange-listed entities (investor and auditor due diligence), in addition to SaaS/technology companies serving international clients.
+- **All applicable governance frameworks** (NCA-ECC, SAMA-CSF, CBK, UAE-NIAF, QATAR-NIAS, KUWAIT-NBCC): upgraded one weight tier if they would otherwise be voluntary for a listed entity. In practice this rarely fires since these frameworks are already mandatory or contractual for their primary jurisdiction.
+- **PCI-DSS for central bank profiles**: OMIT entirely unless "Payment card data" was explicitly selected AND the organisation directly processes card data — then downgrade to contractual. Do NOT recommend as contractual by default for central bank profiles.

@@ -98,11 +98,23 @@ async function callClaude(system, userMessage, maxTokens = 1500, abortSignal = n
     const errText = await res.text();
 
     if (RETRYABLE_STATUSES.has(res.status) && attempt < MAX_RETRIES) {
+      // Bail immediately if client already disconnected — no point waiting
+      if (abortSignal?.aborted) throw new Error('Aborted by client');
+
       // 429: respect the TPM window — back off longer than other errors
       const base  = res.status === 429 ? RATE_LIMIT_MS : RETRY_BASE_MS;
       const delay = base * Math.pow(2, attempt - 1);
       console.warn(`[Claude] ${res.status} on attempt ${attempt}/${MAX_RETRIES} — retrying in ${Math.round(delay/1000)}s`);
-      await new Promise(r => setTimeout(r, delay));
+
+      // Abort-aware sleep: cancels immediately when client disconnects mid-wait
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(resolve, delay);
+        abortSignal?.addEventListener('abort', () => {
+          clearTimeout(timer);
+          reject(new Error('Aborted by client'));
+        }, { once: true });
+      });
+
       lastError = new Error(`Claude API ${res.status}: ${errText}`);
       continue;
     }

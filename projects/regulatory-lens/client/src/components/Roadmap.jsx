@@ -12,14 +12,14 @@ const EFFORT_STYLE = {
   'very-high':{ bg: '#FCEBEB', color: '#A32D2D' },
 };
 
-export default function Roadmap({ roadmap, onBack }) {
+export default function Roadmap({ roadmap, onBack, orgName }) {
   console.log('[Roadmap] mounted. roadmap:', roadmap);
   if (!roadmap) {
     console.warn('[Roadmap] component mounted with roadmap=null or undefined — check API response');
     return (
       <div className="card">
         <div className="step-label">Step 5 of 5 — Implementation roadmap</div>
-        <h2 className="step-title">Weighted implementation roadmap</h2>
+        <h2 className="step-title">Weighted implementation roadmap{orgName ? ` — ${orgName}` : ''}</h2>
         <div style={{ marginBottom: '12px' }}>
           <button className="btn" onClick={onBack}>← Back to posture</button>
         </div>
@@ -33,7 +33,7 @@ export default function Roadmap({ roadmap, onBack }) {
   return (
     <div className="card">
       <div className="step-label">Step 5 of 5 — Implementation roadmap</div>
-      <h2 className="step-title">Weighted implementation roadmap</h2>
+      <h2 className="step-title">Weighted implementation roadmap{orgName ? ` — ${orgName}` : ''}</h2>
 
       <div style={{ marginBottom: '12px' }}>
         <button className="btn" onClick={onBack}>← Back to posture</button>

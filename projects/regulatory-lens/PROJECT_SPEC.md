@@ -85,13 +85,16 @@ The domain taxonomy is pre-built and stored in `server/taxonomy.json` (v5.0). It
 
 The user provides:
 
+- **Organisation name** — optional free-text field; displayed in step headings throughout the workflow to personalise the session
 - **Geography** — primary country of operations (Saudi Arabia, UAE, Kuwait, Qatar, Bahrain, Oman, Other GCC)
 - **Sector** — banking & financial services, government, healthcare, telecoms, energy/oil & gas, retail, technology, other
-- **Stock exchange listed** — boolean flag; triggers SOC2 upgrade and governance framework weight bump
-- **Applicable characteristics** — multi-select from:
-  - Personal data of GCC residents
-  - Payment card data
-  - CNI operator (central bank, utility, telecoms, government)
+- **Stock exchange listed** — boolean flag; triggers NIST-CSF upgrade from voluntary to contractual, SOC2 upgrade to contractual (investor and auditor due diligence), and a one-tier weight upgrade for any applicable governance framework that would otherwise be voluntary
+- **Applicable characteristics** — multi-select from three options that are the only discriminating factors beyond geography and sector:
+  - Personal data of GCC residents — triggers PDPL-UAE, PDPL-QAT, PDPL-KSA applicability
+  - Payment card data — triggers PCI-DSS applicability
+  - CNI operator (central bank, utility, telecoms, government) — triggers IEC-62443 and national CNI framework obligations
+
+Selecting a sector automatically pre-selects the most likely applicable characteristics (e.g. Banking pre-selects Personal data and Payment card data; Oil & gas, Government, and Telecoms pre-select CNI operator; Healthcare pre-selects Personal data; Technology / SaaS and Other make no pre-selection (too heterogeneous to assume); Retail pre-selects Personal data and Payment card data). The user can deselect any auto-suggested characteristic. Previously selected characteristics are never removed by a sector change.
 
 ### 5.2 Framework Recommendation
 
@@ -104,19 +107,21 @@ The intake profile is sent to the Claude API with a detailed system prompt encod
 
 Key recommendation rules:
 
-- NCA-ECC is mandatory for Saudi entities; omitted entirely for UAE/Kuwait/Qatar/Bahrain/Oman
+- NCA-ECC is mandatory for Saudi entities; contractual for Multiple geography with stated Saudi operations; omitted entirely for UAE/Kuwait/Qatar/Bahrain/Oman
 - SAMA-CSF is mandatory for Saudi banking only — no jurisdiction outside Saudi Arabia
 - CBK is mandatory for Kuwait banking only — not for Kuwait government, CNI operators, or any non-financial sector
+- KUWAIT-NBCC is mandatory alongside CBK for Kuwait banking — Article 4 requires compliance with the stricter standard where they overlap; CBK does not displace KUWAIT-NBCC
 - QATAR-NIAS is mandatory for all Qatar entities under Amiri Decree No. 1 of 2021
 - KUWAIT-NBCC is mandatory for all Kuwait entities under NCSC mandate (Amiri Decree 37 of 2022); compliance deadline ~October 2027
-- PDPL-UAE weight is calibrated by geography — mandatory for UAE private sector entities; government entities exempt
-- PDPL-QAT weight is calibrated by geography — mandatory if primary geography is Qatar
+- PDPL-UAE weight is calibrated by geography — mandatory for UAE private sector entities; government entities, DIFC/ADGM entities, and UAE federal/central bank institutions are exempt
+- PDPL-QAT weight is calibrated by geography — mandatory if primary geography is Qatar; omitted for single-country non-Qatar organisations with no Qatar nexus
 - PDPL-KSA is extraterritorial — mandatory for any organisation processing Saudi residents' data regardless of where the org is based
 - Multi-PDPL applicability: PDPLs are triggered by data-subject location, not org headquarters
-- PCI-DSS is mandatory if payment card data is selected; downgraded to contractual for central bank profiles
-- IEC-62443 is contractual if OT/ICS systems are present
-- SOC2 is contractual for listed entities and SaaS companies serving international clients
-- NIST-CSF upgrades to contractual for stock-exchange-listed entities
+- PCI-DSS is mandatory if payment card data is selected; for central bank profiles it is omitted unless payment card data is explicitly selected, in which case it is downgraded to contractual
+- IEC-62443 is contractual for CNI operators with OT/ICS systems — triggered by the CNI operator characteristic selection (no separate OT/ICS intake field exists)
+- SOC2 is contractual for SaaS/technology companies serving international clients; also upgraded to contractual for stock-exchange-listed entities regardless of sector
+- NIST-CSF upgrades from voluntary to contractual for stock-exchange-listed entities
+- All applicable governance frameworks are upgraded one weight tier if they would otherwise be voluntary for a listed entity
 
 The user can adjust weights and toggle frameworks on the Framework Selector screen before running harmonisation.
 
@@ -221,7 +226,7 @@ Key components:
 
 | Component | Responsibility |
 |---|---|
-| `IntakeForm.jsx` | Organisation profile capture with CNI context box |
+| `IntakeForm.jsx` | Organisation profile capture — org name, geography, sector (with characteristic auto-suggestion), characteristics, stock exchange listing, CNI context box |
 | `FrameworkSelector.jsx` | Recommended frameworks with weight badges, manual toggle, custom PDF upload, extraction preview |
 | `ProgressBar.jsx` | Live domain-by-domain analysis progress |
 | `CoverageMatrix.jsx` | Colour-coded domain × framework grid with expandable detail |
@@ -248,7 +253,9 @@ Results are cached in a module-level `Map` in `harmonise.js` keyed by `domainId 
 
 ### 7.2 Concurrency Limiting
 
-A custom `runWithConcurrency(items, 2, fn)` function limits simultaneous Claude calls to 2 during harmonisation. This reduces burst pressure on the Anthropic standard tier (10,000 TPM). 429 responses are retried automatically with exponential backoff: 15s, 30s, 60s (up to 4 attempts total).
+A custom `runWithConcurrency(items, 2, fn)` function limits simultaneous Claude calls to 2 during harmonisation. This prevents sustained 429 rate-limit errors on the Anthropic standard tier (10,000 TPM). 429 responses are retried automatically with exponential backoff: 15s, 30s, 60s (up to 4 attempts total).
+
+Retry sleeps are abort-aware: if the client disconnects mid-wait (tab close, Back navigation, New analysis), the `AbortSignal` cancels the `setTimeout` immediately via an `abort` event listener rather than letting the full 15s–60s delay run to completion. This prevents orphaned retry loops from holding server resources after the client is gone.
 
 ### 7.3 Token Budget
 
@@ -274,7 +281,7 @@ Strategy 5 guards against future token-limit regressions without losing the user
 
 ## 8. Custom Framework Ingestion
 
-1. User uploads a PDF on the Framework Selector screen
+1. User uploads a PDF on the Framework Selector screen (optional name field + file picker above the upload button)
 2. Backend extracts raw text via pdf-parse
 3. Text (capped at 12,000 characters) is sent to Claude with the 24 domain list
 4. Claude returns a `domainControlMap` mapping each domain to extracted control IDs and text
@@ -282,7 +289,7 @@ Strategy 5 guards against future token-limit regressions without losing the user
 6. An extraction preview component on the Framework Selector screen shows which domains were covered before harmonisation runs
 7. Custom frameworks are lost on server restart (intentional for demo)
 
-Built-in framework names and aliases are blocked from re-upload via `isBuiltinFramework()` guard in `customFramework.js`.
+A warning listing all 14 built-in framework names is shown below the upload controls to prevent accidental re-upload of built-in frameworks. Built-in framework names and aliases are also blocked server-side via `isBuiltinFramework()` guard in `customFramework.js`.
 
 ## 9. Change Tracker
 
@@ -413,7 +420,9 @@ All harmonisation results, custom frameworks, and the roadmap are held in server
 
 The project currently includes:
 
-- working intake form with geography, sector, stock exchange listing, CNI characteristic detection, and geography-aware CNI tooltip
+- working intake form with optional organisation name (personalises all step headings), geography, sector, stock exchange listing, CNI characteristic detection, and geography-aware CNI tooltip
+- sector selection auto-suggests applicable characteristics (sector → characteristic mapping covers all 8 sectors; additive only — never removes user selections)
+- abort-aware retry sleeps in harmonise.js — client disconnect cancels in-flight 429 backoff waits immediately rather than after the full delay
 - clickable domain expansion in coverage matrix surfacing harmonised summary, implementation guidance, typical technologies, most demanding framework, and per-framework key requirements
 - inline error banners replacing alert() for intake, harmonisation, and roadmap failures
 - back navigation at every step (frameworks → matrix → posture → roadmap)

@@ -73,7 +73,7 @@ function DomainDetail({ domain, selectedFrameworks }) {
   );
 }
 
-export default function CoverageMatrix({ results, selectedFrameworks }) {
+export default function CoverageMatrix({ results, selectedFrameworks, orgName }) {
   const [expandedDomain, setExpandedDomain] = useState(null);
 
   function toggleDomain(domainId) {
@@ -83,7 +83,7 @@ export default function CoverageMatrix({ results, selectedFrameworks }) {
   return (
     <div className="card">
       <div className="step-label">Step 3 of 5 — Harmonisation results</div>
-      <h2 className="step-title" style={{ marginBottom: '4px' }}>Coverage matrix</h2>
+      <h2 className="step-title" style={{ marginBottom: '4px' }}>Coverage matrix{orgName ? ` — ${orgName}` : ''}</h2>
       <p className="step-sub" style={{ marginBottom: '16px' }}>
         How each control domain is addressed across your selected frameworks.{' '}
         <span style={{ color: '#0F766E', fontWeight: 500 }}>Click any row to see implementation guidance and key requirements.</span>
