@@ -68,15 +68,17 @@ CBK/SAMA/NCA-ECC cross-border rule: a UAE-headquartered bank is NOT subject to S
 
 PDPL-UAE (UAE Federal Decree-Law No. 45 of 2021):
   • mandatory — geography is UAE AND organisation is a private sector entity (commercial bank, telecoms operator, retailer, technology company, etc.)
-  • contractual — geography is another GCC country and organisation plausibly has UAE customers or a UAE branch (e.g. a pan-GCC retail bank or e-commerce platform selecting "Personal data of GCC residents")
+  • *** WEIGHT CAP: PDPL-UAE can NEVER be set to mandatory for a non-UAE-headquartered entity. Contractual is the maximum weight for any organisation whose primary geography is not UAE. ***
+  • contractual — geography is another GCC country (Saudi Arabia, Kuwait, Qatar, Bahrain, Oman, Multiple) AND organisation plausibly has UAE customers or a UAE branch (e.g. a pan-GCC retail bank or e-commerce platform selecting "Personal data of GCC residents")
   • OMIT — no plausible UAE nexus
   • OMIT — organisation identifies as a CNI operator that is a central bank institution (e.g. UAE Central Bank / CBUAE, Saudi Central Bank / SAMA as a regulator, Qatar Central Bank). Central bank institutions are federal/national government entities and are explicitly exempt from Federal Decree-Law No. 45/2021 under Article 3(1).
   • OMIT — UAE government entities, security/judicial authorities, DIFC/ADGM free zone companies with their own data protection regimes.
 
 PDPL-QAT (Qatar Law No. 13 of 2016):
   • mandatory — geography is Qatar
-  • contractual — geography is Multiple AND organisation explicitly operates in Qatar (e.g. a multinational telecoms operator, pan-GCC retail bank with Qatar branch)
-  • OMIT — geography is UAE, Saudi Arabia, Kuwait, Bahrain, or Oman without a stated Qatar branch or Qatar customer base. A UAE central bank, UAE government entity, or single-country operator has no Qatar data protection nexus.
+  • *** WEIGHT CAP: PDPL-QAT can NEVER be set to mandatory for a non-Qatar-headquartered entity. Contractual is the maximum weight for any organisation whose primary geography is not Qatar. ***
+  • contractual — geography is Multiple OR another GCC country AND organisation plausibly has Qatar customers or a Qatar branch (e.g. a pan-GCC retailer or e-commerce platform selecting "Personal data of GCC residents")
+  • OMIT — geography is a single non-Qatar country AND no plausible Qatar customer base (e.g. a purely domestic Saudi or Bahraini operator with no GCC-wide reach)
 
 PDPL-KSA (Saudi Personal Data Protection Law — Royal Decree M/19 of 2021, amended M/148 of 2023, effective 14 September 2023):
   • mandatory — ANY organisation anywhere that processes personal data of individuals residing in Saudi Arabia (Art.2 is explicitly extraterritorial — a Kuwaiti, UAE, or non-GCC company processing Saudi residents' data triggers PDPL-KSA even without any KSA presence)
@@ -87,7 +89,11 @@ PDPL-KSA (Saudi Personal Data Protection Law — Royal Decree M/19 of 2021, amen
   • Enforced by SDAIA (Saudi Data and AI Authority). Penalties are the harshest in the GCC — up to 2 years imprisonment and SAR 3M fine for Sensitive Data violations, doubled for recidivism. Transfer Regulation governs any data leaving KSA; highlight when profile indicates cloud processors outside KSA or cross-border data flow.
   • Coordination: IR-Art.23.2 formally bridges information-security technical controls to NCA-ECC where the Controller is subject to NCA controls — implementing NCA-ECC satisfies PDPL-KSA's information-security obligations by design.
 
-MULTI-PDPL APPLICABILITY RULE: PDPL applicability is determined by WHERE DATA SUBJECTS ARE LOCATED, not where the organisation is headquartered. A Saudi company processing data of UAE residents must include PDPL-UAE. A UAE company processing data of Saudi residents must include PDPL-KSA. A Kuwaiti bank serving customers across Saudi, UAE and Qatar may need ALL THREE PDPLs plus CBK plus KUWAIT-NBCC. Always check the dataTypes field for "Personal data of GCC residents" as a trigger for multi-PDPL inclusion. Do NOT set multiple PDPLs to "mandatory" based solely on GCC data selection — calibrate by geography and operating model.
+MULTI-PDPL APPLICABILITY RULE: PDPL applicability is determined by WHERE DATA SUBJECTS ARE LOCATED, not where the organisation is headquartered. A Saudi company processing data of UAE residents must include PDPL-UAE. A UAE company processing data of Saudi residents must include PDPL-KSA. A Kuwaiti retailer selecting "Personal data of GCC residents" may need all three PDPLs — but weight is capped by the organisation's home jurisdiction:
+  • PDPL-KSA: the ONLY PDPL that can be mandatory for a non-KSA entity (explicit extraterritorial scope in Art.2)
+  • PDPL-UAE: mandatory ONLY if geography = UAE; contractual for all other GCC geographies with UAE customer exposure
+  • PDPL-QAT: mandatory ONLY if geography = Qatar; contractual for all other GCC geographies with Qatar customer exposure
+  NEVER set PDPL-UAE or PDPL-QAT to mandatory for a Kuwait, Saudi, Bahrain, or Oman-headquartered entity — doing so misrepresents the legal obligation and will mislead the user.
 
 - For organisations handling payment cards: PCI-DSS is mandatory regardless of geography. Exception: if the organisation is a central bank institution (CNI operator, central bank), do NOT recommend PCI-DSS unless "Payment card data" was explicitly selected AND the organisation directly processes, stores, or transmits card data (rare for central banks). If selected for a central bank profile, flag as contractual with rationale noting it applies only to any subsidiary payment operations, not the central bank's core regulatory function.
 - For CNI operators with OT/ICS systems: IEC-62443 is contractual
