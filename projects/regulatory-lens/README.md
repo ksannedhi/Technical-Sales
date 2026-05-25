@@ -4,7 +4,7 @@ GCC cybersecurity compliance tool that maps an organisation profile to applicabl
 
 ## What It Does
 
-- Takes an organisation profile (geography, sector, data types, characteristics) and recommends applicable GCC regulatory frameworks with weight and rationale
+- Takes an organisation profile (name, geography, sector, applicable characteristics, stock exchange listing) and recommends applicable GCC regulatory frameworks with weight and rationale
 - Runs parallel Claude analysis across 24 control domains against up to 14 built-in frameworks simultaneously
 - Displays a unified coverage matrix showing Full / Partial / Not-addressed per domain per framework — click any row to expand implementation guidance, typical technologies, and per-framework key requirements
 - Captures current implementation posture (not implemented / partial / full) per domain before generating the roadmap
@@ -73,7 +73,7 @@ GET http://localhost:3004/api/health
 
 | Step | Screen | Description |
 |------|--------|-------------|
-| 1 | Intake Form | Enter organisation profile — geography, sector, employee count, data types, characteristics |
+| 1 | Intake Form | Enter organisation profile — name (optional), geography, sector, applicable characteristics (auto-suggested by sector), stock exchange listing |
 | 2 | Framework Selector | Review AI-recommended frameworks with weights; adjust manually; optionally upload a custom framework PDF |
 | 3 | Harmonisation | Parallel Claude analysis across 24 domains — live progress bar with per-domain status |
 | 4 | Coverage Matrix | Colour-coded matrix — Full (green) / Partial (amber) / Not-addressed (grey) per domain and framework. Click any row to expand harmonised summary, implementation guidance, typical technologies, and per-framework key requirements |
