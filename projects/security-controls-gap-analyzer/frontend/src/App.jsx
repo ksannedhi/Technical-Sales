@@ -94,16 +94,9 @@ function Table({ columns, rows, rowStyle }) {
 
 /** Per-domain summary: which tools are active, how many controls covered/partial/missing. */
 function DomainCoverageMatrix({ result }) {
-  // Tool names per domain — from current_state_diagram tool nodes.
-  // Domain-header node IDs are "cur-domain-{domain}".
-  // Tool node IDs are "cur-domain-{domain}-tool-{n}" — they contain "-tool-".
-  // Skip anything that is NOT a tool node.
-  const toolsByDomain = {};
-  for (const node of (result.current_state_diagram?.nodes || [])) {
-    if (!node.id.includes("-tool-")) continue;
-    if (!toolsByDomain[node.domain]) toolsByDomain[node.domain] = [];
-    toolsByDomain[node.domain].push(node.label);
-  }
+  // Tool names per domain — sourced directly from domain_tools (backend-computed from rows),
+  // not from diagram nodes which have an artificial cap and would silently drop tools.
+  const toolsByDomain = result.domain_tools || {};
 
   // Per-domain coverage counts from the gaps list
   const domainStats = {};

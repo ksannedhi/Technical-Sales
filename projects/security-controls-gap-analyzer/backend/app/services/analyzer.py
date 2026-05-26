@@ -638,6 +638,21 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
 
     roadmap = _build_roadmap(framework.value, gaps, redundancies)
 
+    # Build domain_tools directly from rows — not from diagram nodes,
+    # which have an artificial cap and would silently drop tools from the coverage matrix.
+    domain_tools: Dict[str, List[str]] = {}
+    for row in rows:
+        domain = (row.control_domain or "Unmapped").strip() or "Unmapped"
+        tool = (row.tool_name or "").strip()
+        if not tool:
+            continue
+        if domain not in domain_tools:
+            domain_tools[domain] = []
+        if tool not in domain_tools[domain]:
+            domain_tools[domain].append(tool)
+    for domain in domain_tools:
+        domain_tools[domain].sort(key=str.lower)
+
     current_diagram = _build_current_state_diagram(rows)
 
     target_nodes = [
@@ -668,6 +683,7 @@ def analyze_mappings(rows: List[ToolControlRow], framework: FrameworkChoice) -> 
         gaps=sorted(gaps, key=lambda g: (g.severity, g.control_id), reverse=True),
         redundancies=sorted(redundancies, key=lambda r: r.overlap_score, reverse=True),
         roadmap=roadmap,
+        domain_tools=domain_tools,
         current_state_diagram=current_diagram,
         target_state_diagram=Diagram(title="Target Tool-Control Map", nodes=target_nodes, edges=target_edges),
     )

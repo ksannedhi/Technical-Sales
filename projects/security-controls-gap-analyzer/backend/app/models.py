@@ -1,5 +1,5 @@
 ﻿from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -98,6 +98,7 @@ class AnalysisResponse(BaseModel):
     gaps: List[GapFinding]
     redundancies: List[RedundancyFinding]
     roadmap: List[RoadmapItem]
+    domain_tools: Dict[str, List[str]] = {}
     current_state_diagram: Diagram
     target_state_diagram: Diagram
 
