@@ -1,8 +1,6 @@
 # Security Controls Gap Analyzer
 
-GUI-first presales tool that ingests a security tools-controls mapping CSV and produces a
-framework-aligned gap analysis, redundancy audit, domain coverage summary, tool recommendations,
-and a dynamic phased roadmap — all without an AI API or internet connection.
+GUI-first presales tool that ingests a security tools-controls mapping CSV and produces a framework-aligned gap analysis, redundancy audit, domain coverage summary, tool recommendations, and a dynamic phased roadmap — all without an AI API or internet connection.
 
 ## What it produces
 
@@ -27,8 +25,7 @@ cd security-controls-gap-analyzer
 start.cmd
 ```
 
-`start.cmd` installs backend Python deps to `backend/.deps` (no venv needed), then opens
-backend and frontend in separate terminal windows.
+`start.cmd` installs backend Python deps to `backend/.deps` (no venv needed), then opens backend and frontend in separate terminal windows.
 
 - Frontend: http://localhost:5176
 - Backend API: http://127.0.0.1:8010
@@ -85,25 +82,17 @@ An in-app **How to Use** guide walks through each step end-to-end.
 
 ## Analysis logic
 
-Matching runs in two passes: vendor/product names are resolved to capability tokens via `ALIAS_TOKEN_MAP`
-(e.g. `"crowdstrike"` → `capability_endpoint`) before keyword matching, so product name variants
-resolve consistently. Each framework control is then scored against the enriched text.
+Matching runs in two passes: vendor/product names are resolved to capability tokens via `ALIAS_TOKEN_MAP` (e.g. `"crowdstrike"` → `capability_endpoint`) before keyword matching, so product name variants resolve consistently. Each framework control is then scored against the enriched text.
 
 **Coverage:** `covered` = 2+ rows match · `partial` = 1 row · `missing` = 0
 
-**Redundancy:** tools mapped to the same control objective are grouped; capability-bucket filtering
-prevents cross-function tools (e.g. a WAF and a DLP both matching NIST-PR.DS) from being flagged as
-redundant with each other. Savings estimate = `(overlapping tools − 1) × avg annual tool cost × 20%`.
+**Redundancy:** tools mapped to the same control objective are grouped; capability-bucket filtering prevents cross-function tools (e.g. a WAF and a DLP both matching NIST-PR.DS) from being flagged as redundant with each other. Savings estimate = `(overlapping tools − 1) × avg annual tool cost × 20%`.
 
-**Roadmap:** phases derived from actual findings — Phase 1 closes missing controls or targets core
-partial domains (Identity, SOC, Endpoint, Network); Phase 2 addresses specialty domains or deepens
-integrations; Phase 3 consolidates likely-redundant tools with the real savings figure.
+**Roadmap:** phases derived from actual findings — Phase 1 closes missing controls or targets core partial domains (Identity, SOC, Endpoint, Network); Phase 2 addresses specialty domains or deepens integrations; Phase 3 consolidates likely-redundant tools with the real savings figure.
 
 ## Notes
 
 - Fully deterministic and offline — no external API calls
 - Matching confidence improves when `vendor`, `product`, and `current_control_id` columns are populated
-- Domain Coverage shows *"No controls in this mode"* for domains with no dedicated control in the
-  selected framework (e.g. AppSec tools in NIST-only mode)
-- Results are persisted to SQLite when a project name is provided; timestamps display in the
-  browser's local timezone; project IDs reset to 1 after all projects are deleted
+- Domain Coverage shows *"No controls in this mode"* for domains with no dedicated control in the selected framework (e.g. AppSec tools in NIST-only mode)
+- Results are persisted to SQLite when a project name is provided; timestamps display in the browser's local timezone; project IDs reset to 1 after all projects are deleted

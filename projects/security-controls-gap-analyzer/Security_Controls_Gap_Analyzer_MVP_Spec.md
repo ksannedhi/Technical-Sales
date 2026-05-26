@@ -7,8 +7,7 @@ Date: 2026-04-24
 
 ## 1. Executive Summary
 
-Security Controls Gap Analyzer is a GUI-based presales tool that analyses an organisation's
-security tool inventory against NIST CSF 2.0 and CIS Controls v8.1, producing:
+Security Controls Gap Analyzer is a GUI-based presales tool that analyses an organisation's security tool inventory against NIST CSF 2.0 and CIS Controls v8.1, producing:
 
 - Domain Coverage at a Glance (per-domain tool mapping and control status)
 - Control gap analysis with severity ratings and vendor recommendations
@@ -82,24 +81,18 @@ Presales architects need a structured, repeatable way to:
 ## 5. Functional Requirements
 
 1. Accept CSV upload with required schema; reject with descriptive error on missing columns
-2. Provide a collapsible **How to Use** panel at the top of the page covering the full 6-step
-   workflow: template download, inventory fill, CSV export, framework selection, analysis run,
-   and result review; panel is excluded from the print/PDF view via `.no-print` class
-3. Provide a `Download Sample Template` action in the GUI (Excel workbook with Instructions,
-   Discovery Questions, Tool Objectives Library, and Tool Inventory sheets)
+2. Provide a collapsible **How to Use** panel at the top of the page covering the full 6-step workflow: template download, inventory fill, CSV export, framework selection, analysis run, and result review; panel is excluded from the print/PDF view via `.no-print` class
+3. Provide a `Download Sample Template` action in the GUI (Excel workbook with Instructions, Discovery Questions, Tool Objectives Library, and Tool Inventory sheets)
 4. Analyse against selected framework mode (`NIST`, `CIS`, or `BOTH`)
 5. Produce control gap findings with severity, status, rationale, and vendor recommendations
-6. Produce redundancy findings with capability-filtered grouping, deduplication, classification,
-   savings estimate, and contributing framework label
-7. Render Domain Coverage at a Glance: per-domain tool names, coverage breakdown, status badge;
-   show "No controls in this mode" for domains not represented in the selected framework
+6. Produce redundancy findings with capability-filtered grouping, deduplication, classification, savings estimate, and contributing framework label
+7. Render Domain Coverage at a Glance: per-domain tool names, coverage breakdown, status badge; show "No controls in this mode" for domains not represented in the selected framework
 8. Generate auto-prose Executive Summary with copy-to-clipboard
 9. Generate dynamic phased roadmap from the actual gaps and redundancies found
 10. Show summary banner with: tools mapped, fully covered, partial, gaps, redundancies, est. savings
 11. Provide Print / Save as PDF (browser print limited to result sections)
 12. Export last analysis to JSON (includes narrative) and CSV
-13. Persist results to SQLite when `project_name` provided; display timestamps in local timezone;
-    reset the auto-increment ID counter when all projects are deleted so the next project starts at 1
+13. Persist results to SQLite when `project_name` provided; display timestamps in local timezone; reset the auto-increment ID counter when all projects are deleted so the next project starts at 1
 14. List, load, and delete historical projects; highlight currently loaded project in the table
 
 ---
@@ -170,11 +163,7 @@ No Vite proxy — the frontend calls `http://127.0.0.1:8010` directly; FastAPI C
 ## 10. Analysis Logic
 
 ### Alias-token enrichment
-Before keyword matching, each row's concatenated text is scanned against `ALIAS_TOKEN_MAP`
-(18 vendor/product aliases per capability bucket). Matched tokens (`capability_identity`,
-`capability_endpoint`, `capability_cloud`, etc.) are appended to the normalised text, so
-"CrowdStrike Falcon" and "Falcon EDR" both resolve to `capability_endpoint` and match
-endpoint controls identically.
+Before keyword matching, each row's concatenated text is scanned against `ALIAS_TOKEN_MAP` (18 vendor/product aliases per capability bucket). Matched tokens (`capability_identity`, `capability_endpoint`, `capability_cloud`, etc.) are appended to the normalised text, so "CrowdStrike Falcon" and "Falcon EDR" both resolve to `capability_endpoint` and match endpoint controls identically.
 
 ### Coverage classification (per control)
 | Match count | Status | Severity |
@@ -185,34 +174,24 @@ endpoint controls identically.
 
 ### Redundancy analysis
 1. Group matched rows by `(domain, control_name)`
-2. Filter each group to tools whose capability bucket aligns with the domain's expected bucket
-   (`_DOMAIN_EXPECTED_CAPS`) — prevents WAF tools (capability_appsec) from being grouped as
-   redundant with DLP tools (capability_data) even though both match NIST-PR.DS
+2. Filter each group to tools whose capability bucket aligns with the domain's expected bucket (`_DOMAIN_EXPECTED_CAPS`) — prevents WAF tools (capability_appsec) from being grouped as redundant with DLP tools (capability_data) even though both match NIST-PR.DS
 3. Require 2+ unique tool names after filtering to qualify as a redundancy
-4. Deduplicate by `(frozenset(tools), domain)` — prevents the same tool pair appearing twice
-   in `BOTH` mode when it satisfies one NIST and one CIS control in the same domain
+4. Deduplicate by `(frozenset(tools), domain)` — prevents the same tool pair appearing twice in `BOTH` mode when it satisfies one NIST and one CIS control in the same domain
 5. Classify: `likely_redundant` (3+ tools), `healthy_overlap` (2 tools)
 6. Savings = `(n_tools − 1) × avg_annual_cost × 0.20` (based on CSV cost data)
 7. `framework` field indicates which framework(s) identified the overlap
 
 ### Tool gap recommendations
-- Each framework control has a curated `_CONTROL_RECOMMENDATIONS` entry with 2–4 specific
-  vendor names and function labels (e.g. "CrowdStrike Falcon, SentinelOne (EDR) · Wiz, Orca (CSPM)")
+- Each framework control has a curated `_CONTROL_RECOMMENDATIONS` entry with 2–4 specific vendor names and function labels (e.g. "CrowdStrike Falcon, SentinelOne (EDR) · Wiz, Orca (CSPM)")
 - Populated on `GapFinding` for `missing` and `partial` controls only
 - Shown in the Control Gaps table: prefix "Consider:" for missing, "Strengthen:" for partial
 
 ### Dynamic roadmap generation (`_build_roadmap`)
 Phase content is derived from the actual `gaps` and `redundancies` lists:
 
-- **Phase 1 (0–3 months)**: If missing controls exist → name the missing domains.
-  If no missing controls → prioritise second-layer coverage for core domains
-  (Identity, SOC, Endpoint, Network).
-- **Phase 2 (3–6 months)**: If missing controls were addressed in Phase 1 → clean up partial
-  controls. If no missing controls → extend coverage to specialty domains
-  (AppSec, Cloud, Data) and deepen tool integrations.
-- **Phase 3 (6–12 months)**: If `likely_redundant` groups exist → consolidate with real savings
-  figure. If only `healthy_overlap` → review for selective consolidation. Otherwise → governance
-  and continuous monitoring.
+- **Phase 1 (0–3 months)**: If missing controls exist → name the missing domains. If no missing controls → prioritise second-layer coverage for core domains (Identity, SOC, Endpoint, Network).
+- **Phase 2 (3–6 months)**: If missing controls were addressed in Phase 1 → clean up partial controls. If no missing controls → extend coverage to specialty domains (AppSec, Cloud, Data) and deepen tool integrations.
+- **Phase 3 (6–12 months)**: If `likely_redundant` groups exist → consolidate with real savings figure. If only `healthy_overlap` → review for selective consolidation. Otherwise → governance and continuous monitoring.
 
 ---
 
@@ -320,33 +299,25 @@ cd security-controls-gap-analyzer
 start.cmd
 ```
 
-`start.cmd` installs backend deps to `backend/.deps`, sets `PYTHONPATH`, and starts both
-services in separate terminal windows. No venv, no admin rights, no system-level installs.
+`start.cmd` installs backend deps to `backend/.deps`, sets `PYTHONPATH`, and starts both services in separate terminal windows. No venv, no admin rights, no system-level installs.
 
 ---
 
 ## 16. Known Constraints
 
-- Rule-based matching depends on alias dictionary coverage; uncommon product names may not
-  resolve unless `vendor`/`product` columns are populated
+- Rule-based matching depends on alias dictionary coverage; uncommon product names may not resolve unless `vendor`/`product` columns are populated
 - Local AV or firewall policies may block Node.js/esbuild subprocess spawning on first run
-- Savings estimates require `annual_cost_usd` to be populated in the CSV; without cost data
-  the savings column shows `—`
+- Savings estimates require `annual_cost_usd` to be populated in the CSV; without cost data the savings column shows `—`
 
 ---
 
 ## 17. Suggested Next Enhancements
 
-1. **Additional frameworks** — ISO 27001 Annex A, PCI DSS v4.0, NCA ECC (purely additive
-   `ControlDef` entries, no architectural change)
-2. **What-if scenario** — select a tool from a dropdown and instantly see which controls
-   lose coverage; requires `matched_tools` list on `GapFinding`
-3. **Coverage trend** — compare two saved projects side-by-side to show posture improvement
-   over time; `/api/projects/compare?ids=A,B` endpoint
-4. **Multi-file comparison** — upload current-state and proposed-state CSVs; show delta
-   in coverage, gaps closed, savings delta
-5. **Mapping dictionary editor** — GUI admin view for tuning alias tokens and control keywords
-   without editing Python source
+1. **Additional frameworks** — ISO 27001 Annex A, PCI DSS v4.0, NCA ECC (purely additive `ControlDef` entries, no architectural change)
+2. **What-if scenario** — select a tool from a dropdown and instantly see which controls lose coverage; requires `matched_tools` list on `GapFinding`
+3. **Coverage trend** — compare two saved projects side-by-side to show posture improvement over time; `/api/projects/compare?ids=A,B` endpoint
+4. **Multi-file comparison** — upload current-state and proposed-state CSVs; show delta in coverage, gaps closed, savings delta
+5. **Mapping dictionary editor** — GUI admin view for tuning alias tokens and control keywords without editing Python source
 
 ---
 
