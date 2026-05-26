@@ -40,9 +40,7 @@ curl http://localhost:8010/health
 
 ## Architecture
 
-A **security tools-to-controls mapping navigator** that ingests a CSV of security tools and
-maps them to NIST CSF 2.0 and CIS Controls v8.1 frameworks.  Analysis is deterministic
-(rule-based + alias enrichment) with SQLite persistence.
+A **security controls gap analyzer** that ingests a CSV of security tools and maps them to NIST CSF 2.0 and CIS Controls v8.1 frameworks. Analysis is deterministic (rule-based + alias enrichment) with SQLite persistence.
 
 ```
 frontend/src/App.jsx         React SPA — CSV upload, framework selector, results
@@ -59,12 +57,10 @@ backend/data/navigator.db    SQLite (auto-created, gitignored)
 
 ## Key design decisions
 
-- **Isolated Python deps via `--target`** — no venv; launcher installs packages to `backend/.deps`
-  and sets `PYTHONPATH`. Avoids conflicts with system Python.
+- **Isolated Python deps via `--target`** — no venv; launcher installs packages to `backend/.deps` and sets `PYTHONPATH`. Avoids conflicts with system Python.
 - **Deterministic analysis** — no API key required; fully offline.
 - **SQLite persistence** — projects and results survive server restarts.
-- **Deterministic mapping** — vendor/product aliases resolved before mapping so
-  `"CrowdStrike Falcon"` and `"Falcon EDR"` both map correctly.
+- **Deterministic mapping** — vendor/product aliases resolved before mapping so `"CrowdStrike Falcon"` and `"Falcon EDR"` both map correctly.
 
 ## Environment variables
 
@@ -79,8 +75,7 @@ backend/data/navigator.db    SQLite (auto-created, gitignored)
 | Backend (FastAPI/uvicorn) | `8010` |
 | Frontend (Vite) | `5176` |
 
-> The launcher (`start.cmd`) uses `--port 8010`. Do not change without also checking
-> that the frontend `API_BASE` constant in `frontend/src/App.jsx` stays in sync.
+> The launcher (`start.cmd`) uses `--port 8010`. Do not change without also checking that the frontend `API_BASE` constant in `frontend/src/App.jsx` stays in sync.
 
 ## API endpoints
 
