@@ -326,8 +326,7 @@ start.cmd
 - How to Use panel is collapsed by default; expands and collapses on click; hidden from print/PDF
 - Upload valid CSV → analysis returns without errors across all three framework modes
 - Framework selection changes the control set and roadmap content
-- Domain Coverage at a Glance shows tool names per domain; shows "No controls in this mode"
-  for domains absent from the selected framework
+- Domain Coverage at a Glance shows tool names per domain; shows "No controls in this mode" for domains absent from the selected framework
 - Control Gaps table shows vendor recommendations for missing and partial controls
 - Redundancy Opportunities shows no false cross-function groupings (capability filtering active)
 - BOTH mode shows no duplicate redundancy rows for the same tool pair
