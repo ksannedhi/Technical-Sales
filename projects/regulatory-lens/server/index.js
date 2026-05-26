@@ -14,6 +14,7 @@ import { analyseDocumentChange, analyseDescribedChange } from './changeTracker.j
 import { ingestCustomFramework, getCustomFrameworkSummaries, deleteCustomFramework, customFrameworkStore } from './customFramework.js';
 import { generateExcel }                        from './excel.js';
 import { generatePDF }                          from './pdf.js';
+import { parseClaudeJSON }                      from './utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app  = express();
@@ -27,22 +28,6 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 
 // Change Tracker upload — 5MB per file; framework documents rarely exceed this
 const uploadChangeTracker = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
-function parseClaudeJSON(text) {
-  let match = text.match(/<r>([\s\S]*?)<\/r>/);
-  if (match) return JSON.parse(match[1].trim());
-  match = text.match(/<result>([\s\S]*?)<\/result>/);
-  if (match) return JSON.parse(match[1].trim());
-  match = text.match(/```json\s*([\s\S]*?)```/);
-  if (match) return JSON.parse(match[1].trim());
-  const jsonStart = text.indexOf('{');
-  if (jsonStart !== -1) {
-    try { return JSON.parse(text.slice(jsonStart)); } catch { /* fall through */ }
-  }
-  // Log the actual response for debugging
-  const preview = text.length > 500 ? text.slice(0, 500) + '…[truncated]' : text;
-  console.error('[parseClaudeJSON] Failed to parse. Raw response:', preview);
-  throw new Error('No parseable JSON found in Claude response');
-}
 
 async function callClaude(system, userMessage, maxTokens = 1500, temperature = 1) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {

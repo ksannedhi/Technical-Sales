@@ -4,23 +4,10 @@ import {
   buildChangeTrackerPrompt,
   buildChangeTrackerDescriptionPrompt
 } from './prompt.js';
+import { parseClaudeJSON } from './utils.js';
 
 const CLAUDE_MODEL = 'claude-haiku-4-5';
 const API_URL = 'https://api.anthropic.com/v1/messages';
-
-function parseClaudeJSON(text) {
-  let match = text.match(/<r>([\s\S]*?)<\/r>/);
-  if (match) return JSON.parse(match[1].trim());
-  match = text.match(/<result>([\s\S]*?)<\/result>/);
-  if (match) return JSON.parse(match[1].trim());
-  match = text.match(/```json\s*([\s\S]*?)```/);
-  if (match) return JSON.parse(match[1].trim());
-  const jsonStart = text.indexOf('{');
-  if (jsonStart !== -1) {
-    try { return JSON.parse(text.slice(jsonStart)); } catch { /* fall through */ }
-  }
-  throw new Error('No parseable JSON found in Claude response');
-}
 
 async function callClaude(system, userMessage, maxTokens = 4000) {
   const res = await fetch(API_URL, {

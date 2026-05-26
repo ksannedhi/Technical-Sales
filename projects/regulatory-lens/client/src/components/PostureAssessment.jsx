@@ -4,6 +4,7 @@ const POSTURE_OPTS = [
   { value: 'full',           label: 'Fully implemented',    color: '#3B6D11' },
   { value: 'partial',        label: 'Partially implemented', color: '#BA7517' },
   { value: 'not-implemented',label: 'Not implemented',       color: '#E24B4A' },
+  { value: 'not-assessed',   label: 'Not assessed',          color: '#94A3B8' },
 ];
 
 export default function PostureAssessment({ results, onSubmit, onBack, initialPosture, onPostureChange }) {

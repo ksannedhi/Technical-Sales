@@ -3,18 +3,22 @@ import { useState } from 'react';
 export default function ExportPanel({ harmonisationResults, roadmap, selectedFrameworks, frameworkWeights, orgName }) {
   const [exportingExcel, setExportingExcel] = useState(false);
   const [exportingPDF,   setExportingPDF]   = useState(false);
+  const [excelError,     setExcelError]     = useState(null);
+  const [pdfError,       setPdfError]       = useState(null);
 
   const today    = new Date().toISOString().slice(0, 10);
   const slug     = orgName ? `-${orgName.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '')}` : '';
 
   async function exportExcel() {
     setExportingExcel(true);
+    setExcelError(null);
     try {
       const res  = await fetch('/api/export/excel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ harmonisationResults, selectedFrameworks, frameworkWeights, orgName })
       });
+      if (!res.ok) throw new Error(`Server error ${res.status} — please try again`);
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
@@ -22,18 +26,20 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
       a.download = `harmonisation-matrix${slug}-${today}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (e) { alert(e.message); }
+    } catch (e) { setExcelError(e.message); }
     setExportingExcel(false);
   }
 
   async function exportPDF() {
     setExportingPDF(true);
+    setPdfError(null);
     try {
       const res  = await fetch('/api/export/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ harmonisationResults, roadmap, selectedFrameworks, orgName })
       });
+      if (!res.ok) throw new Error(`Server error ${res.status} — please try again`);
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
@@ -41,9 +47,11 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
       a.download = `harmonisation-report${slug}-${today}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (e) { alert(e.message); }
+    } catch (e) { setPdfError(e.message); }
     setExportingPDF(false);
   }
+
+  const errorStyle = { fontSize: '11px', color: '#991B1B', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px', padding: '6px 10px', marginTop: '8px' };
 
   return (
     <div className="card">
@@ -72,6 +80,7 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
           <button className="btn" style={{ width: '100%' }} onClick={exportExcel} disabled={exportingExcel}>
             {exportingExcel ? 'Generating…' : 'Download Excel matrix'}
           </button>
+          {excelError && <div style={errorStyle}>⚠ {excelError}</div>}
         </div>
 
         {/* PDF card */}
@@ -84,8 +93,7 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
           <ul style={{ fontSize: '11px', color: '#475569', lineHeight: 1.8, paddingLeft: '14px', marginBottom: '14px' }}>
             <li><strong>Executive summary</strong>: overall posture narrative with critical and total gap counts</li>
             <li><strong>Coverage matrix</strong>: the full domain × framework grid</li>
-            <li><strong>Roadmap — immediate &amp; short-term</strong>: full detail per item (actions, quick wins, mandatory gaps, effort, score)</li>
-            <li><strong>Roadmap — medium-term &amp; planned</strong>: compact summary table</li>
+            <li><strong>Implementation roadmap</strong>: full detail for all domains — priority, effort, mandatory gaps, recommended actions, and quick wins</li>
           </ul>
           <p style={{ fontSize: '11px', color: '#94A3B8', marginBottom: '14px', fontStyle: 'italic' }}>
             Best for CISO briefings, board presentations, and sharing with stakeholders who don't need the raw data.
@@ -93,6 +101,7 @@ export default function ExportPanel({ harmonisationResults, roadmap, selectedFra
           <button className="btn btn-primary" style={{ width: '100%' }} onClick={exportPDF} disabled={exportingPDF}>
             {exportingPDF ? 'Generating…' : 'Download PDF report'}
           </button>
+          {pdfError && <div style={errorStyle}>⚠ {pdfError}</div>}
         </div>
 
       </div>

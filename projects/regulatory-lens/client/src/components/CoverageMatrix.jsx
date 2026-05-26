@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 
 const COV_STYLE = {
   'full':          { bg: '#E1F5EE', color: '#0F6E56', label: 'Full' },
@@ -108,9 +108,8 @@ export default function CoverageMatrix({ results, selectedFrameworks, orgName })
             {results.map(domain => {
               const isExpanded = expandedDomain === domain.domainId;
               return (
-                <>
+                <Fragment key={domain.domainId}>
                   <tr
-                    key={domain.domainId}
                     className="matrix-row"
                     onClick={() => toggleDomain(domain.domainId)}
                     style={{ cursor: 'pointer', background: isExpanded ? '#F0FDFA' : undefined, transition: 'background .15s' }}
@@ -144,7 +143,7 @@ export default function CoverageMatrix({ results, selectedFrameworks, orgName })
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
           </tbody>
