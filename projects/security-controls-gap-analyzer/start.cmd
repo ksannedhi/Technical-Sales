@@ -41,7 +41,7 @@ if not exist "%FRONTEND%\node_modules" (
 )
 
 echo [Launcher] Starting backend in new window...
-start "Navigator Backend" cmd /k "set PYTHONPATH=%BACKEND_DEPS%;%BACKEND%&& cd /d %BACKEND% && python -m uvicorn app.main:app --reload --port 8010"
+start "Navigator Backend" cmd /k "set PYTHONPATH=%BACKEND_DEPS%;%BACKEND%&& cd /d %BACKEND% && python -m uvicorn app.main:app --reload --port 8010 --no-access-log"
 
 timeout /t 2 >nul
 
