@@ -13,3 +13,4 @@ dist/
 tools_mapping_result.json
 tools_control_gap_summary.csv
 .claude/settings.local.json
+frontend/.env

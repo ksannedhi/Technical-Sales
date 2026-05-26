@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 
-const API_BASE = "http://127.0.0.1:8010";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8010";
 
 async function parseApiError(response) {
   let payload = null;
@@ -398,6 +398,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loadedProjectId, setLoadedProjectId] = useState(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   const loadSavedProjects = async () => {
     try {
@@ -483,12 +484,7 @@ export default function App() {
     }
   };
 
-  const deleteProject = async (id, name) => {
-    const confirmed = window.confirm(`Delete saved project "${name || id}"?`);
-    if (!confirmed) {
-      return;
-    }
-
+  const deleteProject = async (id) => {
     try {
       setError("");
       const response = await fetch(`${API_BASE}/projects/${id}`, {
@@ -502,9 +498,7 @@ export default function App() {
       setSavedProjects((current) => current.filter((project) => project.id !== id));
       setResult((current) => (current?.project_id === id ? null : current));
       setLoadedProjectId((cur) => (cur === id ? null : cur));
-      if (projectName === name) {
-        setProjectName("");
-      }
+      setPendingDeleteId(null);
     } catch (e) {
       setError(e.message);
     }
@@ -664,9 +658,20 @@ export default function App() {
                   >
                     {id === loadedProjectId ? "✓ Loaded" : "Load"}
                   </button>
-                  <button type="button" className="secondary danger" onClick={() => deleteProject(id, row.project_name)}>
-                    Delete
-                  </button>
+                  {pendingDeleteId === id ? (
+                    <>
+                      <button type="button" className="secondary danger" onClick={() => deleteProject(id)}>
+                        Confirm
+                      </button>
+                      <button type="button" className="secondary" onClick={() => setPendingDeleteId(null)}>
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button type="button" className="secondary danger" onClick={() => setPendingDeleteId(id)}>
+                      Delete
+                    </button>
+                  )}
                 </div>
               ),
             },
