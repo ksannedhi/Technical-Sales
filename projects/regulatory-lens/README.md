@@ -7,11 +7,33 @@ GCC cybersecurity compliance tool that maps an organisation profile to applicabl
 - Takes an organisation profile (name, geography, sector, applicable characteristics, stock exchange listing) and recommends applicable GCC regulatory frameworks with weight and rationale
 - Runs parallel Claude analysis across 24 control domains against up to 14 built-in frameworks simultaneously
 - Displays a unified coverage matrix showing Full / Partial / Not-addressed per domain per framework — click any row to expand implementation guidance, typical technologies, and per-framework key requirements
-- Captures current implementation posture (not implemented / partial / full) per domain before generating the roadmap
+- Captures current implementation posture (not-implemented / partial / full / not-assessed) per domain before generating the roadmap
 - Produces a prioritised implementation roadmap with weighted scores, recommended actions, and quick wins
-- Exports the full analysis to Excel (coverage matrix) and PDF (Puppeteer-rendered report)
+- Exports the full analysis to Excel (two-sheet matrix with coverage and key requirements per framework) and PDF (Puppeteer-rendered landscape report)
 - Includes a Change Tracker tab for assessing the impact of framework version updates on a current compliance posture
 - Supports custom framework ingestion via PDF upload — extracts control text and includes it in the next harmonisation run
+
+## GCC Regulatory Intelligence
+
+The control taxonomy (`server/taxonomy.json`) was built from actual GCC framework documents and encodes regulatory nuances that are easy to get wrong:
+
+**Multi-PDPL applicability** — three GCC privacy laws are mapped at article level across the Privacy & Rights Management domain:
+- PDPL-UAE (Federal Decree-Law No. 45/2021): 8 articles covering consent, portability, correction/erasure, restriction, and automated profiling
+- Qatar PDPL (Law No. 13/2016): 6 articles covering individual rights, consent, data minimisation, and direct marketing
+- PDPL-KSA (Royal Decree M/19/2021, amended M/148/2023): 19+ control requirements across articles 4–28 and implementation regulations — including 30-day response timelines for data access requests
+
+**Extraterritorial scope** — PDPL-KSA is triggered by data-subject location, not org headquarters. A UAE or Kuwait company processing Saudi residents' personal data falls under PDPL-KSA. The tool recommends PDPL-KSA alongside the home-jurisdiction framework automatically.
+
+**Kuwait privacy gap** — Kuwait has no standalone PDPL. The tool correctly routes Kuwait entities to applicable foreign PDPLs based on where their data subjects reside. KUWAIT-NBCC (a cybersecurity mandate, not a privacy law) carries no Privacy & Rights Management controls — intentional by design.
+
+**Framework type fidelity** — cybersecurity frameworks (KUWAIT-NBCC, QATAR-NIAS) have no privacy-rights-management controls mapped; PDPL frameworks carry no OT/ICS controls. The taxonomy does not cross-contaminate framework scopes.
+
+**Jurisdiction scoping rules** — 14 recommendation rules prevent cross-border hallucination: NCA-ECC and SAMA-CSF Saudi-only, CBK Kuwait banking only, PDPL-UAE exempt for UAE government/federal entities, PDPL-QAT omitted for non-Qatar orgs, PCI-DSS downgraded to contractual for central bank profiles.
+
+**Control reference fidelity** — the taxonomy was built from the actual framework texts, not summaries:
+- KUWAIT-NBCC control references (GOV-1–6, PR-1–6, DE-1, RS-1, RC-1/2, CLD-1–16) are correctly scoped to their domains; framework notes capture the ~October 2027 compliance deadline, annual self-assessment obligation (GOV-5), and NIST glossary fallback for undefined terms — all sourced from Decision 2/2026
+- PDPL-KSA references distinguish `Art.X` (Law), `IR-Art.X` (Implementing Regulation), and `TR-Art.X` (Transfer Regulation) — the three-instrument structure of the Saudi PDPL regime
+- QATAR-NIAS references follow the NIAP-NAT-DCLS classification structure used in V2.1
 
 ## Documentation
 
@@ -77,7 +99,7 @@ GET http://localhost:3004/api/health
 | 2 | Framework Selector | Review AI-recommended frameworks with weights; adjust manually; optionally upload a custom framework PDF |
 | 3 | Harmonisation | Parallel Claude analysis across 24 domains — live progress bar with per-domain status |
 | 4 | Coverage Matrix | Colour-coded matrix — Full (green) / Partial (amber) / Not-addressed (grey) per domain and framework. Click any row to expand harmonised summary, implementation guidance, typical technologies, and per-framework key requirements |
-| 5 | Posture Assessment | Rate current implementation status for all 24 domains before proceeding |
+| 5 | Posture Assessment | Rate current implementation status for all 24 domains before proceeding — options: fully implemented, partially implemented, not implemented, not assessed |
 | 6 | Roadmap | Weighted implementation roadmap with priority, gap analysis, recommended actions, and quick wins |
 | 7 | Export | Download Excel matrix or full PDF report |
 

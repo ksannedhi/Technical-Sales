@@ -194,8 +194,10 @@ Each roadmap item includes: rank, priority, weighted score, mandatory framework 
 
 ### 5.7 Export
 
-- **Excel**: coverage matrix with one row per domain and one column per framework, colour-coded cells
-- **PDF**: Puppeteer-rendered landscape A4 report including executive summary, coverage matrix, domain details, and implementation roadmap
+- **Excel**: two-sheet workbook
+  - *Sheet 1 — Coverage matrix*: one row per domain × one column per framework, colour-coded Full / Partial / Not-addressed cells, with effort column
+  - *Sheet 2 — Key requirements*: one row per domain/framework pair — weight, coverage level, key requirement text, and most-demanding-framework flag
+- **PDF**: Puppeteer-rendered landscape A4 report including executive summary, full coverage matrix table, per-domain harmonisation detail (summary, most demanding framework, implementation guidance), and full implementation roadmap with priority badges and recommended actions for all domains
 
 ## 6. Architecture
 
@@ -362,6 +364,36 @@ The Puppeteer PDF call returns a `Uint8Array` in Puppeteer v22+ — wrapped in `
 
 The taxonomy was built from actual framework documents. It must not be regenerated from scratch — only amended with targeted migration scripts.
 
+### 13.1 GCC-Specific Regulatory Depth
+
+The taxonomy encodes nuances that are frequently wrong in generic compliance tools:
+
+**KUWAIT-NBCC (Decision No. 2/2026)**
+- Control references use the official NCSC classification: GOV-1 through GOV-6, PR-1 through PR-6, DE-1, RS-1, RC-1/RC-2, CLD-1 through CLD-16 — each mapped to the correct domain
+- Framework `notes` field captures: the ~October 2027 compliance deadline (18 months from publication), the annual self-assessment obligation under GOV-5, and the NIST CSF 2.0 glossary as the fallback for undefined terms — all sourced from the actual Decision 2/2026 text
+- Privacy-rights-management domain is intentionally empty: KUWAIT-NBCC is a cybersecurity controls framework, not a data protection law. Kuwait has no standalone PDPL; privacy obligations for Kuwait entities follow from the PDPL of the relevant data subjects' home jurisdiction
+
+**PDPL-KSA (Royal Decree M/19/2021, amended M/148/2023)**
+- Article references distinguish the three instruments of the Saudi PDPL regime:
+  - `Art.X` — the Law itself (Royal Decree M/19)
+  - `IR-Art.X` — the Implementing Regulation
+  - `TR-Art.X` — the Transfer Regulation
+- Privacy-rights-management maps 19+ specific requirements including 30-day response timelines for data access requests, identity verification requirements, and restrictions on copying official documents
+
+**QATAR-NIAS (V2.1)**
+- Control references follow the official NIAP-NAT-DCLS hierarchical classification structure used in V2.1
+- Privacy-rights-management domain is intentionally empty: QATAR-NIAS is a national information assurance standard, not a data protection law. Qatar data protection obligations are covered by PDPL-QAT (Law No. 13/2016)
+
+**Multi-PDPL applicability**
+- PDPL-UAE, PDPL-QAT, and PDPL-KSA are triggered by data-subject location, not org headquarters
+- All three are mapped at article level across the Privacy & Rights Management domain with jurisdiction-correct controls
+- PDPL-KSA has extraterritorial reach: any organisation anywhere processing Saudi residents' personal data is in scope
+
+**Framework scope integrity**
+- Cybersecurity frameworks (KUWAIT-NBCC, QATAR-NIAS) carry no privacy-rights-management controls
+- PDPL frameworks carry no OT/ICS or payment-systems controls
+- The taxonomy does not infer or interpolate controls across framework types
+
 ## 14. Launcher
 
 `Launch Cross-Framework Harmoniser.cmd` is a single Windows `.cmd` file that:
@@ -434,14 +466,14 @@ The project currently includes:
 - multi-PDPL applicability logic: PDPL-KSA extraterritorial scope, data-subject-location trigger for multi-PDPL recommendations
 - parallel domain harmonisation via SSE stream with concurrency limiter (max 2) and 429 retry backoff
 - in-memory harmonisation cache with per-domain invalidation on framework selection change
-- posture assessment gate requiring all 24 domains to be rated before roadmap generation
+- posture assessment gate requiring all 24 domains to be rated before roadmap generation — four options: not-implemented, partial, full, not-assessed
 - posture selections persisted to parent state in real-time via `onPostureChange` callback, surviving Back navigation and component unmount/remount
 - weighted roadmap generation with mandatory/contractual/voluntary × posture priority matrix
 - gap type classification in roadmap: IMPLEMENTATION GAP / PARTIAL GAP / COMPLIANCE ALIGNMENT GAP — action language and priority differ per type
 - full-posture executive summary uses "compliance alignment gaps / map existing controls" language, never "critical gaps / implement"
 - `criticalGaps` counter excludes full-posture domains
-- Excel export via ExcelJS
-- PDF export via Puppeteer with HTML escaping and Buffer compatibility
+- Excel export via ExcelJS — two sheets: coverage matrix (all domains × frameworks, colour-coded, with effort) and key requirements (one row per domain/framework pair with weight, coverage, key requirement text)
+- PDF export via Puppeteer with HTML escaping and Buffer compatibility — landscape A4, full detail for all roadmap items
 - custom framework ingestion via PDF upload with extraction preview
 - Change Tracker for document comparison and description-based change analysis
 - built-in framework duplicate upload guard
