@@ -67,6 +67,7 @@ backend/data/navigator.db    SQLite (auto-created, gitignored)
 | Variable | Set by | Description |
 |----------|--------|-------------|
 | `PYTHONPATH` | `start.cmd` | Points to `backend/.deps` and `backend/` |
+| `VITE_API_URL` | `frontend/.env` | Backend base URL; defaults to `http://127.0.0.1:8010` if unset |
 
 ## Ports
 
@@ -75,7 +76,7 @@ backend/data/navigator.db    SQLite (auto-created, gitignored)
 | Backend (FastAPI/uvicorn) | `8010` |
 | Frontend (Vite) | `5176` |
 
-> The launcher (`start.cmd`) uses `--port 8010`. Do not change without also checking that the frontend `API_BASE` constant in `frontend/src/App.jsx` stays in sync.
+> The launcher (`start.cmd`) uses `--port 8010`. Do not change without also updating `VITE_API_URL` in `frontend/.env` (or the fallback in `App.jsx`).
 
 ## API endpoints
 
@@ -90,14 +91,16 @@ backend/data/navigator.db    SQLite (auto-created, gitignored)
 
 ## Key project files
 
-- `backend/app/main.py` — FastAPI app, CORS, route registration
-- `backend/app/models.py` — Pydantic models (`ToolControlRow`, `GapFinding`, `RedundancyFinding`, …)
-- `backend/app/services/analyzer.py` — ALIAS_TOKEN_MAP, CONTROL_LIBRARY, gap/redundancy/roadmap
+- `backend/app/main.py` — FastAPI app, CORS, route registration, 5 MB upload guard
+- `backend/app/models.py` — Pydantic models (`ToolControlRow`, `GapFinding`, `RedundancyFinding`, `AnalysisResponse` with `domain_tools`, …)
+- `backend/app/services/analyzer.py` — ALIAS_TOKEN_MAP, CONTROL_LIBRARY, gap/redundancy/roadmap, `domain_tools` population
 - `backend/app/services/csv_parser.py` — CSV schema validation
 - `backend/app/services/storage.py` — SQLite persistence
 - `backend/requirements.txt` — Python deps
 - `frontend/src/App.jsx` — full SPA
 - `frontend/src/styles/globals.css` — design tokens, print CSS
+- `frontend/.env.example` — copy to `.env` to set `VITE_API_URL`
+- `package.cmd` — builds a clean distributable zip
 
 ## Non-goals
 

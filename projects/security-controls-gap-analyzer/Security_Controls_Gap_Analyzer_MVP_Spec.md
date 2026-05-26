@@ -80,7 +80,7 @@ Presales architects need a structured, repeatable way to:
 
 ## 5. Functional Requirements
 
-1. Accept CSV upload with required schema; reject with descriptive error on missing columns
+1. Accept CSV upload with required schema; reject with descriptive error on missing columns; reject files exceeding 5 MB
 2. Provide a collapsible **How to Use** panel at the top of the page covering the full 6-step workflow: template download, inventory fill, CSV export, framework selection, analysis run, and result review; panel is excluded from the print/PDF view via `.no-print` class
 3. Provide a `Download Sample Template` action in the GUI (Excel workbook with Instructions, Discovery Questions, Tool Objectives Library, and Tool Inventory sheets)
 4. Analyse against selected framework mode (`NIST`, `CIS`, or `BOTH`)
@@ -243,6 +243,7 @@ overlap_score, classification, estimated_savings_usd
 project_id, framework_selected, rows_processed,
 controls_total, controls_covered, controls_partial, controls_missing,
 warnings, gaps, redundancies, roadmap,
+domain_tools,           ← dict[domain → sorted tool name list]; source for Domain Coverage matrix
 current_state_diagram, target_state_diagram
 ```
 
@@ -283,8 +284,10 @@ frontend/
   src/
     App.jsx               Full SPA: upload, analysis display, all result sections
     styles/globals.css    Design tokens, layout, print CSS (@media print)
+  .env.example            VITE_API_URL template (copy to .env to override backend address)
 
 start.cmd                 One-click launcher
+package.cmd               Builds a clean distributable zip excluding .deps/, navigator.db, node_modules/
 CLAUDE.md                 Developer guidance for Claude Code
 README.md                 This file
 Security_Controls_Gap_Analyzer_MVP_Spec.md     Full specification (this document)
