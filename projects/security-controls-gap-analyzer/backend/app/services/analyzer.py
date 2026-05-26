@@ -160,7 +160,7 @@ CONTROL_LIBRARY: List[ControlDef] = [
                _keywords("pr.aa", "identity", "sso", "mfa", "iam", "directory", "privileged", "pam",
                          "rbac", "least privilege", "capability_identity")),
     # PR.PS  (Protect – Platform Security)  covers endpoint and cloud workloads
-    ControlDef("NIST-PR.PS", "NIST", "Platform Security", "Endpoint",
+    ControlDef("NIST-PR.PS", "NIST", "Platform Security (Endpoint & Cloud Workloads)", "Endpoint",
                _keywords("pr.ps", "endpoint", "edr", "xdr", "antimalware", "workload", "patch",
                          "hardening", "configuration", "endpoint posture", "cloud posture",
                          "cloud security posture", "endpoint security posture", "benchmark",
@@ -376,7 +376,7 @@ def _build_current_state_diagram(rows: List[ToolControlRow]) -> Diagram:
                 )
             )
 
-    return Diagram(title="Current Tool-Control Map", nodes=nodes[:30], edges=edges[:40])
+    return Diagram(title="Current Tool-Control Map", nodes=nodes[:200], edges=edges[:250])
 
 
 def _coverage_status(match_count: int) -> Tuple[str, float, str]:
