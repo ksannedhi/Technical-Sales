@@ -123,6 +123,8 @@ async def analyze(
         raise HTTPException(status_code=400, detail="Only CSV files are supported in MVP.")
 
     raw = await mapping_file.read()
+    if len(raw) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum upload size is 5 MB.")
     try:
         rows = parse_tool_control_csv(raw)
         warnings = _apply_framework_alignment_defaults(rows, framework)
@@ -178,7 +180,7 @@ def export_result(format: Literal["json", "csv"] = "json"):
         return StreamingResponse(
             io.BytesIO(payload.encode("utf-8")),
             media_type="application/json",
-            headers={"Content-Disposition": "attachment; filename=tools_mapping_result.json"},
+            headers={"Content-Disposition": "attachment; filename=gap_analysis_result.json"},
         )
 
     output = io.StringIO()
@@ -198,5 +200,5 @@ def export_result(format: Literal["json", "csv"] = "json"):
     return StreamingResponse(
         io.BytesIO(output.getvalue().encode("utf-8")),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=tools_control_gap_summary.csv"},
+        headers={"Content-Disposition": "attachment; filename=gap_analysis_summary.csv"},
     )
