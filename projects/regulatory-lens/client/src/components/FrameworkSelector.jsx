@@ -87,8 +87,12 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
   const [uploadError,    setUploadError]    = useState(null);
   const [lostCustomIds,  setLostCustomIds]  = useState([]);
 
-  // On mount: fetch live custom framework list from server and detect any that were
-  // lost since the last session (e.g. server restart clears in-memory store).
+  // Run once on mount only — intentional empty deps array.
+  // Purpose: check whether any custom frameworks selected in a previous session are
+  // still alive in the server's in-memory store (cleared on restart). initialSelected
+  // is captured at mount time; if the user navigates Back and changes their selection,
+  // this effect does NOT re-run — that's correct, because the stale-framework check
+  // only needs to happen once when the Framework Selector first renders.
   useEffect(() => {
     const prevCustomIds = (initialSelected || []).filter(id => id.startsWith('CUSTOM-'));
     if (prevCustomIds.length === 0) return;

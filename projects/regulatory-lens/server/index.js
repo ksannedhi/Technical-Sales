@@ -22,7 +22,10 @@ const PORT = process.env.PORT || 3004;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
+// Custom framework upload — 20MB to accommodate large spec PDFs
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
+// Change Tracker upload — 5MB per file; framework documents rarely exceed this
+const uploadChangeTracker = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 function parseClaudeJSON(text) {
   let match = text.match(/<r>([\s\S]*?)<\/r>/);
@@ -185,7 +188,7 @@ app.post('/api/export/pdf', async (req, res) => {
 });
 
 // ── Change Tracker: document upload ──────────────────────────────────────────
-app.post('/api/change-tracker/documents', upload.fields([
+app.post('/api/change-tracker/documents', uploadChangeTracker.fields([
   { name: 'oldVersion', maxCount: 1 },
   { name: 'newVersion', maxCount: 1 }
 ]), async (req, res) => {
