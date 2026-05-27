@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code when working with code in this repository.
 
+## UI verification
+
+Use the Playwright CLI for screenshot checks — it writes no side-effect folders:
+
+```bash
+npx playwright screenshot http://localhost:5174 /tmp/verify.png
+```
+
+Use the Playwright MCP tools only when actual interaction is needed (clicking, form filling, multi-step flows).
+
 ## Commands
 
 **Start both together (preferred):**
