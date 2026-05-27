@@ -5,6 +5,7 @@ import type { ErrorRequestHandler } from "express";
 import { analyzeRoute } from "./routes/analyze.js";
 import { generateRoute } from "./routes/generate.js";
 import { followupRoute } from "./routes/followup.js";
+import { validateStaticPatterns } from "./services/architectureGenerator.js";
 
 const app = express();
 const port = Number(process.env.PORT || 8787);
@@ -28,4 +29,5 @@ app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Network and Cybersecurity Diagrammer backend listening on http://localhost:${port}`);
+  validateStaticPatterns();
 });

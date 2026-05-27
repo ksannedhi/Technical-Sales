@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import type { DiagramResponse } from "../../../shared/types/diagram.js";
-import { layoutArchitecture } from "../layout/layoutArchitecture.js";
+import { layoutArchitecture, LAYOUT_VERSION } from "../layout/layoutArchitecture.js";
 import { generateRequestSchema } from "../schemas/architectureSchema.js";
-import { generateArchitecture } from "../services/architectureGenerator.js";
+import { generateArchitecture, GENERATION_HASH } from "../services/architectureGenerator.js";
 import { createCacheKey, readCache, writeCache } from "../services/cache.js";
 import { getModelCacheIdentity } from "../services/anthropic.js";
 import { analyzePromptWithModel } from "../services/promptAnalysis.js";
@@ -30,7 +30,7 @@ export async function generateRoute(req: Request, res: Response) {
     }
 
     const key = createCacheKey({
-      type: "generate-v63",
+      type: `generate-${GENERATION_HASH}-${LAYOUT_VERSION}`,
       prompt: parsed.data.prompt,
       confirmedAssumptions: parsed.data.confirmedAssumptions,
       secureAlternative: parsed.data.secureAlternative,

@@ -7,7 +7,8 @@
     "dev": "tsx watch --env-file=../.env src/index.ts",
     "check": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json --noEmit",
-    "start": "tsx --env-file=../.env src/index.ts"
+    "start": "tsx --env-file=../.env src/index.ts",
+    "test": "tsx src/tests/patternClassification.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.94.0",

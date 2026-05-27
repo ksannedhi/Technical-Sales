@@ -1,12 +1,15 @@
 import type { ArchitectureModel, ArchitectureComponent, ArchitectureZone } from "../../../shared/types/architecture.js";
 import type { DiagramLayout, DiagramSeed } from "../../../shared/types/diagram.js";
 
+/** Increment whenever the layout algorithm changes, to auto-bust the diagram cache. */
+export const LAYOUT_VERSION = "L2";
+
 // ─── Layout constants ────────────────────────────────────────────────────────
 const CANVAS_PADDING = 80;
 const CANVAS_MIN_WIDTH = 1400;          // gives ≥ 1240px unified zone width
 const ZONE_GAP = 92;
 const ZONE_PADDING_X = 30;
-const ZONE_PADDING_Y = 28;
+const ZONE_PADDING_Y = 36;  // label height = TEXT_LINE_HEIGHT+4 = 26px; 36px gives 10px margin
 const MIN_COMPONENT_HEIGHT = 72;
 const COMPONENT_GAP_X = 42;
 const COMPONENT_GAP_Y = 28;
@@ -164,6 +167,10 @@ const preferredZoneOrders: Array<{
     match: (architecture) => architecture.title.includes("Segmentation and Inspection"),
     order: ["edge", "policy", "internal", "monitoring"],
   },
+  {
+    match: (architecture) => architecture.title.includes("Cloud-Hosted Email Security"),
+    order: ["internet", "cloud", "perimeter", "internal"],
+  },
 ];
 
 function zoneColor(zoneType: ArchitectureZone["type"]) {
@@ -300,6 +307,21 @@ const ZONE_TYPE_ORDER: Record<ArchitectureZone["type"], number> = {
 };
 
 function sortZones(architecture: ArchitectureModel) {
+  // ── Fast path: explicit order field set on zones ──────────────────────────
+  // Static patterns assign zone.order directly so sortZones never needs to
+  // match on architecture.title. This is the canonical path for all static
+  // patterns; the preferredZoneOrders table below is kept as a legacy fallback
+  // for any cached or Claude-generated architecture that lacks explicit order.
+  if (architecture.zones.some((z) => z.order !== undefined)) {
+    return [...architecture.zones].sort((a, b) => {
+      const ao = a.order ?? (ZONE_TYPE_ORDER[a.type] ?? 3) * 100;
+      const bo = b.order ?? (ZONE_TYPE_ORDER[b.type] ?? 3) * 100;
+      if (ao !== bo) return ao - bo;
+      return architecture.zones.indexOf(a) - architecture.zones.indexOf(b);
+    });
+  }
+
+  // ── Legacy path: title-based preferred orders ────────────────────────────
   const preferred = preferredZoneOrders.find((entry) => entry.match(architecture));
   if (preferred) {
     return [...architecture.zones].sort((a, b) => {
@@ -309,13 +331,16 @@ function sortZones(architecture: ArchitectureModel) {
     });
   }
 
-  // No preferred order — sort by zone type so external/DMZ always renders above internal.
+  // ── Fallback: sort by zone type ──────────────────────────────────────────
   return [...architecture.zones].sort((a, b) => {
     const ai = ZONE_TYPE_ORDER[a.type] ?? 3;
     const bi = ZONE_TYPE_ORDER[b.type] ?? 3;
     if (ai !== bi) return ai - bi;
+    // sortPriority tie-break: explicit field takes precedence over heuristics.
+    if ((a.sortPriority ?? 0) !== (b.sortPriority ?? 0)) return (a.sortPriority ?? 0) - (b.sortPriority ?? 0);
     // Monitoring zones always render last within their type group — prevents upward arrows
     // from application components when Claude generates monitoring as security-zone type.
+    // Label/id heuristic is the last resort for Claude-generated zones without sortPriority.
     const aIsMonitor = /monitor/i.test(a.id) || /monitor/i.test(a.label);
     const bIsMonitor = /monitor/i.test(b.id) || /monitor/i.test(b.label);
     if (aIsMonitor !== bIsMonitor) return aIsMonitor ? 1 : -1;
@@ -543,11 +568,24 @@ function arrowLabelPosition(
   index: number,
   labelText: string,
   crossZone = false,
+  destZoneTop?: number,
 ): { x: number; y: number } {
   const endPoint = points[points.length - 1] ?? [0, 0];
   const endX = startX + endPoint[0];
   const endY = startY + endPoint[1];
   const labelWidth = Math.min(labelText.length * 7, 140);
+
+  // Cross-zone downward: anchor label inside destination zone's top padding using
+  // exact zone geometry when available, otherwise fall back to component-relative math.
+  // Formula: zone top + title height is where components start; we sit just above the
+  // first component at zone_top + ZONE_PADDING_Y - TEXT_LINE_HEIGHT - 4.
+  // When destZoneTop is unknown, endY - TEXT_LINE_HEIGHT - 4 approximates the same spot.
+  const crossZoneDownLabel = (anchorX: number): { x: number; y: number } => {
+    const y = destZoneTop !== undefined
+      ? destZoneTop + ZONE_PADDING_Y - TEXT_LINE_HEIGHT - 4
+      : endY - TEXT_LINE_HEIGHT - 4;
+    return { x: anchorX + LABEL_CLEARANCE, y };
+  };
 
   if (points.length === 2) {
     const midX = startX + endPoint[0] / 2;
@@ -558,15 +596,10 @@ function arrowLabelPosition(
     }
     const arrowHeight = Math.abs(endPoint[1]);
     const targetTopY = startY + endPoint[1];
-    // Long straight vertical arrows spanning zones: anchor label in source
-    // zone's bottom padding (below component box, above zone border) so it
-    // never floats in the inter-zone gap and never overlaps the component.
+    // Long straight vertical arrows spanning zones — place label in destination zone.
     if (arrowHeight > 150) {
       if (crossZone && endY > startY) {
-        // Anchor just above destination component, inside destination zone's
-        // top padding (ZONE_PADDING_Y = 28px). Label height = TEXT_LINE_HEIGHT+4
-        // = 26px, leaving 2px margin at top — fully inside zone, no gap float.
-        return { x: endX + LABEL_CLEARANCE, y: endY - TEXT_LINE_HEIGHT - 4 };
+        return crossZoneDownLabel(endX);
       }
       const nearTopY = startY + 40;
       const clampedY = Math.min(nearTopY, targetTopY - TEXT_LINE_HEIGHT - 4);
@@ -581,14 +614,12 @@ function arrowLabelPosition(
   const midPoint = points[1] ?? [0, 0];
   const laneY = startY + midPoint[1];
   const midX = (startX + endX) / 2;
-  // For cross-zone downward bent-path arrows: anchor just above destination
-  // component inside destination zone top padding — same rule as straight case.
+  // Bent-path cross-zone downward arrow: same destination-zone anchoring rule.
   if (crossZone && endY > startY) {
-    return { x: endX + LABEL_CLEARANCE, y: endY - TEXT_LINE_HEIGHT - 4 };
+    return crossZoneDownLabel(endX);
   }
-  // For downward arrows (endY > startY) place the label BELOW the lane point so it sits
-  // in the middle of the inter-zone gap rather than touching the source zone's bottom border.
-  // For upward arrows keep it above the lane (further from the destination zone).
+  // For downward arrows place the label BELOW the lane point (in the inter-zone gap).
+  // For upward arrows keep it above the lane.
   return {
     x: midX - labelWidth / 2,
     y: laneY + (endY > startY ? LABEL_CLEARANCE + 2 : -LABEL_CLEARANCE - 2),
@@ -605,6 +636,8 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
   const connectionElements: DiagramSeed[] = [];
   const componentElements: DiagramSeed[] = [];
   const componentBoxes = new Map<string, Box>();
+  /** Top Y coordinate of each rendered zone — used for exact arrow-label placement. */
+  const zoneTopY = new Map<string, number>();
   const zoneOrder = sortZones(architecture);
   let currentY = CANVAS_PADDING;
   let maxWidth = 0;
@@ -690,6 +723,7 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
       const zoneWidth = zw;
       const zoneX = CANVAS_PADDING + groupIndex * (zoneWidth + ZONE_GAP);
       const zoneY = currentY;
+      zoneTopY.set(zone.id, zoneY);
       const zoneColors = zoneColor(zone.type);
 
       // Stretch the last zone to fill any rounding remainder
@@ -831,7 +865,8 @@ export function layoutArchitecture(architecture: ArchitectureModel): {
         labeledConnectionsPerSource.set(connection.from, sourceCount + 1);
       }
 
-      const { x: labelX, y: labelY } = arrowLabelPosition(startX, startY, points, index, labelText, crossZone);
+      const destZoneTop = toZone ? zoneTopY.get(toZone) : undefined;
+      const { x: labelX, y: labelY } = arrowLabelPosition(startX, startY, points, index, labelText, crossZone, destZoneTop);
       const labelWidth = Math.max(160, labelText.length * 12 + 24);
       const labelHeight = TEXT_LINE_HEIGHT + 4;
       // White backing rectangle — rendered before the text so zone backgrounds

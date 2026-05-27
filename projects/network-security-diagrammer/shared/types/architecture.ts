@@ -21,7 +21,9 @@ export interface ArchitectureZone {
   id: string;
   label: string;
   type: ZoneType;
-  row?: number; // zones sharing the same row value render side-by-side
+  row?: number;          // zones sharing the same row value render side-by-side
+  order?: number;        // explicit vertical sort position — overrides ZONE_TYPE_ORDER when set
+  sortPriority?: number; // tie-break within the same order/type bucket; higher = renders later (lower on canvas)
 }
 
 export interface ArchitectureComponent {

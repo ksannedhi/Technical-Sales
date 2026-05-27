@@ -28,6 +28,9 @@ export interface PatternMatch {
 
 const patternRules: Array<{
   pattern: ArchitecturePatternId;
+  /** Raw score threshold for 0.88 confidence. Defaults to 5. Lower for patterns whose
+   *  primary keyword is highly unambiguous (ddos, siem, ndr, waf, sase…). */
+  minScore?: number;
   test: (prompt: string) => boolean;
   score: (prompt: string) => number;
 }> = [
@@ -85,12 +88,14 @@ const patternRules: Array<{
   },
   {
     pattern: "sandbox-analysis",
+    minScore: 4,  // "sandbox" / "detonation" alone are unambiguous
     test: (prompt) =>
       /sandbox|detonation/i.test(prompt) ||
       (/ingest/i.test(prompt) && /(email|firewall|soar)/i.test(prompt)),
     score: (prompt) => {
       let score = 0;
-      if (/(sandbox|detonation)/i.test(prompt)) score += 4;
+      if (/sandbox/i.test(prompt)) score += 4;
+      if (/detonation/i.test(prompt)) score += 3;
       if (/ingest/i.test(prompt)) score += 2;
       if (/(email|firewall|soar)/i.test(prompt)) score += 2;
       return score;
@@ -98,6 +103,7 @@ const patternRules: Array<{
   },
   {
     pattern: "ddos-protection",
+    minScore: 4,  // "ddos" alone is unambiguous
     test: (prompt) => /ddos|scrubbing/i.test(prompt),
     score: (prompt) => (/ddos/i.test(prompt) ? 4 : 0) + (/scrubbing/i.test(prompt) ? 3 : 0),
   },
@@ -113,11 +119,14 @@ const patternRules: Array<{
       let score = 0;
       if (/email|mail/i.test(prompt)) score += 3;
       if (/(smtp|mx record|exchange)/i.test(prompt)) score += 3;
+      // "email security" as a phrase (or "secure email") is unambiguous — boost to 0.88 threshold
+      if (/email.{0,8}security|secure.{0,8}email/i.test(prompt)) score += 2;
       return score;
     },
   },
   {
     pattern: "waf-dmz",
+    minScore: 4,  // "waf" / "web application firewall" alone is unambiguous
     test: (prompt) => /waf|web application firewall/i.test(prompt),
     score: (prompt) => {
       let score = 0;
@@ -158,6 +167,7 @@ const patternRules: Array<{
   },
   {
     pattern: "ndr-visibility",
+    minScore: 4,  // "ndr" alone is unambiguous
     test: (prompt) => /ndr|east-west|server farm|dmz, core/i.test(prompt),
     score: (prompt) => {
       let score = 0;
@@ -169,6 +179,7 @@ const patternRules: Array<{
   },
   {
     pattern: "logging-siem",
+    minScore: 4,  // "siem" alone is unambiguous
     test: (prompt) => /siem|logging|centralized logging/i.test(prompt),
     score: (prompt) => (/siem/i.test(prompt) ? 4 : 0) + (/(logging|centralized logging)/i.test(prompt) ? 2 : 0),
   },
@@ -228,6 +239,7 @@ const patternRules: Array<{
   },
   {
     pattern: "cloud-workload",
+    minScore: 4,  // phrase "cloud workload" / "workload protection" is unambiguous
     test: (prompt) => /cloud workload|workload protection/i.test(prompt),
     score: (prompt) => (/cloud workload|workload protection/i.test(prompt) ? 4 : 0),
   },
@@ -271,9 +283,10 @@ export function classifyPromptPattern(prompt: string): PatternMatch {
     };
   }
 
+  const threshold = matched.rule.minScore ?? 5;
   return {
     pattern: matched.rule.pattern,
     modifiers,
-    confidence: matched.score >= 5 ? 0.88 : 0.82,
+    confidence: matched.score >= threshold ? 0.88 : 0.82,
   };
 }
