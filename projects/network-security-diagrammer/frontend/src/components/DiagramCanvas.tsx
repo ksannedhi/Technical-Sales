@@ -26,9 +26,16 @@ export function DiagramCanvas({ title, elements }: DiagramCanvasProps) {
         currentItemFontFamily: 1,
       },
     });
-    api.scrollToContent(excalidrawElements, {
-      fitToContent: true,
-    });
+
+    // Defer scrollToContent so Excalidraw finishes rendering the new elements
+    // before computing the bounding box. Calling it synchronously after
+    // updateScene fits to the previous (empty) state and leaves the diagram
+    // uncentred at 1:1 scale.
+    const timer = setTimeout(() => {
+      api.scrollToContent(excalidrawElements, { fitToContent: true });
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [api, excalidrawElements, title]);
 
   return (
