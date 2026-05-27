@@ -735,6 +735,8 @@ function isComplexOrSpecific(prompt: string): boolean {
   if (/\b(vpc|subnet|security group|ec2|eks|aks|gke|lambda|s3 bucket|rds|igw|nat gateway|transit gateway|vnet|resource group)\b/i.test(prompt)) return true;
   // IoT / NAS / trusted-LAN — specific topology static templates can't represent
   if (/\b(iot|nas)\b/i.test(prompt) || /\btrusted[\s-](lan|vlan|network)\b/i.test(prompt)) return true;
+  // Routing protocols and ISP peering — require protocol-accurate components
+  if (/\b(bgp|ospf|eigrp|rip|mpls|isis|bfd|as\s*\d+|autonomous system|isp peering|peering|route reflector|prefix list|route map|ebgp|ibgp)\b/i.test(prompt)) return true;
   // Multi-site scale (HQ + multiple branches / data-centers)
   if (
     /\b(hq|headquarters)\b.*\b(branch|data.?center|dc|office)\b|\b(branch|data.?center|dc|office)\b.*\b(hq|headquarters)\b/i.test(prompt) &&
