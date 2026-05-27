@@ -13,15 +13,6 @@ GCC cybersecurity compliance tool that maps an organisation profile to applicabl
 - Includes a Change Tracker tab for assessing the impact of framework version updates on a current compliance posture
 - Supports custom framework ingestion via PDF upload — extracts control text and includes it in the next harmonisation run
 
-## Screenshots
-
-| | |
-|---|---|
-| ![Intake form — organisation profile](screenshots/Screenshot%202026-05-25%20184737.png) | ![Framework selection — AI-recommended with rationale and weight](screenshots/Screenshot%202026-05-25%20185933.png) |
-| ![Coverage matrix — 24 domains × 7 frameworks](screenshots/Screenshot%202026-05-25%20190306.png) | ![Posture self-assessment — rate all 24 domains](screenshots/Screenshot%202026-05-25%20190730.png) |
-| ![Implementation roadmap — weighted priority with quick wins](screenshots/Screenshot%202026-05-25%20190957.png) | ![Export panel — Excel matrix and PDF report](screenshots/Screenshot%202026-05-25%20191022.png) |
-| ![Change tracker — describe or upload a framework update](screenshots/Screenshot%202026-05-25%20194230.png) | ![Framework cards — PDPL-KSA and KUWAIT-NBCC with custom upload](screenshots/Screenshot%202026-05-25%20203820.png) |
-
 ## GCC Regulatory Intelligence
 
 The control taxonomy (`server/taxonomy.json`) was built from actual GCC framework documents and encodes regulatory nuances that are easy to get wrong:
