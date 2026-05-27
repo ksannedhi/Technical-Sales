@@ -73,9 +73,9 @@ PORT=8787
 
 Notes:
 
-- without `ANTHROPIC_API_KEY`, the app falls back to local pattern analysis and local follow-up edit handling
-- with `ANTHROPIC_API_KEY`, Claude Haiku handles prompt analysis and Claude Sonnet handles diagram generation and follow-up editing
-- the architecture model and diagram layout remain deterministic and local — Excalidraw is the canvas only
+- **without `ANTHROPIC_API_KEY`**, the app runs fully offline using 16+ built-in security and network patterns. For well-known prompt families (zero trust, WAF in DMZ, SIEM, DDoS, email security, and more), output quality is identical to the API-key path — the same zone structure, layout engine, and architectural guardrails apply
+- **with `ANTHROPIC_API_KEY`**, Claude extends coverage to prompts that don't match a known pattern, vendor-specific architectures (AWS, Azure, Exchange, etc.), and follow-up editing of existing diagrams
+- the architecture model and diagram layout are always computed locally — Excalidraw is the canvas only
 
 ## Current UX
 
