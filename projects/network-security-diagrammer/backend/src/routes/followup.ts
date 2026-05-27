@@ -7,6 +7,7 @@ import { enforceArchitecturalConstraints, applyFollowupInstruction } from "../se
 import { createCacheKey, readCache, writeCache } from "../services/cache.js";
 import { getModelCacheIdentity } from "../services/anthropic.js";
 import type { PromptAnalysis } from "../../../shared/types/analysis.js";
+import { normalizePrompt } from "../services/promptAnalysis.js";
 
 function buildFollowupAnalysis(parsed: Request["body"] & { analysis?: PromptAnalysis; architecture: DiagramResponse["architecture"] }) {
   if (parsed.analysis) {
@@ -32,7 +33,7 @@ export async function followupRoute(req: Request, res: Response) {
   const key = createCacheKey({
     type: "followup-v1",
     architecture: parsed.data.architecture,
-    instruction: parsed.data.instruction,
+    instruction: normalizePrompt(parsed.data.instruction).toLowerCase(),
     model: getModelCacheIdentity(),
   });
 

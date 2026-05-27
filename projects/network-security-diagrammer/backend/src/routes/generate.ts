@@ -5,7 +5,7 @@ import { generateRequestSchema } from "../schemas/architectureSchema.js";
 import { generateArchitecture, GENERATION_HASH } from "../services/architectureGenerator.js";
 import { createCacheKey, readCache, writeCache } from "../services/cache.js";
 import { getModelCacheIdentity } from "../services/anthropic.js";
-import { analyzePromptWithModel } from "../services/promptAnalysis.js";
+import { analyzePromptWithModel, normalizePrompt } from "../services/promptAnalysis.js";
 
 export async function generateRoute(req: Request, res: Response) {
   const parsed = generateRequestSchema.safeParse(req.body);
@@ -18,7 +18,7 @@ export async function generateRoute(req: Request, res: Response) {
     // This avoids calling Haiku on every repeat request just to throw the result away.
     const key = createCacheKey({
       type: `generate-${GENERATION_HASH}-${LAYOUT_VERSION}`,
-      prompt: parsed.data.prompt,
+      prompt: normalizePrompt(parsed.data.prompt).toLowerCase(),
       confirmedAssumptions: parsed.data.confirmedAssumptions,
       secureAlternative: parsed.data.secureAlternative,
       model: getModelCacheIdentity(),

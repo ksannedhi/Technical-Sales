@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { promptRequestSchema } from "../schemas/analysisSchema.js";
 import { createCacheKey, readCache, writeCache } from "../services/cache.js";
 import { getModelCacheIdentity } from "../services/anthropic.js";
-import { analyzePromptWithModel } from "../services/promptAnalysis.js";
+import { analyzePromptWithModel, normalizePrompt } from "../services/promptAnalysis.js";
 
 export async function analyzeRoute(req: Request, res: Response) {
   const parsed = promptRequestSchema.safeParse(req.body);
@@ -12,7 +12,7 @@ export async function analyzeRoute(req: Request, res: Response) {
 
   const key = createCacheKey({
     type: "analysis-v5",
-    prompt: parsed.data.prompt,
+    prompt: normalizePrompt(parsed.data.prompt).toLowerCase(),
     model: getModelCacheIdentity(),
   });
   const cached = await readCache(key);
