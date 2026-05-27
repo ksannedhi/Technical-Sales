@@ -59,6 +59,7 @@ Notes:
 
 ## Current UX
 
+- quick-start chips on the homepage submit a sample prompt directly without typing
 - main prompt clears on submit
 - follow-up prompt clears on submit
 - prompt history remains visible

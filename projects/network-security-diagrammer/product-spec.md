@@ -139,6 +139,7 @@ The layout engine currently aims for:
 
 ## UX Rules
 
+- homepage loads to an empty state with quick-start example chips; chips submit directly without typing
 - main prompt clears on submit
 - follow-up prompt clears on submit
 - prompt history remains visible
