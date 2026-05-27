@@ -27,6 +27,17 @@ const FOLLOWUP_SYSTEM_PROMPT_LINES = [
   "- Internal/application zones stay in the middle. Monitoring and operations zones stay at the bottom.",
   "- Set the 'order' field on every zone: renumber all zones sequentially (0, 1, 2, …) after any insertion so order matches array position.",
   "- Never append an entry-point zone at the end of the array — that places users below the data tier, which is architecturally wrong.",
+  "",
+  "COMPONENT TYPE ENUM — use exactly these values, nothing else:",
+  "  user | network | security-control | identity | application | data | monitoring | integration",
+  "- 'client', 'external', 'endpoint', 'device' → use 'user'",
+  "- 'server', 'vm', 'workload' → use 'application'",
+  "- 'database', 'storage', 'bucket' → use 'data'",
+  "- 'firewall', 'ids', 'ips', 'waf', 'proxy' → use 'security-control'",
+  "- 'router', 'switch', 'gateway', 'load-balancer' → use 'network'",
+  "- 'idp', 'iam', 'sso', 'mfa' → use 'identity'",
+  "- 'siem', 'log', 'telemetry', 'soc' → use 'monitoring'",
+  "- 'api', 'connector', 'webhook' → use 'integration'",
 ];
 
 // Auto-invalidates followup cache whenever the system prompt above changes.
@@ -34,6 +45,34 @@ export const FOLLOWUP_HASH = createHash("sha256")
   .update(FOLLOWUP_SYSTEM_PROMPT_LINES.join("\n"))
   .digest("hex")
   .slice(0, 8);
+
+const COMPONENT_TYPE_MAP: Record<string, string> = {
+  client: "user", external: "user", endpoint: "user", device: "user",
+  server: "application", vm: "application", workload: "application",
+  database: "data", storage: "data", bucket: "data",
+  firewall: "security-control", ids: "security-control", ips: "security-control",
+  waf: "security-control", proxy: "security-control",
+  router: "network", switch: "network", gateway: "network", "load-balancer": "network",
+  idp: "identity", iam: "identity", sso: "identity", mfa: "identity",
+  siem: "monitoring", log: "monitoring", telemetry: "monitoring", soc: "monitoring",
+  api: "integration", connector: "integration", webhook: "integration",
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function coerceComponentTypes(raw: any): any {
+  if (!raw?.components || !Array.isArray(raw.components)) return raw;
+  return {
+    ...raw,
+    components: raw.components.map((c: any) => {
+      const mapped = COMPONENT_TYPE_MAP[c?.type];
+      if (mapped) {
+        console.error(`[followup] coercing component type "${c.type}" → "${mapped}" for "${c.label ?? c.id}"`);
+        return { ...c, type: mapped };
+      }
+      return c;
+    }),
+  };
+}
 
 function getSignature(architecture: ArchitectureModel) {
   return JSON.stringify({
@@ -89,7 +128,7 @@ export async function editArchitectureWithModel(
     const cleaned = content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
     let parsed: ReturnType<typeof refreshArchitectureText>;
     try {
-      parsed = refreshArchitectureText(architectureSchema.parse(JSON.parse(cleaned)));
+      parsed = refreshArchitectureText(architectureSchema.parse(coerceComponentTypes(JSON.parse(cleaned))));
     } catch (parseErr) {
       console.error("[followup] Claude response failed parse/validation:", parseErr instanceof Error ? parseErr.message : parseErr);
       console.error("[followup] raw response (first 600 chars):", cleaned.slice(0, 600));
