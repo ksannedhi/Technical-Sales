@@ -762,8 +762,13 @@ function shouldUseModelFallback(
   if (classification.confidence < 0.88 && analysis.confidence < 0.75) return true;
   // Prompt is too vendor-specific or complex for a static template to handle faithfully
   if (isComplexOrSpecific(prompt)) return true;
-  // Explicit topology chain with non-definitive match — static template ignores the chain order
+  // 3+ hop topology chain — user is specifying exact component order; always needs Claude
+  if ((prompt.match(/→/g) ?? []).length >= 3) return true;
+  // 2-hop chain with a non-definitive match — static template ignores the chain order
   if ((prompt.match(/→/g) ?? []).length >= 2 && classification.confidence < 0.88) return true;
+  // Prompt names specific components within a zone ("containing X and Y", "with X and Y")
+  // — static templates have no way to honour sub-zone component specs
+  if (/\b(containing|consisting of)\b.{0,60}\b(and|,)\b/i.test(prompt)) return true;
   return false;
 }
 
