@@ -66,18 +66,18 @@ Default local URLs:
 
 ```bash
 ANTHROPIC_API_KEY=your_key_here
-ANTHROPIC_ANALYZE_MODEL=claude-haiku-4-5-20251001
-ANTHROPIC_GENERATE_MODEL=claude-sonnet-4-6
 PORT=8787
 ```
 
+See `.env.example` for the full list of optional variables (model overrides, debug flags).
+
 Notes:
 
-- **without `ANTHROPIC_API_KEY`**, the app runs fully offline using 16+ built-in security and network patterns. For well-known prompt families (zero trust, WAF in DMZ, SIEM, DDoS, email security, and more), output quality is identical to the API-key path — the same zone structure, layout engine, and architectural guardrails apply
+- **without `ANTHROPIC_API_KEY`**, the app runs fully offline using 20 built-in security and network patterns. For well-known prompt families (zero trust, WAF in DMZ, SIEM, DDoS, email security, and more), output quality is identical to the API-key path — the same zone structure, layout engine, and architectural guardrails apply
 - **with `ANTHROPIC_API_KEY`**, Claude extends coverage to prompts that don't match a known pattern, vendor-specific architectures (AWS, Azure, Exchange, etc.), and follow-up editing of existing diagrams
 - the architecture model and diagram layout are always computed locally — Excalidraw is the canvas only
 
-## Current UX
+## Features
 
 - quick-start chips on the homepage submit a sample prompt directly without typing
 - main prompt clears on submit
@@ -86,15 +86,6 @@ Notes:
 - ambiguous prompts require confirmation before generation
 - bad prompts offer a secure alternative
 - Excalidraw handles export through its own menu
-
-## Current Focus
-
-The main areas still being refined are:
-
-- benchmark-driven tuning for more prompt families
-- stronger summaries and titles for edge cases
-- visual polish for dense or highly connected diagrams
-- broader coverage for niche or mixed-domain prompts
 
 ## Documentation
 
