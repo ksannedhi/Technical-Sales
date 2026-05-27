@@ -769,6 +769,9 @@ function shouldUseModelFallback(
   // Prompt names specific components within a zone ("containing X and Y", "with X and Y")
   // — static templates have no way to honour sub-zone component specs
   if (/\b(containing|consisting of)\b.{0,60}\b(and|,)\b/i.test(prompt)) return true;
+  // 2+ parenthetical component specs, e.g. "segment (web server), segment (HR workstations)"
+  // — user is naming exact components per zone; static templates cannot honour this
+  if (((prompt.match(/\([^)]{2,40}\)/g)) ?? []).length >= 2) return true;
   return false;
 }
 
