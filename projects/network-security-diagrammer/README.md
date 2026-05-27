@@ -2,6 +2,18 @@
 
 Local app for turning rough network and security prompts into clean, editable Excalidraw diagrams.
 
+## Why Not Just Use Excalidraw's "Text to Diagram"?
+
+Excalidraw has a built-in AI feature, but it has real limitations for security and network work:
+
+- **10 diagrams per day** on the free tier — not enough for active design sessions
+- **No domain awareness** — it draws generic boxes; it has no concept of DMZ, zero trust zones, policy enforcement points, or security control placement rules
+- **No architectural guardrails** — it won't catch an identity provider sitting inside an enforcement zone, upward connections that violate flow direction, or isolated components with no connections
+- **No follow-up editing** — each prompt starts from scratch; there is no way to say "add a SIEM" and have it update the existing diagram
+- **Prompts leave your machine** — every request goes to Excalidraw's servers; security-sensitive architecture descriptions stay local with this app
+
+This app is purpose-built for network and security diagrams. Common patterns (zero trust, WAF in DMZ, SIEM, email security, DDoS protection, and more) are modelled locally with no API call needed. When you do use an API key, it goes directly to Anthropic under your own account with no per-day cap.
+
 ## What It Does
 
 The app is designed to:
