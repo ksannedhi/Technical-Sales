@@ -10,6 +10,12 @@ import { architectureSchema } from "../schemas/architectureSchema.js";
 import { getAnthropicClient, getGenerateModel } from "./anthropic.js";
 import { classifyPromptPattern, type ArchitecturePatternId } from "./patternLibrary.js";
 
+const DEBUG_NORM = process.env.DEBUG_NORMALIZER === "1";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const dbg = (...a: any[]) => { if (DEBUG_NORM) console.log(...a); };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const dbgWarn = (...a: any[]) => { if (DEBUG_NORM) console.warn(...a); };
+
 const PATTERN_RATIONALE: Partial<Record<ArchitecturePatternId, string[]>> = {
   "partner-api-security": [
     "mTLS at the edge ensures only cert-holding partners can initiate API sessions.",
@@ -285,7 +291,7 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     if (misplacedIdp.length > 0) {
       const zoneId = getOrCreateZone("identity-tier", "Identity", "security-zone");
       for (const comp of misplacedIdp) {
-        console.log(`[normalizer] moving identity "${comp.label}" out of enforcement zone "${zone.label}"`);
+        dbg(`[normalizer] moving identity "${comp.label}" out of enforcement zone "${zone.label}"`);
         moveComponent(comp.id, zoneId);
       }
     }
@@ -294,7 +300,7 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     if (misplacedMonitoring.length > 0) {
       const zoneId = getOrCreateZone("monitoring-tier", "Monitoring", "internal");
       for (const comp of misplacedMonitoring) {
-        console.log(`[normalizer] moving monitoring "${comp.label}" out of enforcement zone "${zone.label}"`);
+        dbg(`[normalizer] moving monitoring "${comp.label}" out of enforcement zone "${zone.label}"`);
         moveComponent(comp.id, zoneId);
       }
     }
@@ -324,7 +330,7 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     const toIdx = zoneOrderIndex.get(toZoneId) ?? 0;
 
     if (fromIdx > toIdx) {
-      console.log(`[normalizer] removing upward connection "${conn.from}" → "${conn.to}" (zone[${fromIdx}] → zone[${toIdx}])`);
+      dbg(`[normalizer] removing upward connection "${conn.from}" → "${conn.to}" (zone[${fromIdx}] → zone[${toIdx}])`);
       return false;
     }
     return true;
@@ -361,7 +367,7 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
       autoConnections.push({ id: connId, from: candidate.id, to: comp.id, style: connStyle });
       connectedIds.add(comp.id);
       connectedIds.add(candidate.id);
-      console.log(`[normalizer] auto-connecting isolated "${comp.label}" ← "${candidate.label}"`);
+      dbg(`[normalizer] auto-connecting isolated "${comp.label}" ← "${candidate.label}"`);
     }
   }
 
@@ -406,7 +412,7 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
       const temp = fc.displayOrder;
       updatedComponents[fi] = { ...fc, displayOrder: tc.displayOrder };
       updatedComponents[ti] = { ...tc, displayOrder: temp };
-      console.log(`[normalizer] Rule 5: intra-zone l→r "${fc.label}" before "${tc.label}"`);
+      dbg(`[normalizer] Rule 5: intra-zone l→r "${fc.label}" before "${tc.label}"`);
     }
   }
 
@@ -429,7 +435,7 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     const tc = updatedComponents[ti]!;
     if (tc.displayOrder === undefined) {
       updatedComponents[ti] = { ...tc, displayOrder: 0 };
-      console.log(`[normalizer] Rule 6: zone entry point "${tc.label}" → displayOrder 0`);
+      dbg(`[normalizer] Rule 6: zone entry point "${tc.label}" → displayOrder 0`);
     }
   }
 
@@ -487,10 +493,10 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
       const remaining = (sameZoneIncoming.get(conn.to) ?? 1) - 1;
       sameZoneIncoming.set(conn.to, remaining);
       if (remaining <= 0) {
-        console.log(`[normalizer] Rule 7: keeping last uplink to "${conn.to}" (cross-row but sole incoming)`);
+        dbg(`[normalizer] Rule 7: keeping last uplink to "${conn.to}" (cross-row but sole incoming)`);
         return true;
       }
-      console.log(`[normalizer] Rule 7: removing cross-row "${conn.from}"→"${conn.to}" (row ${fromRow}→${toRow})`);
+      dbg(`[normalizer] Rule 7: removing cross-row "${conn.from}"→"${conn.to}" (row ${fromRow}→${toRow})`);
       return false;
     }
     return true;
@@ -532,7 +538,7 @@ export function enforceArchitecturalConstraints(architecture: ArchitectureModel)
     );
     if (lastRowComps.length === 0) return conn;
     const redirect = lastRowComps[0]!;
-    console.log(`[normalizer] Rule 8: redirecting "${conn.id}" from "${conn.from}" → last-row "${redirect.id}"`);
+    dbg(`[normalizer] Rule 8: redirecting "${conn.id}" from "${conn.from}" → last-row "${redirect.id}"`);
     return { ...conn, from: redirect.id };
   });
 
@@ -2331,7 +2337,7 @@ export function validateStaticPatterns(): void {
       const hasMonitor = inZone.some((c) => c.type === "monitoring");
       const hasControl = inZone.some((c) => c.type === "security-control");
       if (hasMonitor && hasControl) {
-        console.warn(`[startup-validation] WARN pattern="${patternId}" zone="${zone.id}" mixes monitoring+security-control`);
+        dbgWarn(`[startup-validation] WARN pattern="${patternId}" zone="${zone.id}" mixes monitoring+security-control`);
         violations++;
       }
     }
@@ -2341,15 +2347,15 @@ export function validateStaticPatterns(): void {
     for (const conn of fixed.connections) { connected.add(conn.from); connected.add(conn.to); }
     for (const comp of fixed.components) {
       if (!connected.has(comp.id)) {
-        console.warn(`[startup-validation] WARN pattern="${patternId}" component="${comp.id}" has zero connections`);
+        dbgWarn(`[startup-validation] WARN pattern="${patternId}" component="${comp.id}" has zero connections`);
         violations++;
       }
     }
   }
 
   if (violations === 0) {
-    console.log("[startup-validation] All static patterns OK");
+    dbg("[startup-validation] All static patterns OK");
   } else {
-    console.warn(`[startup-validation] ${violations} violation(s) found — review static patterns`);
+    dbgWarn(`[startup-validation] ${violations} violation(s) found — review static patterns`);
   }
 }
