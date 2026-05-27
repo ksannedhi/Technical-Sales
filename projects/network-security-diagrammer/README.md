@@ -1,6 +1,6 @@
 # Network and Cybersecurity Diagrammer
 
-Local app for turning rough network and security prompts into clean, editable Excalidraw diagrams.
+Local app that turns rough network and security prompts into clean architecture diagrams. The full diagram — topology, zones, component placement, and arrow routing — is built by this app. Excalidraw is used only as the interactive canvas to view, edit, and export the result.
 
 ## Why Not Just Use Excalidraw's "Text to Diagram"?
 
@@ -40,10 +40,10 @@ The current pipeline is:
 1. analyze the prompt
 2. classify it into a supported pattern family
 3. build a deterministic architecture model for strong matches, or use a validated model fallback for weak/generic cases
-4. lay out the diagram locally
-5. render the scene in Excalidraw
+4. compute all positions, dimensions, and arrow paths locally
+5. convert the finished layout to Excalidraw's element format and place it on the canvas
 
-Claude (Anthropic) assists with prompt analysis, follow-up editing, and structured fallback generation when an API key is available. Layout and rendering remain local to the app.
+Excalidraw contributes nothing to diagram structure — it is the display and export layer only. Claude (Anthropic) assists with prompt analysis, follow-up editing, and structured fallback generation when an API key is available.
 
 ## Run
 
@@ -75,7 +75,7 @@ Notes:
 
 - without `ANTHROPIC_API_KEY`, the app falls back to local pattern analysis and local follow-up edit handling
 - with `ANTHROPIC_API_KEY`, Claude Haiku handles prompt analysis and Claude Sonnet handles diagram generation and follow-up editing
-- the architecture model and Excalidraw layout remain deterministic and local
+- the architecture model and diagram layout remain deterministic and local — Excalidraw is the canvas only
 
 ## Current UX
 
