@@ -14,6 +14,21 @@ export async function generateRoute(req: Request, res: Response) {
   }
 
   try {
+    // Check generate cache FIRST — cache key only needs request body fields, not analysis.
+    // This avoids calling Haiku on every repeat request just to throw the result away.
+    const key = createCacheKey({
+      type: `generate-${GENERATION_HASH}-${LAYOUT_VERSION}`,
+      prompt: parsed.data.prompt,
+      confirmedAssumptions: parsed.data.confirmedAssumptions,
+      secureAlternative: parsed.data.secureAlternative,
+      model: getModelCacheIdentity(),
+    });
+    const cached = await readCache<DiagramResponse>(key);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    // Cache miss — run analysis before generating.
     const analysis = await analyzePromptWithModel(parsed.data.prompt);
     if (analysis.status === "ambiguous" && !parsed.data.confirmedAssumptions) {
       return res.status(409).json({
@@ -27,18 +42,6 @@ export async function generateRoute(req: Request, res: Response) {
         error: "Secure alternative must be confirmed before generating this diagram.",
         analysis,
       });
-    }
-
-    const key = createCacheKey({
-      type: `generate-${GENERATION_HASH}-${LAYOUT_VERSION}`,
-      prompt: parsed.data.prompt,
-      confirmedAssumptions: parsed.data.confirmedAssumptions,
-      secureAlternative: parsed.data.secureAlternative,
-      model: getModelCacheIdentity(),
-    });
-    const cached = await readCache<DiagramResponse>(key);
-    if (cached) {
-      return res.json(cached);
     }
 
     const architecture = await generateArchitecture(parsed.data.prompt, analysis);

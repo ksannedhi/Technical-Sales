@@ -3,7 +3,7 @@ import type { DiagramResponse } from "../../../shared/types/diagram.js";
 import { layoutArchitecture } from "../layout/layoutArchitecture.js";
 import { followupRequestSchema } from "../schemas/architectureSchema.js";
 import { editArchitectureWithModel } from "../services/followupEditor.js";
-import { enforceArchitecturalConstraints } from "../services/architectureGenerator.js";
+import { enforceArchitecturalConstraints, applyFollowupInstruction } from "../services/architectureGenerator.js";
 import { createCacheKey, readCache, writeCache } from "../services/cache.js";
 import { getModelCacheIdentity } from "../services/anthropic.js";
 import type { PromptAnalysis } from "../../../shared/types/analysis.js";
@@ -42,7 +42,18 @@ export async function followupRoute(req: Request, res: Response) {
       return res.json(cached);
     }
 
-    const rawArchitecture = await editArchitectureWithModel(parsed.data.architecture, parsed.data.instruction);
+    // Try the local keyword handler first — handles add/remove/rename instructions
+    // without spending a Sonnet call. Fall through to Claude only when local logic
+    // produces no structural change (i.e. it didn't recognise the instruction).
+    const localResult = applyFollowupInstruction(parsed.data.architecture, parsed.data.instruction);
+    const changed =
+      JSON.stringify(localResult.zones) !== JSON.stringify(parsed.data.architecture.zones) ||
+      JSON.stringify(localResult.components) !== JSON.stringify(parsed.data.architecture.components) ||
+      JSON.stringify(localResult.connections) !== JSON.stringify(parsed.data.architecture.connections);
+
+    const rawArchitecture = changed
+      ? localResult
+      : await editArchitectureWithModel(parsed.data.architecture, parsed.data.instruction);
     const architecture = enforceArchitecturalConstraints(rawArchitecture);
     const { layout, elements } = layoutArchitecture(architecture);
     const response: DiagramResponse = {

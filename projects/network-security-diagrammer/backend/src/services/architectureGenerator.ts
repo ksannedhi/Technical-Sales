@@ -640,7 +640,9 @@ async function generateArchitectureWithModel(
       model: getGenerateModel(),
       max_tokens: 4096,
       temperature: 0.2,
-      system: GENERATION_SYSTEM_PROMPT_LINES.join("\n"),
+      // cache_control marks the system prompt for Anthropic prompt caching.
+      // Repeated calls within the 5-min cache window pay 10% of normal input cost.
+      system: [{ type: "text", text: GENERATION_SYSTEM_PROMPT_LINES.join("\n"), cache_control: { type: "ephemeral" } }],
       messages: [
         {
           role: "user",
