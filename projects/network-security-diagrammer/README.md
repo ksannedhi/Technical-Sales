@@ -10,7 +10,7 @@ Excalidraw has a built-in AI feature, but it has real limitations for security a
 - **No domain awareness** — it draws generic boxes; it has no concept of DMZ, zero trust zones, policy enforcement points, or security control placement rules
 - **No architectural guardrails** — it won't catch an identity provider sitting inside an enforcement zone, upward connections that violate flow direction, or isolated components with no connections
 - **No follow-up editing** — each prompt starts from scratch; there is no way to say "add a SIEM" and have it update the existing diagram
-- **Prompts leave your machine** — every request goes to Excalidraw's servers; security-sensitive architecture descriptions stay local with this app
+- **No control over where prompts go** — every request goes to Excalidraw's servers regardless of sensitivity; with this app, diagrams are built locally with no API call needed, and if you do add an API key it goes directly to Anthropic under your own account — not to a third-party service
 
 This app is purpose-built for network and security diagrams. Common patterns (zero trust, WAF in DMZ, SIEM, email security, DDoS protection, and more) are modelled locally with no API call needed. When you do use an API key, it goes directly to Anthropic under your own account with no per-day cap.
 
