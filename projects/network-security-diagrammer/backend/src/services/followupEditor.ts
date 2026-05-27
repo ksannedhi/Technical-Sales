@@ -71,12 +71,21 @@ export async function editArchitectureWithModel(
     }
 
     const cleaned = content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim();
-    const parsed = refreshArchitectureText(architectureSchema.parse(JSON.parse(cleaned)));
+    let parsed: ReturnType<typeof refreshArchitectureText>;
+    try {
+      parsed = refreshArchitectureText(architectureSchema.parse(JSON.parse(cleaned)));
+    } catch (parseErr) {
+      console.error("[followup] Claude response failed parse/validation:", parseErr instanceof Error ? parseErr.message : parseErr);
+      console.error("[followup] raw response (first 600 chars):", cleaned.slice(0, 600));
+      return applyFollowupInstruction(architecture, instruction);
+    }
     if (getSignature(parsed) === getSignature(architecture)) {
+      console.error("[followup] Claude returned identical architecture — instruction may be too vague or conflicting with schema constraints");
       return applyFollowupInstruction(architecture, instruction);
     }
     return parsed;
-  } catch {
+  } catch (err) {
+    console.error("[followup] unexpected error calling Claude:", err instanceof Error ? err.message : err);
     return applyFollowupInstruction(architecture, instruction);
   }
 }
