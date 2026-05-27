@@ -1,7 +1,39 @@
+import { createHash } from "crypto";
 import type { ArchitectureModel } from "../../../shared/types/architecture.js";
 import { architectureSchema } from "../schemas/architectureSchema.js";
 import { getAnthropicClient, getGenerateModel } from "./anthropic.js";
 import { applyFollowupInstruction, refreshArchitectureText } from "./architectureGenerator.js";
+
+const FOLLOWUP_SYSTEM_PROMPT_LINES = [
+  "You update a network and security architecture model based on a follow-up instruction.",
+  "Return only valid JSON with no markdown or code fences.",
+  "Preserve the current architecture unless the instruction explicitly replaces part of it.",
+  "Keep the result architect-level, simple, and vendor-neutral unless explicitly requested.",
+  "Maintain 16 components max and 15 connections max whenever possible.",
+  "",
+  "STRUCTURAL RULES (same as generation — enforce on every edit):",
+  "- Monitoring components (SIEM, log aggregator, telemetry) must always be in their own dedicated monitoring zone — never in a zone that also contains security-control components.",
+  "- Identity providers must never share a zone with firewall, WAF, or IPS components. Place them in a dedicated identity zone or the application/internal zone.",
+  "- All connections must flow top-to-bottom (from a zone earlier in the zones array to one later). Never add upward connections.",
+  "- Every component must have at least one connection. An isolated component with zero connections is always wrong.",
+  "- Connections TO monitoring components must use dashed style (out-of-band log/telemetry flows).",
+  "- Never use vague connection labels like 'Allowed Traffic', 'Traffic', or 'Filtered Telemetry'. Use specific protocol names (HTTPS, IPSec, syslog) or omit the label.",
+  "- Security controls must connect to the workload or application they protect.",
+  "- Use at most ONE labeled connection between any adjacent zone pair — combine or drop labels on secondary connections.",
+  "",
+  "ZONE ORDERING RULES (critical when adding new zones):",
+  "- The zones array defines top-to-bottom rendering order. zone[0] renders at the top, the last zone renders at the bottom.",
+  "- Entry-point zones (internet, users, external clients, perimeter, edge) must always appear at the TOP — insert them at the beginning of the zones array with lower order values than all existing zones.",
+  "- Internal/application zones stay in the middle. Monitoring and operations zones stay at the bottom.",
+  "- Set the 'order' field on every zone: renumber all zones sequentially (0, 1, 2, …) after any insertion so order matches array position.",
+  "- Never append an entry-point zone at the end of the array — that places users below the data tier, which is architecturally wrong.",
+];
+
+// Auto-invalidates followup cache whenever the system prompt above changes.
+export const FOLLOWUP_HASH = createHash("sha256")
+  .update(FOLLOWUP_SYSTEM_PROMPT_LINES.join("\n"))
+  .digest("hex")
+  .slice(0, 8);
 
 function getSignature(architecture: ArchitectureModel) {
   return JSON.stringify({
@@ -33,30 +65,7 @@ export async function editArchitectureWithModel(
       system: [
         {
           type: "text",
-          text: [
-            "You update a network and security architecture model based on a follow-up instruction.",
-            "Return only valid JSON with no markdown or code fences.",
-            "Preserve the current architecture unless the instruction explicitly replaces part of it.",
-            "Keep the result architect-level, simple, and vendor-neutral unless explicitly requested.",
-            "Maintain 16 components max and 15 connections max whenever possible.",
-            "",
-            "STRUCTURAL RULES (same as generation — enforce on every edit):",
-            "- Monitoring components (SIEM, log aggregator, telemetry) must always be in their own dedicated monitoring zone — never in a zone that also contains security-control components.",
-            "- Identity providers must never share a zone with firewall, WAF, or IPS components. Place them in a dedicated identity zone or the application/internal zone.",
-            "- All connections must flow top-to-bottom (from a zone earlier in the zones array to one later). Never add upward connections.",
-            "- Every component must have at least one connection. An isolated component with zero connections is always wrong.",
-            "- Connections TO monitoring components must use dashed style (out-of-band log/telemetry flows).",
-            "- Never use vague connection labels like 'Allowed Traffic', 'Traffic', or 'Filtered Telemetry'. Use specific protocol names (HTTPS, IPSec, syslog) or omit the label.",
-            "- Security controls must connect to the workload or application they protect.",
-            "- Use at most ONE labeled connection between any adjacent zone pair — combine or drop labels on secondary connections.",
-            "",
-            "ZONE ORDERING RULES (critical when adding new zones):",
-            "- The zones array defines top-to-bottom rendering order. zone[0] renders at the top, the last zone renders at the bottom.",
-            "- Entry-point zones (internet, users, external clients, perimeter, edge) must always appear at the TOP — insert them at the beginning of the zones array with lower order values than all existing zones.",
-            "- Internal/application zones stay in the middle. Monitoring and operations zones stay at the bottom.",
-            "- Set the 'order' field on every zone: renumber all zones sequentially (0, 1, 2, …) after any insertion so order matches array position.",
-            "- Never append an entry-point zone at the end of the array — that places users below the data tier, which is architecturally wrong.",
-          ].join("\n"),
+          text: FOLLOWUP_SYSTEM_PROMPT_LINES.join("\n"),
           cache_control: { type: "ephemeral" },
         },
       ],
