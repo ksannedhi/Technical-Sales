@@ -66,7 +66,7 @@ function coerceComponentTypes(raw: any): any {
     components: raw.components.map((c: any) => {
       const mapped = COMPONENT_TYPE_MAP[c?.type];
       if (mapped) {
-        console.error(`[followup] coercing component type "${c.type}" → "${mapped}" for "${c.label ?? c.id}"`);
+        console.warn(`[followup] coercing component type "${c.type}" → "${mapped}" for "${c.label ?? c.id}"`);
         return { ...c, type: mapped };
       }
       return c;

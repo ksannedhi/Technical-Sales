@@ -91,87 +91,15 @@ function componentStyle(component: ArchitectureComponent, architecture: Architec
 
 // ─── Zone ordering ───────────────────────────────────────────────────────────
 
+// Legacy title-based zone ordering. Static patterns set zone.order directly so
+// sortZones returns before reaching this table. Claude-generated architectures
+// without zone.order fall through to ZONE_TYPE_ORDER below, which handles the
+// external→dmz→security-zone→internal→cloud ordering correctly. This table is
+// kept empty; entries were removed when all static patterns adopted zone.order.
 const preferredZoneOrders: Array<{
   match: (architecture: ArchitectureModel) => boolean;
   order: string[];
-}> = [
-  {
-    match: (architecture) => architecture.title.includes("Zero Trust"),
-    order: ["users", "identity", "policy", "apps", "monitoring"],
-  },
-  {
-    match: (architecture) => architecture.title.toLowerCase().includes("ndr"),
-    order: ["dmz", "core", "server", "ndr"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Hybrid Connectivity"),
-    order: ["onprem", "connectivity", "cloud", "monitoring"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("WAF"),
-    order: ["internet", "edge", "dmz", "internal"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("DDoS"),
-    order: ["internet", "scrubbing", "edge", "internal"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Sandbox"),
-    order: ["sources", "inspection", "operations"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Wireless Network"),
-    order: ["upstream", "wireless", "ssid", "devices"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Securing APIs Exposed"),
-    order: ["partner", "edge", "api", "identity", "backend"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Secure Hybrid Cloud"),
-    order: ["cloud", "identity", "onprem"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("SASE"),
-    order: ["users", "identity", "sase", "resources"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("On-Prem Email Security"),
-    order: ["internet", "dmz", "internal", "clients"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Perimeter Firewall"),
-    order: ["internet", "perimeter", "internal"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Secure Remote Access"),
-    order: ["home", "internet", "gateway", "internal"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Enterprise Core Network with DMZ"),
-    order: ["internet", "dmz", "core", "internal"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Branch Networking"),
-    order: ["branch", "wan", "hub"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Centralized Logging and SIEM"),
-    order: ["sources", "collection", "operations"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Cloud Workload Protection"),
-    order: ["cloud", "control", "ops"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Segmentation and Inspection"),
-    order: ["edge", "policy", "internal", "monitoring"],
-  },
-  {
-    match: (architecture) => architecture.title.includes("Cloud-Hosted Email Security"),
-    order: ["internet", "cloud", "perimeter", "internal"],
-  },
-];
+}> = [];
 
 function zoneColor(zoneType: ArchitectureZone["type"]) {
   switch (zoneType) {
@@ -392,6 +320,10 @@ function shouldRenderConnectionLabel(label: string, from: Box, to: Box, style?: 
     const gap = to.x > from.x
       ? to.x - (from.x + from.width)
       : from.x - (to.x + to.width);
+    // 80px threshold is intentionally conservative: COMPONENT_GAP_X is 42px,
+    // but the additional ~38px of inter-component space is still too narrow for
+    // short labels (≤8 chars) to render without clipping on the component border.
+    // Raising this threshold risks overlapping labels on adjacent components.
     if (gap < 80) return false;
   }
 

@@ -12,19 +12,10 @@
  */
 import { classifyPromptPattern } from "../services/patternLibrary.js";
 
-// ─── Tiny assertion harness ──────────────────────────────────────────────────
+// ─── Counters ────────────────────────────────────────────────────────────────
 
 let passed = 0;
 let failed = 0;
-
-function assert(condition: boolean, msg: string) {
-  if (condition) {
-    passed++;
-  } else {
-    console.error(`  FAIL: ${msg}`);
-    failed++;
-  }
-}
 
 // ─── Test cases ───────────────────────────────────────────────────────────────
 

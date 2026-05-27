@@ -12,10 +12,10 @@ for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":8787 " ^| findstr "L
     echo  Stopped existing process on port 8787.
 )
 
-REM -- Kill any process already listening on port 5173 --
-for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":5173 " ^| findstr "LISTENING"') do (
+REM -- Kill any process already listening on port 5174 --
+for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr ":5174 " ^| findstr "LISTENING"') do (
     taskkill /F /PID %%a >nul 2>&1
-    echo  Stopped existing process on port 5173.
+    echo  Stopped existing process on port 5174.
 )
 
 REM -- Install dependencies if node_modules is missing --
@@ -31,7 +31,7 @@ if not exist "%ROOT%.env" (
     if exist "%ROOT%.env.example" (
         echo  Creating .env from .env.example...
         copy "%ROOT%.env.example" "%ROOT%.env" >nul
-        echo  .env created - add your OPENAI_API_KEY before first use.
+        echo  .env created - add your ANTHROPIC_API_KEY before first use.
     )
 )
 
@@ -46,9 +46,9 @@ start "Network and Cybersecurity Diagrammer - Frontend" powershell -NoExit -NoPr
 echo.
 echo  Backend and frontend launch windows opened.
 echo.
-echo  Dashboard : http://localhost:5173
+echo  Dashboard : http://localhost:5174
 echo  Backend   : http://localhost:8787
 echo  Health    : http://localhost:8787/api/health
 echo.
-echo  Confirm your OPENAI_API_KEY is set in .env before first use.
+echo  Confirm your ANTHROPIC_API_KEY is set in .env before first use.
 echo.
