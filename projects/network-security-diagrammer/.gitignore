@@ -6,4 +6,3 @@ backend/cache/
 shared/**/*.js
 .playwright-mcp/
 .claude/settings.local.json
-screenshots/
