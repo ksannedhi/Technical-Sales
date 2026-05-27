@@ -14,6 +14,14 @@ Excalidraw has a built-in AI feature, but it has real limitations for security a
 
 This app is purpose-built for network and security diagrams. Common patterns (zero trust, WAF in DMZ, SIEM, email security, DDoS protection, and more) are modelled locally with no API call needed. When you do use an API key, it goes directly to Anthropic under your own account with no per-day cap.
 
+## Use Cases
+
+- **Presales and proposals** — drop a clean architecture diagram into an HLD, SoW, or customer deck in seconds without opening Visio or draw.io
+- **Live customer sessions** — sketch an architecture on the spot during a call; export and hand it to the customer before the meeting ends
+- **Design exploration** — iterate quickly through variants ("add a WAF", "separate the monitoring zone") using follow-up prompts instead of redrawing
+- **Training and onboarding** — generate labelled reference diagrams for common security patterns to explain zero trust, DMZ, SIEM, and similar concepts
+- **Security review prep** — produce a clear diagram of the current-state architecture to anchor a gap analysis or threat model discussion
+
 ## What It Does
 
 The app is designed to:
