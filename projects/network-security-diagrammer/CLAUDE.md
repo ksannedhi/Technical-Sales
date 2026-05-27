@@ -142,3 +142,14 @@ Accumulated learnings — apply when modifying generator, layout, or follow-up l
 - **JSON fence stripping** — Claude ignores `response_format: json_object`. Strip defensively before `JSON.parse` in all three services: `content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim()`.
 - **Cache key is fully automatic** — edit `GENERATION_SYSTEM_PROMPT_LINES` → `GENERATION_HASH` changes → cache busts. Increment `LAYOUT_VERSION` in `layoutArchitecture.ts` for layout changes. Model identity comes from `getModelCacheIdentity()`. Never manually edit a version string in `generate.ts`.
 - **followup cache key includes full architecture object** — key = SHA-256 of `{ type, architecture, instruction, model }`. Different architecture + same instruction = different entry. Correct behaviour; slightly expensive on large objects, acceptable for a local demo tool.
+- **Cache keys normalize prompts** — `normalizePrompt(prompt).toLowerCase()` applied before hashing in all three routes (analyze, generate, followup). Case and whitespace variants of the same prompt hit the same cache entry.
+
+## Deferred improvements (intentionally not implemented)
+
+Three fixes from the architectural review were assessed as too risky for a local demo tool and left for a future session:
+
+| Fix | What | Why deferred |
+|-----|------|-------------|
+| **5** | Externalize vendor/product name lists from code to a config file | Pure refactor, no user-visible benefit, moderate churn across patternLibrary + architectureGenerator |
+| **6** | Replace 20 static pattern templates with few-shot examples fed to Claude | High-risk rewrite — static patterns are the offline fallback when no API key is present; removing them breaks the offline mode entirely |
+| **14** | Refactor arrow routing — replace hand-coded coordinate math with a proper path algorithm | Large layout engine change with high regression risk across all diagram types |
