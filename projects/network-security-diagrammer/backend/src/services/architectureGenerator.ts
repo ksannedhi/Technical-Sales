@@ -2133,6 +2133,11 @@ export function applyFollowupInstruction(
       next.appliedChanges = [...(next.appliedChanges ?? []), ...appliedChanges];
       return refreshArchitectureText(next);
     }
+    // Removal intent recognised but local handler couldn't match a component —
+    // return unchanged so the caller falls through to Claude instead of letting
+    // add-blocks fire on keywords inside the removal phrase (e.g. "remove monitoring
+    // layer" would otherwise trigger the monitor add-block and add a component).
+    return architecture;
   }
 
   const ensureComponent = (
