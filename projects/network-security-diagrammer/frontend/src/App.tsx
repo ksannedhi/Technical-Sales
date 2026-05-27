@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { PromptAnalysis } from "@shared/types/analysis";
 import type { DiagramResponse } from "@shared/types/diagram";
 import { AssumptionsPanel } from "./components/AssumptionsPanel";
@@ -14,6 +14,13 @@ interface PromptHistoryEntry {
   kind: "initial" | "followup" | "refined-from";
   text: string;
 }
+
+const EXAMPLE_PROMPTS = [
+  { label: "Zero trust remote access", prompt: "Zero trust access for remote employees reaching internal apps" },
+  { label: "WAF in DMZ", prompt: "DMZ with WAF and on-prem application servers" },
+  { label: "Email security with Exchange", prompt: "Secure email with Exchange and on-prem filtering appliance" },
+  { label: "Centralized SIEM", prompt: "Centralized SIEM with log collection from network and security sources" },
+];
 
 export default function App() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -39,11 +46,35 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [loading]);
 
+  const submitWithPrompt = useCallback(async (text: string) => {
+    const submittedPrompt = text.trim();
+    if (!submittedPrompt) return;
+
+    setLoading(true);
+    setError(null);
+    setDiagram(null);
+    setLastSubmittedPrompt(submittedPrompt);
+    setPromptHistory([{ id: `initial-${Date.now()}`, kind: "initial", text: submittedPrompt }]);
+    setPrompt("");
+
+    try {
+      const nextAnalysis = await analyzePrompt(submittedPrompt);
+      setAnalysis(nextAnalysis);
+
+      if (nextAnalysis.status === "clear") {
+        const response = await generateDiagram({ prompt: submittedPrompt });
+        setDiagram(response);
+      }
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "Could not analyze the prompt.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   async function submitPrompt() {
     const submittedPrompt = prompt.trim();
-    if (!submittedPrompt) {
-      return;
-    }
+    if (!submittedPrompt) return;
 
     setLoading(true);
     setError(null);
@@ -129,7 +160,15 @@ export default function App() {
     <main className="app-shell">
       <div className="app-grid">
         <div className="left-column">
-          <PromptInput ref={textareaRef} prompt={prompt} loading={loading} onPromptChange={setPrompt} onSubmit={submitPrompt} />
+          <PromptInput
+            ref={textareaRef}
+            prompt={prompt}
+            loading={loading}
+            onPromptChange={setPrompt}
+            onSubmit={submitPrompt}
+            examples={EXAMPLE_PROMPTS}
+            onExampleSelect={submitWithPrompt}
+          />
 
           {analysis?.status === "ambiguous" ? (
             <AssumptionsPanel
@@ -237,13 +276,6 @@ export default function App() {
               </svg>
               <p className="eyebrow">Preview</p>
               <h2>Your diagram will appear here.</h2>
-              <p>Try one of these to get started:</p>
-              <div className="example-chips">
-                <button className="example-chip" onClick={() => { setPrompt("Zero trust access for remote employees reaching internal apps"); textareaRef.current?.focus(); }}>Zero trust remote access</button>
-                <button className="example-chip" onClick={() => { setPrompt("DMZ with WAF and on-prem application servers"); textareaRef.current?.focus(); }}>WAF in DMZ</button>
-                <button className="example-chip" onClick={() => { setPrompt("Secure email with Exchange and on-prem filtering appliance"); textareaRef.current?.focus(); }}>Email security with Exchange</button>
-                <button className="example-chip" onClick={() => { setPrompt("Centralized SIEM with log collection from network and security sources"); textareaRef.current?.focus(); }}>Centralized SIEM</button>
-              </div>
             </section>
           )}
         </div>

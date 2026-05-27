@@ -1,14 +1,21 @@
 import { forwardRef, type KeyboardEvent } from "react";
 
+interface ExamplePrompt {
+  label: string;
+  prompt: string;
+}
+
 interface PromptInputProps {
   prompt: string;
   loading: boolean;
   onPromptChange: (value: string) => void;
   onSubmit: () => void;
+  examples?: ExamplePrompt[];
+  onExampleSelect?: (prompt: string) => void;
 }
 
 export const PromptInput = forwardRef<HTMLTextAreaElement, PromptInputProps>(
-  function PromptInput({ prompt, loading, onPromptChange, onSubmit }, ref) {
+  function PromptInput({ prompt, loading, onPromptChange, onSubmit, examples, onExampleSelect }, ref) {
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -20,9 +27,9 @@ export const PromptInput = forwardRef<HTMLTextAreaElement, PromptInputProps>(
     <section className="panel hero-panel">
       <div>
         <p className="eyebrow">Network / Security Only</p>
-        <h1>Turn rough ideas into clean architectural diagrams.</h1>
+        <h1>Turn rough ideas into clean diagrams.</h1>
         <p className="lede">
-          The app uses Excalidraw plus an LLM to infer intent, enforce sound architectural patterns, and turn rough prompts into presentable conceptual diagrams.
+          Describe a network or security architecture — the app infers intent, enforces sound patterns, and produces an Excalidraw diagram.
         </p>
       </div>
 
@@ -35,7 +42,7 @@ export const PromptInput = forwardRef<HTMLTextAreaElement, PromptInputProps>(
             onChange={(event) => onPromptChange(event.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Example: secure remote access for users reaching an internal application"
-            rows={5}
+            rows={6}
           />
           <button
             className="composer-submit"
@@ -49,6 +56,21 @@ export const PromptInput = forwardRef<HTMLTextAreaElement, PromptInputProps>(
         </div>
       </label>
       <p className="hint-copy">Press Enter to submit. Use Shift+Enter for a new line.</p>
+
+      {examples && examples.length > 0 && onExampleSelect && (
+        <div className="example-chips">
+          {examples.map(({ label, prompt: exPrompt }) => (
+            <button
+              key={label}
+              className="example-chip"
+              disabled={loading}
+              onClick={() => onExampleSelect(exPrompt)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 });

@@ -64,6 +64,7 @@ shared/                 Types and schemas shared between backend and frontend
 | `ANTHROPIC_API_KEY` | No | — | Enables AI-powered prompt analysis and generation |
 | `ANTHROPIC_ANALYZE_MODEL` | No | `claude-haiku-4-5-20251001` | Model for `/api/analyze` |
 | `ANTHROPIC_GENERATE_MODEL` | No | `claude-sonnet-4-6` | Model for `/api/generate` and `/api/followup` |
+| `DEBUG_NORMALIZER` | No | — | Set to `1` to print `[normalizer]` and `[startup-validation]` logs to the backend console |
 
 Copy `.env.example` → `.env` and add `ANTHROPIC_API_KEY` for full functionality.
 
@@ -80,7 +81,7 @@ Copy `.env.example` → `.env` and add `ANTHROPIC_API_KEY` for full functionalit
 - `backend/src/routes/analyze.ts` — prompt classification (local pattern + optional AI)
 - `backend/src/routes/generate.ts` — Excalidraw JSON generation from prompt
 - `backend/src/routes/followup.ts` — diagram refinement via follow-up prompt
-- `frontend/src/` — React SPA with Excalidraw integration and chat interface
+- `frontend/src/` — React SPA with Excalidraw integration and chat interface; `PromptInput` accepts `examples` + `onExampleSelect` props to render quick-start chips inside the hero panel
 - `frontend/vite.config.ts` — Vite config with `/api` proxy to `:8787` and shared alias
 - `shared/` — shared TypeScript types and Zod schemas
 - `.env.example` — environment variable template
@@ -126,7 +127,7 @@ Accumulated learnings — apply when modifying generator, layout, or follow-up l
 - **Rules 1 & 2 check `c.type`, not label regex** — `c.type === "security-control"` catches "Workload Protection", "CASB", "NDR Sensor" that label regexes would miss.
 - **Rule 3 uses `zone.order` (or array index fallback)** — `zoneOrderIndex` is built from `z.order ?? i`. Do not use a separate semantic level map.
 - **`enforceArchitecturalConstraints` must run in the followup route** — the followup route calls Claude directly without the generator. Without calling the normalizer on Claude's output, zone violations accumulate across edits.
-- **`validateStaticPatterns()` runs at startup** — logs warnings for any monitoring+security-control zone mixing or isolated components across all 20 static patterns. Add this call to `index.ts` whenever a new static pattern is added.
+- **`validateStaticPatterns()` runs at startup** — checks for monitoring+security-control zone mixing and isolated components across all static patterns. Add this call to `index.ts` whenever a new static pattern is added. All `[normalizer]` and `[startup-validation]` console output is suppressed by default; set `DEBUG_NORMALIZER=1` to see it.
 
 ### Follow-up (`applyFollowupInstruction`)
 - **Handle removal instructions first and return early** — keyword-based add-blocks (waf, siem, log) run unconditionally. If removal detection runs after them and `changed=true`, the `!changed` gate blocks the removal. "Remove the WAF" was adding WAF instead of removing it.

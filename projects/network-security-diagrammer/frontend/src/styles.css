@@ -70,9 +70,9 @@ p {
 }
 
 h1 {
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.02;
-  margin-bottom: 16px;
+  font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+  line-height: 1.15;
+  margin-bottom: 12px;
 }
 
 h2 {
@@ -113,7 +113,7 @@ textarea {
   background: rgba(255, 252, 247, 0.9);
   padding: 16px 70px 16px 16px;
   resize: vertical;
-  min-height: 120px;
+  min-height: 160px;
 }
 
 .composer-submit {
@@ -276,7 +276,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 .example-chip {
