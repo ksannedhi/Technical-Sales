@@ -23,7 +23,7 @@ Generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a c
 | `soc-twin`         | 3001         | 5173          |
 | `network-security-diagrammer`     | 8787         | 5174          |
 | `phishing-analyzer`               | 3002         | 5175          |
-| `security-tools-mapping-navigator`| 8010         | 5176          |
+| `security-controls-gap-analyzer`  | 8010         | 5176          |
 | `threat-briefing`                 | 3003         | 5177          |
 | `threat-to-business-translator`   | 8000         | 5178          |
 | `presales-deal-reviewer`          | 8020         | —             |
@@ -53,7 +53,7 @@ cmd.exe /c "robocopy \"<Downloads>\<project>\" \"<Downloads>\Technical-Sales\pro
 | `soc-twin`         | Node / Express                 | Vite + React         |
 | `network-security-diagrammer`     | Node (Cloudflare Workers style)| Vite + React         |
 | `phishing-analyzer`               | Node / Express                 | Vite + React         |
-| `security-tools-mapping-navigator`| Python / FastAPI               | Vite + React         |
+| `security-controls-gap-analyzer`  | Python / FastAPI               | Vite + React         |
 | `threat-briefing`                 | Node / Express + Puppeteer     | Vite + React         |
 | `threat-to-business-translator`   | Python / FastAPI               | Vite + React         |
 | `presales-deal-reviewer`          | Python / wsgiref               | Server-rendered HTML |

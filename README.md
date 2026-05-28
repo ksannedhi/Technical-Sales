@@ -32,20 +32,20 @@ Docs: `projects/soc-twin/README.md`
 - Purpose: Upload a security tools inventory CSV and get a framework-aligned gap analysis (NIST CSF 2.0 / CIS Controls v8.1 / both), capability-filtered redundancy audit with consolidation savings, domain coverage summary, per-control vendor recommendations, dynamic phased roadmap, copyable Executive Summary, and Print/PDF export. No AI API required — fully deterministic and offline.
 - One-click launch (Windows):
 ```
-cd projects/security-tools-mapping-navigator && start.cmd
+cd projects/security-controls-gap-analyzer && start.cmd
 ```
-Docs: `projects/security-tools-mapping-navigator/README.md`
+Docs: `projects/security-controls-gap-analyzer/README.md`
 
 ---
 
-### VendorLens
-- Path: `projects/vendor-lens`
-- Purpose: cybersecurity vendor recommendation tool that explains categories and products in plain English, compares named vendors with weighted scoring, and gives ranked recommendations — fully offline, no AI API.
+### VendorAdvisor
+- Path: `projects/vendor-advisor`
+- Purpose: offline cybersecurity chatbot covering 90+ products across 37 categories — explains categories, looks up products and vendors, compares named solutions, and gives ranked recommendations with weighted scoring. No AI API required.
 - Quick launch (Windows):
 ```
-cd projects/vendor-lens && start.cmd
+cd projects/vendor-advisor && start.cmd
 ```
-Docs: `projects/vendor-lens/README.md`
+Docs: `projects/vendor-advisor/README.md`
 
 ---
 
