@@ -18,6 +18,35 @@ TERM_NORMALIZATIONS = {
     "forti siem": "FortiSIEM",
     "fori siem": "FortiSIEM",
 }
+# Informal product/vendor references → canonical product_name in products.json
+PRODUCT_ALIASES: dict[str, str] = {
+    # Palo Alto firewall
+    "palo alto firewall":           "PA-Series NGFW",
+    "palo alto ngfw":               "PA-Series NGFW",
+    "palo alto next-gen firewall":  "PA-Series NGFW",
+    "pa-series":                    "PA-Series NGFW",
+    "pa series":                    "PA-Series NGFW",
+    # Fortinet
+    "fortigate":                    "FortiGate NGFW",
+    "fortinet firewall":            "FortiGate NGFW",
+    "fortinet ngfw":                "FortiGate NGFW",
+    # Check Point
+    "check point firewall":         "Quantum NGFW",
+    "checkpoint firewall":          "Quantum NGFW",
+    "check point ngfw":             "Quantum NGFW",
+    # Cisco
+    "cisco firewall":               "Cisco Secure Firewall",
+    "cisco ngfw":                   "Cisco Secure Firewall",
+    # CrowdStrike
+    "crowdstrike falcon":           "Falcon Insight XDR",
+    "crowdstrike":                  "Falcon Insight XDR",
+    # SentinelOne
+    "sentinel one":                 "SentinelOne Singularity",
+    "sentinelone":                  "SentinelOne Singularity",
+    # Microsoft
+    "microsoft defender":           "Microsoft Defender for Endpoint",
+    "defender for endpoint":        "Microsoft Defender for Endpoint",
+}
 PROBLEM_ALIASES = {
     "ransomware_protection": ["ransomware", "endpoint security", "endpoint protection", "edr", "xdr"],
     "cloud_security": ["cloud security", "cloud posture", "cloud misconfiguration", "cnapp", "cspm", "cwpp", "cloud security posture", "cloud workload protection"],
@@ -47,6 +76,7 @@ CATEGORY_ALIASES = {
     "Data Privacy": ["data privacy", "gdpr", "ccpa", "lgpd", "privacy management", "consent management", "dsar", "data subject rights", "privacy compliance"],
     "GRC": ["grc", "governance risk compliance", "governance risk and compliance", "integrated risk management", "enterprise risk management", "audit and compliance"],
     "Human Risk Management": ["human risk management", "hrm", "security awareness training", "phishing simulation", "awareness training", "security culture", "human risk"],
+    "Sandboxing": ["sandbox", "sandboxing", "malware sandbox", "malware sandboxing", "dynamic malware analysis", "dynamic analysis", "file detonation", "threat detonation", "malware detonation", "malware analysis", "wildfire", "sandblast", "threat grid"],
     "CIAM": ["ciam", "customer identity", "customer identity and access management", "consumer identity"],
     "DAM": ["dam", "database activity monitoring", "database monitoring", "db activity monitoring"],
     "EDR": ["edr"],
@@ -963,11 +993,20 @@ class DecisionEngine:
         for part in parts:
             item = part.strip(' .')
             lowered = item.lower()
-            for prefix in ('the ', 'what about ', 'how about ', 'tell me about '):
+            # Strip leading question/filler phrases
+            for prefix in ('how does a ', 'how does ', 'does a ', 'does ', 'how is ',
+                           'the ', 'what about ', 'how about ', 'tell me about ', 'a '):
                 if lowered.startswith(prefix):
                     item = item[len(prefix):].strip()
                     lowered = item.lower()
-            normalized = TERM_NORMALIZATIONS.get(lowered)
+            # Strip trailing comparison verbs
+            for suffix in (' compares', ' compare', ' stacks up', ' performs', ' ranks'):
+                if lowered.endswith(suffix):
+                    item = item[:-len(suffix)].strip()
+                    lowered = item.lower()
+                    break
+            # Canonical product alias resolution
+            normalized = TERM_NORMALIZATIONS.get(lowered) or PRODUCT_ALIASES.get(lowered)
             if normalized:
                 item = normalized
             if item:

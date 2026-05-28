@@ -2066,5 +2066,49 @@
     "pricing_tier": "medium",
     "operational_complexity": "medium",
     "market_position": "challenger"
+  },
+  {
+    "vendor": "Palo Alto Networks",
+    "product": "WildFire",
+    "category": ["Sandboxing"],
+    "deployment": ["SaaS", "Hybrid"],
+    "compliance": ["FedRAMP", "SOC 2", "ISO 27001"],
+    "integration_support": ["Cortex XDR", "Panorama", "XSOAR", "Prisma Cloud"],
+    "pricing_tier": "high",
+    "operational_complexity": "low",
+    "market_position": "leader"
+  },
+  {
+    "vendor": "Check Point",
+    "product": "SandBlast Network",
+    "category": ["Sandboxing"],
+    "deployment": ["SaaS", "On-Prem"],
+    "compliance": ["SOC 2", "ISO 27001", "GDPR"],
+    "integration_support": ["Quantum NGFW", "Harmony Email", "SmartConsole"],
+    "pricing_tier": "high",
+    "operational_complexity": "medium",
+    "market_position": "leader"
+  },
+  {
+    "vendor": "Cisco",
+    "product": "Cisco Threat Grid",
+    "category": ["Sandboxing"],
+    "deployment": ["SaaS", "On-Prem"],
+    "compliance": ["FedRAMP", "SOC 2"],
+    "integration_support": ["Cisco Secure Firewall", "Cisco Secure Email", "SecureX", "Splunk"],
+    "pricing_tier": "medium",
+    "operational_complexity": "medium",
+    "market_position": "strong"
+  },
+  {
+    "vendor": "Trellix",
+    "product": "Trellix Malware Analysis",
+    "category": ["Sandboxing"],
+    "deployment": ["On-Prem"],
+    "compliance": ["ISO 27001", "SOC 2"],
+    "integration_support": ["Trellix XDR", "Trellix Email Security", "SIEM integrations"],
+    "pricing_tier": "high",
+    "operational_complexity": "high",
+    "market_position": "strong"
   }
 ]

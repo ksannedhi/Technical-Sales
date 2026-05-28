@@ -892,5 +892,26 @@
         ]
       }
     ]
+  },
+  {
+    "category": "Sandboxing",
+    "vendors": [
+      {
+        "vendor": "Palo Alto Networks",
+        "features": ["static and dynamic analysis", "ML-based verdict", "global threat intelligence", "inline prevention"]
+      },
+      {
+        "vendor": "Check Point",
+        "features": ["threat extraction", "threat emulation", "zero-day protection", "CPU-level inspection"]
+      },
+      {
+        "vendor": "Cisco",
+        "features": ["behavioral analysis", "global sample repository", "MITRE ATT&CK mapping", "on-prem appliance option"]
+      },
+      {
+        "vendor": "Trellix",
+        "features": ["multi-vector analysis", "email and file detonation", "hypervisor-based detection", "on-prem deployment"]
+      }
+    ]
   }
 ]

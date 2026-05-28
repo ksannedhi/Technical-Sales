@@ -111,12 +111,20 @@ Expected behavior:
 ### 4.6 Vendor-Category Recommendation
 Used when a category exists in vendor metadata but has no product records.
 
+Examples:
+- `Recommend a quantum encryption solution`
+- `What vendors offer passwordless authentication?`
+
 Expected behavior:
 - return vendor-level advisory recommendations only
 - confidence is capped at `low-to-medium`
 
 ### 4.7 Stack
 Used when the query spans more than one solution category.
+
+Examples:
+- `Recommend EDR and SIEM tools for a healthcare organisation`
+- `We need a firewall and a CASB solution — what are our options?`
 
 Expected behavior:
 - evaluate each category independently
@@ -125,6 +133,11 @@ Expected behavior:
 
 ### 4.8 Insufficient Data
 Used when the query cannot be supported reliably. Four distinct sub-cases with different rendering:
+
+Examples:
+- `constraint_excluded` — `Recommend XDR with on-prem deployment` (all XDR products are SaaS-only; all excluded by deployment constraint)
+- `missing_products` — `Compare CrowdStrike Falcon against SentinelOne Singularity` when one or both named products are absent from the dataset
+- `unknown_category` — `What is the best tool for quantum key distribution?` (category not recognised)
 
 | `reason_code` | Cause | UI behaviour |
 |---|---|---|

@@ -67,6 +67,36 @@ hr { margin: 0.75rem 0 !important; border-color: #e5e7eb !important; }
 
 /* Dataframe */
 div[data-testid="stDataFrame"] { margin-bottom: 0.3rem !important; }
+
+/* Badges */
+.va-badge {
+    display: inline-block;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-right: 0.25rem;
+    vertical-align: middle;
+}
+.va-leader     { background: #d1fae5; color: #065f46; }
+.va-strong     { background: #dbeafe; color: #1e40af; }
+.va-challenger { background: #fef3c7; color: #92400e; }
+.va-high       { background: #d1fae5; color: #065f46; }
+.va-medium     { background: #fef3c7; color: #92400e; }
+.va-low        { background: #fee2e2; color: #991b1b; }
+.va-saas       { background: #ede9fe; color: #5b21b6; }
+.va-onprem     { background: #e5e7eb; color: #374151; }
+.va-hybrid     { background: #e0f2fe; color: #075985; }
+
+/* Result card */
+.va-result-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem 0.75rem 1.1rem;
+    margin-bottom: 0.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -138,6 +168,31 @@ def _cap_first(s: str) -> str:
     return s[0].upper() + s[1:] if s else s
 
 
+def _badge(label: str, css_class: str) -> str:
+    return f'<span class="va-badge {css_class}">{label}</span>'
+
+
+def _position_badge(product: dict) -> str:
+    pos = str(product.get("market_position") or "").lower()
+    labels = {"leader": "Leader", "strong": "Strong", "challenger": "Challenger"}
+    return _badge(labels[pos], f"va-{pos}") if pos in labels else ""
+
+
+def _confidence_badge(confidence: str) -> str:
+    c = confidence.lower()
+    cls = f"va-{c}" if c in ("high", "medium", "low") else "va-medium"
+    return _badge(f"Confidence: {confidence.capitalize()}", cls)
+
+
+def _deployment_badges(deployment_models: list) -> str:
+    out = ""
+    for d in deployment_models:
+        dl = d.lower().replace("-", "").replace(" ", "")
+        kind = "saas" if "saas" in dl else "onprem" if "onprem" in dl or "prem" in dl else "hybrid"
+        out += _badge(d, f"va-{kind}")
+    return out
+
+
 def _product_description(product_name: str, cat_abbr: str, cat_what: str) -> str:
     """Build 'Prisma Cloud is a CNAPP solution that combines...' from the category description."""
     if not cat_what:
@@ -178,9 +233,16 @@ def render_single(result: dict[str, object]) -> None:
             st.write(brief)
     top = result["top_recommendation"]
     st.subheader("Best Fit")
-    position = _position_label(top)
-    st.markdown(f"**{top['product_name']}** from **{top['vendor']}** &nbsp;·&nbsp; Market position: **{position}** &nbsp;·&nbsp; Score: **{top['score']} / 100**")
-    st.caption(f"Confidence: {result['confidence'].capitalize()}")
+    pos_badge  = _position_badge(top)
+    conf_badge = _confidence_badge(result["confidence"])
+    dep_badges = _deployment_badges(top.get("deployment_models", []))
+    st.markdown(f"""
+<div class="va-result-card">
+  <p style="font-size:1.05rem;font-weight:700;margin:0 0 0.3rem 0;">{top['product_name']}</p>
+  <p style="font-size:0.83rem;color:#374151;margin:0 0 0.45rem 0;">From <strong>{top['vendor']}</strong> &nbsp;{pos_badge}{dep_badges}{conf_badge}</p>
+  <p style="font-size:0.9rem;font-weight:600;color:#0f1117;margin:0;">Score: {top['score']} / 100</p>
+</div>
+""", unsafe_allow_html=True)
     rows = []
     for product in result["ranked_products"]:
         rows.append({
@@ -216,8 +278,15 @@ def render_lookup(result: dict[str, object]) -> None:
         cat_abbr = result.get("primary_category") or ""
         cat_what = result.get("category_what_it_is", "")
         deployment = ", ".join(profile.get("deployment_models", [])) or "Not specified"
-        st.subheader(product_name)
-        st.caption(f"By **{vendor}** · {position} · {deployment} · Confidence: {result['confidence'].capitalize()}")
+        pos_badge  = _position_badge({"market_position": result.get("market_position")})
+        dep_badges = _deployment_badges(profile.get("deployment_models", []))
+        conf_badge = _confidence_badge(result["confidence"])
+        st.markdown(f"""
+<div class="va-result-card">
+  <p style="font-size:1.05rem;font-weight:700;margin:0 0 0.3rem 0;">{product_name}</p>
+  <p style="font-size:0.83rem;color:#374151;margin:0;">By <strong>{vendor}</strong> &nbsp;{pos_badge}{dep_badges}{conf_badge}</p>
+</div>
+""", unsafe_allow_html=True)
         if cat_what:
             description = _product_description(product_name, cat_abbr, cat_what)
             st.write(description)
@@ -232,8 +301,14 @@ def render_lookup(result: dict[str, object]) -> None:
     categories = profile.get("categories", [])
     regions = ", ".join(profile.get("regions", [])) or "Not specified"
     deployments = ", ".join(profile.get("deployment_models", [])) or "Not specified"
-    st.subheader(vendor_name)
-    st.caption(f"Regions: {regions} · Deployment: {deployments} · Confidence: {result['confidence'].capitalize()}")
+    dep_badges = _deployment_badges(profile.get("deployment_models", []))
+    conf_badge = _confidence_badge(result["confidence"])
+    st.markdown(f"""
+<div class="va-result-card">
+  <p style="font-size:1.05rem;font-weight:700;margin:0 0 0.3rem 0;">{vendor_name}</p>
+  <p style="font-size:0.83rem;color:#374151;margin:0;">Regions: {regions} &nbsp;{dep_badges}{conf_badge}</p>
+</div>
+""", unsafe_allow_html=True)
     if categories:
         cat_str = ", ".join(f"**{c}**" for c in categories)
         st.markdown(f"{vendor_name} covers {cat_str}.")

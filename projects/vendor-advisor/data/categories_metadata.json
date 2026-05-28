@@ -400,5 +400,17 @@
       "Difficulty measuring training effectiveness and demonstrating risk reduction",
       "Insider threat risk from careless or negligent employee actions"
     ]
+  },
+  {
+    "category": "Sandboxing",
+    "full_name": "Malware Sandboxing and Dynamic Analysis",
+    "what_it_is": "Sandboxing platforms execute suspicious files, URLs, and email attachments in an isolated environment to observe their behaviour without risk to production systems. They detect zero-day threats, evasive malware, and advanced persistent threats that signature-based tools miss by analysing what the code actually does at runtime.",
+    "problems_it_solves": [
+      "Zero-day and unknown malware that bypasses signature-based detection",
+      "Evasive threats that change behaviour in monitored environments",
+      "Safe analysis of suspicious email attachments and downloaded files",
+      "Slow manual malware analysis in incident response",
+      "Lack of visibility into what a suspicious file does before it executes"
+    ]
   }
 ]

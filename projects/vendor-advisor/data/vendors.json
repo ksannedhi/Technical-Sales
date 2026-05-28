@@ -19,7 +19,8 @@
       "XDR",
       "SASE",
       "SOAR",
-      "Firewall"
+      "Firewall",
+      "Sandboxing"
     ],
     "regions": [
       "Global"
@@ -72,7 +73,8 @@
       "SIEM",
       "MFA",
       "SASE",
-      "Firewall"
+      "Firewall",
+      "Sandboxing"
     ],
     "regions": [
       "Global"
@@ -503,7 +505,8 @@
     "vendor": "Check Point",
     "categories": [
       "Firewall",
-      "Network Security"
+      "Network Security",
+      "Sandboxing"
     ],
     "regions": [
       "Global"
@@ -633,6 +636,11 @@
   {
     "vendor": "evolutionQ",
     "categories": ["Quantum Encryption"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Trellix",
+    "categories": ["Sandboxing"],
     "regions": ["Global"]
   }
 ]
