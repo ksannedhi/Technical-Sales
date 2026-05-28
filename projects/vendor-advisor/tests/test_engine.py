@@ -229,11 +229,12 @@ class DecisionEngineTests(unittest.TestCase):
             ],
             "scoring_weights.json": {
                 "deployment_fit": 0.25,
-                "feature_match": 0.25,
+                "feature_match": 0.20,
                 "integration_fit": 0.15,
                 "compliance_fit": 0.15,
-                "cost_score": 0.1,
-                "operational_complexity": 0.1,
+                "market_position": 0.15,
+                "cost_score": 0.05,
+                "operational_complexity": 0.05,
             },
             "hard_exclusions.json": {
                 "rules": [

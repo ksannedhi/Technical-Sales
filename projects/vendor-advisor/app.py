@@ -391,8 +391,8 @@ def render_history_item(item: dict[str, object], index: int) -> None:
 
 st.markdown("""
 <div style="padding: 0.5rem 0 1.25rem 0; border-bottom: 1.5px solid #e5e7eb; margin-bottom: 1.25rem;">
-  <p style="font-family:'Inter',sans-serif; font-size:1.45rem; font-weight:700; margin:0 0 0.25rem 0; color:#0f1117; letter-spacing:-0.02em;">Multi-Vendor Decision Copilot</p>
-  <p style="font-family:'Inter',sans-serif; font-size:0.82rem; color:#6b7280; margin:0; line-height:1.5;">Transparent cybersecurity solution recommendations based on your constraints, required capabilities, and compliance needs.</p>
+  <p style="font-family:'Inter',sans-serif; font-size:1.45rem; font-weight:700; margin:0 0 0.25rem 0; color:#0f1117; letter-spacing:-0.02em;">VendorAdvisor</p>
+  <p style="font-family:'Inter',sans-serif; font-size:0.82rem; color:#6b7280; margin:0; line-height:1.5;">Conversational chatbot for cybersecurity vendor decisions. Ask it what a solution category is, look up a specific product, compare vendors, or get filtered recommendations — fully offline, no external AI API.</p>
 </div>
 """, unsafe_allow_html=True)
 st.markdown("<p style='font-family:Inter,sans-serif; font-size:0.88rem; font-weight:600; color:#374151; margin:0 0 0.3rem 0;'>Describe your cybersecurity need, constraints, and compliance requirements</p>", unsafe_allow_html=True)

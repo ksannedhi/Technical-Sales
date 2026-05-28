@@ -1,6 +1,6 @@
 # VendorAdvisor
 
-Customer-facing cybersecurity recommendation app with transparent filtering, weighted scoring, and category-aware explanations. Fully offline — no external AI API.
+Conversational chatbot for cybersecurity vendor decisions. Ask it what a solution category is, look up a specific product, compare vendors, or get filtered recommendations — fully offline, no external AI API.
 
 ## What It Does
 
@@ -39,7 +39,7 @@ Customer-facing cybersecurity recommendation app with transparent filtering, wei
 
 | File | Purpose |
 |---|---|
-| `data/products.json` | Primary product recommendation dataset (85+ products) |
+| `data/products.json` | Primary product recommendation dataset (90+ products) |
 | `data/vendors.json` | Vendor profiles and category mappings |
 | `data/categories.json` | Supported category list |
 | `data/categories_metadata.json` | Plain-English descriptions for all 36 categories |

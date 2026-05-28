@@ -168,7 +168,8 @@
       "SOAR",
       "DAM",
       "Identity Security",
-      "GRC"
+      "GRC",
+      "Quantum Encryption"
     ],
     "regions": [
       "Global"
@@ -598,5 +599,40 @@
     "regions": [
       "Global"
     ]
+  },
+  {
+    "vendor": "Thales",
+    "categories": ["Quantum Encryption"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Entrust",
+    "categories": ["Quantum Encryption", "PKI"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "DigiCert",
+    "categories": ["Quantum Encryption", "PKI"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "Quantinuum",
+    "categories": ["Quantum Encryption"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "ID Quantique",
+    "categories": ["Quantum Encryption"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "PQShield",
+    "categories": ["Quantum Encryption"],
+    "regions": ["Global"]
+  },
+  {
+    "vendor": "evolutionQ",
+    "categories": ["Quantum Encryption"],
+    "regions": ["Global"]
   }
 ]

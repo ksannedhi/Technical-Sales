@@ -807,5 +807,90 @@
         ]
       }
     ]
+  },
+  {
+    "category": "Quantum Encryption",
+    "vendors": [
+      {
+        "vendor": "IBM Security",
+        "features": [
+          "CRYSTALS-Kyber and CRYSTALS-Dilithium support",
+          "Crypto-agility framework",
+          "Hybrid classical+PQC migration",
+          "NIST PQC standards alignment",
+          "Enterprise key lifecycle management"
+        ]
+      },
+      {
+        "vendor": "Thales",
+        "features": [
+          "CRYSTALS-Kyber key encapsulation",
+          "HSM-backed post-quantum keys",
+          "Hybrid PQC/classical encryption",
+          "FIPS 140-2 validated hardware",
+          "Crypto-agility and algorithm migration"
+        ]
+      },
+      {
+        "vendor": "Entrust",
+        "features": [
+          "Post-quantum PKI issuance",
+          "Hybrid certificate profiles",
+          "NIST PQC algorithm support",
+          "FedRAMP-ready deployment",
+          "Crypto-agility and inventory scanning"
+        ]
+      },
+      {
+        "vendor": "DigiCert",
+        "features": [
+          "Post-quantum certificate management",
+          "Hybrid PQC/classical certificates",
+          "Cryptographic inventory and discovery",
+          "NIST PQC algorithm readiness",
+          "PKI lifecycle automation"
+        ]
+      },
+      {
+        "vendor": "Quantinuum",
+        "features": [
+          "Quantum-enhanced key generation",
+          "True quantum randomness (QRNG)",
+          "Integration with existing KMS",
+          "Harvest-now-decrypt-later protection",
+          "Cloud-native key delivery"
+        ]
+      },
+      {
+        "vendor": "ID Quantique",
+        "features": [
+          "Quantum key distribution (QKD)",
+          "Hardware-based quantum randomness",
+          "Point-to-point quantum channel",
+          "ETSI QKD standards compliance",
+          "On-premise quantum entropy source"
+        ]
+      },
+      {
+        "vendor": "PQShield",
+        "features": [
+          "CRYSTALS-Kyber and Dilithium SDK",
+          "Embedded and IoT PQC support",
+          "FIPS 140-3 validated modules",
+          "Hardware and software co-design",
+          "Post-quantum TLS integration"
+        ]
+      },
+      {
+        "vendor": "evolutionQ",
+        "features": [
+          "Quantum risk assessment",
+          "PQC migration roadmap tooling",
+          "Cryptographic inventory discovery",
+          "Hybrid encryption management",
+          "Compliance gap analysis for PQC"
+        ]
+      }
+    ]
   }
 ]

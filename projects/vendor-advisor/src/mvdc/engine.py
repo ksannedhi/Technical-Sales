@@ -31,12 +31,17 @@ PROBLEM_ALIASES = {
     "network_visibility": ["network visibility", "ndr", "siem", "security visibility", "qradar", "splunk", "fortisiem", "forisiem"],
     "email_protection": ["email security", "email protection", "phishing", "stop phishing", "email threats", "email attack", "email threat"],
     "mobile_security": ["mobile security", "mobile threat"],
-    "ot_security": ["ot security", "operational technology", "ics security", "industrial control systems", "manufacturing plant", "factory security"],
+    "ot_security": ["ot security", "operational technology", "ics security", "industrial control systems", "manufacturing plant", "factory security", "ot solutions", "ot infrastructure", "ot environment", "ot systems", "ot network", "protect ot", "secure ot", "ot threats", "ot attack", "ot cyber", "scada", "plc security", "industrial iot", "iiot security"],
+    "quantum_encryption": ["quantum computing", "quantum threat", "quantum attack", "quantum computer", "decryption attacks", "harvest now decrypt later", "post-quantum", "quantum-safe", "quantum safe", "pqc", "quantum resistant", "quantum cryptography", "quantum encryption", "protect from quantum", "future proof encryption", "quantum risk"],
 }
 CATEGORY_ALIASES = {
     "API Security": ["api security"],
-    "ASM": ["asm", "easm", "attack surface management", "external attack surface management"],
-    "CNAPP": ["cnapp", "cspm", "cwpp", "cloud security posture", "cloud workload protection"],
+    "ASM": ["asm", "attack surface management"],
+    "CSPM": ["cspm", "cloud security posture management", "cloud security posture"],
+    "CWPP": ["cwpp", "cloud workload protection", "cloud workload security"],
+    "CNAPP": ["cnapp"],
+    "DTDR": ["dtdr", "digital threat detection", "digital threat detection and response"],
+    "EASM": ["easm", "external attack surface"],
     "DLP": ["dlp"],
     "DSPM": ["dspm", "data security posture"],
     "Data Privacy": ["data privacy", "gdpr", "ccpa", "lgpd", "privacy management", "consent management", "dsar", "data subject rights", "privacy compliance"],
@@ -55,8 +60,12 @@ CATEGORY_ALIASES = {
     "MFA": ["mfa"],
     "Mobile Security": ["mobile security"],
     "NDR": ["ndr"],
-    "OT Security": ["ot security", "operational technology", "industrial security", "ics security", "manufacturing plant", "plant security"],
+    "OT Security": ["ot security", "operational technology", "industrial security", "ics security", "manufacturing plant", "plant security", "ot solutions", "ot infrastructure", "ot environment", "ot systems", "ot network", "protect ot", "secure ot", "ot threats", "ot attack", "ot cyber", "scada", "plc security", "industrial iot", "iiot security"],
     "PAM": ["pam"],
+    "PKI": ["pki", "public key infrastructure", "certificate management", "certificate authority", "digital certificates"],
+    "Passwordless": ["passwordless", "password-free", "password free", "phishing resistant mfa", "passkey", "passkeys"],
+    "Brand Protection": ["brand protection", "brand monitoring", "digital brand protection", "brand impersonation", "domain impersonation"],
+    "Quantum Encryption": ["quantum encryption", "post-quantum", "quantum-safe", "pqc", "post quantum cryptography", "quantum cryptography", "quantum safe encryption", "harvest now decrypt later", "quantum computing", "quantum threat", "quantum attack", "quantum computer", "quantum resistant", "protect from quantum", "future proof encryption"],
     "SASE": ["sase", "secure access service edge"],
     "SIEM": ["siem", "qradar", "splunk", "fortisiem", "forisiem"],
     "SOAR": ["soar"],
@@ -216,7 +225,7 @@ class DecisionEngine:
             vendor_matches = self._vendor_category_matches(categories[0])
             if vendor_matches:
                 return self._vendor_category_recommendation(parsed, categories[0], vendor_matches)
-            return self._insufficient(parsed, "I identified a relevant category, but the current dataset has no products for it.", categories)
+            return self._insufficient(parsed, "I identified a relevant category, but the current dataset has no products for it.", categories, reason_code="missing_products")
         return self._rank_category(parsed, categories[0], products)
 
     def parse_query(self, query: str) -> ParsedQuery:
@@ -278,7 +287,8 @@ class DecisionEngine:
     def _lookup_products(self, text: str) -> list[str]:
         ignore_tokens = {"cloud", "data", "platform", "security", "enterprise", "identity",
                          "management", "awareness", "training", "risk", "human", "program",
-                         "intelligence", "protection", "detection", "response", "analytics"}
+                         "intelligence", "protection", "detection", "response", "analytics",
+                         "quantum"}
         query_tokens = set(re.findall(r"[a-z0-9]+", text.lower()))
         matches = []
         for product_name in self.product_names:
@@ -636,8 +646,17 @@ class DecisionEngine:
             "Cost": self._cost_fit(product),
             "Complexity": self._operational_fit(product),
         }
-        weight_list = list(weights.values())
-        return {name: round(score * weight_list[i], 1) for i, (name, score) in enumerate(components.items())}
+        # Map display names to scoring_weights.json keys — explicit, order-independent.
+        key_map = {
+            "Deployment Fit": "deployment_fit",
+            "Feature Match": "feature_match",
+            "Integration Fit": "integration_fit",
+            "Compliance Fit": "compliance_fit",
+            "Market Position": "market_position",
+            "Cost": "cost_score",
+            "Complexity": "operational_complexity",
+        }
+        return {name: round(score * weights.get(key_map[name], 0), 1) for name, score in components.items()}
 
     def _comparison_reason(self, product: dict[str, Any]) -> str:
         parts = []
@@ -922,6 +941,10 @@ class DecisionEngine:
         return [name for name, aliases in alias_map.items() if any(self._contains_alias(text, alias) for alias in aliases)]
 
     def _contains_alias(self, text: str, alias: str) -> bool:
+        # Negative lookbehind/lookahead on [a-z0-9] acts as a word-boundary guard.
+        # For single-word aliases ("iga") this prevents substring matches like "sigaret".
+        # For multi-word aliases ("data residency") the boundary applies to the first and
+        # last character of the full phrase, which is correct — the middle spaces are literal.
         pattern = rf"(?<![a-z0-9]){re.escape(alias.lower())}(?![a-z0-9])"
         return bool(re.search(pattern, text))
 

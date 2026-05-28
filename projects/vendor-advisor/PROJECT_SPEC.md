@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-Multi-Vendor Decision Copilot is a customer-facing cybersecurity recommendation application that helps users:
+VendorAdvisor is a customer-facing cybersecurity recommendation application that helps users:
 
 - understand what a cybersecurity category or specific product is, in plain English
 - compare named products or vendors side by side with transparent scoring
@@ -124,12 +124,12 @@ Expected behavior:
 - flag categories with insufficient data inline
 
 ### 4.8 Insufficient Data
-Used when the query cannot be supported reliably. Three distinct sub-cases with different rendering:
+Used when the query cannot be supported reliably. Four distinct sub-cases with different rendering:
 
 | `reason_code` | Cause | UI behaviour |
 |---|---|---|
 | `constraint_excluded` | Category found, all products eliminated by hard constraints | State the category is supported; explain constraints eliminated all options; suggest relaxing them. Do NOT show the supported-categories list. |
-| `missing_products` | Named comparison targets not in dataset | State which products are missing. Do NOT show the supported-categories list. |
+| `missing_products` | Named comparison targets not in dataset, OR category resolved but no product records and no vendor-category coverage exist | State what is missing. Do NOT show the supported-categories list. |
 | `unknown_category` | Query could not be resolved to any category or vendor | Show supported categories and suggested alternative prompts. |
 
 ## 5. Canonical Response Modes
@@ -232,7 +232,7 @@ Local files in `data/`:
 
 | File | Purpose |
 |---|---|
-| `products.json` | 85+ product records with categories, deployment, compliance, integrations, pricing, complexity, market position |
+| `products.json` | 90+ product records with categories, deployment, compliance, integrations, pricing, complexity, market position |
 | `vendors.json` | Vendor category coverage and regional availability |
 | `categories.json` | Supported category list |
 | `categories_metadata.json` | Plain-English descriptions for 36 categories including full name, what it is, and problems it solves |
@@ -298,7 +298,9 @@ Automated tests in `tests/test_engine.py` cover:
 
 ### Data
 - Integration metadata is missing for one product: Stellar (TXOne Networks / OT Security)
-- 25 vendor-category pairs across 15 vendors have no product records (e.g. Cisco SIEM, CrowdStrike Cloud Security, Varonis Data Security, Zscaler DLP, Yubico Passwordless); these fall back to `vendor_category` advisory mode
+- Several vendor-category pairs have no product records (e.g. Cisco SIEM, CrowdStrike Cloud Security, Varonis Data Security, Zscaler DLP, Yubico Passwordless); these fall back to `vendor_category` advisory mode
+- **PKI** — Entrust PKI Hub and DigiCert Trust Lifecycle Manager product records exist, but `CATEGORY_ALIASES` in `engine.py` has no entry for "PKI"; queries for PKI return `unknown_category` until the alias is added
+- **Passwordless** — Yubico is in the vendor registry under "Passwordless" but no product record exists, and `CATEGORY_ALIASES` has no alias; queries return `unknown_category`
 
 ### Product
 - No persistent history across app restarts
