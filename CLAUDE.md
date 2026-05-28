@@ -6,15 +6,7 @@ This file provides guidance to Claude Code when working from the `Downloads` dir
 
 ## What lives here
 
-A Claude Code skill for presales bid drafting and 10 standalone cybersecurity presales tools, each in its own folder. Every standalone has a synced copy in the GitHub repo under `Technical-Sales\projects\<project-name>\`.
-
-## Skill
-
-| Skill | Path | Invoke |
-|---|---|---|
-| `autonomous-presales-engineer` | `skills/presales-skills` | `/autonomous-presales-engineer` or `/presales-skills:draft-bid-pack` |
-
-Generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a customer RFP, vendor documentation, and a gold proposal. See `skills/presales-skills/README.md` for setup.
+10 standalone cybersecurity presales tools, each in its own folder. Every standalone has a synced copy in the GitHub repo under `Technical-Sales\projects\<project-name>\`.
 
 ## Standalone projects
 
@@ -84,7 +76,6 @@ Each standalone has its own `CLAUDE.md` with commands, architecture, and key fil
 At the end of **every** session, before closing:
 
 1. **Update `Downloads\MEMORY.md`** — add any new rules, patterns, decisions, or corrections that would be useful in a future session. This is the cross-project memory file. It is separate from the per-project `.claude\projects\...\memory\MEMORY.md` — both must be updated.
-2. **Review all four documentation files** — README.md, CLAUDE.md, PROJECT_SPEC.md, and `Downloads\MEMORY.md`. All four must be checked for staleness, not just PROJECT_SPEC and MEMORY.
-3. **Sync and push** — confirm the repo is up to date with all changes made during the session.
+2. **Sync and push** — confirm the repo is up to date with all changes made during the session.
 
 `Downloads\MEMORY.md` is the most commonly skipped step. It must be updated even when the user does not ask.
