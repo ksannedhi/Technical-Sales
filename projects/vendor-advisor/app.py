@@ -192,7 +192,7 @@ def render_single(result: dict[str, object]) -> None:
             "Features": _fmt_features(product.get("features", [])),
         })
     st.subheader("Weighted Comparison")
-    st.dataframe(rows, use_container_width=True, hide_index=True)
+    st.dataframe(rows, width='stretch', hide_index=True)
     constraints = result.get("constraints", {})
     has_constraints = any(constraints.get(k) for k in ("deployment", "compliance", "integrations", "region"))
     if has_constraints:
@@ -257,7 +257,7 @@ def render_lookup(result: dict[str, object]) -> None:
                 "Position": _position_label(product),
                 "Deployment": ", ".join(product.get("deployment_models", [])),
             })
-        st.dataframe(rows, use_container_width=True, hide_index=True)
+        st.dataframe(rows, width='stretch', hide_index=True)
 
     gaps = profile.get("category_gaps", [])
     if gaps:
@@ -277,7 +277,7 @@ def render_comparison(result: dict[str, object]) -> None:
             "Features": _fmt_features(item.get("features", [])),
         })
     st.subheader("Vendor Comparison")
-    st.dataframe(rows, use_container_width=True, hide_index=True)
+    st.dataframe(rows, width='stretch', hide_index=True)
     comparison_results = result["comparison_results"]
     if len(comparison_results) >= 2 and comparison_results[0]["score"] == comparison_results[1]["score"]:
         tied = [f"{r['vendor']} ({r['product_name']})" for r in comparison_results if r["score"] == comparison_results[0]["score"]]
@@ -302,7 +302,7 @@ def render_vendor_category(result: dict[str, object]) -> None:
             "Score": f"{item['score']}",
             "Notes": item["score_reason"],
         })
-    st.dataframe(rows, use_container_width=True, hide_index=True)
+    st.dataframe(rows, width='stretch', hide_index=True)
 
 
 def render_stack(result: dict[str, object]) -> None:
@@ -338,7 +338,7 @@ def render_category_explain(result: dict[str, object]) -> None:
                     "Deployment": ", ".join(product.get("deployment_models", [])),
                     "Features": _fmt_features(product.get("features", [])),
                 })
-            st.dataframe(rows, use_container_width=True, hide_index=True)
+            st.dataframe(rows, width='stretch', hide_index=True)
 
 
 def render_exclusions(result: dict[str, object]) -> None:
@@ -407,13 +407,13 @@ query = st.text_area(
     placeholder="Example: Compare SIEM vendors for a bank with FedRAMP, on-prem deployment, and ServiceNow integration.",
     label_visibility="collapsed",
 )
-run = st.button("Analyze", type="primary", use_container_width=True)
+run = st.button("Analyze", type="primary", width='stretch')
 examples = engine.get_examples()
 example_cols = st.columns(len(examples))
 active_example = st.session_state.get("active_example", "")
 for col, sample in zip(example_cols, examples):
     is_active = sample == active_example
-    if col.button(sample, use_container_width=True, type="primary" if is_active else "secondary"):
+    if col.button(sample, width='stretch', type="primary" if is_active else "secondary"):
         st.session_state["pending_prompt"] = sample
         st.session_state["active_example"] = sample
         st.rerun()
@@ -450,7 +450,7 @@ if history_store:
     with history_left:
         st.subheader("Session History")
     with history_right:
-        if st.button("Clear History", use_container_width=True):
+        if st.button("Clear History", width='stretch'):
             history_store.clear()
             st.rerun()
     for index, item in enumerate(reversed(history_store), start=1):
