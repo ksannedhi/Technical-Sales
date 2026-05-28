@@ -407,7 +407,8 @@ query = st.text_area(
     placeholder="Example: Compare SIEM vendors for a bank with FedRAMP, on-prem deployment, and ServiceNow integration.",
     label_visibility="collapsed",
 )
-run = st.button("Analyze", type="primary", width='stretch')
+run = st.button("Analyze", type="primary", width='stretch',
+                on_click=lambda: st.session_state.pop("active_example", None))
 examples = engine.get_examples()
 example_cols = st.columns(len(examples))
 active_example = st.session_state.get("active_example", "")
@@ -418,9 +419,6 @@ for col, sample in zip(example_cols, examples):
         st.session_state["active_example"] = sample
         st.rerun()
 should_run = run or st.session_state.pop("auto_analyze", False)
-if should_run and query.strip():
-    if query.strip() not in examples:
-        st.session_state.pop("active_example", None)
     result = engine.analyze(query.strip())
     if not any(h["query"] == query.strip() for h in history_store):
         history_store.append({"query": query.strip(), "result": result})
