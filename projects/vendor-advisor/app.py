@@ -419,6 +419,7 @@ for col, sample in zip(example_cols, examples):
         st.session_state["active_example"] = sample
         st.rerun()
 should_run = run or st.session_state.pop("auto_analyze", False)
+if should_run and query.strip():
     result = engine.analyze(query.strip())
     if not any(h["query"] == query.strip() for h in history_store):
         history_store.append({"query": query.strip(), "result": result})
