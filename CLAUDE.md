@@ -6,7 +6,15 @@ This file provides guidance to Claude Code when working from the `Downloads` dir
 
 ## What lives here
 
-10 standalone cybersecurity presales tools, each in its own folder. Every standalone has a synced copy in the GitHub repo under `Technical-Sales\projects\<project-name>\`.
+A Claude Code skill for presales bid drafting and 10 standalone cybersecurity presales tools, each in its own folder. Every standalone has a synced copy in the GitHub repo under `Technical-Sales\projects\<project-name>\`.
+
+## Skill
+
+| Skill | Path | Invoke |
+|---|---|---|
+| `autonomous-presales-engineer` | `skills/presales-skills` | `/autonomous-presales-engineer` or `/presales-skills:draft-bid-pack` |
+
+Generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a customer RFP, vendor documentation, and a gold proposal. See `skills/presales-skills/README.md` for setup.
 
 ## Standalone projects
 
