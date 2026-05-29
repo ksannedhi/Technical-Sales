@@ -418,9 +418,7 @@ def render_page(state: dict[str, object]) -> str:
         is_rfp_mode = result.get("review_mode") == "rfp"
 
         if is_rfp_mode:
-            # RFP Review mode — questions first, only requirements findings, no score
-            req_findings_only = [f for f in result["findings"] if f.get("gate") == "Requirements"]
-            findings = render_findings_groups(req_findings_only)
+            # RFP Review mode — questions only, no findings, no score
             questions_items = result["clarifying_questions"]
             questions_html = "".join(f"<li>{escape(item)}</li>" for item in questions_items) or "<li>No specific questions generated — try adding more RFP text.</li>"
             req_score = result["gate_scores"]["Requirements"]
@@ -435,10 +433,9 @@ def render_page(state: dict[str, object]) -> str:
               </div>
               <div class="selected-review-metrics">
                 <div class="mini-metric"><span>Requirements Coverage</span><strong>{req_score}/100</strong></div>
-                <div class="mini-metric"><span>Findings</span><strong>{len(req_findings_only)}</strong></div>
                 <div class="mini-metric"><span>Questions for Customer</span><strong>{len(questions_items)}</strong></div>
               </div>
-              <p class="selected-review-note">Scroll down for the full question list and findings.</p>
+              <p class="selected-review-note">Scroll down for the full question list.</p>
             </section>
             """
             result_html = f"""
@@ -447,14 +444,11 @@ def render_page(state: dict[str, object]) -> str:
                 <h2>📋 RFP Review — {escape(active_deal_name)}</h2>
                 <a class="download-link" href="{findings_download_href}" download="{escape(active_deal_name)}_rfp_review.txt">Download Questions</a>
               </div>
-              <p class="hint">Questions to submit to the customer during the clarification window. Findings below flag what is missing or unclear in the RFP before you start the proposal.</p>
               <div class="rfp-questions-box">
                 <h3>Questions for the Customer ({len(questions_items)})</h3>
                 <p class="copy-hint">Copy these into your clarification response or share with the account team.</p>
                 <ul>{questions_html}</ul>
               </div>
-              <h3>RFP Findings ({len(req_findings_only)})</h3>
-              {findings if findings else "<p class='hint'>No requirements gaps detected.</p>"}
             </section>
             """
         else:
@@ -1023,12 +1017,6 @@ def build_findings_download_href(deal_name: str, result: dict[str, object]) -> s
             lines.extend(f"{i+1}. {item}" for i, item in enumerate(result["clarifying_questions"]))
         else:
             lines.append("- No specific questions generated.")
-        req_findings = [f for f in result["findings"] if f.get("gate") == "Requirements"]
-        lines.extend(["", "Requirements Findings:"])
-        if req_findings:
-            lines.extend(f"- [{item['severity'].upper()}] {item['message']}" for item in req_findings)
-        else:
-            lines.append("- No requirements gaps detected.")
     else:
         lines = [
             f"Deal: {deal_name}",
