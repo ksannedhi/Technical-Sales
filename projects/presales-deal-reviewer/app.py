@@ -255,16 +255,32 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             target = key.replace("_file", "")
             if target == "supporting":
                 target = "supporting_context"
-            artifacts[target] = merge_text(text, artifacts.get(target, ""))
             warning = upload_warning(fname, text)
             if warning:
                 state["messages"].append(warning)
+            # Do not merge error markers into artifacts — scanned or unreadable PDFs
+            # produce a bracketed error string that looks like content to the engine
+            # but yields meaningless scores and generic questions unrelated to the
+            # actual document.  Show the warning only; let the empty-artifact guard
+            # below catch the case where nothing usable was provided.
+            if not text.startswith("["):
+                artifacts[target] = merge_text(text, artifacts.get(target, ""))
 
     # Guard: refuse to run analysis when no content was provided at all.
     # Uploads are already merged into artifacts by this point, so checking
     # artifact values is sufficient — empty text + no file = all empty strings.
     if not any(artifacts.values()):
-        state["messages"].append("Paste or upload at least one document (requirements, proposal, or supporting context) before running the review.")
+        file_was_attempted = any(
+            isinstance(form.get(k), dict) and form.get(k, {}).get("filename")
+            for k in ["requirements_file", "proposal_file", "supporting_file"]
+        )
+        if file_was_attempted:
+            state["messages"].append(
+                "The uploaded file(s) could not be read — the PDF is likely scanned or image-based and contains no extractable text. "
+                "Convert to DOCX (open in Word and save as .docx), or paste the document text directly into the form."
+            )
+        else:
+            state["messages"].append("Paste or upload at least one document (requirements, proposal, or supporting context) before running the review.")
         state["deal_name"] = deal_name
         return state
 
