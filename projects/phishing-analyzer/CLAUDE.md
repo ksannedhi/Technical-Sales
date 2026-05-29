@@ -60,7 +60,7 @@ Puppeteer               Headless Chrome — HTML report → PDF
 
 - **Hybrid analysis** — deterministic engine computes all structured data (verdict, risk score, findings, MITRE tactics, compliance gaps, recommendations); OpenAI is called only for the narrative layer (summaries, compliance explanation text, confidence score).
 - **Dual-framework compliance** — every analysis produces both NCA ECC-2:2024 and ISO 27001 gap sets; the frontend toggle switches views without re-analyzing. The PDF always renders both framework sections regardless of which toggle was active at download time.
-- **OpenAI structured output** — uses `narrativeJsonSchema` (4-field schema) with the Responses API, `reasoning: { effort: 'minimal' }`, and `max_output_tokens: 1500` for low-latency narration. Default model: `gpt-5-nano`.
+- **OpenAI structured output** — uses `narrativeJsonSchema` (4-field schema) with the Responses API and `max_output_tokens: 1500`. Default model: `gpt-4.1-mini`.
 - **Async deterministic checks** — `runDeterministicChecks(parsedEmail)` is async; it awaits RDAP domain age lookups. Always `await` it in `routes/analyze.js`.
 - **Puppeteer for PDF** — `page.pdf()` returns `Uint8Array` in Puppeteer v22+; always wrap with `Buffer.from()` before `res.send()`.
 - **5 MB request limit** — body parser set to `5mb` to accommodate `.eml` file uploads.
@@ -73,7 +73,7 @@ Puppeteer               Headless Chrome — HTML report → PDF
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENAI_API_KEY` | Yes | — | OpenAI API key for phishing classification |
-| `OPENAI_MODEL` | No | `gpt-5-nano` | OpenAI model for analysis |
+| `OPENAI_MODEL` | No | `gpt-4.1-mini` | OpenAI model for analysis |
 | `PORT` | No | `3002` | Backend server port |
 | `CLIENT_ORIGIN` | No | `http://localhost:5175` | Allowed CORS origin |
 

@@ -211,8 +211,7 @@ async function fetchNarrative({ parsedEmail, findings, threatProfiles, riskScore
   const { system, user } = buildNarrativeMessages({ parsedEmail, findings, threatProfiles, riskScore, verdict, eccGaps, isoGaps });
 
   const response = await client.responses.create({
-    model: process.env.OPENAI_MODEL || 'gpt-5-nano',
-    reasoning: { effort: 'minimal' },
+    model: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
     max_output_tokens: 1500,
     input: [
       { role: 'system', content: [{ type: 'input_text', text: system }] },

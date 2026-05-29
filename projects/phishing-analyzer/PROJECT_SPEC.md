@@ -146,9 +146,9 @@ Free-text field at the bottom of results. Content is appended to the PDF as a hi
 
 - OpenAI Responses API
 - Structured JSON schema output
-- Default model: `gpt-5-nano`
+- Default model: `gpt-4.1-mini`
 - `max_output_tokens: 1500`
-- `reasoning: { effort: 'minimal' }`
+- No reasoning parameter (not a reasoning model)
 
 Responsibilities (narrative layer only):
 - Executive summary
