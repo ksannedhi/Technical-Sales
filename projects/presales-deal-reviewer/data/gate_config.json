@@ -1,8 +1,8 @@
 {
   "weights": {
-    "Requirements": 0.45,
+    "Requirements": 0.25,
     "Architecture": 0.25,
-    "Proposal": 0.30
+    "Proposal": 0.50
   },
   "score_thresholds": {
     "gate_pass": 80,

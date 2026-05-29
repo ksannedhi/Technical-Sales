@@ -654,11 +654,11 @@ def render_page(state: dict[str, object]) -> str:
           </section>
         </div>
         <div>
-          <section class="panel">
+          <section class="panel" id="panel-score-reference">
             <h2>Score Reference</h2>
             <div class="info-gates">
               <div class="info-gate">
-                <div class="info-gate-header"><span>Requirements</span><span class="gate-weight">45%</span></div>
+                <div class="info-gate-header"><span>Requirements</span><span class="gate-weight">25%</span></div>
                 <p class="hint">Scope clarity, sizing, retention, integrations, and discovery completeness.</p>
               </div>
               <div class="info-gate">
@@ -666,7 +666,7 @@ def render_page(state: dict[str, object]) -> str:
                 <p class="hint">HA/DR coverage, design constraints, and technical alignment with requirements.</p>
               </div>
               <div class="info-gate">
-                <div class="info-gate-header"><span>Proposal</span><span class="gate-weight">30%</span></div>
+                <div class="info-gate-header"><span>Proposal</span><span class="gate-weight">50%</span></div>
                 <p class="hint">Deliverable scope, timeline, assumptions, and executive readiness.</p>
               </div>
             </div>
@@ -676,7 +676,28 @@ def render_page(state: dict[str, object]) -> str:
               <div class="band band-rework"><span class="band-score">0–59</span><span>REWORK — material blockers found</span></div>
             </div>
           </section>
-          <section class="panel">
+          <section class="panel" id="panel-rfp-guide" style="display:none;">
+            <h2>RFP Review Guide</h2>
+            <div class="info-where">
+              <div class="info-where-item">
+                <div class="info-where-label">What this mode does</div>
+                <p class="hint">Reads the RFP, detects solution families, and generates targeted questions to submit to the customer during the clarification window.</p>
+              </div>
+              <div class="info-where-item">
+                <div class="info-where-label">Questions for the customer</div>
+                <p class="hint">Tailored per detected solution family — sizing baselines, scope boundaries, compliance frameworks, integration dependencies.</p>
+              </div>
+              <div class="info-where-item">
+                <div class="info-where-label">Findings</div>
+                <p class="hint">Flags what is missing or unclear in the RFP before you commit to a proposal. No score — there is nothing to score yet.</p>
+              </div>
+              <div class="info-where-item">
+                <div class="info-where-label">When done</div>
+                <p class="hint">Once the customer responds and you have a proposal draft, switch to Deal Review mode for a full readiness score.</p>
+              </div>
+            </div>
+          </section>
+          <section class="panel" id="panel-what-goes-where">
             <h2>What Goes Where</h2>
             <div class="info-where">
               <div class="info-where-item">
@@ -757,6 +778,12 @@ def render_page(state: dict[str, object]) -> str:
     if (modeHintDeal) modeHintDeal.style.display = isRfp ? "none" : "";
     if (reqLabel) reqLabel.textContent = isRfp ? "Requirements / RFP" : "Requirements / Discovery Notes";
     if (reviewButton) reviewButton.textContent = isRfp ? "Run RFP Review" : "Run Gate Review";
+    const scorePanel = document.getElementById("panel-score-reference");
+    const rfpGuide = document.getElementById("panel-rfp-guide");
+    const whatGoesWhere = document.getElementById("panel-what-goes-where");
+    if (scorePanel) scorePanel.style.display = isRfp ? "none" : "";
+    if (rfpGuide) rfpGuide.style.display = isRfp ? "" : "none";
+    if (whatGoesWhere) whatGoesWhere.style.display = isRfp ? "none" : "";
   }}
   document.querySelectorAll(".mode-btn").forEach(btn => {{
     btn.addEventListener("click", () => setReviewMode(btn.getAttribute("data-mode")));
@@ -932,29 +959,47 @@ def extract_disposition_value(disposition: str, key: str) -> str:
 
 
 def build_findings_download_href(deal_name: str, result: dict[str, object]) -> str:
-    lines = [
-        f"Deal: {deal_name}",
-        f"Overall Readiness: {result['overall_status']} ({result['overall_score']}/100)",
-        f"Requirements: {result['gate_scores']['Requirements']}",
-        f"Architecture: {result['gate_scores']['Architecture']}",
-        f"Proposal: {result['gate_scores']['Proposal']}",
-        "",
-        "Findings:",
-    ]
-    if result["findings"]:
-        lines.extend(f"- [{item['severity'].upper()}] {item['gate']}: {item['message']}" for item in result["findings"])
+    is_rfp = result.get("review_mode") == "rfp"
+    if is_rfp:
+        lines = [
+            f"RFP Review: {deal_name}",
+            "",
+            "Questions for Customer:",
+        ]
+        if result["clarifying_questions"]:
+            lines.extend(f"{i+1}. {item}" for i, item in enumerate(result["clarifying_questions"]))
+        else:
+            lines.append("- No specific questions generated.")
+        req_findings = [f for f in result["findings"] if f.get("gate") == "Requirements"]
+        lines.extend(["", "Requirements Findings:"])
+        if req_findings:
+            lines.extend(f"- [{item['severity'].upper()}] {item['message']}" for item in req_findings)
+        else:
+            lines.append("- No requirements gaps detected.")
     else:
-        lines.append("- No material findings.")
-    lines.extend(["", "Strengths:"])
-    if result["strengths"]:
-        lines.extend(f"- {item}" for item in result["strengths"])
-    else:
-        lines.append("- No standout strengths detected yet.")
-    lines.extend(["", "Clarifying Questions:"])
-    if result["clarifying_questions"]:
-        lines.extend(f"- {item}" for item in result["clarifying_questions"])
-    else:
-        lines.append("- No follow-up questions needed.")
+        lines = [
+            f"Deal: {deal_name}",
+            f"Overall Readiness: {result['overall_status']} ({result['overall_score']}/100)",
+            f"Requirements: {result['gate_scores']['Requirements']}",
+            f"Architecture: {result['gate_scores']['Architecture']}",
+            f"Proposal: {result['gate_scores']['Proposal']}",
+            "",
+            "Findings:",
+        ]
+        if result["findings"]:
+            lines.extend(f"- [{item['severity'].upper()}] {item['gate']}: {item['message']}" for item in result["findings"])
+        else:
+            lines.append("- No material findings.")
+        lines.extend(["", "Strengths:"])
+        if result["strengths"]:
+            lines.extend(f"- {item}" for item in result["strengths"])
+        else:
+            lines.append("- No standout strengths detected yet.")
+        lines.extend(["", "Clarifying Questions:"])
+        if result["clarifying_questions"]:
+            lines.extend(f"- {item}" for item in result["clarifying_questions"])
+        else:
+            lines.append("- No follow-up questions needed.")
     payload = "\n".join(lines)
     return "data:text/plain;charset=utf-8," + urllib.parse.quote(payload)
 
