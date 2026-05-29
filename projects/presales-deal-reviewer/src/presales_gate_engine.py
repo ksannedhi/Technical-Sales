@@ -182,6 +182,8 @@ SOLUTION_FAMILY_KEYWORDS = {
     "firewall_network": [
         "firewall", "fortigate", "palo alto", "checkpoint", "vpn", "nat", "segmentation", "internet edge", "perimeter",
         "tippingpoint", "trend micro tipping point",
+        "sandblast", "quantum gateway", "smartconsole", "smart-1", "r81", "cloudguard", "harmony connect",
+        "next generation firewall", "ngfw", "utm", "unified threat management",
     ],
     "email_security": [
         "email security", "secure email", "phishing", "m365", "office 365", "exchange", "mail flow", "email gateway", "mimecast", "proofpoint",
@@ -266,7 +268,7 @@ SOLUTION_FAMILY_QUESTIONS = {
     ],
     "firewall_network": [
         "What is the required firewall topology across internet edge, internal segmentation, VPN, and branch connectivity?",
-        "Are HA pairs, failover behavior, and maintenance windows defined for the firewall deployment?",
+        "Which subscription bundles are required — threat prevention (SandBlast/ATP), IPS, URL Filtering, and SSL Inspection?",
         "Which NAT, routing, and east-west segmentation requirements must the design preserve?",
     ],
     # TippingPoint is a network IPS, not a traditional NGFW — VPN/routing questions
@@ -439,7 +441,7 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     # proposals ("SIEM integration", "centralized log management") and would spuriously
     # trigger the siem_log_mgmt family for non-SIEM deals.
     "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo", "fortianalyzer", "fortisiem", "fortisoar", "xsoar", "cortex xsoar", "splunk soar"],
-    "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw", "tippingpoint"],
+    "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw", "tippingpoint", "sandblast", "quantum gateway", "smartconsole", "cloudguard", "r81"],
     "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email", "trend micro email security", "interscan messaging"],
     "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection", "vision one", "apex one", "deep security"],
     "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network", "zscaler", "prisma access", "netskope", "cato networks"],
@@ -769,7 +771,12 @@ class PresalesGateEngine:
                 if not (renewal_ok or strong_proposal):
                     continue
             total_hits = sum(1 for kw in keywords if _keyword_match(combined, kw))
-            if total_hits >= 2:
+            # If the requirements text already confirmed the family (req_hits >= 1),
+            # a single combined hit is enough — the RFP named it explicitly.
+            # The >= 2 threshold is only needed when we arrive here via the
+            # proposal-fallback path (req_hits == 0) to suppress noise.
+            min_hits = 1 if req_hits >= 1 else 2
+            if total_hits >= min_hits:
                 family_scores.append((total_hits, family))
         family_scores.sort(reverse=True)
         # Allow up to 5 families so multi-workstream deals (e.g. endpoint + email + NDR +
