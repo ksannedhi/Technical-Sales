@@ -29,6 +29,7 @@ The system must not:
 - fabricate product records, vendor capabilities, or comparison outcomes
 - silently fall back from a named comparison to a generic category ranking
 - imply confidence beyond what the dataset supports
+- handle more than one intent per query — each prompt resolves to exactly one mode; a prompt containing two independent questions (e.g. "Compare X vs Y. Also what is SIEM?") will only answer one and silently drop the other
 
 ## 3. Primary Users
 
