@@ -614,10 +614,14 @@ def render_page(state: dict[str, object]) -> str:
     .delta-icon {{ font-size: 1.4rem; line-height: 1; }}
     .delta-text {{ flex: 1; }}
     .delta-text small {{ display: block; font-weight: 400; font-size: 0.88rem; margin-top: 2px; opacity: 0.8; }}
-    .mode-toggle {{ display: flex; gap: 8px; margin-bottom: 16px; }}
-    .mode-btn {{ background: #f3ebe0; color: #6d5c48; border: 1px solid #d8cfc2; border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: 0.9rem; cursor: pointer; }}
+    .page-header {{ margin-bottom: 22px; }}
+    .page-header h1 {{ margin-bottom: 6px; }}
+    .page-tagline {{ margin: 0 0 14px; }}
+    .page-mode-bar {{ display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; }}
+    .mode-toggle {{ display: flex; gap: 8px; flex-shrink: 0; }}
+    .mode-btn {{ background: #f3ebe0; color: #6d5c48; border: 1px solid #d8cfc2; border-radius: 999px; padding: 9px 18px; font-weight: 700; font-size: 0.92rem; cursor: pointer; }}
     .mode-btn.active {{ background: #8a4b16; color: white; border-color: #8a4b16; }}
-    .mode-hint {{ margin: 0 0 14px; }}
+    .mode-hint {{ margin: 0; flex: 1; min-width: 240px; }}
     .rfp-questions-box {{ background: #e8f5ee; border: 1px solid #b2d8c0; border-radius: 14px; padding: 16px 18px; margin-bottom: 18px; }}
     .rfp-questions-box h3 {{ color: #1c4530; margin-bottom: 4px; }}
     .rfp-questions-box .copy-hint {{ color: #265c3a; font-size: 0.88rem; margin: 8px 0 12px; font-style: italic; }}
@@ -629,8 +633,18 @@ def render_page(state: dict[str, object]) -> str:
 </head>
 <body>
   <div class="wrap">
-    <h1>Presales Deal Reviewer</h1>
-    <p class="hint">Know if your deal is ready before it reaches the customer. Upload your RFP, proposal, and discovery notes — get a weighted readiness verdict, specific gaps, and clarifying questions.</p>
+    <div class="page-header">
+      <h1>Presales Deal Reviewer</h1>
+      <p class="hint page-tagline">Two modes — pick the one that fits where you are in the deal.</p>
+      <div class="page-mode-bar">
+        <div class="mode-toggle">
+          <button type="button" class="mode-btn" data-mode="rfp" id="btn-rfp">RFP Review</button>
+          <button type="button" class="mode-btn" data-mode="deal" id="btn-deal">Deal Review</button>
+        </div>
+        <p class="hint mode-hint" id="mode-hint-rfp">Customer has a clarification window open — upload the RFP to get targeted questions to send back and flag what needs confirming before you write a word of the proposal.</p>
+        <p class="hint mode-hint" id="mode-hint-deal">Deal is in flight — upload your RFP, proposal draft, and discovery notes to get a readiness score and specific gaps to fix before internal review or submission.</p>
+      </div>
+    </div>
     <div class="layout">
       <aside class="sticky">
         <section class="panel">
@@ -647,13 +661,6 @@ def render_page(state: dict[str, object]) -> str:
           <form id="review-form" method="post" action="/" enctype="multipart/form-data">
             <input type="hidden" name="rerun_from_id" value="{escape(str(state.get('rerun_from_id', '')))}">
             <input type="hidden" name="review_mode" id="review_mode_input" value="{escape(state.get('review_mode', 'deal'))}">
-
-            <div class="mode-toggle">
-              <button type="button" class="mode-btn" data-mode="rfp" id="btn-rfp">RFP Review</button>
-              <button type="button" class="mode-btn" data-mode="deal" id="btn-deal">Deal Review</button>
-            </div>
-            <p class="hint mode-hint" id="mode-hint-rfp">You just received the RFP and the customer has a clarification window open. Upload the RFP to get targeted questions to send back and flag what needs confirming before you start the proposal.</p>
-            <p class="hint mode-hint" id="mode-hint-deal">Deal is in flight — upload your RFP, proposal draft, and discovery notes to get a readiness score and specific gaps to fix before internal review or submission.</p>
 
             <label for="deal_name">Deal name</label>
             <input id="deal_name" name="deal_name" type="text" placeholder="Enter a deal name" value="{escape(state['deal_name'])}" required>
