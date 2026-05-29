@@ -109,7 +109,7 @@ Applies to Deal Review mode only. RFP Review mode does not produce a score.
 | Architecture | 25% | Structural risks matter but full redesign is not feasible at this stage |
 | Proposal | 50% | Fully in the presales engineer's hands — the primary fixable artifact before submission |
 
-A strong proposal can yield a passing overall score even with thin requirements coverage. This is intentional: the score reflects what is still actionable at deal review time. Requirements findings still appear regardless of their score contribution.
+A strong proposal can yield a passing overall score even with thin requirements coverage. The score reflects what is actionable at deal review time. Requirements findings still appear regardless of their score contribution.
 
 ### Score Interpretation
 
@@ -119,11 +119,11 @@ A strong proposal can yield a passing overall score even with thin requirements 
 | 60–79 | REVIEW | PASS WITH RISK |
 | 0–59 | ATTENTION REQUIRED | REWORK |
 
-Overall status can also be `ATTENTION REQUIRED` when any HIGH finding contains a conflict signal, regardless of score.
+A HIGH severity conflict finding overrides the score and sets overall status to ATTENTION REQUIRED.
 
 ## Solution Family Detection
 
-The engine detects which solution families are in scope from the artifact text and tailors findings and clarifying questions accordingly. Up to five families can be active on a single deal.
+The app identifies which solution families are in scope and tailors findings and clarifying questions accordingly. Up to five families can be active on a single deal.
 
 Supported families (17):
 
@@ -153,14 +153,14 @@ Questions and findings are tailored to the detected families. IAM deals distingu
 
 ### Requirements Gate
 
-- scope clarity against detected solution family terms
-- sizing cues (log volume, EPS) for SIEM/observability deals
-- retention definition for SIEM/observability deals
-- identity and integration dependencies for SIEM, IAM, and endpoint families
+- scope clarity for the solution in scope
+- sizing and ingestion baseline for SIEM and observability deals
+- retention definition for SIEM and observability deals
+- identity and integration dependencies for SIEM, IAM, and endpoint deals
 - compliance framework presence; when a regulated sector is named but no framework is cited, the finding names the most likely applicable frameworks (e.g. healthcare → HIPAA, GDPR, ISO 27001)
 - vague or incomplete discovery language
-- uncertainty markers in supporting context (tbd, not confirmed, unclear)
-- **confidence band:** when requirements text is fewer than 60 words or contains more than 30% non-ASCII characters, a LOW finding warns that scoring confidence is reduced
+- unresolved items and open questions in supporting context
+- **low-confidence flag:** sparse or non-English requirements text triggers a LOW finding noting that the review is based on limited input
 
 ### Architecture Gate
 
@@ -170,45 +170,46 @@ Questions and findings are tailored to the detected families. IAM deals distingu
 - alignment with latency or integration requirements
 - single-node resilience risk
 - unresolved API or architecture assumptions in discovery notes
-- **Renewal handling:** HA/DR findings are downgraded to LOW on pure renewals; expansion deals (renewal + additional seats) still ask whether the existing architecture covers the new scope
+- **Renewal and expansion:** HA/DR findings are treated as confirmation checks on renewals; expansion deals additionally ask whether the existing architecture covers the new scope
 
 ### Proposal Gate
 
 - scope and explicit deliverables
 - timeline or phased delivery plan
 - customer-facing business framing
-- **assumption enumeration:** up to three actual assumption sentences from the proposal are quoted in the finding (rather than a generic flag) so the reviewer knows exactly what needs resolving
+- **assumption enumeration:** actual assumption sentences from the proposal are quoted in the finding so the reviewer knows exactly which lines need follow-up before submission
 - Professional Services listed without defined deliverables or scope
 - whether major air-gap/cloud conflicts are addressed
 
 ### Solution-Family-Specific Requirements Findings
 
-In addition to the generic requirements checks above, the engine fires targeted findings per detected family:
+Targeted findings are raised per detected family:
 
-- **SIEM:** SOAR automation scope not addressed (LOW) — fires on all SIEM deals; TI feed integration absent (LOW)
+- **SIEM:** SOAR automation scope not addressed (LOW); TI feed integration absent (LOW)
 - **Backup & Cyber Resilience:** RTO/RPO not defined (HIGH); air-gap or immutable storage requirement not addressed (LOW)
 - **Threat Intelligence:** TI feed types not specified (MEDIUM); integration targets not confirmed (MEDIUM)
 - **DSPM:** data discovery scope not captured (MEDIUM); regulatory compliance driver not identified (LOW); data residency constraint not addressed (MEDIUM)
-- **IAM/PAM:** identity and integration dependencies not captured (MEDIUM) — fires for SIEM, IAM, and endpoint families
+- **IAM/PAM:** identity and integration dependencies not captured (MEDIUM) — applies to SIEM, IAM, and endpoint deals
 
 ### Cross-Document Checks
 
-- **Log volume consistency** — flags when volume estimates differ by more than 30% across artifacts
-- **Retention period consistency** — flags when retention differs by more than 10% across artifacts
-- **EPS consistency** — flags when EPS estimates differ by more than 30% across artifacts
-- **Endpoint count consistency** — flags when device counts differ by more than 20% and 100+ devices
+- **Log volume consistency** — flags when volume estimates are inconsistent across artifacts
+- **Retention period consistency** — flags when retention periods are stated differently across artifacts
+- **EPS consistency** — flags when EPS estimates are inconsistent across artifacts
+- **Endpoint count consistency** — flags when device counts are materially inconsistent across artifacts
 - **SLA numeric comparison** — HIGH finding when RFP and proposal state different response/resolution hours
 - **Air-gap / cloud conflict** — HIGH when proposal or discovery notes reference cloud for an air-gapped deal
 - **Government certification gaps** — MEDIUM finding when FIPS 140-2, TAA compliance, or Common Criteria is required in the RFP but not confirmed in the proposal
 - **Firewall subscription completeness** — LOW finding when IPS, URL Filtering, or Sandbox/Advanced Threat is required but not confirmed in the proposal BOQ
 - **Central management gap** — MEDIUM finding when a multi-site firewall deployment is indicated but no Panorama/FortiManager/SmartConsole is named
 - **XDR credit allocation** — clarifying question when XDR credits appear in the BOQ without allocation detail
+- **RFP architectural requirements vs proposal response** — MEDIUM findings when HA, DR, compliance, throughput, or integration requirements stated in the RFP are not addressed in the proposal
 
 ### Renewal and Expansion
 
-Renewal is detected from signals in any artifact (renewal, license renewal, subscription renewal, etc.).
+Renewal deals are identified from the deal artifacts.
 
-- Renewal deals: SIEM sizing/retention findings and identity-gap findings are suppressed; HA/DR findings are downgraded to confirmation checks
+- Renewal deals: SIEM sizing, retention, and identity findings are not raised; HA/DR findings become confirmation checks
 - Expansion deals (renewal + additional seats): architecture gate asks whether the existing design covers the new scope and OS/agent builds
 
 ## Ingestion Coverage
@@ -224,15 +225,11 @@ Renewal is detected from signals in any artifact (renewal, license renewal, subs
 | `.pdf` | Text-based PDFs only; scanned PDFs are detected and flagged — no misleading output |
 | `.zip` | Contents routed automatically to requirements, proposal, or supporting context |
 
-PDFs over 20 MB are rejected — they are almost always scanned. Use `.docx` for reliable results. Scanned PDFs inside a ZIP are detected individually and reported — they are not silently merged into the analysis.
+PDFs over 20 MB are not accepted. Use `.docx` for reliable results. Scanned PDFs inside a ZIP are detected individually and reported — they are not silently merged into the analysis.
 
 ### ZIP Routing
 
-Each file in the ZIP is routed by filename and content. Files with names containing `rfp`, `requirement`, `scope`, or `discovery` go to the requirements field. Files containing `proposal`, `sow`, or `technical response` go to the proposal field. Everything else is routed by content — the app reads the document and places it in the most appropriate field automatically.
-
-### LRU Extraction Cache
-
-File extraction results are cached (max 64 entries) so uploading the same file twice in a session does not re-parse it.
+Each file in the ZIP is routed by filename and content. Files with names containing `rfp`, `requirement`, `scope`, or `discovery` go to the requirements field. Files containing `proposal`, `sow`, or `technical response` go to the proposal field. Everything else is routed by content — the app reads the document and places it in the most appropriate field automatically. The routing decision for each file is shown in the upload notification.
 
 ## Session Behavior
 
@@ -283,14 +280,11 @@ The download action exports a plain-text summary. Content varies by mode:
 - Python 3.x, standard-library `wsgiref` WSGI server — no external web framework
 - Server-rendered HTML — no frontend build step, no npm, no React
 - In-memory session state (`SESSION_REVIEWS`) — resets on server restart
-- SQLite-backed analysis persistence (`data/analyses.db`) — written in a daemon thread to avoid blocking responses
-- JSON-backed gate configuration (`data/gate_config.json`) — scoring weights, thresholds, and heuristic tuning all externalised
-- File extraction via `python-docx`, `python-pptx`, and `pypdf` from a local wheelhouse; graceful fallback when wheels are absent
-- Lazy-loading seed dataset and history store — server binds before any disk reads occur
+- SQLite-backed analysis persistence (`data/analyses.db`)
+- JSON-backed gate configuration (`data/gate_config.json`) — scoring weights and thresholds externalised
+- File extraction via `python-docx`, `python-pptx`, and `pypdf`
 
 ## Known Constraints
 
 - Session history resets on server restart
-- PDF ingestion is intentionally bounded for speed on a laptop
-- CMD Quick Edit Mode on Windows pauses stdout/stderr when the terminal is clicked — `_QuietHandler` suppresses wsgiref per-request logs to prevent this from stalling responses
-- SQLite write is offloaded to a daemon thread; under heavy rapid re-submission the write may lag the UI by a few seconds
+- PDF text extraction requires a text-based PDF — scanned documents are flagged, not analysed

@@ -18,13 +18,14 @@ Upload the RFP, proposal draft, and discovery notes. The app scores the deal acr
 - **RFP Review:** questions for customer + requirements findings only
 - **Deal Review:** weighted readiness score across three gates, all findings, strengths, and clarifying questions
 - Flags missing inputs, contradictions, vague assumptions, and delivery risks
-- Names specific assumption sentences from the proposal rather than flagging generically
+- Quotes specific assumption sentences from the proposal in each finding so the reviewer knows exactly what needs resolving
 - Compares SLA response times between RFP and proposal and flags mismatches
 - Identifies regulated-sector deals and names the likely applicable compliance frameworks
 - Checks government procurement certifications (FIPS 140-2, TAA, Common Criteria) against the proposal
 - Flags firewall subscription gaps (IPS, URL Filtering, Sandbox) and missing central management for multi-site deployments
-- Warns when requirements text is too sparse or non-English to gate reliably
-- Handles renewal and renewal+expansion deals differently from new deployments
+- Flags architectural requirements stated in the RFP that are not addressed in the proposal
+- Warns when requirements text is too sparse or non-English for a reliable review
+- Handles renewal and renewal+expansion deals appropriately
 - Keeps a session-level Deal History with rename, delete, and re-run actions
 - Shows a score delta banner when a deal is re-run
 - Exports a plain-text summary (questions + findings for RFP mode; full findings for Deal mode)
@@ -33,11 +34,11 @@ Upload the RFP, proposal draft, and discovery notes. The app scores the deal acr
 
 | Family | Key Products |
 |---|---|
-| siem_log_mgmt | Splunk, QRadar, Sentinel, FortiAnalyzer — SOAR gaps fire on all SIEM deals |
+| siem_log_mgmt | Splunk, QRadar, Sentinel, FortiAnalyzer |
 | firewall_network | FortiGate, Palo Alto, Check Point, TippingPoint |
 | email_security | Proofpoint, Mimecast, FortiMail, Cisco Email Security |
 | endpoint_xdr | CrowdStrike, SentinelOne, Cortex XDR, Vision One |
-| iam_pam | General IAM (Okta, Entra ID) · PAM sub-type (CyberArk, BeyondTrust) · IGA sub-type (SailPoint, Saviynt) |
+| iam_pam | Okta, Entra ID · CyberArk, BeyondTrust · SailPoint, Saviynt |
 | sase_proxy | Zscaler, Prisma Access, Netskope, Cato Networks |
 | app_delivery_security | F5, WAF, load balancer, ADC |
 | ot_ics | Claroty, Nozomi, Dragos, SCADA |
@@ -47,9 +48,9 @@ Upload the RFP, proposal draft, and discovery notes. The app scores the deal acr
 | dlp | Purview, DLP policy |
 | managed_services | MDR, MXDR, managed SOC, MSSP |
 | ddos_protection | Arbor, Radware, BGP diversion, scrubbing |
-| backup_resilience | Veeam, Rubrik, Cohesity, Commvault — RTO/RPO, air-gap vault |
+| backup_resilience | Veeam, Rubrik, Cohesity, Commvault |
 | threat_intelligence | Recorded Future, Digital Shadows, Group-IB, Mandiant |
-| dspm | Varonis, Cyera, BigID — data classification, residency, regulatory drivers |
+| dspm | Varonis, Cyera, BigID |
 
 ## Deal Review Weights
 
@@ -64,10 +65,10 @@ Upload the RFP, proposal draft, and discovery notes. The app scores the deal acr
 | Format | Notes |
 |---|---|
 | `.txt` `.md` `.docx` `.pptx` | Full extraction |
-| `.pdf` | Text-based PDFs only; scanned PDFs produce minimal output |
+| `.pdf` | Text-based PDFs only; scanned PDFs are detected and flagged |
 | `.zip` | One ZIP can replace all three individual uploads (Deal Review mode) |
 
-PDFs over 20 MB are rejected — they are almost always scanned. Use `.docx` for reliable results.
+PDFs over 20 MB are not accepted. Use `.docx` for reliable results.
 
 ## Run
 
@@ -105,9 +106,9 @@ python app.py
 - Mode persists in Deal History — loading a past review shows it in the mode it was run
 - Re-run pre-loads the original artifacts and mode for editing before re-submission
 - SIEM deals always include an automation scope question — playbook and orchestration coverage is a gap that surfaces late in nearly every SIEM engagement
-- IAM deals ask distinct questions for privileged access (PAM) and identity governance (IGA) — the right question set is applied based on the products and use cases in scope
-- Firewall deals scope the SIEM questions correctly — sizing and retention questions are not asked when an existing SIEM is acting as a log destination rather than being delivered
-- Renewal deals soften HA/DR findings to confirmation checks; expansion asks whether existing architecture covers new scope
+- IAM deals ask distinct questions for privileged access (PAM) and identity governance (IGA)
+- Firewall deals with an existing SIEM as a log destination are scoped correctly — SIEM sizing questions apply only when SIEM is part of the delivery
+- Renewal deals treat HA/DR as confirmation rather than new design requirements; expansion deals ask whether the existing architecture covers the added scope
 - Re-run delta banner (green / red / neutral) shows score movement between submissions
 
 ## Current Scope
