@@ -290,7 +290,7 @@ class DecisionEngine:
         category_explain_hint = lookup_hint and bool(categories) and not vendors and not lookup_products
         if comparison_hint or len(compare_targets) >= 2:
             intent = "comparison"
-        elif vendor_capability_hint or (lookup_hint and not has_category_signal) or (bool(vendors) and not has_category_signal):
+        elif vendor_capability_hint or (bool(vendors) and lookup_hint) or (lookup_hint and not has_category_signal) or (bool(vendors) and not has_category_signal):
             intent = "lookup"
         elif category_explain_hint:
             intent = "category_explain"
