@@ -70,6 +70,16 @@ def application(environ, start_response):
         state_started = time.time()
         state = build_page_state(query, form)
         _tlog(f"[timing] build_page_state_ms={round((time.time() - state_started) * 1000, 2)}")
+        # Error with no analysis result — redirect to a clean GET so the form
+        # resets completely.  Message is preserved via a special flash slot.
+        if state.get("_redirect_error"):
+            if state.get("messages"):
+                FLASH_MESSAGES["_error"] = list(state["messages"])
+            start_response("303 See Other", [
+                ("Location", "/"),
+                ("Cache-Control", "no-store"),
+            ])
+            return [b""]
         review_id = state.get("selected_review_id", "")
         if review_id:
             if state.get("messages"):
@@ -170,6 +180,10 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         "review_mode": "deal",
     }
     if not form:
+        # Consume any error flash stored by a failed POST (e.g. scanned PDF).
+        error_messages = FLASH_MESSAGES.pop("_error", [])
+        if error_messages:
+            state["messages"] = error_messages
         return state
 
     delete_review_id = (form.get("delete_review_id") or "").strip()
@@ -288,6 +302,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             )
         else:
             state["messages"].append("Paste or upload at least one document (requirements, proposal, or supporting context) before running the review.")
+        state["_redirect_error"] = True
         state["deal_name"] = deal_name
         return state
 
