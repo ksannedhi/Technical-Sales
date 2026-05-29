@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+
+_DEBUG = os.environ.get("PDG_DEBUG", "0") == "1"
+
+
+def _tlog(msg: str) -> None:
+    """Print timing/debug messages only when PDG_DEBUG=1."""
+    if _DEBUG:
+        print(msg)
 
 
 SECTION_NAMES = ("requirements", "proposal")
@@ -508,7 +517,7 @@ class SeedDataset:
             import time as _time
             t0 = _time.time()
             self._deals = self._load()
-            print(f"[timing] seed_load_ms={round((_time.time() - t0) * 1000, 2)} deals={len(self._deals)}")
+            _tlog(f"[timing] seed_load_ms={round((_time.time() - t0) * 1000, 2)} deals={len(self._deals)}")
         return self._deals
 
     def _load(self) -> list[dict[str, str]]:
@@ -579,7 +588,7 @@ class HistoryStore:
             conn.commit()
         finally:
             conn.close()
-        print(f"[timing] history_init_ms={round((_time.time() - t0) * 1000, 2)} db={self.db_path}")
+        _tlog(f"[timing] history_init_ms={round((_time.time() - t0) * 1000, 2)} db={self.db_path}")
 
     def save(self, deal_name: str, result: AnalysisResult) -> None:
         import time as _time
@@ -593,7 +602,7 @@ class HistoryStore:
             conn.commit()
         finally:
             conn.close()
-        print(f"[timing] history_save_ms={round((_time.time() - t0) * 1000, 2)}")
+        _tlog(f"[timing] history_save_ms={round((_time.time() - t0) * 1000, 2)}")
 
     def recent(self, limit: int = 8) -> list[dict[str, object]]:
         import time as _time
@@ -606,7 +615,7 @@ class HistoryStore:
             ).fetchall()
         finally:
             conn.close()
-        print(f"[timing] history_recent_ms={round((_time.time() - t0) * 1000, 2)} rows={len(rows)}")
+        _tlog(f"[timing] history_recent_ms={round((_time.time() - t0) * 1000, 2)} rows={len(rows)}")
         return [
             {
                 "deal_name": row[0],

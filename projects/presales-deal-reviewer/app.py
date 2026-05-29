@@ -23,6 +23,13 @@ from presales_gate_engine import PresalesGateEngine
 
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("PORT", 8020))
+_DEBUG = os.environ.get("PDG_DEBUG", "0") == "1"
+
+
+def _tlog(msg: str) -> None:
+    """Print timing/debug messages only when PDG_DEBUG=1."""
+    if _DEBUG:
+        print(msg)
 
 engine = PresalesGateEngine(ROOT / "data")
 SESSION_REVIEWS: list[dict[str, object]] = []
@@ -59,10 +66,10 @@ def application(environ, start_response):
     if method == "POST":
         request_started = time.time()
         form = parse_multipart(environ)
-        print(f"[timing] parse_multipart_ms={round((time.time() - request_started) * 1000, 2)}")
+        _tlog(f"[timing] parse_multipart_ms={round((time.time() - request_started) * 1000, 2)}")
         state_started = time.time()
         state = build_page_state(query, form)
-        print(f"[timing] build_page_state_ms={round((time.time() - state_started) * 1000, 2)}")
+        _tlog(f"[timing] build_page_state_ms={round((time.time() - state_started) * 1000, 2)}")
         review_id = state.get("selected_review_id", "")
         if review_id:
             if state.get("messages"):
@@ -81,10 +88,10 @@ def application(environ, start_response):
 
     t0 = time.time()
     state = build_page_state(query, None)
-    print(f"[timing] GET build_page_state_ms={round((time.time() - t0) * 1000, 2)}")
+    _tlog(f"[timing] GET build_page_state_ms={round((time.time() - t0) * 1000, 2)}")
     t1 = time.time()
     body = render_page(state)
-    print(f"[timing] GET render_page_ms={round((time.time() - t1) * 1000, 2)}")
+    _tlog(f"[timing] GET render_page_ms={round((time.time() - t1) * 1000, 2)}")
     start_response("200 OK", [
         ("Content-Type", "text/html; charset=utf-8"),
         ("Cache-Control", "no-store"),
@@ -251,7 +258,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 continue
             extraction_started = time.time()
             text = extract_text_from_bytes(fname, content)
-            print(f"[timing] extract_{key}_ms={round((time.time() - extraction_started) * 1000, 2)} file={fname}")
+            _tlog(f"[timing] extract_{key}_ms={round((time.time() - extraction_started) * 1000, 2)} file={fname}")
             target = key.replace("_file", "")
             if target == "supporting":
                 target = "supporting_context"
@@ -292,7 +299,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     analyze_started = time.time()
     state["result"] = engine.analyze(deal_name=deal_name, artifacts=artifacts).to_dict()
     state["result"]["review_mode"] = review_mode
-    print(f"[timing] engine_analyze_ms={round((time.time() - analyze_started) * 1000, 2)}")
+    _tlog(f"[timing] engine_analyze_ms={round((time.time() - analyze_started) * 1000, 2)}")
 
     # Enhancement 10 — re-run delta: if the user clicked Re-run on a prior deal,
     # compute the score change so we can show a delta banner on the results page.
@@ -317,7 +324,7 @@ def parse_multipart(environ: dict[str, str]) -> dict[str, object]:
     read_started = time.time()
     content_length = int(environ.get("CONTENT_LENGTH") or "0")
     body = environ["wsgi.input"].read(content_length)
-    print(f"[timing] request_body_read_ms={round((time.time() - read_started) * 1000, 2)} bytes={len(body)}")
+    _tlog(f"[timing] request_body_read_ms={round((time.time() - read_started) * 1000, 2)} bytes={len(body)}")
     content_type = environ.get("CONTENT_TYPE", "")
     boundary = extract_boundary(content_type)
     if not boundary:
