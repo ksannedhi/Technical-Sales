@@ -804,7 +804,7 @@ def render_page(state: dict[str, object]) -> str:
   const modeHintRfp = document.getElementById("mode-hint-rfp");
   const modeHintDeal = document.getElementById("mode-hint-deal");
   const reqLabel = document.getElementById("requirements-label");
-  function setReviewMode(mode) {{
+  function setReviewMode(mode, isInit = false) {{
     if (!reviewModeInput) return;
     reviewModeInput.value = mode;
     const isRfp = mode === "rfp";
@@ -826,14 +826,23 @@ def render_page(state: dict[str, object]) -> str:
     if (whatGoesWhere) whatGoesWhere.style.display = isRfp ? "none" : "";
     // Hide stale result from a previous run when the user switches mode —
     // the old result belongs to the other mode and would be misleading.
-    const resultSection = document.getElementById("result-section");
-    if (resultSection) resultSection.style.display = "none";
+    // Only hide a stale result when the user actively switches mode —
+    // not on the initial page-load call where the result belongs to the current mode.
+    if (!isInit) {{
+      const resultSection = document.getElementById("result-section");
+      if (resultSection) resultSection.style.display = "none";
+    }}
   }}
   document.querySelectorAll(".mode-btn").forEach(btn => {{
     btn.addEventListener("click", () => setReviewMode(btn.getAttribute("data-mode")));
   }});
   // Initialise from server-rendered hidden input value
-  setReviewMode(reviewModeInput ? reviewModeInput.value : "deal");
+  setReviewMode(reviewModeInput ? reviewModeInput.value : "deal", true);
+  // Auto-scroll to results when the page loads with an active review
+  const _rs = document.getElementById("result-section");
+  if (_rs && _rs.children.length > 0) {{
+    setTimeout(() => _rs.scrollIntoView({{ behavior: "smooth", block: "start" }}), 120);
+  }}
   document.querySelectorAll("[data-review-id]").forEach((link) => {{
     link.addEventListener("contextmenu", (event) => {{
       event.preventDefault();
