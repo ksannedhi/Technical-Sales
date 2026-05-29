@@ -221,17 +221,14 @@ Renewal is detected from signals in any artifact (renewal, license renewal, subs
 | `.md` | Full text |
 | `.docx` | Full document extraction |
 | `.pptx` | Slide text extraction |
-| `.pdf` | Text-based PDFs only; scanned PDFs produce minimal output |
-| `.zip` | Contents routed to requirements, proposal, or supporting context |
+| `.pdf` | Text-based PDFs only; scanned PDFs are detected and flagged — no misleading output |
+| `.zip` | Contents routed automatically to requirements, proposal, or supporting context |
 
-PDFs over 20 MB are rejected with a clear message — they are almost always scanned and contain no extractable text. `.docx` is preferred over `.pdf` for reliable results.
+PDFs over 20 MB are rejected — they are almost always scanned. Use `.docx` for reliable results. Scanned PDFs inside a ZIP are detected individually and reported — they are not silently merged into the analysis.
 
 ### ZIP Routing
 
-ZIP contents are classified by filename stem:
-- `requirements` → requirements field
-- `proposal` → proposal field
-- `architecture`, `meeting_notes`, and other files → supporting context
+Each file in the ZIP is routed by filename and content. Files with names containing `rfp`, `requirement`, `scope`, or `discovery` go to the requirements field. Files containing `proposal`, `sow`, or `technical response` go to the proposal field. Everything else is routed by content — the app reads the document and places it in the most appropriate field automatically.
 
 ### LRU Extraction Cache
 

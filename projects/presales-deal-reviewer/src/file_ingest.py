@@ -59,7 +59,7 @@ def load_artifacts_from_zip(path: str | Path) -> dict[str, str]:
     return load_artifacts_from_zip_data(Path(path).read_bytes())
 
 
-def load_artifacts_from_zip_data(data: bytes) -> dict[str, str]:
+def load_artifacts_from_zip_data(data: bytes, warnings: list[str] | None = None) -> dict[str, str]:
     artifacts = blank_artifacts()
     with zipfile.ZipFile(io.BytesIO(data)) as zf:
         for name in sorted(zf.namelist()):
@@ -69,12 +69,27 @@ def load_artifacts_from_zip_data(data: bytes) -> dict[str, str]:
             if suffix not in SUPPORTED_EXTENSIONS - {".zip"}:
                 continue
             file_data = zf.read(name)
+            size_mb = len(file_data) / 1_000_000
             # Skip large PDFs inside ZIP bundles — they are virtually always scanned
             # and pypdf would stall for 30-60 s without yielding any useful text.
             if suffix == ".pdf" and len(file_data) > MAX_PDF_BYTES:
-                logging.warning("Skipping %s in ZIP — %d MB exceeds PDF limit", name, len(file_data) // 1_000_000)
+                logging.warning("Skipping %s in ZIP — %d MB exceeds PDF limit", name, size_mb)
+                if warnings is not None:
+                    warnings.append(
+                        f"{Path(name).name} ({size_mb:.0f} MB) was skipped — PDFs over 20 MB are "
+                        f"almost always scanned and contain no extractable text. Convert to DOCX."
+                    )
                 continue
             text = extract_text_from_bytes(name, file_data)
+            # Skip scanned or unreadable PDFs — error markers must not be merged
+            # into artifacts as they produce meaningless scores.
+            if text.startswith("["):
+                if warnings is not None:
+                    warnings.append(
+                        f"{Path(name).name} could not be read — the PDF appears to be scanned or "
+                        f"image-based and contains no extractable text. Convert to DOCX for reliable results."
+                    )
+                continue
             assign_text_to_bucket(Path(name).name, text, artifacts)
     return artifacts
 

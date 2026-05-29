@@ -238,10 +238,12 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     }
     deal_zip = form.get("deal_zip")
     if isinstance(deal_zip, dict) and deal_zip.get("filename"):
-        zipped = load_artifacts_from_zip_data(deal_zip["content"])
+        zip_warnings: list[str] = []
+        zipped = load_artifacts_from_zip_data(deal_zip["content"], warnings=zip_warnings)
         for key, value in zipped.items():
             artifacts[key] = merge_text(value, artifacts.get(key, ""))
         state["messages"].append(f"Loaded deal ZIP: {deal_zip['filename']}")
+        state["messages"].extend(zip_warnings)
 
     for key in ["requirements_file", "proposal_file", "supporting_file"]:
         upload = form.get(key)
