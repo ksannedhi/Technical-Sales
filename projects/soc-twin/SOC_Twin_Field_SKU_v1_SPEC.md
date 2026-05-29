@@ -300,8 +300,10 @@ Available in all modes. Shows:
 | Speed toggle | 1× / 2× / 5×. Set before clicking Start. Disabled while a scenario is running |
 | Start [Scenario] | Triggers playbook; shows scenario progress banner |
 | Stop Scenario | Stops active scenario; clears progress banner |
-| Reset | Clears alerts and incidents; tickets persist; CISO/Manager retain orphaned ticket context |
+| Reset | Clears alerts, incidents, and triage results; tickets persist; CISO/Manager retain orphaned ticket context |
 | Seed | Injects low/medium baseline history |
+| Export Current View | Downloads PNG screenshot of the current visible dashboard |
+| Export Incident Report | Fetches `GET /api/export/report` and opens a printable HTML incident report in a new tab — includes attack timeline (full uncapped store), ARIA triage results, customer tickets, and summary KPIs |
 
 Scenario progress banner: `▶ {Scenario Name} — Stage N/Total: {last event type}`. Persists until Stop Scenario is clicked. Clicking the banner toggles an expandable chain panel listing each stage's tactic, event type, and target host — completed stages dim, active stage highlights in blue, pending stages fade. Chain data is sourced from the `scenario:started` socket event (`chain[]`) to avoid frontend hardcoding.
 
@@ -313,7 +315,7 @@ After reset, tickets whose incident has been cleared are shown as "orphaned" in 
 
 1. Select alert in Analyst view.
 2. Scroll to investigation panel → `Analyze Selected Alert`.
-3. ARIA returns threat assessment and MITRE mapping.
+3. ARIA returns threat assessment and MITRE mapping. Result is persisted to `state.triageResults` (keyed by alert_id) for inclusion in the incident report.
 4. `Create Ticket` button appears — analyst manually raises a customer ticket (assignee: MDR Analyst).
 5. Auto-tickets are raised independently by escalation logic (assignee: MDR Operations) when scenario severity threshold is met.
 

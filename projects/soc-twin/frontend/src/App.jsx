@@ -39,6 +39,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [error, setError] = useState("");
   const [exportState, setExportState] = useState("idle");
+  const [reportState, setReportState] = useState("idle");
   const [selectedAlertId, setSelectedAlertId] = useState(null);
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [analysisState, setAnalysisState] = useState("idle");
@@ -242,6 +243,111 @@ export default function App() {
     } catch {
       setExportState("idle");
       setError("Screenshot export failed. Try again after the dashboard fully loads.");
+    }
+  };
+
+  const generateIncidentReport = async () => {
+    try {
+      setReportState("working");
+      const res = await fetch(`${API_URL}/api/export/report`);
+      if (!res.ok) throw new Error("Export endpoint returned " + res.status);
+      const data = await res.json();
+
+      const severityColor = { critical: "#ef4444", high: "#f97316", medium: "#eab308", low: "#6b7280", info: "#6b7280" };
+      const fmt = (iso) => iso ? new Date(iso).toLocaleString() : "—";
+      const badge = (sev) => `<span style="background:${severityColor[sev]||"#6b7280"};color:#fff;padding:1px 7px;border-radius:9px;font-size:11px;font-weight:600;text-transform:uppercase">${sev}</span>`;
+
+      const timelineRows = data.attack_timeline.map((a) => `
+        <tr>
+          <td>${fmt(a.timestamp)}</td>
+          <td>${badge(a.severity)}</td>
+          <td>${a.event_type}</td>
+          <td>${a.mitre_tactic}</td>
+          <td style="font-family:monospace">${a.mitre_technique_id}</td>
+          <td style="font-family:monospace">${a.dest_hostname}</td>
+          <td style="text-align:center">${a.risk_score ?? "—"}</td>
+        </tr>`).join("");
+
+      const ticketRows = data.tickets.map((t) => `
+        <tr>
+          <td style="font-family:monospace">${t.id}</td>
+          <td>${badge(t.severity)}</td>
+          <td>${t.title}</td>
+          <td>${t.assignee}</td>
+          <td>${t.source}</td>
+          <td style="text-transform:capitalize">${t.status.replace("_", " ")}</td>
+          <td>${fmt(t.created_at)}</td>
+        </tr>`).join("");
+
+      const triageSection = data.triage_results.length === 0 ? "<p style='color:#6b7280'>No ARIA triage performed this session.</p>" :
+        data.triage_results.map((r) => `
+          <div style="border:1px solid #e5e7eb;border-radius:6px;padding:14px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <strong>${r.event_type}</strong> on <code>${r.dest_hostname}</code>
+              ${badge(r.severity)}
+              <span style="margin-left:auto;color:#6b7280;font-size:11px">${fmt(r.triaged_at)}</span>
+            </div>
+            <p style="margin:4px 0"><strong>Assessment:</strong> ${r.threat_assessment}</p>
+            <p style="margin:4px 0"><strong>MITRE:</strong> ${r.mitre_mapping}</p>
+            <p style="margin:4px 0"><strong>Risk Score:</strong> ${r.risk_score} &nbsp;|&nbsp; <strong>Action:</strong> ${r.recommended_action}</p>
+            ${r.next_steps?.length ? `<p style="margin:4px 0"><strong>Next Steps:</strong> ${r.next_steps.join(" · ")}</p>` : ""}
+          </div>`).join("");
+
+      const scenarioLabel = data.scenarios_run.length ? data.scenarios_run.map((s) => s.name).join(", ") : "No scenario run";
+
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+        <title>SOC Twin — Incident Report</title>
+        <style>
+          body{font-family:system-ui,sans-serif;color:#111;max-width:960px;margin:32px auto;padding:0 24px;font-size:13px}
+          h1{font-size:22px;margin-bottom:2px} h2{font-size:15px;border-bottom:2px solid #111;padding-bottom:4px;margin-top:28px}
+          table{width:100%;border-collapse:collapse;margin-top:10px}
+          th{background:#f3f4f6;text-align:left;padding:6px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+          td{padding:5px 8px;border-bottom:1px solid #e5e7eb;vertical-align:top}
+          .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+          .kpi{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px}
+          .kpi-val{font-size:26px;font-weight:700} .kpi-label{font-size:11px;color:#6b7280;text-transform:uppercase}
+          .footer{margin-top:36px;padding-top:12px;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:11px}
+          @media print{body{margin:0}}
+        </style>
+      </head><body>
+        <h1>SOC Twin — Simulated Incident Report</h1>
+        <p style="color:#6b7280;margin:0">Generated: ${fmt(data.generated_at)} &nbsp;|&nbsp; Scenario: ${scenarioLabel}</p>
+
+        <h2>Executive Summary</h2>
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-val">${data.summary.total_incidents}</div><div class="kpi-label">Incidents Detected</div></div>
+          <div class="kpi"><div class="kpi-val">${data.summary.total_tickets}</div><div class="kpi-label">Customer Tickets Raised</div></div>
+          <div class="kpi"><div class="kpi-val">${data.summary.highest_risk_score}</div><div class="kpi-label">Peak Risk Score</div></div>
+          <div class="kpi"><div class="kpi-val">${data.summary.total_alerts}</div><div class="kpi-label">Total Alerts</div></div>
+          <div class="kpi"><div class="kpi-val">${data.summary.scenario_alerts}</div><div class="kpi-label">Attack Chain Events</div></div>
+          <div class="kpi"><div class="kpi-val">${data.summary.triage_count}</div><div class="kpi-label">ARIA Analyses Run</div></div>
+        </div>
+
+        <h2>Attack Timeline</h2>
+        ${data.attack_timeline.length === 0 ? "<p style='color:#6b7280'>No scenario events recorded.</p>" : `
+        <table><thead><tr><th>Time</th><th>Severity</th><th>Event</th><th>Tactic</th><th>Technique</th><th>Host</th><th>Risk</th></tr></thead>
+        <tbody>${timelineRows}</tbody></table>`}
+
+        <h2>ARIA Triage Results</h2>
+        ${triageSection}
+
+        <h2>Customer Tickets</h2>
+        ${data.tickets.length === 0 ? "<p style='color:#6b7280'>No tickets raised this session.</p>" : `
+        <table><thead><tr><th>ID</th><th>Severity</th><th>Title</th><th>Assignee</th><th>Source</th><th>Status</th><th>Created</th></tr></thead>
+        <tbody>${ticketRows}</tbody></table>`}
+
+        <div class="footer">SOC Twin — Simulation only. No real infrastructure was affected. For presales demonstration purposes.</div>
+      </body></html>`;
+
+      const win = window.open("", "_blank");
+      win.document.write(html);
+      win.document.close();
+      win.print();
+      setReportState("done");
+      window.setTimeout(() => setReportState("idle"), 2000);
+    } catch (err) {
+      setReportState("idle");
+      setError("Report export failed: " + (err.message || "unknown error"));
     }
   };
 
@@ -743,6 +849,9 @@ export default function App() {
         <button onClick={reset}>Reset</button>
         <button onClick={exportCurrentView}>
           {exportState === "working" ? "Exporting..." : "Export Current View"}
+        </button>
+        <button onClick={generateIncidentReport}>
+          {reportState === "working" ? "Generating..." : "Export Incident Report"}
         </button>
         {scenarioRunning && (
           <div style={{ marginTop: "8px" }}>

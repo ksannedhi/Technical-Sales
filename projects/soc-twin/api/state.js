@@ -16,6 +16,7 @@ const state = {
   alerts: [],
   incidents: [],
   tickets: [],
+  triageResults: {},
   scenarioRuns: new Map(),
   profile: "business_hours",
   hosts: readJson(path.join(dataDir, "fake-hosts.json"), []),

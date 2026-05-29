@@ -87,7 +87,9 @@ All scenario controls are in the top bar:
 
 - **1× / 2× / 5× speed toggle** — compresses scenario event timing before starting (disabled while a scenario is running)
 - **Start / Stop Scenario** — scenarios run indefinitely until manually stopped
-- **Reset** — clears alerts and incidents; tickets persist
+- **Reset** — clears alerts and incidents and triage results; tickets persist
+- **Export Current View** — downloads a PNG screenshot of the current dashboard state
+- **Export Incident Report** — generates a printable structured incident report (attack timeline, ARIA triage results, customer tickets, risk KPIs) from the full uncapped alert store
 - **Health dot** — green/red indicator showing live backend connectivity
 - **Scenario progress** — once a scenario starts, shows "▶ Phishing to Lateral Movement — Stage 2/3: Password Spray Detected". Click the banner to expand a step-by-step chain panel showing each stage's tactic, event, and target host — completed stages dim, active stage highlights, pending stages fade.
 

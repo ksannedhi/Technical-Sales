@@ -39,6 +39,15 @@ function createAnalystRouter(state, io) {
         summary.recommended_action = "ESCALATE TO TIER-2";
       }
 
+      state.triageResults[alert.id] = {
+        ...summary,
+        alert_id: alert.id,
+        event_type: alert.event_type,
+        dest_hostname: alert.dest_hostname,
+        severity: alert.severity,
+        triaged_at: new Date().toISOString()
+      };
+
       res.json({
         ok: true,
         alert_id: alert.id,

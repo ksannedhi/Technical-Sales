@@ -14,6 +14,7 @@ const { createIncidentsRouter } = require("./routes/incidents");
 const { createScenariosRouter } = require("./routes/scenarios");
 const { createControlRouter } = require("./routes/control");
 const { createTicketsRouter } = require("./routes/tickets");
+const { createExportRouter } = require("./routes/export");
 
 const LOCALHOST_ORIGINS = [
   "http://localhost:5173",
@@ -47,6 +48,7 @@ app.use("/api/tickets", createTicketsRouter(state, io));
 app.use("/api/incidents", createIncidentsRouter(state));
 app.use("/api/scenarios", createScenariosRouter(state, io, runner));
 app.use("/api", createControlRouter(state, io, runner));
+app.use("/api/export", createExportRouter(state));
 
 app.use(errorHandler);
 

@@ -7,6 +7,7 @@ function createControlRouter(state, io, runner) {
     runner.stopAllScenarios(state, io);
     state.alerts = [];
     state.incidents = [];
+    state.triageResults = {};
     io.emit("operator:reset", { ts: new Date().toISOString() });
     res.json({ ok: true });
   });

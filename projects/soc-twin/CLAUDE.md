@@ -49,9 +49,10 @@ api/server.js                Express + Socket.io gateway
         ↓
 api/state.js                 Singleton in-memory store (alerts[], incidents[], tickets[], scenarioRuns Map, playbooks)
         ↓
-api/routes/analyst.js        POST /api/analyst/triage — runs ARIA, applies escalation logic
+api/routes/analyst.js        POST /api/analyst/triage — runs ARIA, applies escalation logic, persists result to state.triageResults
 api/routes/tickets.js        GET/POST /api/tickets, PATCH /:id/status
 api/routes/control.js        /reset, /seed, /health
+api/routes/export.js         GET /api/export/report — returns full session payload for incident report
         ↓
 engine/scenario-runner.js    Orchestrates timed playbook events, background noise intervals, auto-ticket logic
 engine/event-generator.js    Builds individual alert objects from fixtures + playbook seeds; computes risk_score
@@ -68,12 +69,13 @@ analyst/ticket-factory.js    buildTicket(): shared ticket creation logic for aut
 
 ### Key data flow
 
-1. `api/state.js` is loaded once at startup — reads all JSON fixtures and playbooks into a singleton shared by all route handlers.
+1. `api/state.js` is loaded once at startup — reads all JSON fixtures and playbooks into a singleton shared by all route handlers. State includes `alerts[]`, `incidents[]`, `tickets[]`, `triageResults{}` (keyed by alert_id), `scenarioRuns Map`, and fixture data.
 2. `scenario-runner.js` schedules `setTimeout` per playbook event and `setInterval` for background noise. Each fires `emitAlert()` → `buildAlert()` → `upsertIncident()` → Socket.io broadcast (`alert:new`, `incident:updated`).
 3. Auto-ticket logic in `emitAlert()`: fires `buildTicket()` and emits `ticket:created` only when `alert.scenario_id` is set, severity is high/critical, and the incident has no existing non-resolved ticket. Re-ticketing is allowed when the existing ticket is resolved.
 4. Background noise events (low/medium only) create incidents but never auto-create tickets.
 5. The frontend connects via Socket.io and listens for `alert:new`, `incident:updated`, `ticket:created`, `operator:reset`, `scenario:*` events.
-6. ARIA triage runs on demand via `POST /api/analyst/triage` — calls Anthropic if `ANTHROPIC_API_KEY` is set, otherwise returns deterministic local fallback. Applies `shouldEscalate()` to override `recommended_action`.
+6. ARIA triage runs on demand via `POST /api/analyst/triage` — calls Anthropic if `ANTHROPIC_API_KEY` is set, otherwise returns deterministic local fallback. Applies `shouldEscalate()` to override `recommended_action`. Each result is persisted to `state.triageResults[alert_id]` for inclusion in the incident report.
+7a. `GET /api/export/report` assembles a full session payload (attack timeline, incidents, tickets, triage results, summary KPIs) from the uncapped backend store and returns JSON. The frontend renders this as a printable HTML report via `window.print()`.
 7. Manual ticket creation via `POST /api/tickets` with `alert_id` + `summary`; returns 409 if ticket already exists for that alert.
 8. `PATCH /api/tickets/:id/status` accepts `open | in_progress | resolved`.
 
