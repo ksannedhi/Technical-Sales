@@ -453,7 +453,7 @@ def render_page(state: dict[str, object]) -> str:
             """
         else:
             # Deal Review mode — score-first, all gates, findings + strengths + questions
-            findings = render_findings_groups(result["findings"])
+            findings = render_findings_groups(result["findings"], always_show=["Requirements"])
             strengths = "".join(f"<li>{escape(item)}</li>" for item in result["strengths"]) or "<li>No standout strengths detected yet.</li>"
             questions = "".join(f"<li>{escape(item)}</li>" for item in result["clarifying_questions"]) or "<li>No follow-up questions needed.</li>"
             selected_review_summary = f"""
@@ -551,6 +551,7 @@ def render_page(state: dict[str, object]) -> str:
     .badge-high {{ background: #fde8e8; color: #8b1a1a; }}
     .badge-medium {{ background: #fef5d4; color: #7a5200; }}
     .badge-low {{ background: #eef4fb; color: #2d5282; }}
+    .no-findings-note {{ color: #265c3a; font-size: 0.92rem; margin: 2px 0 10px 0; }}
     .strengths-list {{ list-style: none; padding-left: 0; }}
     .strengths-list li::before {{ content: "✓ "; color: #265c3a; font-weight: 700; }}
     .result-header {{ display: flex; justify-content: space-between; align-items: center; gap: 16px; }}
@@ -959,8 +960,8 @@ def readiness_icon(score: int) -> str:
     return "\U0001F534"
 
 
-def render_findings_groups(findings: list[dict[str, str]]) -> str:
-    if not findings:
+def render_findings_groups(findings: list[dict[str, str]], always_show: list[str] | None = None) -> str:
+    if not findings and not always_show:
         return "<p>No material findings.</p>"
     grouped: dict[str, list[dict[str, str]]] = {}
     for item in findings:
@@ -970,13 +971,15 @@ def render_findings_groups(findings: list[dict[str, str]]) -> str:
     for gate in ordered_gates:
         gate_findings = grouped.get(gate, [])
         if not gate_findings:
+            if always_show and gate in always_show:
+                sections.append(f"<h4>{escape(gate)}</h4><p class='hint no-findings-note'>✓ No gaps detected.</p>")
             continue
         items = "".join(
             f"<li><span class='finding-badge badge-{escape(item['severity'].lower())}'>{escape(item['severity'].upper())}</span>{escape(item['message'])}</li>"
             for item in gate_findings
         )
         sections.append(f"<h4>{escape(gate)}</h4><ul>{items}</ul>")
-    return "".join(sections)
+    return "".join(sections) or "<p>No material findings.</p>"
 
 
 def extract_boundary(content_type: str) -> bytes:
