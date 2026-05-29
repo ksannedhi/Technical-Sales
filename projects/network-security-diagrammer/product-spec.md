@@ -197,3 +197,7 @@ The highest-value enhancements from the current state are:
 - stronger follow-up edit semantics
   - improve targeted replacement for labels, colors, and small topology edits
   - preserve user-intended changes without introducing unrelated rewrites
+- diagram comparison
+  - given two follow-up variants, highlight what changed between them (added/removed zones, components, connections)
+  - most useful in live customer sessions: "show me the difference between the VPN version and the ZTNA version"
+  - requires snapshot history (current session holds only one live architecture), a diff engine over `ArchitectureModel`, and a visual delta layer on the Excalidraw canvas
