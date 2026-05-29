@@ -249,7 +249,7 @@ export default function App() {
   const generateIncidentReport = async () => {
     try {
       setReportState("working");
-      const res = await fetch(`${API_URL}/api/export/report`);
+      const res = await fetch(`${API_BASE}/api/export/report`);
       if (!res.ok) throw new Error("Export endpoint returned " + res.status);
       const data = await res.json();
 
