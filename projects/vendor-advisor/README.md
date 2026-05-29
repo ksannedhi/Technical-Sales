@@ -42,11 +42,34 @@ Conversational chatbot for cybersecurity vendor decisions. Ask it what a solutio
 | `data/products.json` | Primary product recommendation dataset (90+ products) |
 | `data/vendors.json` | Vendor profiles and category mappings |
 | `data/categories.json` | Supported category list |
-| `data/categories_metadata.json` | Plain-English descriptions for all 36 categories |
+| `data/categories_metadata.json` | Plain-English descriptions for all 37 categories |
 | `data/vendor_feature_matrix.json` | Per-vendor, per-category feature summaries |
 | `data/scoring_weights.json` | Weighted scoring model configuration |
 | `data/hard_exclusions.json` | Hard-filtering rules (deployment, compliance, region, integration) |
 | `data/problem_to_tool_mapping.json` | Problem-phrase to category mapping |
+
+## Supported Categories
+
+37 categories across all major cybersecurity domains. Coverage level varies:
+
+| Domain | Categories |
+|---|---|
+| Endpoint & Detection | EDR, XDR, ITDR, NDR, DTDR |
+| Cloud Security | CNAPP, CSPM, CWPP, DSPM |
+| Network & Perimeter | Firewall, WAF, SASE, Microsegmentation, API Security |
+| Identity & Access | Identity Security, IGA, CIAM, PAM, MFA, Passwordless |
+| Data & Privacy | DLP, DAM, Data Privacy |
+| Threat Intelligence & Ops | SIEM, SOAR, TIP, Sandboxing |
+| Attack Surface | ASM, EASM |
+| OT / Specialized | OT Security, Mobile Security, PKI, Quantum Encryption |
+| Governance & Risk | GRC, Brand Protection |
+| Human Layer | Email Security, Human Risk Management |
+
+**Coverage notes:**
+- Most categories have full product records with ranked recommendations and scoring
+- `Passwordless` — vendor-level advisory only (no product records); returns `vendor_category` mode
+- `CSPM`, `CWPP` — products are filed under CNAPP; queries return an honest gap message
+- `DTDR`, `EASM`, `Brand Protection`, `Sandboxing` — category descriptions available; no product or vendor data yet
 
 ## Scoring Model
 

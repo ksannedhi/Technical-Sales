@@ -310,11 +310,18 @@ Automated tests in `tests/test_engine.py` cover:
 
 ## 12. Known Gaps and Next Steps
 
-### Data
+### Data — categories with limited or no product coverage
+
+| Category | Status |
+|---|---|
+| `CSPM`, `CWPP` | No standalone product records — products are filed under CNAPP. Queries explain the category but return `insufficient_data` for recommendations. |
+| `DTDR`, `EASM`, `Brand Protection` | Category descriptions exist; no product or vendor coverage. Queries return `insufficient_data`. |
+| `Passwordless` | Yubico vendor entry exists; no product record. Queries return `vendor_category` advisory mode. |
+| `Sandboxing` | Category description and alias exist; no product records. Queries return `insufficient_data` for recommendations. |
+
+### Data — other
 - Integration metadata is missing for one product: Stellar (TXOne Networks / OT Security)
-- Several vendor-category pairs have no product records (e.g. Cisco SIEM, CrowdStrike Cloud Security, Varonis Data Security, Zscaler DLP, Yubico Passwordless); these fall back to `vendor_category` advisory mode
-- **PKI** — Entrust PKI Hub and DigiCert Trust Lifecycle Manager product records exist, but `CATEGORY_ALIASES` in `engine.py` has no entry for "PKI"; queries for PKI return `unknown_category` until the alias is added
-- **Passwordless** — Yubico is in the vendor registry under "Passwordless" but no product record exists, and `CATEGORY_ALIASES` has no alias; queries return `unknown_category`
+- Several vendor-category pairs have no product records (e.g. Cisco SIEM, CrowdStrike Cloud Security, Varonis Data Security, Zscaler DLP); these fall back to `vendor_category` advisory mode
 
 ### Product
 - No persistent history across app restarts
