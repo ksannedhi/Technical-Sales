@@ -239,10 +239,16 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     deal_zip = form.get("deal_zip")
     if isinstance(deal_zip, dict) and deal_zip.get("filename"):
         zip_warnings: list[str] = []
-        zipped = load_artifacts_from_zip_data(deal_zip["content"], warnings=zip_warnings)
+        zip_routing: dict[str, str] = {}
+        zipped = load_artifacts_from_zip_data(deal_zip["content"], warnings=zip_warnings, routing=zip_routing)
         for key, value in zipped.items():
             artifacts[key] = merge_text(value, artifacts.get(key, ""))
-        state["messages"].append(f"Loaded deal ZIP: {deal_zip['filename']}")
+        bucket_labels = {"requirements": "requirements", "proposal": "proposal", "supporting_context": "supporting context"}
+        if zip_routing:
+            route_parts = " · ".join(f"{fname} → {bucket_labels.get(b, b)}" for fname, b in zip_routing.items())
+            state["messages"].append(f"ZIP loaded — {len(zip_routing)} file(s) routed: {route_parts}")
+        else:
+            state["messages"].append(f"Loaded deal ZIP: {deal_zip['filename']}")
         state["messages"].extend(zip_warnings)
 
     for key in ["requirements_file", "proposal_file", "supporting_file"]:

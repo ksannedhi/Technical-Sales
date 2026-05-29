@@ -59,7 +59,7 @@ def load_artifacts_from_zip(path: str | Path) -> dict[str, str]:
     return load_artifacts_from_zip_data(Path(path).read_bytes())
 
 
-def load_artifacts_from_zip_data(data: bytes, warnings: list[str] | None = None) -> dict[str, str]:
+def load_artifacts_from_zip_data(data: bytes, warnings: list[str] | None = None, routing: dict[str, str] | None = None) -> dict[str, str]:
     artifacts = blank_artifacts()
     with zipfile.ZipFile(io.BytesIO(data)) as zf:
         for name in sorted(zf.namelist()):
@@ -90,7 +90,9 @@ def load_artifacts_from_zip_data(data: bytes, warnings: list[str] | None = None)
                         f"image-based and contains no extractable text. Convert to DOCX for reliable results."
                     )
                 continue
-            assign_text_to_bucket(Path(name).name, text, artifacts)
+            bucket = assign_text_to_bucket(Path(name).name, text, artifacts)
+            if routing is not None and bucket:
+                routing[Path(name).name] = bucket
     return artifacts
 
 
@@ -270,11 +272,12 @@ _REQUIREMENTS_CONTENT_SIGNALS = [
 ]
 
 
-def assign_text_to_bucket(name: str, text: str, artifacts: dict[str, str]) -> None:
+def assign_text_to_bucket(name: str, text: str, artifacts: dict[str, str]) -> str:
+    """Route text into the correct artifact bucket. Returns the bucket name chosen."""
     lower_name = name.lower()
     clean = text.strip()
     if not clean:
-        return
+        return ""
 
     # Primary: filename-keyword routing (fast, deterministic)
     if (
@@ -283,19 +286,19 @@ def assign_text_to_bucket(name: str, text: str, artifacts: dict[str, str]) -> No
         or "rfp" in lower_name
         or "scope" in lower_name
     ):
-        artifacts["requirements"] = combine_text(artifacts["requirements"], clean)
+        bucket = "requirements"
     elif (
         "proposal" in lower_name
         or "sow" in lower_name
         or "statement of work" in lower_name
         or "technical response" in lower_name
     ):
-        artifacts["proposal"] = combine_text(artifacts["proposal"], clean)
+        bucket = "proposal"
     else:
         # Secondary: content-based routing for generically named files
-        # (e.g. "Solution Overview.docx", "Technical Response v2.docx")
         bucket = _infer_bucket_from_content(clean.lower())
-        artifacts[bucket] = combine_text(artifacts[bucket], clean)
+    artifacts[bucket] = combine_text(artifacts[bucket], clean)
+    return bucket
 
 
 def _infer_bucket_from_content(text_lower: str) -> str:
