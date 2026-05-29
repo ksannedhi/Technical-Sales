@@ -417,8 +417,13 @@ SECTOR_COMPLIANCE_MAP: dict[str, list[str]] = {
 # When detected, HA/DR architecture findings are softened — the infrastructure
 # already exists; the check becomes "confirm it hasn't changed" rather than "define it".
 RENEWAL_SIGNALS = [
-    "renewal", "license renewal", "maintenance renewal", "support renewal",
-    "renew", "contract renewal", "subscription renewal",
+    # Bare "renewal" and "renew" are intentionally excluded — they appear in
+    # contract boilerplate ("possibility of renewal", "upon renewal") on new-deal
+    # RFPs and cause false-positive renewal detection.  Only compound phrases
+    # that unambiguously indicate a deal type are kept.
+    "license renewal", "maintenance renewal", "support renewal",
+    "contract renewal", "subscription renewal", "renewing existing",
+    "renewal of existing", "renewal of current",
 ]
 
 # Anchor keywords for proposal-fallback family detection.
