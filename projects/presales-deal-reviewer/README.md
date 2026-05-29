@@ -104,9 +104,9 @@ python app.py
 
 - Mode persists in Deal History — loading a past review shows it in the mode it was run
 - Re-run pre-loads the original artifacts and mode for editing before re-submission
-- SIEM deals always include a SOAR scope question — automation scope is rarely defined in RFPs
-- IAM deals fire sub-type questions: PAM (vault, JIT, session recording) or IGA (certification campaigns, SOD, lifecycle) based on detected keywords
-- SIEM sizing questions suppressed when SIEM is a log destination for a firewall deal
+- SIEM deals always include an automation scope question — playbook and orchestration coverage is a gap that surfaces late in nearly every SIEM engagement
+- IAM deals ask distinct questions for privileged access (PAM) and identity governance (IGA) — the right question set is applied based on the products and use cases in scope
+- Firewall deals scope the SIEM questions correctly — sizing and retention questions are not asked when an existing SIEM is acting as a log destination rather than being delivered
 - Renewal deals soften HA/DR findings to confirmation checks; expansion asks whether existing architecture covers new scope
 - Re-run delta banner (green / red / neutral) shows score movement between submissions
 

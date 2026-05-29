@@ -127,35 +127,27 @@ The engine detects which solution families are in scope from the artifact text a
 
 Supported families (17):
 
-| Family | Key Products | Notes |
-|---|---|---|
-| siem_log_mgmt | Splunk, QRadar, Sentinel, Elastic, FortiAnalyzer | SOAR scope question fires on all SIEM deals |
-| firewall_network | FortiGate, Palo Alto, Check Point, TippingPoint | TippingPoint swaps in IPS-specific questions |
-| email_security | Proofpoint, Mimecast, FortiMail, Cisco Email Security | |
-| endpoint_xdr | CrowdStrike, SentinelOne, Cortex XDR, Vision One, Apex One | XDR multi-domain telemetry question when XDR keywords detected |
-| iam_pam | Okta, Entra ID · CyberArk, BeyondTrust · SailPoint, Saviynt | Sub-type detection: General IAM / PAM / IGA — each fires a distinct question set |
-| sase_proxy | Zscaler, Prisma Access, Netskope, Cato Networks | |
-| app_delivery_security | F5, WAF, load balancer, ADC | |
-| ot_ics | Claroty, Nozomi, Dragos, SCADA | |
-| cloud_security | Wiz, Prisma Cloud, CSPM, CNAPP | |
-| vulnerability_management | Tenable, Qualys, Rapid7 | Questions cover cloud-native scanning and remediation SLA |
-| ndr | Darktrace, ExtraHop, Vectra, Deep Discovery | |
-| dlp | Purview, data loss prevention | |
-| managed_services | MDR, MXDR, managed SOC, MSSP | |
-| ddos_protection | Arbor, Radware, BGP diversion, scrubbing | |
-| backup_resilience | Veeam, Rubrik, Cohesity, Commvault | RTO/RPO gap is HIGH severity; air-gap storage gap also flagged |
-| threat_intelligence | Recorded Future, Digital Shadows, Group-IB, Mandiant | Feed types and integration targets flagged when absent |
-| dspm | Varonis, Cyera, BigID | Data scope, regulatory driver, and data residency gaps |
+| Family | Key Products |
+|---|---|
+| siem_log_mgmt | Splunk, QRadar, Sentinel, Elastic, FortiAnalyzer |
+| firewall_network | FortiGate, Palo Alto, Check Point, TippingPoint |
+| email_security | Proofpoint, Mimecast, FortiMail, Cisco Email Security |
+| endpoint_xdr | CrowdStrike, SentinelOne, Cortex XDR, Vision One, Apex One |
+| iam_pam | Okta, Entra ID · CyberArk, BeyondTrust · SailPoint, Saviynt |
+| sase_proxy | Zscaler, Prisma Access, Netskope, Cato Networks |
+| app_delivery_security | F5, WAF, load balancer, ADC |
+| ot_ics | Claroty, Nozomi, Dragos, SCADA |
+| cloud_security | Wiz, Prisma Cloud, CSPM, CNAPP |
+| vulnerability_management | Tenable, Qualys, Rapid7 |
+| ndr | Darktrace, ExtraHop, Vectra, Deep Discovery |
+| dlp | Purview, data loss prevention |
+| managed_services | MDR, MXDR, managed SOC, MSSP |
+| ddos_protection | Arbor, Radware, BGP diversion, scrubbing |
+| backup_resilience | Veeam, Rubrik, Cohesity, Commvault |
+| threat_intelligence | Recorded Future, Digital Shadows, Group-IB, Mandiant |
+| dspm | Varonis, Cyera, BigID |
 
-**IAM sub-type detection:** When PAM keywords (CyberArk, BeyondTrust, vault, session recording, JIT access) are detected, PAM-specific questions fire. When IGA keywords (SailPoint, Saviynt, access certification, SOD, joiner-mover-leaver) are detected, IGA-specific questions fire. General IAM questions fire otherwise.
-
-**SOAR bundled with SIEM:** SOAR scope is almost always absent from RFPs. A question about playbook automation fires on every SIEM deal regardless of whether SOAR keywords appear — this keeps the presales engineer ahead of a gap that regularly surfaces late in the deal.
-
-**Proposal-fallback detection:** When the RFP yields no family signal (bilingual PDFs, terse renewal RFPs), the engine falls back to the proposal text if it contains at least one vendor-anchor keyword and enough hits. Some families (iam_pam) are excluded from fallback to avoid false positives.
-
-**TippingPoint handling:** When TippingPoint is detected as the primary product within the firewall family, inline-IPS-specific questions replace the standard firewall topology questions, since TippingPoint does not handle VPN or NAT routing.
-
-**SIEM suppression for firewall deals:** When a firewall is the primary family and the SIEM appears only as a log destination (log forwarding, syslog-to, existing SIEM), SIEM sizing questions and sizing findings are suppressed — the SIEM is already deployed and not part of the delivery scope.
+Questions and findings are tailored to the detected families. IAM deals distinguish between privileged access (PAM) and identity governance (IGA) and ask the appropriate questions for each. SIEM deals always include automation scope — playbook and orchestration coverage is a gap that surfaces late in nearly every SIEM engagement.
 
 ## What The App Evaluates
 
