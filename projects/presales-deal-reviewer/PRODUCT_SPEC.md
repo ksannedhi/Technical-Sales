@@ -2,28 +2,26 @@
 
 ## Overview
 
-Presales Deal Reviewer is a laptop-runnable local web app for reviewing presales opportunity readiness across customer and presales artifacts.
+Presales Deal Reviewer is a laptop-runnable local web app that helps presales engineers and solution architects work more efficiently on deals — from first RFP receipt through to internal review and submission.
 
-The app is designed to help a presales engineer or solution architect:
+The app operates in two modes:
 
-- upload or paste presales artifacts (RFP, proposal, discovery notes)
-- assess whether the deal is ready for downstream submission or internal progression
-- identify missing inputs, weak assumptions, contradictions, and delivery risks
-- preserve reviews in a session-level deal history
-- download findings for follow-up or sharing
+- **RFP Review** — upload the RFP as soon as it arrives. Detects solution families, flags what is ambiguous or missing, and generates targeted clarifying questions to submit to the customer during the clarification window. No score is shown; the proposal does not exist yet.
+- **Deal Review** — upload the RFP, proposal draft, and discovery notes. Scores the deal across three weighted gates and surfaces specific gaps to fix before the deal goes to internal review or customer submission.
 
-This is a soft-gating tool. It does not block progression automatically and does not generate missing deliverables.
+The app does not block progression automatically and does not generate missing deliverables.
 
 ## Primary Goal
 
-Given user-provided presales artifacts, produce a human-readable readiness review with:
+**RFP Review mode:** given the customer RFP, produce a set of clarifying questions tailored to the detected solution families and flag what is missing or ambiguous before the presales engineer starts writing the proposal.
 
-- overall readiness status and score
-- weighted gate scores across three areas
+**Deal Review mode:** given the full deal package, produce a human-readable readiness review with:
+
+- overall readiness status and weighted score
+- gate scores across Requirements, Architecture, and Proposal
 - findings grouped by gate and severity
 - detected strengths
 - clarifying questions tailored to the solution family
-- related seed deal examples for calibration
 
 ## User Model
 
@@ -51,30 +49,45 @@ A local web app with:
 - 3-dots menu per deal card: Re-run, Rename, Delete
 - clicking Re-run pre-loads the prior deal's artifacts into the form for editing before re-submission
 
+### Mode Toggle
+
+A toggle at the top of the form selects the active mode. The form adapts immediately:
+
+- **RFP Review:** shows only the Requirements / RFP field and its upload. Proposal, supporting context, and ZIP upload are hidden.
+- **Deal Review:** shows all three artifact fields and the ZIP upload.
+
+The selected mode is stored with each review in Deal History. Loading a prior review or triggering a re-run restores the original mode.
+
 ### Input Fields
 
-The user can provide:
+**RFP Review mode:**
+- **Requirements / RFP** — the customer RFP text or document
 
+**Deal Review mode:**
 - **Requirements / Discovery Notes** — RFP text, scope documents, customer discovery notes
 - **Proposal / SOW Summary** — technical proposals, statements of work, deliverable outlines
 - **Discovery Notes & Supporting Context** — meeting notes, call summaries, sizing worksheets, architecture signals
+- **Deal package ZIP** — replaces all three individual uploads in a single step; ZIP contents are routed automatically to the correct artifact buckets
 
-Each field accepts pasted text and an optional file upload. A **deal package ZIP** input is also available to replace all three individual uploads in a single step. ZIP contents are routed automatically to the correct artifact buckets.
-
-After the review runs, the result is saved to Deal History, and input fields clear for the next deal.
+After the review runs, the result is saved to Deal History and input fields clear for the next deal.
 
 ### Result Flow
 
-The result area displays:
+**RFP Review mode:**
+- Selected Deal summary showing question count and requirements coverage score
+- Clarifying questions for the customer — prominent, numbered, ready to copy-paste
+- Requirements gate findings only
+- Download exports questions (numbered) + requirements findings
 
-- a compact Selected Deal summary near the top with overall status and gate scores
-- a re-run delta banner when the deal was submitted as a re-run (score movement since prior analysis)
-- overall readiness heading with status icon
-- gate score cards (Overall, Requirements, Architecture, Proposal)
-- findings grouped by gate, sorted by severity
-- strengths list
-- clarifying questions
-- a Download Findings action
+**Deal Review mode:**
+- Selected Deal summary with overall status and gate scores
+- Re-run delta banner when submitted as a re-run (score movement since prior analysis)
+- Overall readiness heading with status icon
+- Gate score cards (Overall, Requirements, Architecture, Proposal)
+- Findings grouped by gate, sorted by severity
+- Strengths list
+- Clarifying questions
+- Download exports full findings, strengths, and questions
 
 ## Gating Model
 
@@ -88,11 +101,15 @@ Three gates are scored independently and then combined:
 
 ### Weights
 
-| Gate | Weight |
-|---|---|
-| Requirements | 45% |
-| Architecture | 25% |
-| Proposal | 30% |
+Applies to Deal Review mode only. RFP Review mode does not produce a score.
+
+| Gate | Weight | Rationale |
+|---|---|---|
+| Requirements | 25% | Discovery window is often closed by deal review time — limited ability to address gaps |
+| Architecture | 25% | Structural risks matter but full redesign is not feasible at this stage |
+| Proposal | 50% | Fully in the presales engineer's hands — the primary fixable artifact before submission |
+
+A strong proposal can yield a passing overall score even with thin requirements coverage. This is intentional: the score reflects what is still actionable at deal review time. Requirements findings still appear regardless of their score contribution.
 
 ### Score Interpretation
 
@@ -108,24 +125,31 @@ Overall status can also be `ATTENTION REQUIRED` when any HIGH finding contains a
 
 The engine detects which solution families are in scope from the artifact text and tailors findings and clarifying questions accordingly. Up to five families can be active on a single deal.
 
-Supported families:
+Supported families (17):
 
-| Family | Examples |
-|---|---|
-| siem_log_mgmt | Splunk, QRadar, Sentinel, Elastic, FortiAnalyzer |
-| firewall_network | FortiGate, Palo Alto, Check Point, TippingPoint |
-| email_security | Proofpoint, Mimecast, Trend Micro Email Security |
-| endpoint_xdr | CrowdStrike, SentinelOne, Vision One, Apex One |
-| iam_pam | Okta, CyberArk, Entra ID, Active Directory |
-| sase_proxy | SASE, ZTNA, SWG, CASB |
-| app_delivery_security | F5, WAF, load balancer, ADC |
-| ot_ics | SCADA, Claroty, Nozomi, OT/ICS |
-| cloud_security | CSPM, CNAPP, Wiz, Prisma Cloud |
-| vulnerability_management | Tenable, Qualys, Rapid7 |
-| ndr | Darktrace, ExtraHop, Vectra, Deep Discovery |
-| dlp | DLP, Purview, data loss prevention |
-| managed_services | MDR, MXDR, managed SOC, MSSP |
-| ddos_protection | Arbor, Radware, BGP diversion, scrubbing |
+| Family | Key Products | Notes |
+|---|---|---|
+| siem_log_mgmt | Splunk, QRadar, Sentinel, Elastic, FortiAnalyzer | SOAR scope question fires on all SIEM deals |
+| firewall_network | FortiGate, Palo Alto, Check Point, TippingPoint | TippingPoint swaps in IPS-specific questions |
+| email_security | Proofpoint, Mimecast, FortiMail, Cisco Email Security | |
+| endpoint_xdr | CrowdStrike, SentinelOne, Cortex XDR, Vision One, Apex One | XDR multi-domain telemetry question when XDR keywords detected |
+| iam_pam | Okta, Entra ID · CyberArk, BeyondTrust · SailPoint, Saviynt | Sub-type detection: General IAM / PAM / IGA — each fires a distinct question set |
+| sase_proxy | Zscaler, Prisma Access, Netskope, Cato Networks | |
+| app_delivery_security | F5, WAF, load balancer, ADC | |
+| ot_ics | Claroty, Nozomi, Dragos, SCADA | |
+| cloud_security | Wiz, Prisma Cloud, CSPM, CNAPP | |
+| vulnerability_management | Tenable, Qualys, Rapid7 | Questions cover cloud-native scanning and remediation SLA |
+| ndr | Darktrace, ExtraHop, Vectra, Deep Discovery | |
+| dlp | Purview, data loss prevention | |
+| managed_services | MDR, MXDR, managed SOC, MSSP | |
+| ddos_protection | Arbor, Radware, BGP diversion, scrubbing | |
+| backup_resilience | Veeam, Rubrik, Cohesity, Commvault | RTO/RPO gap is HIGH severity; air-gap storage gap also flagged |
+| threat_intelligence | Recorded Future, Digital Shadows, Group-IB, Mandiant | Feed types and integration targets flagged when absent |
+| dspm | Varonis, Cyera, BigID | Data scope, regulatory driver, and data residency gaps |
+
+**IAM sub-type detection:** When PAM keywords (CyberArk, BeyondTrust, vault, session recording, JIT access) are detected, PAM-specific questions fire. When IGA keywords (SailPoint, Saviynt, access certification, SOD, joiner-mover-leaver) are detected, IGA-specific questions fire. General IAM questions fire otherwise.
+
+**SOAR bundled with SIEM:** SOAR scope is almost always absent from RFPs. A question about playbook automation fires on every SIEM deal regardless of whether SOAR keywords appear — this keeps the presales engineer ahead of a gap that regularly surfaces late in the deal.
 
 **Proposal-fallback detection:** When the RFP yields no family signal (bilingual PDFs, terse renewal RFPs), the engine falls back to the proposal text if it contains at least one vendor-anchor keyword and enough hits. Some families (iam_pam) are excluded from fallback to avoid false positives.
 
@@ -164,6 +188,16 @@ Supported families:
 - **assumption enumeration:** up to three actual assumption sentences from the proposal are quoted in the finding (rather than a generic flag) so the reviewer knows exactly what needs resolving
 - Professional Services listed without defined deliverables or scope
 - whether major air-gap/cloud conflicts are addressed
+
+### Solution-Family-Specific Requirements Findings
+
+In addition to the generic requirements checks above, the engine fires targeted findings per detected family:
+
+- **SIEM:** SOAR automation scope not addressed (LOW) — fires on all SIEM deals; TI feed integration absent (LOW)
+- **Backup & Cyber Resilience:** RTO/RPO not defined (HIGH); air-gap or immutable storage requirement not addressed (LOW)
+- **Threat Intelligence:** TI feed types not specified (MEDIUM); integration targets not confirmed (MEDIUM)
+- **DSPM:** data discovery scope not captured (MEDIUM); regulatory compliance driver not identified (LOW); data residency constraint not addressed (MEDIUM)
+- **IAM/PAM:** identity and integration dependencies not captured (MEDIUM) — fires for SIEM, IAM, and endpoint families
 
 ### Cross-Document Checks
 
@@ -230,8 +264,14 @@ Available from the 3-dots menu on each deal card. Blank rename attempts are igno
 
 ## Output Download
 
-The Download Findings action exports a plain-text summary:
+The download action exports a plain-text summary. Content varies by mode:
 
+**RFP Review mode:**
+- deal name
+- questions for customer (numbered)
+- requirements findings (severity, message)
+
+**Deal Review mode:**
 - deal name
 - overall readiness and score
 - gate scores

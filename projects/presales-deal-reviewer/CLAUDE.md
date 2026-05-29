@@ -82,16 +82,25 @@ data/gate_config.json       Tunable scoring weights, thresholds, and heuristic s
 - Document generation output
 - Cloud/SaaS deployment
 
+## Two modes
+
+- **RFP Review** — Requirements gate only; no score; questions first, requirements findings below; proposal and supporting context fields hidden. Mode stored in result dict and persists through Deal History and re-run.
+- **Deal Review** — all three gates; score-first layout. Default mode.
+- `review_mode` field in the result dict (`"rfp"` or `"deal"`) controls rendering in `render_page()` and download content in `build_findings_download_href()`.
+
 ## Engine patterns
 
-- **Gate weights** — Requirements 45%, Architecture 25%, Proposal 30% (source of truth: `data/gate_config.json`).
+- **Gate weights (Deal Review mode)** — Requirements 25%, Architecture 25%, Proposal 50% (source of truth: `data/gate_config.json`). Proposal-dominant: proposal is the only fully fixable artifact at deal review time. RFP Review mode produces no score.
+- **Solution families (17)** — siem_log_mgmt, firewall_network, email_security, endpoint_xdr, iam_pam, sase_proxy, app_delivery_security, ot_ics, cloud_security, vulnerability_management, ndr, dlp, managed_services, ddos_protection, backup_resilience, threat_intelligence, dspm.
+- **IAM sub-type detection** — PAM signals (cyberark, beyondtrust, vault, session recording, JIT) → `iam_pam_pam` questions. IGA signals (sailpoint, saviynt, access certification, SOD, joiner-mover-leaver) → `iam_pam_iga` questions. Falls through to general `iam_pam` questions otherwise.
+- **SOAR bundled with SIEM** — SOAR scope question fires on all SIEM deals regardless of whether SOAR keywords appear. TI feed integration gap also fires on SIEM deals when TI keywords absent.
 - **Solution family detection** — up to 5 families active per deal; scored by keyword hits across RFP + proposal + supporting_context. Proposal-fallback fires when RFP hits = 0 AND proposal has ≥1 anchor keyword (threshold: ≥2 for renewals, ≥4 otherwise). `iam_pam` excluded from proposal-fallback (too many false positives from integration boilerplate).
 - **TippingPoint / SIEM suppression** — TippingPoint detected within `firewall_network` → swaps in IPS-specific questions. When `firewall_network` is primary AND `log_destination` signals appear, all SIEM sizing findings and questions are suppressed (SIEM is a log sink, not the solution).
 - **Renewal vs. expansion** — `is_renewal` from `RENEWAL_SIGNALS`; `is_expansion = is_renewal AND seat_expansion keywords`. Renewal softens HA/DR to LOW; suppresses SIEM/retention/identity-gap findings; replaces endpoint Q1 (seat count) with OS/agent compatibility question. Expansion asks whether existing architecture extends to new scope.
 - **Sector→framework mapping** — `REGULATED_SECTOR_SIGNALS` triggers; `SECTOR_COMPLIANCE_MAP` supplies hint text (e.g. healthcare → HIPAA, GDPR, ISO 27001).
 - **Assumption extraction** — `_extract_assumption_sentences()` quotes up to 3 actual sentences from the proposal (assumed that / tbd / to be confirmed) instead of a generic flag.
 - **Re-run delta** — `GET /?rerun=<id>` pre-fills the form; POST computes score delta vs. prior run; `render_delta_banner()` shows green ⬆ / red ⬇ / neutral ➡.
-- **Key keyword lists live in `presales_gate_engine.py`** (not gate_config.json): `KEYWORDS`, `SOLUTION_FAMILY_KEYWORDS`, `SOLUTION_FAMILY_QUESTIONS`, `REGULATED_SECTOR_SIGNALS`, `SECTOR_COMPLIANCE_MAP`, `RENEWAL_SIGNALS`, `FAMILY_ANCHOR_KEYWORDS`, `PROPOSAL_FALLBACK_EXCLUDED`.
+- **Key keyword lists live in `presales_gate_engine.py`** (not gate_config.json): `KEYWORDS`, `SOLUTION_FAMILY_KEYWORDS`, `SOLUTION_FAMILY_QUESTIONS`, `HA_QUESTIONS_BY_FAMILY`, `REGULATED_SECTOR_SIGNALS`, `SECTOR_COMPLIANCE_MAP`, `RENEWAL_SIGNALS`, `FAMILY_ANCHOR_KEYWORDS`, `PROPOSAL_FALLBACK_EXCLUDED`.
 
 ## wsgiref runtime patterns
 
