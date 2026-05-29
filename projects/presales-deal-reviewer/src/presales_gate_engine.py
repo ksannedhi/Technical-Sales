@@ -168,6 +168,7 @@ SOLUTION_FAMILY_KEYWORDS = {
     "siem_log_mgmt": [
         "siem", "log management", "log analytics", "soc", "splunk", "qradar", "sentinel", "elastic", "event volume", "eps",
         "fortianalyzer", "fortisiem",
+        "soar", "playbook", "security orchestration", "incident response automation", "fortisoar", "xsoar", "cortex xsoar", "splunk soar",
     ],
     "firewall_network": [
         "firewall", "fortigate", "palo alto", "checkpoint", "vpn", "nat", "segmentation", "internet edge", "perimeter",
@@ -177,16 +178,24 @@ SOLUTION_FAMILY_KEYWORDS = {
         "email security", "secure email", "phishing", "m365", "office 365", "exchange", "mail flow", "email gateway", "mimecast", "proofpoint",
         "barracuda email", "email security gateway", "barracuda essentials",
         "trend micro email security", "trend micro email", "interscan messaging",
+        "fortimail", "cisco email security", "ironport", "abnormal security",
     ],
     "endpoint_xdr": [
         "endpoint", "edr", "xdr", "workstation", "server protection", "device control", "crowdstrike", "defender", "sentinelone",
         "trend micro", "vision one", "apex one", "deep security", "trend agent",
+        "cortex xdr", "palo alto cortex", "cybereason", "carbon black",
     ],
     "iam_pam": [
         "iam", "pam", "identity governance", "sso", "mfa", "privileged", "entra id", "okta", "active directory", "ad",
+        # PAM-specific
+        "cyberark", "beyondtrust", "privileged vault", "session recording", "just-in-time access", "least privilege", "privileged access workstation",
+        # IGA-specific
+        "sailpoint", "saviynt", "access certification", "access review", "segregation of duties", "joiner mover leaver",
+        "identity governance administration", "role governance", "role management", "identity lifecycle",
     ],
     "sase_proxy": [
         "sase", "sse", "proxy", "secure web gateway", "swg", "ztna", "casb", "remote users", "branch traffic",
+        "zscaler", "prisma access", "netskope", "cato networks", "shadow it", "cloud app visibility",
     ],
     "app_delivery_security": [
         "load balancer", "load balancer license", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy", "virtual server",
@@ -220,6 +229,24 @@ SOLUTION_FAMILY_KEYWORDS = {
         "akamai", "volumetric attack", "scrubbing", "traffic scrubbing", "bgp diversion",
         "anti-ddos", "ddos mitigation", "flow telemetry",
     ],
+    "backup_resilience": [
+        "backup", "cyber resilience", "ransomware recovery", "immutable backup", "air-gap vault", "immutable storage",
+        "veeam", "rubrik", "cohesity", "commvault", "veritas backup",
+        "rto", "rpo", "recovery time objective", "recovery point objective", "backup infrastructure",
+        "ransomware recovery", "backup and recovery", "data recovery",
+    ],
+    "threat_intelligence": [
+        "threat intelligence", "threat intel", "ti platform", "ti feed", "threat feeds",
+        "recorded future", "digital shadows", "reliaquest", "group-ib", "mandiant threat",
+        "ioc", "indicator of compromise", "dark web monitoring", "brand protection",
+        "threat landscape", "threat hunting feed", "external threat",
+    ],
+    "dspm": [
+        "dspm", "data security posture", "data classification", "data discovery", "sensitive data discovery",
+        "varonis", "cyera", "bigid", "imperva data",
+        "pii discovery", "data exposure", "unstructured data", "structured data classification",
+        "data residency", "data sovereignty", "data governance",
+    ],
 }
 
 SOLUTION_FAMILY_QUESTIONS = {
@@ -252,9 +279,21 @@ SOLUTION_FAMILY_QUESTIONS = {
         "What is the expected rollout model for pilots, coexistence, and agent replacement on existing devices?",
     ],
     "iam_pam": [
-        "Which identity sources, directories, and HR systems are authoritative for IAM or PAM onboarding?",
-        "Which authentication flows are required: SSO, MFA, privileged access, lifecycle automation, or federation?",
+        "Which identity sources, directories, and HR systems are authoritative for IAM onboarding?",
+        "Which authentication flows are required: SSO, MFA, passwordless, lifecycle automation, or federation?",
         "Are break-glass access, admin workflows, and compliance reporting requirements explicitly defined?",
+    ],
+    # PAM sub-type — fires when CyberArk, BeyondTrust, vault, or JIT keywords detected
+    "iam_pam_pam": [
+        "Which privileged accounts, service accounts, and admin sessions must be vaulted and recorded from day one?",
+        "Is just-in-time access, dual-control approval, or zero standing privilege required for privileged sessions?",
+        "What is the scope of session recording — which systems, protocols (RDP, SSH, database), and retention period?",
+    ],
+    # IGA sub-type — fires when SailPoint, Saviynt, access certification, or SOD keywords detected
+    "iam_pam_iga": [
+        "What is the access certification cycle — frequency, campaign scope, and reviewer workflow?",
+        "Which segregation of duties (SOD) policies must be enforced, and are there existing violations to remediate first?",
+        "What is the joiner-mover-leaver automation scope — which HR systems, applications, and entitlements must be lifecycle-managed?",
     ],
     "sase_proxy": [
         "Which users, branches, and applications must traverse the SASE or proxy service on day one?",
@@ -277,9 +316,9 @@ SOLUTION_FAMILY_QUESTIONS = {
         "What compliance frameworks or policy benchmarks must the CSPM/CNAPP tool enforce continuously?",
     ],
     "vulnerability_management": [
-        "How many assets, subnets, and cloud accounts are in scope for vulnerability scanning?",
-        "What scan frequency and credentialed vs. uncredentialed coverage is required for internal and DMZ segments?",
-        "How must vulnerability data integrate with ticketing, patching, and risk-scoring workflows?",
+        "How many assets, subnets, and cloud accounts are in scope, and is agent-based or agentless scanning required for cloud workloads?",
+        "What scan frequency and credentialed vs. uncredentialed coverage is required for internal, DMZ, and cloud segments?",
+        "What remediation SLA or MTTR target is expected, and how must vulnerability data integrate with ticketing and patching workflows?",
     ],
     "ndr": [
         "Which network segments, cloud VPCs, and east-west traffic paths must the NDR sensor cover?",
@@ -301,6 +340,21 @@ SOLUTION_FAMILY_QUESTIONS = {
         "Which upstream ISPs or transit providers are in scope for BGP diversion or flow-telemetry integration?",
         "What on-premises scrubbing capacity, cloud-based mitigation, and hybrid failover model is required?",
     ],
+    "backup_resilience": [
+        "What workloads, servers, cloud instances, and SaaS applications must be covered by the backup solution?",
+        "What RTO and RPO are acceptable for a ransomware recovery scenario, and is air-gapped or immutable backup storage a hard requirement?",
+        "What is the expected backup data volume and retention period per workload tier, and is ransomware detection on backup data in scope?",
+    ],
+    "threat_intelligence": [
+        "What TI feed types are required — technical IOCs, vulnerability intelligence, dark web monitoring, brand protection, or geopolitical threat reports?",
+        "Which SOC tools must the TI platform integrate with — SIEM, SOAR, EDR, firewall, or ticketing systems?",
+        "How should TI be operationalised — automated enrichment in SIEM, analyst lookup portal, or alert prioritisation workflow?",
+    ],
+    "dspm": [
+        "Which data stores, cloud buckets, databases, and SaaS applications must be in scope for data discovery and classification?",
+        "What regulatory or compliance drivers are shaping the data classification requirements — GDPR, PDPL, PCI DSS, HIPAA, or ISO 27001?",
+        "Is the primary goal discovery and classification only, or does it extend to active enforcement and remediation workflows?",
+    ],
 }
 
 # Solution-family-aware HA clarifying questions.
@@ -320,6 +374,9 @@ HA_QUESTIONS_BY_FAMILY = {
     "dlp": "How is DLP policy enforcement continuity maintained during system upgrades or connector failures?",
     "managed_services": "How is analyst coverage and escalation continuity maintained during service provider incidents or maintenance windows?",
     "ddos_protection": "How is scrubbing centre availability and BGP diversion continuity maintained during a sustained volumetric attack or ISP failover?",
+    "backup_resilience": "How is backup infrastructure itself protected — are backup servers, repositories, and air-gap vaults resilient against failure or targeted ransomware?",
+    "threat_intelligence": "How is TI platform availability maintained — is there a fallback feed source or cached IOC database if the primary TI provider has an outage?",
+    "dspm": "How is data discovery continuity maintained across cloud accounts and data stores during API outages or permission changes?",
 }
 HA_QUESTION_DEFAULT = "How is high availability and failover defined for the primary system components?"
 
@@ -367,11 +424,11 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     # because they appear as integration context in firewall, network, and multi-product
     # proposals ("SIEM integration", "centralized log management") and would spuriously
     # trigger the siem_log_mgmt family for non-SIEM deals.
-    "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo", "fortianalyzer", "fortisiem"],
+    "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo", "fortianalyzer", "fortisiem", "fortisoar", "xsoar", "cortex xsoar", "splunk soar"],
     "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw", "tippingpoint"],
     "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email", "trend micro email security", "interscan messaging"],
     "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection", "vision one", "apex one", "deep security"],
-    "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network"],
+    "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network", "zscaler", "prisma access", "netskope", "cato networks"],
     "app_delivery_security": ["load balancer", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy"],
     "ot_ics": ["scada", "operational technology", "purdue", "claroty", "nozomi", "dragos", "ics security"],
     "cloud_security": ["cspm", "cnapp", "wiz", "lacework", "cloud security posture", "prisma cloud", "defender for cloud"],
@@ -380,6 +437,9 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     "dlp": ["data loss prevention", "purview", "dlp policy", "information protection platform"],
     "managed_services": ["managed detection", "managed soc", "soc as a service", "mssp", "mdr service", "mxdr", "managed xdr"],
     "ddos_protection": ["arbor", "netscout", "radware", "ddos mitigation", "scrubbing", "bgp diversion", "anti-ddos", "volumetric attack"],
+    "backup_resilience": ["veeam", "rubrik", "cohesity", "commvault", "veritas backup", "immutable backup", "ransomware recovery", "air-gap vault"],
+    "threat_intelligence": ["recorded future", "digital shadows", "reliaquest", "group-ib", "mandiant threat", "threat intelligence platform", "dark web monitoring", "ioc feed"],
+    "dspm": ["varonis", "cyera", "bigid", "imperva data", "data security posture", "dspm", "sensitive data discovery"],
 }
 
 # Families excluded from proposal-fallback detection entirely.
@@ -736,6 +796,17 @@ class PresalesGateEngine:
             # which TippingPoint does not handle.
             if family == "firewall_network" and _keyword_match(combined_lower, "tippingpoint"):
                 family_questions = SOLUTION_FAMILY_QUESTIONS["firewall_network_ips"]
+            # IAM sub-type detection: PAM and IGA have distinct delivery models and gaps.
+            # PAM sub-type: CyberArk, BeyondTrust, vault, session recording, JIT keywords.
+            # IGA sub-type: SailPoint, Saviynt, access certification, SOD keywords.
+            # Fall through to general IAM questions when neither is clearly indicated.
+            if family == "iam_pam":
+                pam_signals = ["cyberark", "beyondtrust", "privileged vault", "session recording", "just-in-time", "least privilege"]
+                iga_signals = ["sailpoint", "saviynt", "access certification", "access review", "segregation of duties", "joiner mover leaver", "identity governance administration"]
+                if any(_keyword_match(combined_lower, kw) for kw in pam_signals):
+                    family_questions = SOLUTION_FAMILY_QUESTIONS["iam_pam_pam"]
+                elif any(_keyword_match(combined_lower, kw) for kw in iga_signals):
+                    family_questions = SOLUTION_FAMILY_QUESTIONS["iam_pam_iga"]
             # For SIEM: if log volume is already defined, skip the sizing question
             # and surface the higher-level retention and use-case questions instead.
             if family == "siem_log_mgmt" and has_any(combined, KEYWORDS["log_volume"]):
@@ -759,6 +830,24 @@ class PresalesGateEngine:
             questions.append(
                 "Which telemetry sources and use cases are the XDR credits allocated to, "
                 "and how is credit consumption tracked across the contract term?"
+            )
+
+        # XDR multi-domain telemetry: when XDR (not just EDR) keywords are present,
+        # ask whether non-endpoint telemetry sources are in scope.
+        if "endpoint_xdr" in solution_families and any(
+            _keyword_match(combined_lower, kw) for kw in ["xdr", "cortex xdr", "vision one", "xsoar"]
+        ) and not is_renewal:
+            questions.append(
+                "Beyond endpoint telemetry, which additional data sources feed the XDR platform — "
+                "network (NDR), cloud workloads, identity, or email — and are these integrations in scope for day one?"
+            )
+
+        # SOAR: fires on all SIEM deals to keep the presales engineer on top of automation scope.
+        # SOAR is almost always bundled with SIEM but its scope is rarely defined in the RFP.
+        if "siem_log_mgmt" in solution_families and not is_renewal:
+            questions.append(
+                "Is SOAR or automated playbook execution in scope, and which tier-1 response actions "
+                "(alert triage, firewall block, endpoint isolation, ticket creation) must be automated on day one?"
             )
 
     def _requirements_gate(
@@ -812,7 +901,7 @@ class PresalesGateEngine:
                 # Retention policy is already configured on the existing SIEM.
                 pass
             else:
-                findings.append(make_finding("Requirements", "medium", "Retention requirement is not clearly stated.", "retention"))
+                findings.append(make_finding("Requirements", "medium", "Retention period not captured in your submission — confirm with the customer and add to discovery notes.", "retention"))
                 questions.append("What retention period is required?")
 
         if has_any(requirements, KEYWORDS["identity"]):
@@ -824,7 +913,7 @@ class PresalesGateEngine:
             # where identity integration is a core delivery dependency.
             # Suppressed for renewal deals — SIEM may appear in customer references
             # rather than as the primary solution, and integrations are already live.
-            findings.append(make_finding("Requirements", "medium", "Identity or core integration dependencies are not clearly defined.", "identity"))
+            findings.append(make_finding("Requirements", "medium", "Identity and integration dependencies not captured — confirm which systems and integrations must be supported before proposing.", "identity"))
             questions.append("Which identity systems and core integrations must be supported?")
 
         if has_any(requirements, KEYWORDS["compliance"]):
@@ -844,7 +933,7 @@ class PresalesGateEngine:
 
         if vague_language(requirements, self.config):
             score -= gate_config["vague_penalty"]
-            findings.append(make_finding("Requirements", "high", "Requirements are too vague for a reliable design review.", "vague"))
+            findings.append(make_finding("Requirements", "high", "Submitted requirements are too sparse for a reliable design review — add discovery notes or supporting context.", "vague"))
 
         # Only check discovery notes for uncertainty markers — formal RFPs routinely use
         # "incomplete" and "unclear" in procurement boilerplate (e.g. "right to reject
@@ -856,8 +945,72 @@ class PresalesGateEngine:
         scope_terms = self._scope_terms(solution_families)
         if not any(token in requirements for token in scope_terms) and not any(token in supporting_context for token in scope_terms):
             score -= gate_config["scope_penalty"]
-            findings.append(make_finding("Requirements", "medium", "Scope boundaries are weak or missing.", "scope"))
+            findings.append(make_finding("Requirements", "medium", "Scope not captured in your submission — confirm which assets, users, and environments are in scope.", "scope"))
             questions.append("What assets, users, and environments are in scope?")
+
+        # SOAR gap: fires on all SIEM deals — automation scope is almost always absent from RFPs.
+        if "siem_log_mgmt" in solution_families and not is_renewal:
+            soar_kw = ["soar", "playbook", "security orchestration", "incident response automation", "fortisoar", "xsoar", "splunk soar"]
+            if not has_any(requirements, soar_kw) and not has_any(supporting_context, soar_kw):
+                findings.append(make_finding("Requirements", "low",
+                    "SOAR automation scope not addressed in your submission — confirm whether playbook execution is in scope and which tier-1 response actions must be automated.",
+                    "soar"))
+
+        # TI feed gap: fires on SIEM deals where threat intelligence integration is absent.
+        if "siem_log_mgmt" in solution_families and not is_renewal:
+            ti_kw = ["threat intelligence", "threat intel", "ti feed", "ti platform", "ioc", "indicator of compromise",
+                     "threat feeds", "recorded future", "digital shadows", "group-ib", "mandiant"]
+            if not has_any(requirements, ti_kw) and not has_any(supporting_context, ti_kw):
+                findings.append(make_finding("Requirements", "low",
+                    "Threat intelligence feed integration not addressed — confirm whether TI enrichment is required for SOC alert prioritisation.",
+                    "ti_siem"))
+
+        # Backup & Cyber Resilience gaps
+        if "backup_resilience" in solution_families:
+            rto_rpo_kw = ["rto", "rpo", "recovery time objective", "recovery point objective", "recovery time", "recovery point"]
+            if not has_any(requirements, rto_rpo_kw) and not has_any(supporting_context, rto_rpo_kw) and not is_renewal:
+                findings.append(make_finding("Requirements", "high",
+                    "RTO and RPO not defined — these are critical sizing inputs for backup infrastructure and licensing.",
+                    "rto_rpo"))
+                questions.append("What RTO and RPO are acceptable for a ransomware recovery scenario?")
+            airgap_kw = ["air-gap", "air gap", "airgap", "immutable", "immutable storage", "worm storage", "object lock"]
+            if not has_any(requirements, airgap_kw) and not has_any(supporting_context, airgap_kw):
+                findings.append(make_finding("Requirements", "low",
+                    "Air-gap or immutable storage requirement not addressed — confirm whether hardened backup storage is a compliance or security mandate.",
+                    "airgap"))
+
+        # Threat Intelligence Platform gaps (standalone TI deal)
+        if "threat_intelligence" in solution_families:
+            feed_kw = ["ioc", "vulnerability intelligence", "dark web", "brand protection", "geopolitical", "threat reports", "technical feed", "threat feed"]
+            if not has_any(requirements, feed_kw) and not has_any(supporting_context, feed_kw):
+                findings.append(make_finding("Requirements", "medium",
+                    "TI feed types not specified — confirm whether technical IOCs, vulnerability intelligence, dark web monitoring, or brand protection is required.",
+                    "ti_scope"))
+                questions.append("What TI feed types are required — technical IOCs, vulnerability intelligence, dark web monitoring, or brand protection?")
+            integration_kw = ["siem integration", "soar integration", "edr integration", "firewall integration", "stix", "taxii", "api integration"]
+            if not has_any(requirements, integration_kw) and not has_any(supporting_context, integration_kw):
+                findings.append(make_finding("Requirements", "medium",
+                    "TI integration targets not confirmed — specify which SOC tools (SIEM, SOAR, EDR, firewall) must consume the feeds.",
+                    "ti_integration"))
+
+        # DSPM gaps
+        if "dspm" in solution_families:
+            dspm_scope_kw = ["data stores", "cloud buckets", "databases", "saas applications", "file shares", "object storage", "structured data", "unstructured data"]
+            if not has_any(requirements, dspm_scope_kw) and not has_any(supporting_context, dspm_scope_kw):
+                findings.append(make_finding("Requirements", "medium",
+                    "Data discovery scope not captured — confirm which data stores, cloud buckets, databases, and SaaS applications are in scope.",
+                    "dspm_scope"))
+                questions.append("Which data stores, cloud buckets, databases, and SaaS applications must be in scope for data discovery and classification?")
+            regulatory_kw = ["gdpr", "pdpl", "pci", "hipaa", "iso 27001", "data protection", "privacy regulation", "regulatory compliance"]
+            if not has_any(requirements, regulatory_kw) and not has_any(supporting_context, regulatory_kw):
+                findings.append(make_finding("Requirements", "low",
+                    "Regulatory compliance driver not identified — name the applicable data protection framework to scope classification policies correctly.",
+                    "dspm_compliance"))
+            residency_kw = ["data residency", "data sovereignty", "data localisation", "data localization", "stored in country", "in-country"]
+            if not has_any(requirements, residency_kw) and not has_any(supporting_context, residency_kw):
+                findings.append(make_finding("Requirements", "medium",
+                    "Data residency or sovereignty constraint not addressed — confirm where data must be stored and processed before scoping the solution.",
+                    "dspm_residency"))
 
         for message, section, tag in POSITIVE_SIGNALS[:4]:
             if section == "requirements" and (has_any(requirements, KEYWORDS[tag]) or has_any(supporting_context, KEYWORDS[tag])):
