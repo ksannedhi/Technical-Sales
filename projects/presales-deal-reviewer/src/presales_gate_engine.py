@@ -70,6 +70,12 @@ KEYWORDS = {
     # SIEM-as-log-destination signals — suppress SIEM sizing questions when these appear
     # alongside a firewall family (the SIEM is already deployed, not being delivered)
     "log_destination": ["existing siem", "log forwarding", "forward logs", "syslog to", "log to siem", "siem integration"],
+    # Network/appliance throughput and capacity sizing terms
+    "throughput": ["gbps", "mbps", "throughput", "line rate", "bandwidth requirement", "capacity requirement",
+                   "concurrent sessions", "connections per second", "cps", "tps"],
+    # Integration requirements that should be addressed in the proposal
+    "integration_req": ["integration", "api integration", "rest api", "webhook", "ldap integration",
+                        "active directory integration", "syslog integration", "connector", "plugin"],
 }
 
 DEFAULT_GATE_CONFIG = {
@@ -1340,6 +1346,47 @@ class PresalesGateEngine:
                     "Is a centralised management platform (Panorama, FortiManager, or SmartConsole) "
                     "included in the BOQ to manage and push policy to all sites from a single pane of glass?"
                 )
+
+        # ── RFP architectural requirements vs proposal response ──────────────────
+        # Only meaningful when a proposal exists — missing-artifact finding already
+        # covers the case where no proposal has been submitted.
+        if proposal.strip():
+            # HA: RFP requires it but proposal doesn't describe the approach
+            if has_any(requirements, KEYWORDS["ha"]) and not has_any(proposal, KEYWORDS["ha"]):
+                findings.append(make_finding("Cross-check", "medium",
+                    "RFP requires high availability but the proposal does not describe "
+                    "the HA design or clustering approach — add the failover architecture before submission.",
+                    "ha_unresponded"))
+
+            # DR: RFP requires it but proposal doesn't describe the approach
+            rfp_needs_dr = has_any(requirements, KEYWORDS["dr"]) or has_any(requirements, KEYWORDS["failover"])
+            prop_has_dr  = has_any(proposal,      KEYWORDS["dr"]) or has_any(proposal,      KEYWORDS["failover"])
+            if rfp_needs_dr and not prop_has_dr:
+                findings.append(make_finding("Cross-check", "medium",
+                    "RFP requires disaster recovery or failover coverage but the proposal does not "
+                    "address the DR approach — describe the recovery architecture before submission.",
+                    "dr_unresponded"))
+
+            # Compliance framework: named in RFP but not referenced in proposal
+            if has_any(requirements, KEYWORDS["compliance"]) and not has_any(proposal, KEYWORDS["compliance"]):
+                findings.append(make_finding("Cross-check", "medium",
+                    "A compliance or regulatory framework is referenced in the RFP but is not "
+                    "addressed in the proposal — confirm how the solution meets the stated obligations.",
+                    "compliance_unresponded"))
+
+            # Throughput / capacity: sizing stated in RFP but not confirmed in proposal
+            if has_any(requirements, KEYWORDS["throughput"]) and not has_any(proposal, KEYWORDS["throughput"]):
+                findings.append(make_finding("Cross-check", "medium",
+                    "Throughput or capacity requirements are stated in the RFP but the proposal "
+                    "does not confirm the sizing basis — validate the design meets the stated numbers.",
+                    "throughput_unresponded"))
+
+            # Integration requirements: called out in RFP but absent from proposal
+            if has_any(requirements, KEYWORDS["integration_req"]) and not has_any(proposal, KEYWORDS["integration_req"]):
+                findings.append(make_finding("Cross-check", "low",
+                    "Integration requirements are referenced in the RFP but are not addressed "
+                    "in the proposal — confirm which connectors, APIs, or feeds are in scope.",
+                    "integration_unresponded"))
 
     def _scope_terms(self, solution_families: list[str]) -> list[str]:
         terms = list(GENERAL_SCOPE_TERMS)
