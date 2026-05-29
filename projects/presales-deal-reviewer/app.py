@@ -771,7 +771,7 @@ def render_page(state: dict[str, object]) -> str:
         </div>
       </div>
     </div>
-    {result_html}
+    <div id="result-section">{result_html}</div>
     <form id="delete-session-form" method="post" action="/" enctype="multipart/form-data" style="display:none;">
       <input type="hidden" name="delete_review_id" id="delete_review_id">
     </form>
@@ -829,6 +829,10 @@ def render_page(state: dict[str, object]) -> str:
     if (scorePanel) scorePanel.style.display = isRfp ? "none" : "";
     if (rfpGuide) rfpGuide.style.display = isRfp ? "" : "none";
     if (whatGoesWhere) whatGoesWhere.style.display = isRfp ? "none" : "";
+    // Hide stale result from a previous run when the user switches mode —
+    // the old result belongs to the other mode and would be misleading.
+    const resultSection = document.getElementById("result-section");
+    if (resultSection) resultSection.style.display = "none";
   }}
   document.querySelectorAll(".mode-btn").forEach(btn => {{
     btn.addEventListener("click", () => setReviewMode(btn.getAttribute("data-mode")));
