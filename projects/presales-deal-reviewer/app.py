@@ -103,6 +103,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
             "supporting_context": "",
             "messages": [],
             "result": None,
+            "review_mode": "deal",
         }
 
     review_id = (query.get("review", [""]) or [""])[0]
@@ -121,6 +122,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "result": saved["result"],
                 "rerun_from_id": "",
                 "score_delta": saved.get("score_delta"),
+                "review_mode": saved["result"].get("review_mode", "deal"),
             }
 
     # Re-run: pre-populate the form with a previous deal's artifacts so the user
@@ -144,6 +146,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
                 "result": saved["result"],
                 # Carry the source review ID so the POST can compute a score delta.
                 "rerun_from_id": rerun_id,
+                "review_mode": saved["result"].get("review_mode", "deal"),
             }
 
     state = {
@@ -157,6 +160,7 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         "result": None,
         "rerun_from_id": "",
         "score_delta": None,
+        "review_mode": "deal",
     }
     if not form:
         return state
@@ -265,8 +269,13 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
         return state
 
     state.update(artifacts)
+    review_mode = (form.get("review_mode") or "deal").strip()
+    if review_mode not in ("rfp", "deal"):
+        review_mode = "deal"
+    state["review_mode"] = review_mode
     analyze_started = time.time()
     state["result"] = engine.analyze(deal_name=deal_name, artifacts=artifacts).to_dict()
+    state["result"]["review_mode"] = review_mode
     print(f"[timing] engine_analyze_ms={round((time.time() - analyze_started) * 1000, 2)}")
 
     # Enhancement 10 — re-run delta: if the user clicked Re-run on a prior deal,
@@ -359,69 +368,113 @@ def render_page(state: dict[str, object]) -> str:
     if result:
         active_deal_name = state.get("active_deal_name", "") or "Untitled deal"
         overall_icon = readiness_icon(result["overall_score"])
-        findings = render_findings_groups(result["findings"])
-        strengths = "".join(f"<li>{escape(item)}</li>" for item in result["strengths"]) or "<li>No standout strengths detected yet.</li>"
-        questions = "".join(f"<li>{escape(item)}</li>" for item in result["clarifying_questions"]) or "<li>No follow-up questions needed.</li>"
         findings_download_href = build_findings_download_href(active_deal_name, result)
-        selected_review_summary = f"""
-        <section class="panel selected-review-summary" id="selected-review-summary">
-          <div class="selected-review-header">
-            <div>
-              <div class="selected-review-label">Selected Deal</div>
-              <h2>{escape(active_deal_name)}</h2>
-            </div>
-            <div class="selected-review-status">{overall_icon} {escape(result['overall_status'])}</div>
-          </div>
-          <div class="selected-review-metrics">
-            <div class="mini-metric"><span>Overall</span><strong>{result['overall_score']}/100</strong></div>
-            <div class="mini-metric"><span>Requirements</span><strong>{result['gate_scores']['Requirements']}</strong></div>
-            <div class="mini-metric"><span>Architecture</span><strong>{result['gate_scores']['Architecture']}</strong></div>
-            <div class="mini-metric"><span>Proposal</span><strong>{result['gate_scores']['Proposal']}</strong></div>
-          </div>
-          <p class="selected-review-note">Scroll down for more details.</p>
-        </section>
-        """
-        result_html = f"""
-        <section class="panel">
-          <div class="result-header">
-            <h2>{overall_icon} Overall Readiness for {escape(active_deal_name)}: {escape(result['overall_status'])}</h2>
-            <a class="download-link" href="{findings_download_href}" download="{escape(active_deal_name)}_review.txt">Download Findings</a>
-          </div>
-          {delta_banner}
-          <p class="hint">Overall is a weighted score out of 100. Requirements, Architecture, and Proposal are gate scores that show how each area performed before the weighted roll-up.</p>
-          <div class="scores">
-            <div class="score"><span>Overall</span><strong>{result['overall_score']}/100</strong><small>Weighted readiness across all gates</small></div>
-            <div class="score"><span>Requirements</span><strong>{result['gate_scores']['Requirements']}</strong><small>Input quality, scope, sizing, retention, integrations</small></div>
-            <div class="score"><span>Architecture</span><strong>{result['gate_scores']['Architecture']}</strong><small>Design completeness, HA/DR, constraint alignment, contradictions</small></div>
-            <div class="score"><span>Proposal</span><strong>{result['gate_scores']['Proposal']}</strong><small>Scope, deliverables, timeline, assumptions, customer readiness</small></div>
-          </div>
-          <div class="two-col">
-            <div>
-              <h3>Findings</h3>
-              {findings}
-            </div>
-            <div>
-              <h3>Strengths</h3>
-              <ul class="strengths-list">{strengths}</ul>
-            </div>
-          </div>
-          <div class="two-col">
-            <div>
-              <h3>Clarifying Questions</h3>
-              <ul>{questions}</ul>
-            </div>
-            <div>
-              <h3>Recommended Next Steps</h3>
-              <ul>
-                <li>Answer each clarifying question and add the responses to the discovery notes.</li>
-                <li>Address HIGH findings before the deal advances to customer submission.</li>
-                <li>Re-run the gate review after updating the documents to confirm the score improves.</li>
-                <li>Use the Download Findings report to share gaps with the account team or delivery lead.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-        """
+        is_rfp_mode = result.get("review_mode") == "rfp"
+
+        if is_rfp_mode:
+            # RFP Review mode — questions first, only requirements findings, no score
+            req_findings_only = [f for f in result["findings"] if f.get("gate") == "Requirements"]
+            findings = render_findings_groups(req_findings_only)
+            questions_items = result["clarifying_questions"]
+            questions_html = "".join(f"<li>{escape(item)}</li>" for item in questions_items) or "<li>No specific questions generated — try adding more RFP text.</li>"
+            req_score = result["gate_scores"]["Requirements"]
+            selected_review_summary = f"""
+            <section class="panel selected-review-summary" id="selected-review-summary">
+              <div class="selected-review-header">
+                <div>
+                  <div class="selected-review-label">RFP Review</div>
+                  <h2>{escape(active_deal_name)}</h2>
+                </div>
+                <div class="selected-review-status">📋 {len(questions_items)} clarifying questions</div>
+              </div>
+              <div class="selected-review-metrics">
+                <div class="mini-metric"><span>Requirements Coverage</span><strong>{req_score}/100</strong></div>
+                <div class="mini-metric"><span>Findings</span><strong>{len(req_findings_only)}</strong></div>
+                <div class="mini-metric"><span>Questions for Customer</span><strong>{len(questions_items)}</strong></div>
+              </div>
+              <p class="selected-review-note">Scroll down for the full question list and findings.</p>
+            </section>
+            """
+            result_html = f"""
+            <section class="panel">
+              <div class="result-header">
+                <h2>📋 RFP Review — {escape(active_deal_name)}</h2>
+                <a class="download-link" href="{findings_download_href}" download="{escape(active_deal_name)}_rfp_review.txt">Download Questions</a>
+              </div>
+              <p class="hint">Questions to submit to the customer during the clarification window. Findings below flag what is missing or unclear in the RFP before you start the proposal.</p>
+              <div class="rfp-questions-box">
+                <h3>Questions for the Customer ({len(questions_items)})</h3>
+                <p class="copy-hint">Copy these into your clarification response or share with the account team.</p>
+                <ul>{questions_html}</ul>
+              </div>
+              <h3>RFP Findings ({len(req_findings_only)})</h3>
+              {findings if findings else "<p class='hint'>No requirements gaps detected.</p>"}
+            </section>
+            """
+        else:
+            # Deal Review mode — score-first, all gates, findings + strengths + questions
+            findings = render_findings_groups(result["findings"])
+            strengths = "".join(f"<li>{escape(item)}</li>" for item in result["strengths"]) or "<li>No standout strengths detected yet.</li>"
+            questions = "".join(f"<li>{escape(item)}</li>" for item in result["clarifying_questions"]) or "<li>No follow-up questions needed.</li>"
+            selected_review_summary = f"""
+            <section class="panel selected-review-summary" id="selected-review-summary">
+              <div class="selected-review-header">
+                <div>
+                  <div class="selected-review-label">Selected Deal</div>
+                  <h2>{escape(active_deal_name)}</h2>
+                </div>
+                <div class="selected-review-status">{overall_icon} {escape(result['overall_status'])}</div>
+              </div>
+              <div class="selected-review-metrics">
+                <div class="mini-metric"><span>Overall</span><strong>{result['overall_score']}/100</strong></div>
+                <div class="mini-metric"><span>Requirements</span><strong>{result['gate_scores']['Requirements']}</strong></div>
+                <div class="mini-metric"><span>Architecture</span><strong>{result['gate_scores']['Architecture']}</strong></div>
+                <div class="mini-metric"><span>Proposal</span><strong>{result['gate_scores']['Proposal']}</strong></div>
+              </div>
+              <p class="selected-review-note">Scroll down for more details.</p>
+            </section>
+            """
+            result_html = f"""
+            <section class="panel">
+              <div class="result-header">
+                <h2>{overall_icon} Overall Readiness for {escape(active_deal_name)}: {escape(result['overall_status'])}</h2>
+                <a class="download-link" href="{findings_download_href}" download="{escape(active_deal_name)}_review.txt">Download Findings</a>
+              </div>
+              {delta_banner}
+              <p class="hint">Overall is a weighted score out of 100. Requirements, Architecture, and Proposal are gate scores that show how each area performed before the weighted roll-up.</p>
+              <div class="scores">
+                <div class="score"><span>Overall</span><strong>{result['overall_score']}/100</strong><small>Weighted readiness across all gates</small></div>
+                <div class="score"><span>Requirements</span><strong>{result['gate_scores']['Requirements']}</strong><small>Input quality, scope, sizing, retention, integrations</small></div>
+                <div class="score"><span>Architecture</span><strong>{result['gate_scores']['Architecture']}</strong><small>Design completeness, HA/DR, constraint alignment, contradictions</small></div>
+                <div class="score"><span>Proposal</span><strong>{result['gate_scores']['Proposal']}</strong><small>Scope, deliverables, timeline, assumptions, customer readiness</small></div>
+              </div>
+              <div class="two-col">
+                <div>
+                  <h3>Findings</h3>
+                  {findings}
+                </div>
+                <div>
+                  <h3>Strengths</h3>
+                  <ul class="strengths-list">{strengths}</ul>
+                </div>
+              </div>
+              <div class="two-col">
+                <div>
+                  <h3>Clarifying Questions</h3>
+                  <ul>{questions}</ul>
+                </div>
+                <div>
+                  <h3>Recommended Next Steps</h3>
+                  <ul>
+                    <li>Answer each clarifying question and add the responses to the discovery notes.</li>
+                    <li>Address HIGH findings before the deal advances to customer submission.</li>
+                    <li>Re-run the gate review after updating the documents to confirm the score improves.</li>
+                    <li>Use the Download Findings report to share gaps with the account team or delivery lead.</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+            """
 
     return f"""<!doctype html>
 <html lang="en">
@@ -523,6 +576,17 @@ def render_page(state: dict[str, object]) -> str:
     .delta-icon {{ font-size: 1.4rem; line-height: 1; }}
     .delta-text {{ flex: 1; }}
     .delta-text small {{ display: block; font-weight: 400; font-size: 0.88rem; margin-top: 2px; opacity: 0.8; }}
+    .mode-toggle {{ display: flex; gap: 8px; margin-bottom: 16px; }}
+    .mode-btn {{ background: #f3ebe0; color: #6d5c48; border: 1px solid #d8cfc2; border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: 0.9rem; cursor: pointer; }}
+    .mode-btn.active {{ background: #8a4b16; color: white; border-color: #8a4b16; }}
+    .mode-hint {{ margin: 0 0 14px; }}
+    .rfp-questions-box {{ background: #e8f5ee; border: 1px solid #b2d8c0; border-radius: 14px; padding: 16px 18px; margin-bottom: 18px; }}
+    .rfp-questions-box h3 {{ color: #1c4530; margin-bottom: 4px; }}
+    .rfp-questions-box .copy-hint {{ color: #265c3a; font-size: 0.88rem; margin: 8px 0 12px; font-style: italic; }}
+    .rfp-questions-box li {{ margin-bottom: 8px; line-height: 1.5; }}
+    .rfp-score {{ display: inline-block; background: #f3ebe0; border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; }}
+    .rfp-score span {{ color: #6d5c48; font-size: 0.9rem; }}
+    .rfp-score strong {{ font-size: 1.25rem; margin-left: 6px; }}
   </style>
 </head>
 <body>
@@ -544,26 +608,39 @@ def render_page(state: dict[str, object]) -> str:
           {"".join(f"<div class='notice'>{escape(message)}</div>" for message in state.get("messages", [])) if state.get("messages") else ""}
           <form id="review-form" method="post" action="/" enctype="multipart/form-data">
             <input type="hidden" name="rerun_from_id" value="{escape(str(state.get('rerun_from_id', '')))}">
+            <input type="hidden" name="review_mode" id="review_mode_input" value="{escape(state.get('review_mode', 'deal'))}">
+
+            <div class="mode-toggle">
+              <button type="button" class="mode-btn" data-mode="rfp" id="btn-rfp">RFP Review</button>
+              <button type="button" class="mode-btn" data-mode="deal" id="btn-deal">Deal Review</button>
+            </div>
+            <p class="hint mode-hint" id="mode-hint-rfp">You just received the RFP and the customer has a clarification window open. Upload the RFP to get targeted questions to send back and flag what needs confirming before you start the proposal.</p>
+            <p class="hint mode-hint" id="mode-hint-deal">Deal is in flight — upload your RFP, proposal draft, and discovery notes to get a readiness score and specific gaps to fix before internal review or submission.</p>
+
             <label for="deal_name">Deal name</label>
             <input id="deal_name" name="deal_name" type="text" placeholder="Enter a deal name" value="{escape(state['deal_name'])}" required>
 
-            <label for="requirements">Requirements / Discovery Notes</label>
+            <label for="requirements" id="requirements-label">Requirements / RFP</label>
             <textarea id="requirements" name="requirements">{escape(state['requirements'])}</textarea>
             <label>Optional requirements upload</label>
             <input name="requirements_file" type="file" accept=".txt,.md,.docx,.pdf">
 
-            <label for="proposal">Proposal / SOW Summary</label>
-            <textarea id="proposal" name="proposal">{escape(state['proposal'])}</textarea>
-            <label>Optional proposal upload</label>
-            <input name="proposal_file" type="file" accept=".txt,.md,.docx,.pdf">
+            <div id="proposal-section">
+              <label for="proposal">Proposal / SOW Summary</label>
+              <textarea id="proposal" name="proposal">{escape(state['proposal'])}</textarea>
+              <label>Optional proposal upload</label>
+              <input name="proposal_file" type="file" accept=".txt,.md,.docx,.pdf">
+            </div>
 
-            <label for="supporting_context">Discovery Notes &amp; Supporting Context</label>
-            <p class="hint" style="margin:4px 0 8px">Paste meeting notes, call summaries, sizing worksheets, or any context that does not fit the formal requirements or proposal docs. Architecture signals found here (HA, DR, integrations, constraints) will supplement the requirements gate and inform the architecture assessment.</p>
-            <textarea id="supporting_context" name="supporting_context">{escape(state['supporting_context'])}</textarea>
-            <label>Optional supporting context upload</label>
-            <input name="supporting_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
+            <div id="supporting-section">
+              <label for="supporting_context">Discovery Notes &amp; Supporting Context</label>
+              <p class="hint" style="margin:4px 0 8px">Paste meeting notes, call summaries, sizing worksheets, or any context that does not fit the formal requirements or proposal docs. Architecture signals found here (HA, DR, integrations, constraints) will supplement the requirements gate and inform the architecture assessment.</p>
+              <textarea id="supporting_context" name="supporting_context">{escape(state['supporting_context'])}</textarea>
+              <label>Optional supporting context upload</label>
+              <input name="supporting_file" type="file" accept=".txt,.md,.docx,.pptx,.pdf">
+            </div>
 
-            <div class="package-upload">
+            <div id="zip-section" class="package-upload">
               <div class="package-kicker">Fastest Path On This Laptop</div>
               <label>Upload one deal package ZIP</label>
               <p class="hint">Use this when you already have the deal artifacts together. One ZIP can replace the individual uploads for requirements, proposal, and supporting notes.</p>
@@ -658,6 +735,34 @@ def render_page(state: dict[str, object]) -> str:
       document.body.style.cursor = "wait";
     }});
   }}
+  // Mode toggle
+  const reviewModeInput = document.getElementById("review_mode_input");
+  const proposalSection = document.getElementById("proposal-section");
+  const supportingSection = document.getElementById("supporting-section");
+  const zipSection = document.getElementById("zip-section");
+  const modeHintRfp = document.getElementById("mode-hint-rfp");
+  const modeHintDeal = document.getElementById("mode-hint-deal");
+  const reqLabel = document.getElementById("requirements-label");
+  function setReviewMode(mode) {{
+    if (!reviewModeInput) return;
+    reviewModeInput.value = mode;
+    const isRfp = mode === "rfp";
+    document.querySelectorAll(".mode-btn").forEach(btn => {{
+      btn.classList.toggle("active", btn.getAttribute("data-mode") === mode);
+    }});
+    if (proposalSection) proposalSection.style.display = isRfp ? "none" : "";
+    if (supportingSection) supportingSection.style.display = isRfp ? "none" : "";
+    if (zipSection) zipSection.style.display = isRfp ? "none" : "";
+    if (modeHintRfp) modeHintRfp.style.display = isRfp ? "" : "none";
+    if (modeHintDeal) modeHintDeal.style.display = isRfp ? "none" : "";
+    if (reqLabel) reqLabel.textContent = isRfp ? "Requirements / RFP" : "Requirements / Discovery Notes";
+    if (reviewButton) reviewButton.textContent = isRfp ? "Run RFP Review" : "Run Gate Review";
+  }}
+  document.querySelectorAll(".mode-btn").forEach(btn => {{
+    btn.addEventListener("click", () => setReviewMode(btn.getAttribute("data-mode")));
+  }});
+  // Initialise from server-rendered hidden input value
+  setReviewMode(reviewModeInput ? reviewModeInput.value : "deal");
   document.querySelectorAll("[data-review-id]").forEach((link) => {{
     link.addEventListener("contextmenu", (event) => {{
       event.preventDefault();
