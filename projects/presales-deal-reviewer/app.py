@@ -504,21 +504,8 @@ def render_page(state: dict[str, object]) -> str:
                   <ul class="strengths-list">{strengths}</ul>
                 </div>
               </div>
-              <div class="two-col">
-                <div>
-                  <h3>Clarifying Questions</h3>
-                  <ul>{questions}</ul>
-                </div>
-                <div>
-                  <h3>Recommended Next Steps</h3>
-                  <ul>
-                    <li>Answer each clarifying question and add the responses to the discovery notes.</li>
-                    <li>Address HIGH findings before the deal advances to customer submission.</li>
-                    <li>Re-run the gate review after updating the documents to confirm the score improves.</li>
-                    <li>Use the Download Findings report to share gaps with the account team or delivery lead.</li>
-                  </ul>
-                </div>
-              </div>
+              <h3>Clarifying Questions</h3>
+              <ul>{questions}</ul>
             </section>
             """
 
@@ -1144,7 +1131,7 @@ def render_session_history(selected_review_id: str) -> str:
             f"</div>"
             f"<a class='history-link' href='/?review={escape(item['id'])}' data-review-id='{escape(item['id'])}' data-deal-name='{escape(item['deal_name'])}'>"
             f"<span class='history-title'>{escape(item['deal_name'])}</span>"
-            f"<div class='history-meta'>{escape(result['overall_status'])} ({result['overall_score']}/100)</div>"
+            f"<div class='history-meta'>{escape('RFP REVIEW · ' + str(len(result.get('clarifying_questions', []))) + ' questions') if result.get('review_mode') == 'rfp' else escape(result['overall_status'] + ' (' + str(result['overall_score']) + '/100)')}</div>"
             "</a>"
             "</li>"
         )
