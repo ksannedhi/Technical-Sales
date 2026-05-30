@@ -379,7 +379,11 @@ def parse_multipart(environ: dict[str, str]) -> dict[str, object]:
         if b"\r\n\r\n" not in part:
             continue
         header_block, payload = part.split(b"\r\n\r\n", 1)
-        payload = payload.rstrip(b"\r\n")
+        # Strip exactly the trailing CRLF that multipart format adds before the
+        # next boundary — rstrip() would corrupt binary files (ZIP, DOCX, PDF)
+        # by removing any trailing bytes that happen to be 0x0D or 0x0A.
+        if payload.endswith(b"\r\n"):
+            payload = payload[:-2]
         headers = parse_part_headers(header_block)
         disposition = headers.get("content-disposition", "")
         name = extract_disposition_value(disposition, "name")
