@@ -289,7 +289,11 @@ _PROPOSAL_CONTENT_SIGNALS = [
 ]
 _REQUIREMENTS_CONTENT_SIGNALS = [
     "functional requirement", "non-functional requirement", "request for proposal",
-    "technical requirement", "business requirement", "shall ", "must ",
+    "technical requirement", "business requirement",
+    # Compound forms only — bare "shall" / "must" appear in meeting notes and
+    # would misroute them to requirements on just two hits.
+    "shall be", "shall support", "shall provide",
+    "must be", "must support", "must include",
     "rfp ", "scope of work",
 ]
 

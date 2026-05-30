@@ -5,4 +5,5 @@ set "PDG_OPEN_BROWSER=1"
 set "PYTHON_EXE=C:\Python313\python.exe"
 if not exist "%PYTHON_EXE%" set "PYTHON_EXE=python"
 
+echo App running at http://127.0.0.1:8020
 "%PYTHON_EXE%" "%APP_DIR%app.py"

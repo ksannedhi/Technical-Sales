@@ -80,9 +80,9 @@ KEYWORDS = {
 
 DEFAULT_GATE_CONFIG = {
     "weights": {
-        "Requirements": 0.45,
+        "Requirements": 0.25,
         "Architecture": 0.25,
-        "Proposal": 0.30,
+        "Proposal": 0.50,
     },
     "score_thresholds": {
         "gate_pass": 80,
@@ -647,7 +647,7 @@ class PresalesGateEngine:
     def __init__(self, data_dir: Path) -> None:
         self.data_dir = data_dir
         self.config = load_gate_config(data_dir / "gate_config.json")
-        self.seed_dataset = SeedDataset([data_dir / "seed_dataset"])
+        self.seed_dataset = SeedDataset([data_dir / "seed_dataset", data_dir / "messy_seed_dataset"])
         self.history = HistoryStore(data_dir / "analyses.db")
 
     def get_examples(self) -> list[str]:
@@ -1427,6 +1427,9 @@ def _requirements_confidence(requirements: str) -> str:
     words = requirements.split()
     word_count = len(words)
     if word_count == 0:
+        # _requirements_gate returns early before calling this function when
+        # requirements is empty, so this guard handles only the edge case of
+        # whitespace-only text that survived normalisation.
         return ""
     alpha_chars = sum(1 for c in requirements if c.isalpha())
     non_ascii_chars = sum(1 for c in requirements if c.isalpha() and ord(c) > 127)
@@ -1629,7 +1632,9 @@ def status_from_score(score: int, config: dict[str, object] = DEFAULT_GATE_CONFI
 
 def overall_status_from_findings(score: int, findings: list[dict[str, str]], config: dict[str, object] = DEFAULT_GATE_CONFIG) -> str:
     thresholds = config["score_thresholds"]
-    if any(finding["severity"] == "high" and "conflict" in finding["message"].lower() for finding in findings):
+    # Any HIGH-severity finding overrides the score — missing artifacts, conflicts,
+    # and air-gap violations are all deal-stoppers regardless of the weighted total.
+    if any(finding["severity"] == "high" for finding in findings):
         return "ATTENTION REQUIRED"
     if score >= thresholds["overall_pass"]:
         return "PASS"

@@ -116,6 +116,29 @@ class GateEngineTests(unittest.TestCase):
         ).lower()
         self.assertNotIn("too vague", requirement_messages)
 
+    def test_messy_deal_partial_inputs_handled_gracefully(self) -> None:
+        """Engine completes without exception on a messy deal with incomplete artifacts."""
+        messy_dir = ROOT / "data" / "messy_seed_dataset" / "deal_01"
+        if not messy_dir.exists():
+            self.skipTest("messy_seed_dataset/deal_01 not present")
+        artifacts: dict[str, str] = {"requirements": "", "proposal": "", "supporting_context": ""}
+        for file_path in sorted(messy_dir.iterdir()):
+            stem = file_path.stem.lower()
+            if file_path.suffix == ".txt" and stem in ("requirements", "proposal"):
+                artifacts[stem] = file_path.read_text(encoding="utf-8").strip()
+            elif file_path.suffix in (".txt", ".md") and stem not in ("outcome",):
+                existing = artifacts["supporting_context"]
+                chunk = file_path.read_text(encoding="utf-8").strip()
+                artifacts["supporting_context"] = (existing + "\n\n" + chunk).strip() if existing else chunk
+        result = self.engine.analyze("messy_deal_01", artifacts)
+        # Must complete without exception and return a well-formed result
+        self.assertIn(result.overall_status, ("PASS", "PASS WITH RISK", "ATTENTION REQUIRED"))
+        self.assertIsInstance(result.findings, list)
+        self.assertIsInstance(result.clarifying_questions, list)
+        self.assertIsInstance(result.overall_score, int)
+        self.assertGreaterEqual(result.overall_score, 0)
+        self.assertLessEqual(result.overall_score, 100)
+
     def test_extraction_cache_is_bounded(self) -> None:
         EXTRACTION_CACHE.clear()
         for index in range(MAX_CACHE_ENTRIES + 5):
