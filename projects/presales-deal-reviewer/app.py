@@ -852,6 +852,8 @@ def render_page(state: dict[str, object]) -> str:
     if (!isInit) {{
       const resultSection = document.getElementById("result-section");
       if (resultSection) resultSection.style.display = "none";
+      const summary = document.getElementById("selected-review-summary");
+      if (summary) summary.style.display = "none";
     }}
   }}
   document.querySelectorAll(".mode-btn").forEach(btn => {{
