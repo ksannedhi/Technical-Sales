@@ -117,9 +117,9 @@ A strong proposal can yield a passing overall score even with thin requirements 
 |---|---|---|
 | 80–100 | PASS | PASS |
 | 60–79 | REVIEW | PASS WITH RISK |
-| 0–59 | ATTENTION REQUIRED | REWORK |
+| 0–59 | ATTENTION REQUIRED | ATTENTION REQUIRED |
 
-A HIGH severity conflict finding overrides the score and sets overall status to ATTENTION REQUIRED.
+A HIGH severity finding (any gate) overrides the score and sets overall status to ATTENTION REQUIRED.
 
 ## Solution Family Detection
 
