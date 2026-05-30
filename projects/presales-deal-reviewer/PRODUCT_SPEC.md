@@ -203,7 +203,7 @@ Targeted findings are raised per detected family:
 - **Firewall subscription completeness** — LOW finding when IPS, URL Filtering, or Sandbox/Advanced Threat is required but not confirmed in the proposal BOQ
 - **Central management gap** — MEDIUM finding when a multi-site firewall deployment is indicated but no Panorama/FortiManager/SmartConsole is named
 - **XDR credit allocation** — clarifying question when XDR credits appear in the BOQ without allocation detail
-- **RFP architectural requirements vs proposal response** — MEDIUM findings when HA, DR, compliance, throughput, or integration requirements stated in the RFP are not addressed in the proposal
+- **RFP architectural requirements vs proposal response** — MEDIUM findings when HA, DR, compliance, throughput, or integration requirements stated in the RFP are not addressed in the proposal; only active in Deal Review mode (requires a proposal to compare against)
 
 ### Renewal and Expansion
 

@@ -23,7 +23,7 @@ Upload the RFP, proposal draft, and discovery notes. The app scores the deal acr
 - Identifies regulated-sector deals and names the likely applicable compliance frameworks
 - Checks government procurement certifications (FIPS 140-2, TAA, Common Criteria) against the proposal
 - Flags firewall subscription gaps (IPS, URL Filtering, Sandbox) and missing central management for multi-site deployments
-- Flags architectural requirements stated in the RFP that are not addressed in the proposal
+- Flags architectural requirements stated in the RFP that are not addressed in the proposal — HA, DR, compliance framework, throughput sizing, and integration requirements; these checks only run in Deal Review mode where a proposal exists to compare against
 - Warns when requirements text is too sparse or non-English for a reliable review
 - Handles renewal and renewal+expansion deals appropriately
 - Keeps a session-level Deal History with rename, delete, and re-run actions
