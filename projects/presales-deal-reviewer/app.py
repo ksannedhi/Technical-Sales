@@ -238,9 +238,18 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     }
     deal_zip = form.get("deal_zip")
     if isinstance(deal_zip, dict) and deal_zip.get("filename"):
+        import zipfile as _zipfile
         zip_warnings: list[str] = []
         zip_routing: dict[str, str] = {}
-        zipped = load_artifacts_from_zip_data(deal_zip["content"], warnings=zip_warnings, routing=zip_routing)
+        try:
+            zipped = load_artifacts_from_zip_data(deal_zip["content"], warnings=zip_warnings, routing=zip_routing)
+        except _zipfile.BadZipFile:
+            state["messages"].append(
+                f"'{deal_zip['filename']}' could not be opened — the file does not appear to be a valid ZIP. "
+                f"Re-download or re-compress the file and try again."
+            )
+            state["_redirect_error"] = True
+            return state
         for key, value in zipped.items():
             artifacts[key] = merge_text(value, artifacts.get(key, ""))
         bucket_labels = {"requirements": "requirements", "proposal": "proposal", "supporting_context": "supporting context"}
