@@ -394,7 +394,8 @@ HA_QUESTIONS_BY_FAMILY = {
     "managed_services": "How is analyst coverage and escalation continuity maintained during service provider incidents or maintenance windows?",
     "ddos_protection": "How is scrubbing centre availability and BGP diversion continuity maintained during a sustained volumetric attack or ISP failover?",
     "backup_resilience": "How is backup infrastructure itself protected — are backup servers, repositories, and air-gap vaults resilient against failure or targeted ransomware?",
-    "threat_intelligence": "How is TI platform availability maintained — is there a fallback feed source or cached IOC database if the primary TI provider has an outage?",
+    # threat_intelligence intentionally omitted — TI feeds are a vendor-managed service;
+    # HA/fallback is a proposal concern, not a customer RFP clarification question.
     "dspm": "How is data discovery continuity maintained across cloud accounts and data stores during API outages or permission changes?",
 }
 HA_QUESTION_DEFAULT = "How is high availability and failover defined for the primary system components?"
@@ -785,6 +786,11 @@ class PresalesGateEngine:
             # otherwise trigger unrelated families.  Without an anchor, require 3 combined
             # hits — strong enough signal that the family is genuinely in scope.
             req_anchor_hits = sum(1 for a in FAMILY_ANCHOR_KEYWORDS.get(family, []) if _keyword_match(requirements, a))
+            # iam_pam always requires an anchor hit — its keywords (ad, mfa, sso, identity)
+            # appear freely as log-source references in SIEM, SOC, and endpoint RFPs and
+            # would fire 3+ times without any IAM vendor signal present.
+            if family == "iam_pam" and req_anchor_hits == 0:
+                continue
             min_hits = 1 if (req_hits >= 1 and req_anchor_hits >= 1) else 3
             if total_hits >= min_hits:
                 family_scores.append((total_hits, family))
@@ -804,6 +810,16 @@ class PresalesGateEngine:
     ) -> None:
         combined = " ".join([artifacts.get(section, "") for section in SECTION_NAMES] + [supporting_context])
         combined_lower = combined.lower()
+
+        # SOAR: highest-priority SIEM question — generated first so it is never
+        # displaced by the 10-question cap when 5 families are active.
+        # Fires on all SIEM deals including renewals.
+        if "siem_log_mgmt" in solution_families:
+            questions.append(
+                "Is SOAR or automated playbook execution in scope, and which tier-1 response actions "
+                "(alert triage, firewall block, endpoint isolation, ticket creation) must be automated on day one?"
+            )
+
         for family in solution_families:
             family_questions = SOLUTION_FAMILY_QUESTIONS.get(family, [])
             if not family_questions:
@@ -876,15 +892,6 @@ class PresalesGateEngine:
             questions.append(
                 "Beyond endpoint telemetry, which additional data sources feed the XDR platform — "
                 "network (NDR), cloud workloads, identity, or email — and are these integrations in scope for day one?"
-            )
-
-        # SOAR: fires on all SIEM deals including renewals — automation scope is rarely
-        # declared in the RFP and a renewal may add SOAR for the first time or change
-        # the playbook scope for the new contract term.
-        if "siem_log_mgmt" in solution_families:
-            questions.append(
-                "Is SOAR or automated playbook execution in scope, and which tier-1 response actions "
-                "(alert triage, firewall block, endpoint isolation, ticket creation) must be automated on day one?"
             )
 
     def _requirements_gate(
