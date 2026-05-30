@@ -946,7 +946,15 @@ def upload_warning(filename: str, text: str) -> str:
     if text.startswith("[PDF parsing unavailable") or text.startswith("[Could not parse"):
         return f"PDF extraction was not available for '{filename}'. Upload the .docx version for best results."
     if "Only the first" in text:
-        return f"'{filename}' was partially reviewed — only the first pages were read. Upload the .docx version if full-document coverage is needed."
+        import re as _re
+        m = _re.search(r"Only the first (\d+) of (\d+) pages were reviewed", text)
+        if m:
+            read_pages, total_pages = m.group(1), m.group(2)
+            return (
+                f"'{filename}' has {total_pages} pages — the first {read_pages} were reviewed. "
+                f"If appendices or later sections carry key requirements, upload the .docx version for full coverage."
+            )
+        return f"'{filename}' is long — only the first pages were reviewed. Upload the .docx version for full coverage."
     if len(text.strip()) < 120:
         return f"'{filename}' produced very little extractable text. If this is a scanned or image-heavy PDF, upload the .docx version instead."
     return ""

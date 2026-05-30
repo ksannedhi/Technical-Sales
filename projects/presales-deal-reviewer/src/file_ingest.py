@@ -20,7 +20,7 @@ NS = {"a": "http://schemas.openxmlformats.org/drawingml/2006/main"}
 MAX_PDF_BYTES = 20_000_000   # 20 MB — text-based PDFs are almost always < 10 MB;
                              # files above this are virtually always scanned/image-heavy
                              # and yield no extractable text anyway
-MAX_PDF_PAGES = 40           # first 40 pages covers most proposals and RFPs
+MAX_PDF_PAGES = 60           # first 60 pages covers virtually all RFPs and proposals
 PDF_TIMEOUT_SECONDS = 30     # allow extra time for larger government PDFs
 MAX_CACHE_ENTRIES = 64
 EXTRACTION_CACHE: OrderedDict[str, str] = OrderedDict()
