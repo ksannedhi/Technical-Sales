@@ -215,7 +215,10 @@ SOLUTION_FAMILY_KEYWORDS = {
         "zscaler", "prisma access", "netskope", "cato networks", "shadow it", "cloud app visibility",
     ],
     "app_delivery_security": [
-        "load balancer", "load balancer license", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy", "virtual server",
+        "web application firewall", "application delivery controller", "ssl offload", "server load balancing",
+        "virtual server", "pool member", "irule",
+        "f5", "f5 big-ip", "f5 ltm", "f5 gtm", "barracuda waf", "citrix adc", "citrix netscaler",
+        "nginx plus", "radware alteon", "kemp loadmaster",
     ],
     # Extended families
     "ot_ics": [
@@ -247,10 +250,10 @@ SOLUTION_FAMILY_KEYWORDS = {
         "anti-ddos", "ddos mitigation", "flow telemetry",
     ],
     "backup_resilience": [
-        "backup", "cyber resilience", "ransomware recovery", "immutable backup", "air-gap vault", "immutable storage",
+        "backup infrastructure", "backup and recovery", "backup solution", "backup platform",
+        "cyber resilience", "ransomware recovery", "immutable backup", "air-gap vault", "immutable storage",
         "veeam", "rubrik", "cohesity", "commvault", "veritas backup",
-        "rto", "rpo", "recovery time objective", "recovery point objective", "backup infrastructure",
-        "ransomware recovery", "backup and recovery", "data recovery",
+        "rto", "rpo", "recovery time objective", "recovery point objective",
     ],
     "threat_intelligence": [
         "threat intelligence", "threat intel", "ti platform", "ti feed", "threat feeds",
@@ -262,7 +265,6 @@ SOLUTION_FAMILY_KEYWORDS = {
         "dspm", "data security posture", "data classification", "data discovery", "sensitive data discovery",
         "varonis", "cyera", "bigid", "imperva data",
         "pii discovery", "data exposure", "unstructured data", "structured data classification",
-        "data residency", "data sovereignty", "data governance",
     ],
 }
 
