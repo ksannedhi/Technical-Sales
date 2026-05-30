@@ -322,6 +322,13 @@ def build_page_state(query: dict[str, list[str]], form: dict[str, object] | None
     analyze_started = time.time()
     state["result"] = engine.analyze(deal_name=deal_name, artifacts=artifacts).to_dict()
     state["result"]["review_mode"] = review_mode
+    # In RFP mode there is no proposal by design — strip the "provide proposal"
+    # question that the engine adds when the proposal field is empty.
+    if review_mode == "rfp":
+        state["result"]["clarifying_questions"] = [
+            q for q in state["result"].get("clarifying_questions", [])
+            if "proposal or sow" not in q.lower() and "customer-ready gating" not in q.lower()
+        ]
     _tlog(f"[timing] engine_analyze_ms={round((time.time() - analyze_started) * 1000, 2)}")
 
     # Enhancement 10 — re-run delta: if the user clicked Re-run on a prior deal,

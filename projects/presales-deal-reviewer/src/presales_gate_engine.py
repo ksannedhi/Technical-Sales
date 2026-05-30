@@ -878,9 +878,10 @@ class PresalesGateEngine:
                 "network (NDR), cloud workloads, identity, or email — and are these integrations in scope for day one?"
             )
 
-        # SOAR: fires on all SIEM deals to keep the presales engineer on top of automation scope.
-        # SOAR is almost always bundled with SIEM but its scope is rarely defined in the RFP.
-        if "siem_log_mgmt" in solution_families and not is_renewal:
+        # SOAR: fires on all SIEM deals including renewals — automation scope is rarely
+        # declared in the RFP and a renewal may add SOAR for the first time or change
+        # the playbook scope for the new contract term.
+        if "siem_log_mgmt" in solution_families:
             questions.append(
                 "Is SOAR or automated playbook execution in scope, and which tier-1 response actions "
                 "(alert triage, firewall block, endpoint isolation, ticket creation) must be automated on day one?"
