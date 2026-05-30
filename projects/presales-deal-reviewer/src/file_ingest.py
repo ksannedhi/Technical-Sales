@@ -90,6 +90,15 @@ def load_artifacts_from_zip_data(data: bytes, warnings: list[str] | None = None,
                         f"image-based and contains no extractable text. Convert to DOCX for reliable results."
                     )
                 continue
+            # Warn when a DOCX yields very few words — likely contains mostly scanned
+            # or image-based pages that the XML extractor cannot read.
+            if suffix == ".docx" and len(text.split()) < 80:
+                if warnings is not None:
+                    warnings.append(
+                        f"{Path(name).name} produced very little text — the document appears to contain "
+                        f"mostly scanned or image-based pages. Paste the relevant text directly into "
+                        f"the form, or use a typed DOCX for reliable extraction."
+                    )
             bucket = assign_text_to_bucket(Path(name).name, text, artifacts)
             if routing is not None and bucket:
                 routing[Path(name).name] = bucket

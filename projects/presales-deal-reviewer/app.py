@@ -944,6 +944,18 @@ def merge_text(primary: str, secondary: str) -> str:
 
 def upload_warning(filename: str, text: str) -> str:
     lower = filename.lower()
+    # DOCX files that contain mostly scanned images yield very few words —
+    # the XML extractor only reads typed text nodes, not embedded image content.
+    # Flag when a DOCX produces fewer than 80 words so the reviewer knows the
+    # source document is image-heavy, not that the tool failed.
+    if lower.endswith(".docx"):
+        if len(text.split()) < 80:
+            return (
+                f"'{filename}' produced very little text — the document appears to contain "
+                f"mostly scanned or image-based pages. Paste the relevant text directly into "
+                f"the form, or use a text-based PDF or typed DOCX for reliable extraction."
+            )
+        return ""
     if not lower.endswith(".pdf"):
         return ""
     if text.startswith("[PDF too large"):
