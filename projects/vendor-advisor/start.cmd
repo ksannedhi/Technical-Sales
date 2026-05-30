@@ -7,4 +7,4 @@ set "PYTHON_EXE=C:\Python313\python.exe"
 if not exist "%PYTHON_EXE%" set "PYTHON_EXE=python"
 
 echo Starting VendorAdvisor on http://localhost:8501 ...
-"%PYTHON_EXE%" -m streamlit run "%APP_DIR%app.py" --server.port 8501 --server.headless false --browser.gatherUsageStats false --logger.level=error 2>nul
+"%PYTHON_EXE%" -m streamlit run "%APP_DIR%app.py" --server.port 8501 --server.headless false 2>nul
