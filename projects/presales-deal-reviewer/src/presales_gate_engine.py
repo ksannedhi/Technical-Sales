@@ -215,7 +215,7 @@ SOLUTION_FAMILY_KEYWORDS = {
         "zscaler", "prisma access", "netskope", "cato networks", "shadow it", "cloud app visibility",
     ],
     "app_delivery_security": [
-        "web application firewall", "application delivery controller", "ssl offload", "server load balancing",
+        "waf", "web application firewall", "application delivery controller", "ssl offload", "server load balancing",
         "virtual server", "pool member", "irule",
         "f5", "f5 big-ip", "f5 ltm", "f5 gtm", "barracuda waf", "citrix adc", "citrix netscaler",
         "nginx plus", "radware alteon", "kemp loadmaster",
@@ -454,7 +454,7 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email", "trend micro email security", "interscan messaging"],
     "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "vision one", "apex one", "deep security", "cortex xdr", "cybereason", "carbon black"],
     "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network", "zscaler", "prisma access", "netskope", "cato networks"],
-    "app_delivery_security": ["f5", "f5 big-ip", "barracuda waf", "citrix adc", "nginx plus", "radware alteon"],
+    "app_delivery_security": ["waf", "web application firewall", "f5", "f5 big-ip", "barracuda waf", "citrix adc", "nginx plus", "radware alteon"],
     "ot_ics": ["scada", "operational technology", "purdue", "claroty", "nozomi", "dragos", "ics security"],
     "cloud_security": ["cspm", "cnapp", "wiz", "lacework", "cloud security posture", "prisma cloud", "defender for cloud"],
     "vulnerability_management": ["tenable", "qualys", "rapid7", "nessus", "vulnerability management", "vulnerability scanning"],
