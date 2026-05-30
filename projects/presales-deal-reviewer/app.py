@@ -851,8 +851,13 @@ def render_page(state: dict[str, object]) -> str:
       reviewButton.disabled = true;
       reviewButton.textContent = "Analysing…";
       document.body.style.cursor = "wait";
-      const overlay = document.getElementById("loading-overlay");
-      if (overlay) overlay.classList.add("active");
+      // Delay overlay so it only appears for genuinely slow operations.
+      // Fast DOCX / text submissions complete before 400 ms and the page
+      // navigates away, cancelling the timer before the overlay can show.
+      setTimeout(() => {{
+        const overlay = document.getElementById("loading-overlay");
+        if (overlay) overlay.classList.add("active");
+      }}, 400);
     }});
   }}
   // Mode toggle
