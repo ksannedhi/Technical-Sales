@@ -8,6 +8,7 @@ import logging
 import re
 import subprocess
 import sys
+import time
 import zipfile
 from collections import OrderedDict
 from pathlib import Path
@@ -21,7 +22,8 @@ MAX_PDF_BYTES = 20_000_000   # 20 MB — text-based PDFs are almost always < 10 
                              # files above this are virtually always scanned/image-heavy
                              # and yield no extractable text anyway
 MAX_PDF_PAGES = 60           # first 60 pages covers virtually all RFPs and proposals
-PDF_TIMEOUT_SECONDS = 30     # allow extra time for larger government PDFs
+PDF_TIMEOUT_SECONDS = 30     # subprocess fallback timeout
+PDF_EXTRACTION_TIMEOUT = 25  # in-process pypdf wall-clock cap; stops slow complex PDFs early
 MAX_CACHE_ENTRIES = 64
 EXTRACTION_CACHE: OrderedDict[str, str] = OrderedDict()
 
@@ -203,10 +205,15 @@ def _extract_pdf_inprocess(payload: bytes) -> str:
     total_pages = len(reader.pages)
     pages_to_read = min(total_pages, MAX_PDF_PAGES)
     pages: list[str] = []
+    extract_start = time.time()
+    timed_out_at: int | None = None
     for index, page in enumerate(reader.pages):
         if index >= MAX_PDF_PAGES:
             break
         pages.append(page.extract_text() or "")
+        if time.time() - extract_start > PDF_EXTRACTION_TIMEOUT:
+            timed_out_at = index + 1
+            break
     text = "\n\n".join(pages).strip()
 
     # Detect scanned / image-based PDF: fewer than ~30 chars per page on average.
@@ -220,7 +227,13 @@ def _extract_pdf_inprocess(payload: bytes) -> str:
             "Install pytesseract and pdf2image for OCR support, or upload the .docx version instead.]"
         )
 
-    if total_pages > MAX_PDF_PAGES:
+    if timed_out_at is not None:
+        text += (
+            f"\n\n[Only the first {timed_out_at} of {total_pages} pages were reviewed "
+            f"— PDF structure slowed extraction beyond {PDF_EXTRACTION_TIMEOUT}s. "
+            f"Convert to DOCX for full analysis.]"
+        )
+    elif total_pages > MAX_PDF_PAGES:
         text += f"\n\n[Only the first {MAX_PDF_PAGES} of {total_pages} pages were reviewed]"
     return text
 

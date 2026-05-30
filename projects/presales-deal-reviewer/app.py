@@ -658,9 +658,32 @@ def render_page(state: dict[str, object]) -> str:
     .rfp-score {{ display: inline-block; background: #f3ebe0; border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; }}
     .rfp-score span {{ color: #6d5c48; font-size: 0.9rem; }}
     .rfp-score strong {{ font-size: 1.25rem; margin-left: 6px; }}
+    /* Loading overlay — shown while the server is processing a review */
+    #loading-overlay {{
+      display: none; position: fixed; inset: 0;
+      background: rgba(255,253,248,0.88); z-index: 9999;
+      flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      backdrop-filter: blur(2px);
+    }}
+    #loading-overlay.active {{ display: flex; }}
+    .loading-spinner {{
+      width: 52px; height: 52px;
+      border: 5px solid #e5ddd0; border-top-color: #8a4b16;
+      border-radius: 50%; animation: lo-spin 0.75s linear infinite;
+    }}
+    @keyframes lo-spin {{ to {{ transform: rotate(360deg); }} }}
+    .loading-text {{ font-size: 1.05rem; color: #2a323c; font-weight: 700; }}
+    .loading-hint {{ font-size: 0.88rem; color: #6b7280; }}
+    /* Pulse on the submit button while loading */
+    #review-button:disabled {{ opacity: 0.65; cursor: not-allowed; }}
   </style>
 </head>
 <body>
+  <div id="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Analysing…</div>
+    <div class="loading-hint">Large PDFs may take up to 30 seconds</div>
+  </div>
   <div class="wrap">
     <div class="page-header">
       <h1>Presales Deal Reviewer</h1>
@@ -826,8 +849,10 @@ def render_page(state: dict[str, object]) -> str:
   if (reviewForm && reviewButton) {{
     reviewForm.addEventListener("submit", () => {{
       reviewButton.disabled = true;
-      reviewButton.textContent = "Reviewing...";
+      reviewButton.textContent = "Analysing…";
       document.body.style.cursor = "wait";
+      const overlay = document.getElementById("loading-overlay");
+      if (overlay) overlay.classList.add("active");
     }});
   }}
   // Mode toggle
