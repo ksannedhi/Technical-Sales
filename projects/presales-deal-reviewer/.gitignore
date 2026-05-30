@@ -22,6 +22,3 @@ data/analyses.db-shm
 .env
 .env.*
 !.env.example
-
-# Session screenshots
-screenshots/
