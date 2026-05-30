@@ -18,6 +18,12 @@ Conversational chatbot for cybersecurity vendor decisions. Ask it what a solutio
 - Interprets data residency and sovereignty language as an on-prem deployment constraint, correctly excluding SaaS-only products
 - Falls back to honest `insufficient_data` responses when the dataset cannot support a reliable answer, with distinct messaging for constraint failures vs unknown categories
 
+## Live Demo
+
+[https://technical-sales-production-ab5e.up.railway.app](https://technical-sales-production-ab5e.up.railway.app)
+
+Deployed on Railway. No login required.
+
 ## Documentation
 
 - Product and behavior spec: [PROJECT_SPEC.md](PROJECT_SPEC.md)
