@@ -425,10 +425,28 @@ def render_page(state: dict[str, object]) -> str:
         is_rfp_mode = result.get("review_mode") == "rfp"
 
         if is_rfp_mode:
-            # RFP Review mode — questions only, no findings, no score
+            # RFP Review mode — questions + HIGH architectural/requirements risk flags
             questions_items = result["clarifying_questions"]
             questions_html = "".join(f"<li>{escape(item)}</li>" for item in questions_items) or "<li>No specific questions generated — try adding more RFP text.</li>"
             req_score = result["gate_scores"]["Requirements"]
+            # Surface HIGH severity findings from Architecture and Requirements gates so
+            # the presales engineer sees critical risks before starting to write the proposal.
+            rfp_risk_flags = [
+                f for f in result["findings"]
+                if f["severity"] == "high" and f["gate"] in ("Architecture", "Requirements")
+            ]
+            risk_flags_html = ""
+            if rfp_risk_flags:
+                flags_items = "".join(
+                    f"<li><span class='badge badge-high'>HIGH</span> {escape(f['message'])}</li>"
+                    for f in rfp_risk_flags
+                )
+                risk_flags_html = f"""
+              <div class="rfp-questions-box" style="margin-top:1rem;">
+                <h3>Risk Flags ({len(rfp_risk_flags)})</h3>
+                <p class="copy-hint">Address these before writing the proposal — they signal structural gaps in the RFP.</p>
+                <ul>{flags_items}</ul>
+              </div>"""
             selected_review_summary = f"""
             <section class="panel selected-review-summary" id="selected-review-summary">
               <div class="selected-review-header">
@@ -441,6 +459,7 @@ def render_page(state: dict[str, object]) -> str:
               <div class="selected-review-metrics">
                 <div class="mini-metric"><span>Requirements Coverage</span><strong>{req_score}/100</strong></div>
                 <div class="mini-metric"><span>Questions for Customer</span><strong>{len(questions_items)}</strong></div>
+                {f'<div class="mini-metric"><span>Risk Flags</span><strong style="color:#ef4444">{len(rfp_risk_flags)}</strong></div>' if rfp_risk_flags else ''}
               </div>
               <p class="selected-review-note">Scroll down for the full question list.</p>
             </section>
@@ -455,7 +474,7 @@ def render_page(state: dict[str, object]) -> str:
                 <h3>Questions for the Customer ({len(questions_items)})</h3>
                 <p class="copy-hint">Copy these into your clarification response or share with the account team.</p>
                 <ul>{questions_html}</ul>
-              </div>
+              </div>{risk_flags_html}
             </section>
             """
         else:
@@ -730,8 +749,8 @@ def render_page(state: dict[str, object]) -> str:
                 <p class="hint">Tailored per detected solution family — sizing baselines, scope boundaries, compliance frameworks, integration dependencies.</p>
               </div>
               <div class="info-where-item">
-                <div class="info-where-label">Findings</div>
-                <p class="hint">Flags what is missing or unclear in the RFP before you commit to a proposal. No score — there is nothing to score yet.</p>
+                <div class="info-where-label">Risk Flags</div>
+                <p class="hint">HIGH severity architectural and requirements gaps that must be resolved before you start writing — missing HA design, air-gap conflicts, sparse or unreadable RFP content.</p>
               </div>
               <div class="info-where-item">
                 <div class="info-where-label">When done</div>
@@ -1047,6 +1066,13 @@ def build_findings_download_href(deal_name: str, result: dict[str, object]) -> s
             lines.extend(f"{i+1}. {item}" for i, item in enumerate(result["clarifying_questions"]))
         else:
             lines.append("- No specific questions generated.")
+        rfp_flags = [
+            f for f in result.get("findings", [])
+            if f["severity"] == "high" and f["gate"] in ("Architecture", "Requirements")
+        ]
+        if rfp_flags:
+            lines += ["", "Risk Flags (address before writing the proposal):"]
+            lines.extend(f"- [HIGH] {f['message']}" for f in rfp_flags)
     else:
         lines = [
             f"Deal: {deal_name}",
