@@ -446,12 +446,12 @@ FAMILY_ANCHOR_KEYWORDS: dict[str, list[str]] = {
     # because they appear as integration context in firewall, network, and multi-product
     # proposals ("SIEM integration", "centralized log management") and would spuriously
     # trigger the siem_log_mgmt family for non-SIEM deals.
-    "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo", "fortianalyzer", "fortisiem", "fortisoar", "xsoar", "cortex xsoar", "splunk soar"],
+    "siem_log_mgmt": ["splunk", "qradar", "microsoft sentinel", "elastic siem", "elastic stack", "exabeam", "logrhythm", "securonix", "chronicle siem", "devo", "fortianalyzer", "fortisiem", "fortisoar", "xsoar", "cortex xsoar", "splunk soar", "soc", "log management", "security operations"],
     "firewall_network": ["fortigate", "palo alto", "checkpoint", "internet edge", "perimeter firewall", "next-generation firewall", "ngfw", "tippingpoint", "sandblast", "quantum gateway", "smartconsole", "cloudguard", "r81"],
     "email_security": ["proofpoint", "mimecast", "email security", "email gateway", "secure email gateway", "barracuda email", "trend micro email security", "interscan messaging"],
-    "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "edr", "xdr", "endpoint protection", "vision one", "apex one", "deep security"],
+    "endpoint_xdr": ["crowdstrike", "sentinelone", "defender for endpoint", "vision one", "apex one", "deep security", "cortex xdr", "cybereason", "carbon black"],
     "sase_proxy": ["sase", "ztna", "secure web gateway", "casb", "swg", "zero trust network", "zscaler", "prisma access", "netskope", "cato networks"],
-    "app_delivery_security": ["load balancer", "waf", "web application firewall", "f5", "barracuda", "adc", "reverse proxy"],
+    "app_delivery_security": ["f5", "f5 big-ip", "barracuda waf", "citrix adc", "nginx plus", "radware alteon"],
     "ot_ics": ["scada", "operational technology", "purdue", "claroty", "nozomi", "dragos", "ics security"],
     "cloud_security": ["cspm", "cnapp", "wiz", "lacework", "cloud security posture", "prisma cloud", "defender for cloud"],
     "vulnerability_management": ["tenable", "qualys", "rapid7", "nessus", "vulnerability management", "vulnerability scanning"],
@@ -777,11 +777,13 @@ class PresalesGateEngine:
                 if not (renewal_ok or strong_proposal):
                     continue
             total_hits = sum(1 for kw in keywords if _keyword_match(combined, kw))
-            # If the requirements text already confirmed the family (req_hits >= 1),
-            # a single combined hit is enough — the RFP named it explicitly.
-            # The >= 2 threshold is only needed when we arrive here via the
-            # proposal-fallback path (req_hits == 0) to suppress noise.
-            min_hits = 1 if req_hits >= 1 else 2
+            # Require both a req_hit AND an anchor keyword (vendor/product name) in the
+            # requirements to activate on 1 combined hit.  Generic terms like "firewall",
+            # "exchange", or "edr" appear as log-source mentions in SIEM RFPs and would
+            # otherwise trigger unrelated families.  Without an anchor, require 3 combined
+            # hits — strong enough signal that the family is genuinely in scope.
+            req_anchor_hits = sum(1 for a in FAMILY_ANCHOR_KEYWORDS.get(family, []) if _keyword_match(requirements, a))
+            min_hits = 1 if (req_hits >= 1 and req_anchor_hits >= 1) else 3
             if total_hits >= min_hits:
                 family_scores.append((total_hits, family))
         family_scores.sort(reverse=True)
@@ -805,11 +807,16 @@ class PresalesGateEngine:
             if not family_questions:
                 continue
             # For renewal deals, suppress siem_log_mgmt questions entirely.
-            # SIEM is often detected from customer-references boilerplate in renewal
-            # proposals rather than as the primary solution being renewed — asking
-            # about sizing baselines and retention splits is inappropriate in that context.
+            # For SIEM renewals, sizing and retention baselines are already established —
+            # the platform is deployed. Keep SOC use-case and SOAR coverage questions;
+            # suppress only sizing/retention/EPS questions.
             if family == "siem_log_mgmt" and is_renewal:
-                continue
+                family_questions = [
+                    q for q in family_questions
+                    if not any(t in q.lower() for t in ["sizing", "retention", "eps", "daily volume", "peak eps"])
+                ]
+                if not family_questions:
+                    continue
             # Suppress SIEM sizing questions when the SIEM is a log destination for a
             # firewall deal rather than the solution being delivered.  Signals: an existing
             # SIEM is named as the log sink ("log forwarding to Splunk", "existing SIEM")
