@@ -3,7 +3,7 @@ FROM node:20-slim
 # System libraries required by Puppeteer's bundled Chromium
 RUN apt-get update && apt-get install -y \
     libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-    libgbm1 libasound2t64 libpangocairo-1.0-0 libxss1 \
+    libgbm1 libasound2 libpangocairo-1.0-0 libxss1 \
     libgtk-3-0 libxshmfence1 libxrandr2 libxcomposite1 \
     libxdamage1 \
     --no-install-recommends && rm -rf /var/lib/apt/lists/*
