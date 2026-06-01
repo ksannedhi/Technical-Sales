@@ -300,7 +300,7 @@ exportRouter.post('/pdf', async (req, res) => {
 
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
       ...(process.env.PUPPETEER_EXECUTABLE_PATH
         ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
         : {})

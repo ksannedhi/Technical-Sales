@@ -1,0 +1,28 @@
+# Railway deployment configuration for ZTA Advisor (single-service)
+# Backend serves both the API and the built Vite frontend.
+#
+# Architecture:
+#   install  → npm install in backend/ and frontend/
+#   build    → vite build in frontend/ → frontend/dist/
+#   start    → node backend/server.js  (serves API + static dist/)
+
+[phases.setup]
+# System libraries required by Puppeteer's bundled Chromium on Debian/Ubuntu
+aptPkgs = [
+  "libnss3", "libatk1.0-0", "libatk-bridge2.0-0", "libcups2",
+  "libgbm1", "libasound2t64", "libpangocairo-1.0-0", "libxss1",
+  "libgtk-3-0", "libxshmfence1", "libxrandr2", "libxcomposite1",
+  "libxdamage1"
+]
+
+[phases.install]
+cmds = [
+  "npm install --prefix backend",
+  "npm install --prefix frontend"
+]
+
+[phases.build]
+cmds = ["npm run build --prefix frontend"]
+
+[start]
+cmd = "node backend/server.js"
