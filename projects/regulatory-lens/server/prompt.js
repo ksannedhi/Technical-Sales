@@ -192,6 +192,7 @@ Schema:
 }
 
 Rules:
+- If only one framework is passed in, write harmonisedSummary as "what this framework requires" (not "collectively") and set mostDemandingFramework to that single frameworkId
 - coverageByFramework must include ALL frameworks passed in, even if coverage is "not-addressed"
 - Do not invent control requirements not present in the provided text
 - estimatedEffort reflects implementation effort for an organisation starting from zero

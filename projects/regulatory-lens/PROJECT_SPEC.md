@@ -123,7 +123,7 @@ Key recommendation rules:
 - NIST-CSF upgrades from voluntary to contractual for stock-exchange-listed entities
 - All applicable governance frameworks are upgraded one weight tier if they would otherwise be voluntary for a listed entity
 
-The user can adjust weights and toggle frameworks on the Framework Selector screen before running harmonisation.
+The user can adjust weights and toggle frameworks on the Framework Selector screen before running harmonisation. A minimum of one framework is required to proceed — selecting a single framework runs a compliance breakdown against that framework alone rather than a cross-framework comparison; the UI relabels accordingly ("Compliance breakdown" instead of "Coverage matrix", "What this framework requires" instead of "What frameworks collectively require", and the "Most demanding framework" badge is hidden since there is nothing to compare against).
 
 ### 5.3 Harmonisation
 

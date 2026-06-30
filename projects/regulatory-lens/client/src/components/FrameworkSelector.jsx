@@ -313,10 +313,10 @@ export default function FrameworkSelector({ recommended, initialSelected, initia
         <button className="btn" onClick={onBack}>← Back to intake</button>
         <button
           className="btn btn-primary"
-          disabled={selected.length < 2}
+          disabled={selected.length < 1}
           onClick={() => onStart(selected, weights)}
         >
-          Start harmonisation ({selected.length} frameworks) →
+          Start {selected.length === 1 ? 'analysis' : 'harmonisation'} ({selected.length} framework{selected.length === 1 ? '' : 's'}) →
         </button>
       </div>
     </div>

@@ -19,13 +19,15 @@ function DomainDetail({ domain, selectedFrameworks }) {
       {/* Harmonised summary */}
       {domain.harmonisedSummary && (
         <div style={{ marginBottom: '12px' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>What frameworks collectively require</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>
+            {selectedFrameworks.length === 1 ? 'What this framework requires' : 'What frameworks collectively require'}
+          </div>
           <p style={{ color: '#334155', lineHeight: 1.65 }}>{domain.harmonisedSummary}</p>
         </div>
       )}
 
       {/* Most demanding framework */}
-      {domain.mostDemandingFramework && (
+      {domain.mostDemandingFramework && selectedFrameworks.length > 1 && (
         <div style={{ marginBottom: '12px' }}>
           <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: '4px' }}>
             Most demanding framework
@@ -88,9 +90,11 @@ export default function CoverageMatrix({ results, selectedFrameworks, orgName })
   return (
     <div className="card">
       <div className="step-label">Step 3 of 5 — Harmonisation results</div>
-      <h2 className="step-title" style={{ marginBottom: '4px' }}>Coverage matrix{orgName ? ` — ${orgName}` : ''}</h2>
+      <h2 className="step-title" style={{ marginBottom: '4px' }}>{selectedFrameworks.length === 1 ? 'Compliance breakdown' : 'Coverage matrix'}{orgName ? ` — ${orgName}` : ''}</h2>
       <p className="step-sub" style={{ marginBottom: '16px' }}>
-        How each control domain is addressed across your selected frameworks.{' '}
+        {selectedFrameworks.length === 1
+          ? 'How each control domain is addressed by your selected framework.'
+          : 'How each control domain is addressed across your selected frameworks.'}{' '}
         <span style={{ color: '#0F766E', fontWeight: 500 }}>Click any row to see implementation guidance and key requirements.</span>
       </p>
 
