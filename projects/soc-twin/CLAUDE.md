@@ -144,3 +144,7 @@ Frontend uses `VITE_API_URL` and `VITE_WS_URL` (both default to `http://127.0.0.
 ## Project naming
 
 Standalone folder and GitHub repo project folder are both `soc-twin`. The old name `live-soc-twin-field-sku` is retired — never use it in paths, scripts, or documentation.
+
+## Frontend data-sourcing patterns
+
+- **Source threat-state KPIs from incidents[], not alerts[]** — the frontend alert array is capped at 60. Use `incidents[]` or `tickets[]` for any KPI reflecting active threat posture.

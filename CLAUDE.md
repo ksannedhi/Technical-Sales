@@ -18,18 +18,18 @@ Generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a c
 
 ## Standalone projects
 
-| Folder name                       | Backend port | Frontend port |
-|-----------------------------------|--------------|---------------|
-| `soc-twin`         | 3001         | 5173          |
-| `network-security-diagrammer`     | 8787         | 5174          |
-| `phishing-analyzer`               | 3002         | 5175          |
-| `security-controls-gap-analyzer`  | 8010         | 5176          |
-| `threat-briefing`                 | 3003         | 5177          |
-| `threat-to-business-translator`   | 8000         | 5178          |
-| `presales-deal-reviewer`          | 8020         | —             |
-| `vendor-advisor`                  | 8501         | —             |
-| `regulatory-lens`                 | 3004         | 5179          |
-| `zta-advisor`                     | 3005         | 5180          |
+| Folder name | Backend | Port | Frontend | Port |
+|---|---|---|---|---|
+| `soc-twin` | Node / Express | 3001 | Vite + React | 5173 |
+| `network-security-diagrammer` | Node (Cloudflare Workers style) | 8787 | Vite + React | 5174 |
+| `phishing-analyzer` | Node / Express | 3002 | Vite + React | 5175 |
+| `security-controls-gap-analyzer` | Python / FastAPI | 8010 | Vite + React | 5176 |
+| `threat-briefing` | Node / Express + Puppeteer | 3003 | Vite + React | 5177 |
+| `threat-to-business-translator` | Python / FastAPI | 8000 | Vite + React | 5178 |
+| `presales-deal-reviewer` | Python / wsgiref | 8020 | Server-rendered HTML | — |
+| `vendor-advisor` | Python / Streamlit | 8501 | Streamlit | — |
+| `regulatory-lens` | Node / Express (ESM) | 3004 | Vite + React | 5179 |
+| `zta-advisor` | Node / Express (ESM) | 3005 | Vite + React | 5180 |
 
 All standalone folder names match their `projects/` counterparts in the repo exactly.
 
@@ -46,21 +46,6 @@ All standalone folder names match their `projects/` counterparts in the repo exa
 cmd.exe /c "robocopy \"<Downloads>\<project>\" \"<Downloads>\Technical-Sales\projects\<project>\" /E /XD __pycache__ .git node_modules /XF *.pyc *.pyo .env"
 ```
 
-## Stack summary
-
-| Project                           | Backend                        | Frontend             |
-|-----------------------------------|--------------------------------|----------------------|
-| `soc-twin`         | Node / Express                 | Vite + React         |
-| `network-security-diagrammer`     | Node (Cloudflare Workers style)| Vite + React         |
-| `phishing-analyzer`               | Node / Express                 | Vite + React         |
-| `security-controls-gap-analyzer`  | Python / FastAPI               | Vite + React         |
-| `threat-briefing`                 | Node / Express + Puppeteer     | Vite + React         |
-| `threat-to-business-translator`   | Python / FastAPI               | Vite + React         |
-| `presales-deal-reviewer`          | Python / wsgiref               | Server-rendered HTML |
-| `vendor-advisor`                  | Python / Streamlit             | Streamlit            |
-| `regulatory-lens`                 | Node / Express (ESM)           | Vite + React         |
-| `zta-advisor`                     | Node / Express (ESM)           | Vite + React         |
-
 ## Key conventions
 
 - **No external AI API** in `presales-deal-reviewer` and `vendor-advisor` — fully local/offline
@@ -73,7 +58,7 @@ cmd.exe /c "robocopy \"<Downloads>\<project>\" \"<Downloads>\Technical-Sales\pro
 
 ## Dev server launch config
 
-`.claude\launch.json` in this directory — all 16 server configurations (backend + frontend for each project). Used by Claude Code's preview tool.
+`.claude\launch.json` in this directory — all 18 server configurations (backend + frontend for each project). Used by Claude Code's preview tool.
 
 ## Per-project documentation
 
@@ -84,6 +69,7 @@ Each standalone has its own `CLAUDE.md` with commands, architecture, and key fil
 At the end of **every** session, before closing:
 
 1. **Update `Downloads\MEMORY.md`** — add any new rules, patterns, decisions, or corrections that would be useful in a future session. This is the cross-project memory file. It is separate from the per-project `.claude\projects\...\memory\MEMORY.md` — both must be updated.
-2. **Sync and push** — confirm the repo is up to date with all changes made during the session.
+2. **Put each learning in the right store** — see "Where knowledge goes" at the top of `Downloads\MEMORY.md` before writing anything down. Project-specific patterns go in that project's `CLAUDE.md`, never in `MEMORY.md`; never restate a CLAUDE.md rule in `MEMORY.md`.
+3. **Sync and push** — confirm the repo is up to date with all changes made during the session.
 
 `Downloads\MEMORY.md` is the most commonly skipped step. It must be updated even when the user does not ask.

@@ -156,3 +156,19 @@ Market position values: `leader` = 100, `strong` = 75, `challenger` = 50.
 - **UI title and subtitle are hardcoded HTML** — both live in a single `st.markdown()` block around line 392–396 of `app.py`. Not a Streamlit `st.title()` call. Update both strings when the product name changes.
 - **`_insufficient()` 4th case** — when a category resolves but has no products AND no vendor-category coverage, engine.py line 221 calls `_insufficient` with `reason_code="missing_products"` (fixed May 2026; was incorrectly defaulting to `"unknown_category"` which caused the UI to show the supported-categories list even though the category was known).
 - **`score_breakdown` uses named key mapping, not positional** — display names ("Deployment Fit") map to `scoring_weights.json` keys ("deployment_fit") via an explicit `key_map` dict inside the function. Do not reorder either dict without updating both (fixed May 2026; was positional index zip which broke silently if dicts were reordered).
+
+## Engine and data patterns
+
+- **CATEGORY_ALIASES must be kept in sync with categories.json** — adding a category to `data/categories.json` and `data/categories_metadata.json` does NOT automatically make it queryable. The engine can only route queries to categories listed in `CATEGORY_ALIASES` in `engine.py`. Missing alias = silent `unknown_category` failure even though the category appears in the supported list.
+- **PKI and Passwordless are in categories.json but absent from CATEGORY_ALIASES** — known routing gap as of May 2026. Fix by adding entries to CATEGORY_ALIASES before those categories go live. PKI has 2 product records (Entrust PKI Hub, DigiCert Trust Lifecycle Manager) but is not yet queryable.
+- **UI title/subtitle live in `app.py`** — hardcoded HTML string around line 392–396. Not a Streamlit `st.title()` call. Both must be updated when the product name changes.
+- **`@st.cache_resource` engine survives hot-reload** — editing `engine.py` does not flush the cached `DecisionEngine`. Must restart the Streamlit process to pick up changes to module-level constants like `CATEGORY_ALIASES`.
+- **`_insufficient()` 4th case fixed (May 2026)** — engine.py line 221: when a category resolves but has no products AND no vendor-category coverage, the call now uses `reason_code="missing_products"` so the UI doesn't show the supported-categories list. Was previously defaulting to `"unknown_category"` which contradicted the "I identified a relevant category" message.
+- **Quantum Encryption fully integrated (May 2026)** — 8 products added to products.json, 7 new vendors in vendors.json, full feature matrix in vendor_feature_matrix.json, CATEGORY_ALIASES entry added, problem_to_tool_mapping.json updated. No longer a data gap.
+- **Railway config (deployment currently DOWN — see Railway section)** — railway.toml (startCommand with PYTHONPATH=src + $PORT), .streamlit/config.toml (headless, address, logger), runtime.txt (Python 3.12). No env vars needed — fully offline app.
+
+## Additional engine patterns (May 2026)
+
+- **Sandboxing is now the 37th category** — 4 products: WildFire (Palo Alto, Leader), SandBlast Network (Check Point, Leader), Cisco Threat Grid (Cisco, Strong), Trellix Malware Analysis (Trellix, Strong). All 6 data files updated: categories.json, categories_metadata.json, products.json, vendor_feature_matrix.json, vendors.json, engine.py CATEGORY_ALIASES.
+- **PRODUCT_ALIASES map added to engine.py** — resolves informal product names (e.g. "palo alto firewall" → "PA-Series NGFW", "fortigate" → "FortiGate NGFW") in comparison queries. Lives after `TERM_NORMALIZATIONS`.
+- **`_compare_targets()` strips question prefixes and trailing verbs** — handles queries like "How does a palo alto firewall compares against FortiGate?" by stripping "how does a " prefix and "compares" suffix before alias resolution.
