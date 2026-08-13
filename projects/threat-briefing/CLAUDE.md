@@ -140,6 +140,33 @@ Dark mode preference is stored in `localStorage` (`darkMode: true/false`) and ap
 | PDF export ECONNRESET (first export after restart) | Puppeteer cold-start latency — Chrome takes several seconds to launch on first use; Vite proxy times out before the PDF comes back | Expected intermittent behaviour — retry once and it succeeds. Not worth fixing for a presales tool; would require a persistent browser instance to eliminate |
 | Blank UI during startup catch-up pipeline | `cachedBriefing` was null while the pipeline ran; frontend had nothing to show | Fixed — stale briefing is now served immediately while catch-up runs in background |
 
+## Railway deployment
+
+This project ships `railway.toml` and `nixpacks.toml`. Express serves the static Vite build,
+so there is no separate frontend host — Railway alone is simpler than splitting to Vercel
+for a presales demo. **No hosted instance is currently running** (subscription discontinued
+Aug 2026); the config is kept because it works, not because anything is live.
+
+- **Set Root Directory before the first deploy.** Railway auto-deploys the moment the repo
+  is connected, with no chance to configure. Set it in service Settings → Source, then
+  redeploy.
+- **`nixPkgs` in nixpacks.toml replaces auto-detected packages — it is not additive.**
+  Specifying it overrides nixpacks' node detection and npm disappears. Use `aptPkgs` for
+  extra system packages (chromium etc.); those *are* additive.
+- **`ca-certificates` is the wrong nix package name** — it's `cacert`, and `nss` already
+  pulls in `nss-cacert`, so `cacert` conflicts. Omit it entirely.
+- **`NODE_ENV=production` skips devDependencies**, and vite is one. Build with
+  `npm install --include=dev && npm run build` in the `railway.toml` buildCommand.
+- **Puppeteer on Railway** — chromium via `aptPkgs`, then set
+  `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` and `PUPPETEER_SKIP_DOWNLOAD=true` in
+  Railway Variables.
+- **Static SPA serving** — `app.use(express.static(...dist))` plus a catch-all
+  `app.get('*', ...)` must come *after* all API routes, or it intercepts them.
+- **CORS** uses `ALLOWED_ORIGIN` (comma-separated list accepted, defaults to `*`).
+- **Auto-deploy is on by default** — every push to main redeploys. No manual step needed.
+- **New fields in the briefing JSON need a fresh generate after deploy** — the cached
+  `briefing.json` won't contain them until the pipeline runs again.
+
 ## Non-goals
 
 - Persistent briefing history (only latest briefing is stored)

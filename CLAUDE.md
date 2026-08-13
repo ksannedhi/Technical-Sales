@@ -1,75 +1,66 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working from the `Downloads` directory.
+Repo-level conventions for `Technical-Sales`. Read this before adding a project, changing
+documentation, or committing.
 
-> Also read `MEMORY.md` in this directory before starting any task.
+## What this repo is
 
-## What lives here
+A portfolio of cybersecurity presales tooling: ten standalone demo applications and one
+Claude Code skill for bid drafting. Each project is self-contained and runs locally with no
+shared runtime — the intended mode is a laptop demo. `threat-briefing` also ships Railway
+deployment config; hosted instances are not maintained. See `README.md` for the project
+index and per-project launch commands.
 
-A Claude Code skill for presales bid drafting and 10 standalone cybersecurity presales tools, each in its own folder. Every standalone has a synced copy in the GitHub repo under `Technical-Sales\projects\<project-name>\`.
+## Layout
 
-## Skill
-
-| Skill | Path | Invoke |
-|---|---|---|
-| `autonomous-presales-engineer` | `skills/presales-skills` | `/autonomous-presales-engineer` or `/presales-skills:draft-bid-pack` |
-
-Generates first-pass SoW, HLD, and Technical Proposal (Markdown + DOCX) from a customer RFP, vendor documentation, and a gold proposal. See `skills/presales-skills/README.md` for setup.
-
-## Standalone projects
-
-| Folder name | Backend | Port | Frontend | Port |
-|---|---|---|---|---|
-| `soc-twin` | Node / Express | 3001 | Vite + React | 5173 |
-| `network-security-diagrammer` | Node (Cloudflare Workers style) | 8787 | Vite + React | 5174 |
-| `phishing-analyzer` | Node / Express | 3002 | Vite + React | 5175 |
-| `security-controls-gap-analyzer` | Python / FastAPI | 8010 | Vite + React | 5176 |
-| `threat-briefing` | Node / Express + Puppeteer | 3003 | Vite + React | 5177 |
-| `threat-to-business-translator` | Python / FastAPI | 8000 | Vite + React | 5178 |
-| `presales-deal-reviewer` | Python / wsgiref | 8020 | Server-rendered HTML | — |
-| `vendor-advisor` | Python / Streamlit | 8501 | Streamlit | — |
-| `regulatory-lens` | Node / Express (ESM) | 3004 | Vite + React | 5179 |
-| `zta-advisor` | Node / Express (ESM) | 3005 | Vite + React | 5180 |
-
-All standalone folder names match their `projects/` counterparts in the repo exactly.
-
-## Editing workflow (critical)
-
-**Always edit the standalone first, then sync to the repo — never the other way around.**
-
-1. Make changes in the standalone folder here under `Downloads\`
-2. Robocopy to the repo
-3. Commit and push from the repo
-
-**Robocopy syntax (must use `cmd.exe /c` — bash interprets `/E` as a path):**
-```bash
-cmd.exe /c "robocopy \"<Downloads>\<project>\" \"<Downloads>\Technical-Sales\projects\<project>\" /E /XD __pycache__ .git node_modules /XF *.pyc *.pyo .env"
+```
+projects/<name>/          One standalone tool per folder, self-contained
+skills/presales-skills/   autonomous-presales-engineer — SoW / HLD / Technical Proposal drafting
+.claude-plugin/           marketplace.json — makes the skill installable as a Claude Code plugin
 ```
 
-## Key conventions
+`skills/presales-skills/` is authored here directly; it has no upstream copy. The ten
+projects under `projects/` are mirrors — their source of truth is a working folder outside
+this repo, so changes flow inward. Edit a project here only when you intend the repo to be
+the origin for that change.
 
-- **No external AI API** in `presales-deal-reviewer` and `vendor-advisor` — fully local/offline
-- **PYTHONPATH=src** required for all Python projects before running or testing
-- **Ports are unique** — no two services share a port; see table above before adding new servers
-- **`.env` files are not committed** — each project has a `.env.example` template
-- **No absolute paths in docs** — READMEs, SPECS, and CLAUDE.md files must not contain machine-specific paths or usernames
-- **`PUPPETEER_EXECUTABLE_PATH`** — set in `.env` if Puppeteer can't auto-detect Chrome; never hardcode in docs
-- **`cmd.exe /c "robocopy ..."`** — never bare `robocopy` in bash
+## Per-project documentation set
 
-## Dev server launch config
+Every project carries four files. All four ship in the same commit as the project itself —
+never as a follow-up.
 
-`.claude\launch.json` in this directory — all 18 server configurations (backend + frontend for each project). Used by Claude Code's preview tool.
+| File | Purpose |
+|---|---|
+| `README.md` | Operator-facing: what it does, stack, quick start, env vars, runtime notes |
+| `PROJECT_SPEC.md` | Architecture: data model, AI layer, API routes, non-goals, constraints |
+| `CLAUDE.md` | Agent-facing: commands, architecture, known issues, deliberate decisions |
+| entry in root `README.md` | Path, one-line purpose, launch snippet, links to the two docs above |
 
-## Per-project documentation
+Spec filenames vary across projects (`PROJECT_SPEC.md`, `PRODUCT_SPEC.md`, `SPECS.md`) but
+the location is always the project root — never a `docs/` subfolder. Do not rename them.
 
-Each standalone has its own `CLAUDE.md` with commands, architecture, and key files. The repo's root `CLAUDE.md` is at `Technical-Sales\CLAUDE.md`.
+## Documentation conventions
 
-## Session-end checklist (mandatory — do not skip)
+- **READMEs run ~80–120 lines.** Past ~150, move material into the spec.
+- **No project-structure section in a README** — that belongs in `CLAUDE.md` or the spec.
+- **No `---` dividers between README sections.**
+- **No absolute paths or usernames** in any committed file. This repo is public.
+- **Keep README and spec in sync** — when a template column or required field changes,
+  update both in the same commit, and check them against the parser's actual required set.
 
-At the end of **every** session, before closing:
+## Code conventions
 
-1. **Update `Downloads\MEMORY.md`** — add any new rules, patterns, decisions, or corrections that would be useful in a future session. This is the cross-project memory file. It is separate from the per-project `.claude\projects\...\memory\MEMORY.md` — both must be updated.
-2. **Put each learning in the right store** — see "Where knowledge goes" at the top of `Downloads\MEMORY.md` before writing anything down. Project-specific patterns go in that project's `CLAUDE.md`, never in `MEMORY.md`; never restate a CLAUDE.md rule in `MEMORY.md`.
-3. **Sync and push** — confirm the repo is up to date with all changes made during the session.
+- **Ports are unique across the suite** — no two projects bind the same port, so the whole
+  set can run simultaneously. Each project's README documents its own.
+- **`PYTHONPATH=src`** is required for the Python projects before running or testing.
+- **`presales-deal-reviewer` and `vendor-advisor` use no external AI API** — they are fully
+  local and offline by design. Keep them that way.
+- **`.env` is never committed.** Each project ships a `.env.example` with placeholders.
+- **`PUPPETEER_EXECUTABLE_PATH`** — set via `.env` where Chrome isn't auto-detected. Never
+  hardcode a browser path.
 
-`Downloads\MEMORY.md` is the most commonly skipped step. It must be updated even when the user does not ask.
+## Not in this repo
+
+`.claude/` and `MEMORY.md` are gitignored: they hold machine-specific paths and local
+session context, and are not repo artefacts. Don't add references to them in committed
+documentation.
