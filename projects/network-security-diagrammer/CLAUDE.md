@@ -80,7 +80,7 @@ shared/                 Types and schemas shared between backend and frontend
 | `PORT` | No | `8787` | Backend port |
 | `ANTHROPIC_API_KEY` | No | — | Enables AI-powered prompt analysis and generation |
 | `ANTHROPIC_ANALYZE_MODEL` | No | `claude-haiku-4-5-20251001` | Model for `/api/analyze` |
-| `ANTHROPIC_GENERATE_MODEL` | No | `claude-sonnet-4-6` | Model for `/api/generate` and `/api/followup` |
+| `ANTHROPIC_GENERATE_MODEL` | No | `claude-sonnet-5` | Model for `/api/generate` and `/api/followup` |
 | `DEBUG_NORMALIZER` | No | — | Set to `1` to print `[normalizer]` and `[startup-validation]` logs to the backend console |
 
 Copy `.env.example` → `.env` and add `ANTHROPIC_API_KEY` for full functionality.

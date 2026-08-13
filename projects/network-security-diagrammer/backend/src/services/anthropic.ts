@@ -24,7 +24,7 @@ export function getAnalyzeModel() {
 }
 
 export function getGenerateModel() {
-  return process.env.ANTHROPIC_GENERATE_MODEL || "claude-sonnet-4-6";
+  return process.env.ANTHROPIC_GENERATE_MODEL || "claude-sonnet-5";
 }
 
 export function getModelCacheIdentity() {
