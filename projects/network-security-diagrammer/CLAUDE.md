@@ -39,6 +39,13 @@ npm install  # installs all workspaces from root
 curl http://localhost:8787/api/health
 ```
 
+**Pattern regression tests:**
+```bash
+npm test
+```
+`backend/src/tests/patternClassification.test.ts` — 20 cases covering all major
+patterns. Add a case whenever a mis-classification is fixed.
+
 ## Architecture
 
 A **local-first network and cybersecurity diagrammer** that converts natural language prompts into Excalidraw diagrams. Pattern-based topology inference runs entirely locally; Claude (via Anthropic API) is optional for prompt analysis, high-specificity architecture generation, and follow-up diagram edits.
@@ -168,14 +175,3 @@ Three fixes from the architectural review were assessed as too risky for a local
 | **5** | Externalize vendor/product name lists from code to a config file | Pure refactor, no user-visible benefit, moderate churn across patternLibrary + architectureGenerator |
 | **6** | Replace 20 static pattern templates with few-shot examples fed to Claude | High-risk rewrite — static patterns are the offline fallback when no API key is present; removing them breaks the offline mode entirely |
 | **14** | Refactor arrow routing — replace hand-coded coordinate math with a proper path algorithm | Large layout engine change with high regression risk across all diagram types |
-
-## Architecture patterns
-
-- **Auto-hash cache key** — `GENERATION_HASH` (sha256 of system prompt, 8-char prefix) + `LAYOUT_VERSION` (e.g. `L2`) form the cache type. Never bump a manual version string again — edit the system prompt or increment `LAYOUT_VERSION` in `layoutArchitecture.ts` when layout math changes.
-- **Pattern confidence thresholds** — `classifyPromptPattern` returns 0.88 if `score ≥ minScore` (default 5). Unambiguous single-keyword patterns (ddos, siem, ndr, waf, sandbox, cloud-workload) have `minScore: 4` so they reach 0.88 on a single keyword match. Binary 0.82/0.88 remains as fallback.
-- **`shouldUseModelFallback` is now 5 clean conditions** — generic pattern / weak confidence / borderline confidence / `isComplexOrSpecific(prompt)` / arrow-chain with weak match. `VENDOR_AWARE_STATIC_PATTERNS` removed — cloud platform names (Azure, AWS, GCP) are inside `isComplexOrSpecific` and always route to Claude.
-- **`zone.order` drives layout sort** — all static patterns assign `createZone(..., order)` (0, 1, 2, …). `sortZones` checks `zones.some(z => z.order !== undefined)` first. `preferredZoneOrders` table is legacy fallback for Claude-generated zones without explicit order.
-- **`zone.sortPriority`** — tie-break within the same order bucket; set to 10 on monitoring zones via the system prompt so they render after enforcement zones of the same type. The `/monitor/i` label heuristic is the last-resort fallback.
-- **`arrowLabelPosition` takes `destZoneTop`** — the connection renderer passes `zoneTopY.get(toZone)`, giving exact label placement at `destZoneTop + ZONE_PADDING_Y - TEXT_LINE_HEIGHT - 4`. No more guessing from component Y position.
-- **`validateStaticPatterns()` at startup** — runs all 20 static patterns through `enforceArchitecturalConstraints`; warns on monitoring+security-control zone mixing and isolated components. Never throws, so the server always starts.
-- **Pattern regression tests** — `backend/src/tests/patternClassification.test.ts`, run via `npm test`. 20 cases covering all major patterns. Add a case whenever a mis-classification is fixed.
