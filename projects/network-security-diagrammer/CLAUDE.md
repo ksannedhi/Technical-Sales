@@ -78,6 +78,10 @@ shared/                 Types and schemas shared between backend and frontend
 
 Copy `.env.example` → `.env` and add `ANTHROPIC_API_KEY` for full functionality.
 
+`[model-behavior · 2026-08]` The two model defaults above are pinned values, not
+recommendations — verify them against the current Anthropic model list before reusing them
+in a new project.
+
 ## Ports
 
 | Service | Port |
@@ -149,8 +153,8 @@ Accumulated learnings — apply when modifying generator, layout, or follow-up l
 
 ## Model split and caching
 
-- **Model split** — `ANTHROPIC_ANALYZE_MODEL` (default: haiku) for the lightweight `analyze` step; `ANTHROPIC_GENERATE_MODEL` (default: sonnet) for `generate` and `followup`. Sonnet is meaningfully more reliable for generating deeply nested Excalidraw JSON with cross-referenced IDs.
-- **JSON fence stripping** — Claude ignores `response_format: json_object`. Strip defensively before `JSON.parse` in all three services: `content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim()`.
+- **Model split** `[model-behavior · 2026-08]` — `ANTHROPIC_ANALYZE_MODEL` (default: haiku) for the lightweight `analyze` step; `ANTHROPIC_GENERATE_MODEL` (default: sonnet) for `generate` and `followup`. Sonnet is meaningfully more reliable for generating deeply nested Excalidraw JSON with cross-referenced IDs.
+- **JSON fence stripping** `[model-behavior · 2026-08]` — Claude ignores `response_format: json_object`. Strip defensively before `JSON.parse` in all three services: `content.replace(/^```(?:json)?\s*/m, "").replace(/\s*```$/m, "").trim()`.
 - **Cache key is fully automatic** — edit `GENERATION_SYSTEM_PROMPT_LINES` → `GENERATION_HASH` changes → cache busts. Edit `FOLLOWUP_SYSTEM_PROMPT_LINES` → `FOLLOWUP_HASH` changes → followup cache busts. Increment `LAYOUT_VERSION` in `layoutArchitecture.ts` for layout changes. Model identity comes from `getModelCacheIdentity()`. Never manually edit a version string in `generate.ts` or `followup.ts`.
 - **followup cache key includes full architecture object** — key = SHA-256 of `{ type, architecture, instruction, model }`. Different architecture + same instruction = different entry. Correct behaviour; slightly expensive on large objects, acceptable for a local demo tool.
 - **Cache keys normalize prompts** — `normalizePrompt(prompt).toLowerCase()` applied before hashing in all three routes (analyze, generate, followup). Case and whitespace variants of the same prompt hit the same cache entry.

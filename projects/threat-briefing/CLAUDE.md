@@ -81,7 +81,7 @@ On every server start, `server/index.js` runs this logic before accepting reques
 
 - **`--env-file` over dotenv workspace** — npm workspace scripts `cd` into the package dir before running Node, so `dotenv` cannot resolve the root `.env`. Always run the server from the project root with `--env-file=.env`.
 - **`TZ=Asia/Kuwait` in .env** — node-cron's `{ timezone }` option produces `Invalid Date` on Windows. Instead, `TZ` pins the Node.js process clock to Kuwait time so `'0 6 * * *'` fires at 06:00 AST on any host regardless of system locale. Node.js reads `TZ` before executing code, so `--env-file` delivers it in time.
-- **Flexible response parsing** — Claude sometimes returns JSON in `<result>` tags, sometimes in ` ```json ``` ` fences. The parser handles both.
+- **Flexible response parsing** `[model-behavior · 2026-08]` — Claude sometimes returns JSON in `<result>` tags, sometimes in ` ```json ``` ` fences. The parser handles both.
 - **Puppeteer reuses cached Chromium** — `pdf.js` points to the existing cache. `page.pdf()` returns `Uint8Array` in Puppeteer v22+, always wrap with `Buffer.from()` before `res.send()`.
 - **Two-audience design** — `executiveSummary` is plain English for CISOs/board; `analystSummary` is technical with IOCs/CVEs for SOC teams.
 - **GCC regional focus** — the system prompt prioritises Kuwait, Saudi Arabia, UAE, Bahrain, Qatar, Oman and threat actors APT33, APT34, OilRig, Lazarus, Turla.
