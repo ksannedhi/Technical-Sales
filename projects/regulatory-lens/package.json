@@ -5,7 +5,8 @@
   "workspaces": ["server", "client"],
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"node --watch server/index.js\" \"npm run dev --workspace=client\"",
-    "start": "npm run start --workspace=server"
+    "start": "npm run start --workspace=server",
+    "test": "npm test --workspace=server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

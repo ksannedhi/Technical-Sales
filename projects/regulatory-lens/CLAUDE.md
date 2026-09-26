@@ -119,7 +119,7 @@ Single `.cmd` file — no PS1. Follows the same pattern as `threat-briefing`. Cl
 
 ## Jurisdiction scoping rules
 
-Do not weaken these. They are baked into the `server/prompt.js` intake prompt, and the geographic OMIT rules plus the PDPL weight caps are also enforced in code by `enforceJurisdiction()` (same file), which `/api/intake` applies to every model response. The model has been seen downgrading an OMIT to "contractual" (CBK and SAMA-CSF for a UAE central bank), so prompt wording alone is not enough. When changing a rule, change both, and keep `OMIT_UNLESS` a literal restatement of the prompt — never looser.
+Do not weaken these. They are baked into the `server/prompt.js` intake prompt, and the geographic OMIT rules plus the PDPL weight caps are also enforced in code by `enforceIntakeRules()` (same file), which `/api/intake` applies to every model response. It also adds NIST-CSF when the model leaves it out. Tests are in `server/prompt.test.js`: run `npm test` from the project root. The model has been seen downgrading an OMIT to "contractual" (CBK and SAMA-CSF for a UAE central bank), so prompt wording alone is not enough. When changing a rule, change both the prompt and the code, keep `OMIT_UNLESS` a literal restatement of the prompt (never looser), and add a test case.
 
 ### Geographic include/exclude rules
 - **NCA-ECC and SAMA-CSF**: Saudi-only. Explicitly omitted for UAE, Kuwait, Qatar, Bahrain, Oman.
@@ -130,7 +130,7 @@ Do not weaken these. They are baked into the `server/prompt.js` intake prompt, a
 - **"Personal data of GCC residents"**: the intake does not say which countries, so the rule is fixed: every non-home PDPL is included — PDPL-KSA mandatory (Art.2 extraterritorial), PDPL-UAE and PDPL-QAT contractual — each with a rationale conditioned on actually holding that country's residents' data. Not selected → only the home PDPL. OMIT exemptions (e.g. UAE central bank) still win.
 
 ### Weight adjustment rules (apply on top of geographic scoping)
-- **NIST-CSF**: Upgraded from voluntary to contractual for stock-exchange-listed entities.
+- **NIST-CSF**: Included for every profile as the common reference framework — voluntary by default, upgraded to contractual for stock-exchange-listed entities.
 - **SOC2**: Upgraded to contractual for stock-exchange-listed entities (investor and auditor due diligence), in addition to SaaS/technology companies serving international clients.
 - **All applicable governance frameworks** (NCA-ECC, SAMA-CSF, CBK, UAE-NIAF, QATAR-NIAS, KUWAIT-NBCC): upgraded one weight tier if they would otherwise be voluntary for a listed entity. In practice this rarely fires since these frameworks are already mandatory or contractual for their primary jurisdiction.
 - **PCI-DSS for central bank profiles**: OMIT entirely unless "Payment card data" was explicitly selected AND the organisation directly processes card data — then downgrade to contractual. Do NOT recommend as contractual by default for central bank profiles.

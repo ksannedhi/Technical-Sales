@@ -104,6 +104,7 @@ GCC RESIDENTS CHECKBOX RULE (deterministic — apply identically on every run): 
 - For organisations handling payment cards: PCI-DSS is mandatory regardless of geography. Recommend PCI-DSS ONLY when "Payment card data" is selected in the profile — never infer card handling from sector (e.g. "SaaS platforms commonly bill by card"). If the box is not selected, omit PCI-DSS. The applicable version is PCI DSS v4.0.1 (v3.2.1 was retired on 31 March 2024) — cite v4.0.1 in regulatoryBasis, never v3.2.1. Exception: if the organisation is a central bank institution (CNI operator, central bank), do NOT recommend PCI-DSS unless "Payment card data" was explicitly selected AND the organisation directly processes, stores, or transmits card data (rare for central banks). If selected for a central bank profile, flag as contractual with rationale noting it applies only to any subsidiary payment operations, not the central bank's core regulatory function.
 - For CNI operators with OT/ICS systems: IEC-62443 is contractual
 - For SaaS/technology companies serving US/international clients: SOC2 is contractual
+- NIST-CSF: include for EVERY profile as the common international reference framework — "voluntary" by default, "contractual" when stockExchangeListed is true (rule below). Never omit it.
 - If stockExchangeListed is true: upgrade SOC2 to "contractual" (investor and auditor due diligence demands it regardless of geography). Upgrade NIST-CSF to "contractual" if it would otherwise be "voluntary" — listed entities face international investor scrutiny and NIST CSF alignment is expected for cybersecurity risk disclosure in capital markets. Also upgrade any already-applicable governance-heavy national framework (NCA-ECC, CBK, UAE-NIAF, SAMA-CSF, QATAR-NIAS, KUWAIT-NBCC) by one weight tier if it would otherwise be "voluntary" — listed entities face stricter board-level accountability.
 
 === QATAR NIAS V2.1 FRAMEWORK KNOWLEDGE ===
@@ -179,10 +180,11 @@ INFORMATION-SECURITY BRIDGE (IR-Art.23.2): Formally defers technical information
 PENALTIES: Harshest in the GCC — up to 2 years imprisonment AND SAR 3M fine for Sensitive Data violations, up to SAR 5M for other violations, doubled for recidivism. Civil compensation also available to Data Subjects (Art.40).
 `;
 
-// ── Deterministic jurisdiction guard ─────────────────────────────────────────
+// ── Deterministic intake rules ───────────────────────────────────────────────
 // The model occasionally downgrades an OMIT rule to "contractual" (e.g. CBK and
-// SAMA-CSF recommended for a UAE central bank). These checks restate the OMIT
-// rules and weight caps above in code, so they hold regardless of model output.
+// SAMA-CSF recommended for a UAE central bank) and includes NIST-CSF on some runs
+// but not others. These checks restate the OMIT rules, weight caps, and the
+// always-include NIST-CSF rule above in code, so they hold regardless of model output.
 const OMIT_UNLESS = {
   'CBK':         p => p.geography === 'Kuwait' && p.sector === 'Banking & financial services',
   'SAMA-CSF':    p => p.geography === 'Saudi Arabia',
@@ -194,7 +196,7 @@ const OMIT_UNLESS = {
 };
 const MANDATORY_ONLY_IN = { 'PDPL-UAE': 'UAE', 'PDPL-QAT': 'Qatar' };
 
-export function enforceJurisdiction(profile, result) {
+export function enforceIntakeRules(profile, result) {
   const adjustments = [];
   const frameworks = (result.recommendedFrameworks || []).filter(f => {
     const allowed = OMIT_UNLESS[f.frameworkId];
@@ -208,6 +210,21 @@ export function enforceJurisdiction(profile, result) {
     }
     return f;
   });
+  const nistWeight = profile.stockExchangeListed ? 'contractual' : 'voluntary';
+  const nist = frameworks.find(f => f.frameworkId === 'NIST-CSF');
+  if (!nist) {
+    frameworks.push({
+      frameworkId: 'NIST-CSF',
+      weight: nistWeight,
+      rationale: 'NIST CSF 2.0 is included for every profile as the common international reference framework, useful for mapping the national frameworks against one another.' +
+        (profile.stockExchangeListed ? ' Upgraded to contractual because listed entities face international investor scrutiny.' : ''),
+      regulatoryBasis: 'NIST Cybersecurity Framework 2.0 (February 2024) — voluntary framework'
+    });
+    adjustments.push(`added NIST-CSF (${nistWeight})`);
+  } else if (profile.stockExchangeListed && nist.weight === 'voluntary') {
+    nist.weight = 'contractual';
+    adjustments.push('NIST-CSF voluntary → contractual (listed)');
+  }
   return { result: { ...result, recommendedFrameworks: frameworks }, adjustments };
 }
 

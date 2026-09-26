@@ -121,10 +121,10 @@ Key recommendation rules:
 - PCI-DSS is mandatory if payment card data is selected and is never inferred from sector; for central bank profiles it is omitted unless payment card data is explicitly selected, in which case it is downgraded to contractual
 - IEC-62443 is contractual for CNI operators with OT/ICS systems — triggered by the CNI operator characteristic selection (no separate OT/ICS intake field exists)
 - SOC2 is contractual for SaaS/technology companies serving international clients; also upgraded to contractual for stock-exchange-listed entities regardless of sector
-- NIST-CSF upgrades from voluntary to contractual for stock-exchange-listed entities
+- NIST-CSF is included for every profile as the common reference framework — voluntary by default, upgraded to contractual for stock-exchange-listed entities
 - All applicable governance frameworks are upgraded one weight tier if they would otherwise be voluntary for a listed entity
 
-The geographic OMIT rules (CBK, SAMA-CSF, NCA-ECC, UAE-NIAF, KUWAIT-NBCC, QATAR-NIAS, PCI-DSS) and the PDPL-UAE/PDPL-QAT weight caps are also enforced deterministically on the server (`enforceJurisdiction()` in `server/prompt.js`) after the model responds, so a recommendation outside a framework's jurisdiction is removed even if the model produces one.
+The geographic OMIT rules (CBK, SAMA-CSF, NCA-ECC, UAE-NIAF, KUWAIT-NBCC, QATAR-NIAS, PCI-DSS) and the PDPL-UAE/PDPL-QAT weight caps are also enforced deterministically on the server (`enforceIntakeRules()` in `server/prompt.js`) after the model responds. A recommendation outside a framework's jurisdiction is removed even if the model produces one, and NIST-CSF is added if the model leaves it out. Covered by `server/prompt.test.js` (`npm test`).
 
 The user can adjust weights and toggle frameworks on the Framework Selector screen before running harmonisation. A minimum of one framework is required to proceed — selecting a single framework runs a compliance breakdown against that framework alone rather than a cross-framework comparison; the UI relabels accordingly ("Compliance breakdown" instead of "Coverage matrix", "What this framework requires" instead of "What frameworks collectively require", and the "Most demanding framework" badge is hidden since there is nothing to compare against).
 
