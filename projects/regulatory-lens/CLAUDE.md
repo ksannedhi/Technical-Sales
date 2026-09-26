@@ -119,14 +119,15 @@ Single `.cmd` file — no PS1. Follows the same pattern as `threat-briefing`. Cl
 
 ## Jurisdiction scoping rules
 
-Do not weaken these — they are baked into `server/prompt.js`:
+Do not weaken these. They are baked into the `server/prompt.js` intake prompt, and the geographic OMIT rules plus the PDPL weight caps are also enforced in code by `enforceJurisdiction()` (same file), which `/api/intake` applies to every model response. The model has been seen downgrading an OMIT to "contractual" (CBK and SAMA-CSF for a UAE central bank), so prompt wording alone is not enough. When changing a rule, change both, and keep `OMIT_UNLESS` a literal restatement of the prompt — never looser.
 
 ### Geographic include/exclude rules
 - **NCA-ECC and SAMA-CSF**: Saudi-only. Explicitly omitted for UAE, Kuwait, Qatar, Bahrain, Oman.
 - **CBK**: Kuwait banking only. Not for Kuwait government, CNI, or non-financial sector.
 - **PDPL-UAE**: Omitted for UAE central bank / federal government entities (exempt under Federal Decree-Law No. 45/2021). Mandatory only for private-sector UAE orgs.
 - **PDPL-QAT**: Omitted for single-country non-Qatar orgs. Requires actual Qatar branch/presence.
-- **PCI-DSS**: Contractual (not mandatory) for central bank profiles even if payment card data is selected.
+- **PCI-DSS**: Recommended only when "Payment card data" is selected — never inferred from sector. Contractual (not mandatory) for central bank profiles even if payment card data is selected.
+- **"Personal data of GCC residents"**: the intake does not say which countries, so the rule is fixed: every non-home PDPL is included — PDPL-KSA mandatory (Art.2 extraterritorial), PDPL-UAE and PDPL-QAT contractual — each with a rationale conditioned on actually holding that country's residents' data. Not selected → only the home PDPL. OMIT exemptions (e.g. UAE central bank) still win.
 
 ### Weight adjustment rules (apply on top of geographic scoping)
 - **NIST-CSF**: Upgraded from voluntary to contractual for stock-exchange-listed entities.

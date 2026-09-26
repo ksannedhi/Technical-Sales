@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 import { taxonomy }                             from './prompt.js';
-import { INTAKE_SYSTEM, buildIntakePrompt }     from './prompt.js';
+import { INTAKE_SYSTEM, buildIntakePrompt, enforceJurisdiction } from './prompt.js';
 import { runHarmonisation, generateRoadmap, clearHarmonisationCache } from './harmonise.js';
 import { analyseDocumentChange, analyseDescribedChange } from './changeTracker.js';
 import { ingestCustomFramework, getCustomFrameworkSummaries, deleteCustomFramework, customFrameworkStore } from './customFramework.js';
@@ -75,7 +75,8 @@ app.post('/api/intake', async (req, res) => {
     }
     // temperature=0 makes the recommendation deterministic for identical profiles
     const raw    = await callClaude(INTAKE_SYSTEM, buildIntakePrompt(req.body), 2500, 0);
-    const result = parseClaudeJSON(raw);
+    const { result, adjustments } = enforceJurisdiction(req.body, parseClaudeJSON(raw));
+    if (adjustments.length) console.log('[/intake] jurisdiction guard:', adjustments.join(', '));
     intakeCache.set(cacheKey, result);
     res.json(result);
   } catch (e) {

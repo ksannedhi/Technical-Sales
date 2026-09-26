@@ -28,7 +28,7 @@ The control taxonomy (`server/taxonomy.json`) was built from actual GCC framewor
 
 **Framework type fidelity** — controls are mapped only where the source text addresses a domain. General cybersecurity frameworks (KUWAIT-NBCC, QATAR-NIAS) have no privacy-rights-management controls; CBK CORF does, because its Data Privacy controls explicitly mandate consent and right to be forgotten. PDPL frameworks carry no OT/ICS controls. The taxonomy does not cross-contaminate framework scopes.
 
-**Jurisdiction scoping rules** — 14 recommendation rules prevent cross-border hallucination: NCA-ECC and SAMA-CSF Saudi-only, CBK Kuwait banking only, PDPL-UAE exempt for UAE government/federal entities, PDPL-QAT omitted for non-Qatar orgs, PCI-DSS downgraded to contractual for central bank profiles.
+**Jurisdiction scoping rules** — 14 recommendation rules prevent cross-border hallucination: NCA-ECC and SAMA-CSF Saudi-only, CBK Kuwait banking only, PDPL-UAE exempt for UAE government/federal entities, PDPL-QAT omitted for non-Qatar orgs, PCI-DSS only when card data is selected, and downgraded to contractual for central bank profiles. The geographic rules are also enforced in server code after the model responds, so a cross-border recommendation is stripped even if the model produces one.
 
 **Control reference fidelity** — the taxonomy was built from the actual framework texts, not summaries:
 - KUWAIT-NBCC control references (GOV-1–6, PR-1–6, DE-1, RS-1, RC-1/2, CLD-1–16) are correctly scoped to their domains; framework notes capture the ~October 2027 compliance deadline, annual self-assessment obligation (GOV-5), and NIST glossary fallback for undefined terms — all sourced from Decision 2/2026

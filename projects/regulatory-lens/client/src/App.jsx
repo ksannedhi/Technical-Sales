@@ -59,6 +59,7 @@ export default function App() {
           body: JSON.stringify(profile)
         });
         data = await res.json();
+        if (!res.ok) data = { error: data.error || `HTTP ${res.status}` };
         break;
       } catch (e) {
         if (attempt === 0) { await new Promise(r => setTimeout(r, 600)); continue; }
@@ -66,12 +67,21 @@ export default function App() {
         return;
       }
     }
-      setRecommendedFrameworks(data.recommendedFrameworks || []);
-      const preSelected = (data.recommendedFrameworks || []).map(f => f.frameworkId);
-      const preWeights  = {};
-      (data.recommendedFrameworks || []).forEach(f => { preWeights[f.frameworkId] = f.weight; });
-      setSelectedFrameworks(preSelected);
-      setFrameworkWeights(preWeights);
+    // Server-side failures (e.g. Claude API 401) arrive as valid JSON — stay on intake
+    // rather than advancing to an empty framework selection that reads as "nothing applies".
+    if (data.error || !Array.isArray(data.recommendedFrameworks)) {
+      const msg = String(data.error || 'No recommendations returned');
+      setError(/\b401\b|x-api-key|authentication_error/.test(msg)
+        ? 'Could not retrieve framework recommendations: the Anthropic API rejected the key (401). Check ANTHROPIC_API_KEY in .env and restart the server.'
+        : `Could not retrieve framework recommendations: ${msg.slice(0, 200)}`);
+      return;
+    }
+    setRecommendedFrameworks(data.recommendedFrameworks);
+    const preSelected = data.recommendedFrameworks.map(f => f.frameworkId);
+    const preWeights  = {};
+    data.recommendedFrameworks.forEach(f => { preWeights[f.frameworkId] = f.weight; });
+    setSelectedFrameworks(preSelected);
+    setFrameworkWeights(preWeights);
     setStep('frameworks');
   }
 

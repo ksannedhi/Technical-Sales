@@ -41,11 +41,11 @@ NCA-ECC (Saudi Arabia):
 
 SAMA-CSF (Saudi Arabia · Banking):
   • mandatory — geography is Saudi Arabia AND sector is Banking & financial services
-  • OMIT entirely — geography is not Saudi Arabia. SAMA has no jurisdiction outside Saudi Arabia. Do not recommend for UAE, Kuwait, Qatar, Bahrain, or Oman banking entities.
+  • OMIT entirely — geography is not Saudi Arabia. SAMA has no jurisdiction outside Saudi Arabia. Do not recommend for UAE, Kuwait, Qatar, Bahrain, or Oman banking entities. OMIT means leave it out of the list — never downgrade it to contractual or voluntary. A central bank / CNI flag or "Personal data of GCC residents" does NOT create a SAMA nexus.
 
 CBK — Cyber and Operational Resilience Framework, CORF (Kuwait · Banking):
   • mandatory — geography is Kuwait AND sector is Banking & financial services
-  • OMIT entirely — geography is not Kuwait, or sector is not banking. CBK does NOT apply to Kuwait government, CNI operators, telecoms, or any non-financial sector.
+  • OMIT entirely — geography is not Kuwait, or sector is not banking. CBK does NOT apply to Kuwait government, CNI operators, telecoms, or any non-financial sector. OMIT means leave it out of the list — never downgrade it to contractual or voluntary. A central bank / CNI flag or "Personal data of GCC residents" does NOT create a CBK nexus for a non-Kuwait organisation.
 
 UAE-NIAF (UAE):
   • mandatory — geography is UAE AND (sector is CNI-related OR "CNI operator" is selected)
@@ -69,23 +69,23 @@ CBK/SAMA/NCA-ECC cross-border rule: a UAE-headquartered bank is NOT subject to S
 PDPL-UAE (UAE Federal Decree-Law No. 45 of 2021):
   • mandatory — geography is UAE AND organisation is a private sector entity (commercial bank, telecoms operator, retailer, technology company, etc.)
   • *** WEIGHT CAP: PDPL-UAE can NEVER be set to mandatory for a non-UAE-headquartered entity. Contractual is the maximum weight for any organisation whose primary geography is not UAE. ***
-  • contractual — geography is another GCC country (Saudi Arabia, Kuwait, Qatar, Bahrain, Oman, Multiple) AND organisation plausibly has UAE customers or a UAE branch (e.g. a pan-GCC retail bank or e-commerce platform selecting "Personal data of GCC residents")
-  • OMIT — no plausible UAE nexus
+  • contractual — geography is not UAE AND "Personal data of GCC residents" is selected (see GCC RESIDENTS CHECKBOX RULE below)
+  • OMIT — geography is not UAE AND "Personal data of GCC residents" is not selected
   • OMIT — organisation identifies as a CNI operator that is a central bank institution (e.g. UAE Central Bank / CBUAE, Saudi Central Bank / SAMA as a regulator, Qatar Central Bank). Central bank institutions are federal/national government entities and are explicitly exempt from Federal Decree-Law No. 45/2021 under Article 3(1).
   • OMIT — UAE government entities, security/judicial authorities, DIFC/ADGM free zone companies with their own data protection regimes.
 
 PDPL-QAT (Qatar Law No. 13 of 2016):
   • mandatory — geography is Qatar
   • *** WEIGHT CAP: PDPL-QAT can NEVER be set to mandatory for a non-Qatar-headquartered entity. Contractual is the maximum weight for any organisation whose primary geography is not Qatar. ***
-  • contractual — geography is Multiple OR another GCC country AND organisation plausibly has Qatar customers or a Qatar branch (e.g. a pan-GCC retailer or e-commerce platform selecting "Personal data of GCC residents")
-  • OMIT — geography is a single non-Qatar country AND no plausible Qatar customer base (e.g. a purely domestic Saudi or Bahraini operator with no GCC-wide reach)
+  • contractual — geography is not Qatar AND "Personal data of GCC residents" is selected (see GCC RESIDENTS CHECKBOX RULE below)
+  • OMIT — geography is not Qatar AND "Personal data of GCC residents" is not selected
 
 PDPL-KSA (Saudi Personal Data Protection Law — Royal Decree M/19 of 2021, amended M/148 of 2023, effective 14 September 2023):
-  • mandatory — ANY organisation anywhere that processes personal data of individuals residing in Saudi Arabia (Art.2 is explicitly extraterritorial — a Kuwaiti, UAE, or non-GCC company processing Saudi residents' data triggers PDPL-KSA even without any KSA presence)
+  • mandatory — ANY organisation anywhere that processes personal data of individuals residing in Saudi Arabia (Art.2 is explicitly extraterritorial — a Kuwaiti, UAE, or non-GCC company processing Saudi residents' data triggers PDPL-KSA even without any KSA presence). For the intake checkbox, apply the GCC RESIDENTS CHECKBOX RULE below.
   • mandatory — geography is Saudi Arabia (Saudi entities processing any personal data)
   • For Saudi banking: PDPL-KSA applies jointly with SAMA-CSF; credit data is a distinct class (Art.24); SAMA retains authority but PDPL-KSA applies in parallel
-  • contractual — organisation is headquartered outside KSA but "Personal data of GCC residents" is selected AND the organisation plausibly serves Saudi residents (pan-GCC retailer, e-commerce, SaaS)
-  • OMIT — no plausible Saudi resident data nexus and geography is not Saudi Arabia
+  • mandatory (conditional) — geography is not Saudi Arabia AND "Personal data of GCC residents" is selected (see GCC RESIDENTS CHECKBOX RULE below)
+  • OMIT — geography is not Saudi Arabia AND "Personal data of GCC residents" is not selected
   • Enforced by SDAIA (Saudi Data and AI Authority). Penalties are the harshest in the GCC — up to 2 years imprisonment and SAR 3M fine for Sensitive Data violations, doubled for recidivism. Transfer Regulation governs any data leaving KSA; highlight when profile indicates cloud processors outside KSA or cross-border data flow.
   • Coordination: IR-Art.23.2 formally bridges information-security technical controls to NCA-ECC where the Controller is subject to NCA controls — implementing NCA-ECC satisfies PDPL-KSA's information-security obligations by design.
 
@@ -95,7 +95,13 @@ MULTI-PDPL APPLICABILITY RULE: PDPL applicability is determined by WHERE DATA SU
   • PDPL-QAT: mandatory ONLY if geography = Qatar; contractual for all other GCC geographies with Qatar customer exposure
   NEVER set PDPL-UAE or PDPL-QAT to mandatory for a Kuwait, Saudi, Bahrain, or Oman-headquartered entity — doing so misrepresents the legal obligation and will mislead the user.
 
-- For organisations handling payment cards: PCI-DSS is mandatory regardless of geography. Exception: if the organisation is a central bank institution (CNI operator, central bank), do NOT recommend PCI-DSS unless "Payment card data" was explicitly selected AND the organisation directly processes, stores, or transmits card data (rare for central banks). If selected for a central bank profile, flag as contractual with rationale noting it applies only to any subsidiary payment operations, not the central bank's core regulatory function.
+GCC RESIDENTS CHECKBOX RULE (deterministic — apply identically on every run): the intake profile does not say WHICH GCC countries' residents are in the data, so do not infer it from sector, size, or "plausible" customer base.
+  • If "Personal data of GCC residents" is selected: include EVERY PDPL (PDPL-KSA, PDPL-UAE, PDPL-QAT) other than the home-geography one. PDPL-KSA is "mandatory" (Art.2 extraterritorial scope); PDPL-UAE and PDPL-QAT are "contractual" (weight cap). Each rationale must state the condition: the law applies to the extent the organisation processes that country's residents' data, and should be removed if it confirms it holds none.
+  • The home-geography PDPL follows its own rule above (PDPL-KSA mandatory for Saudi Arabia; PDPL-UAE mandatory for UAE private sector; PDPL-QAT mandatory for Qatar). Geography "Multiple" has no home PDPL — PDPL-KSA mandatory, PDPL-UAE and PDPL-QAT contractual.
+  • Every OMIT exemption above still applies and overrides this rule (e.g. UAE central bank, UAE government, and DIFC/ADGM entities omit PDPL-UAE).
+  • If the checkbox is NOT selected: omit every PDPL other than the home-geography one.
+
+- For organisations handling payment cards: PCI-DSS is mandatory regardless of geography. Recommend PCI-DSS ONLY when "Payment card data" is selected in the profile — never infer card handling from sector (e.g. "SaaS platforms commonly bill by card"). If the box is not selected, omit PCI-DSS. The applicable version is PCI DSS v4.0.1 (v3.2.1 was retired on 31 March 2024) — cite v4.0.1 in regulatoryBasis, never v3.2.1. Exception: if the organisation is a central bank institution (CNI operator, central bank), do NOT recommend PCI-DSS unless "Payment card data" was explicitly selected AND the organisation directly processes, stores, or transmits card data (rare for central banks). If selected for a central bank profile, flag as contractual with rationale noting it applies only to any subsidiary payment operations, not the central bank's core regulatory function.
 - For CNI operators with OT/ICS systems: IEC-62443 is contractual
 - For SaaS/technology companies serving US/international clients: SOC2 is contractual
 - If stockExchangeListed is true: upgrade SOC2 to "contractual" (investor and auditor due diligence demands it regardless of geography). Upgrade NIST-CSF to "contractual" if it would otherwise be "voluntary" — listed entities face international investor scrutiny and NIST CSF alignment is expected for cybersecurity risk disclosure in capital markets. Also upgrade any already-applicable governance-heavy national framework (NCA-ECC, CBK, UAE-NIAF, SAMA-CSF, QATAR-NIAS, KUWAIT-NBCC) by one weight tier if it would otherwise be "voluntary" — listed entities face stricter board-level accountability.
@@ -172,6 +178,38 @@ INFORMATION-SECURITY BRIDGE (IR-Art.23.2): Formally defers technical information
 
 PENALTIES: Harshest in the GCC — up to 2 years imprisonment AND SAR 3M fine for Sensitive Data violations, up to SAR 5M for other violations, doubled for recidivism. Civil compensation also available to Data Subjects (Art.40).
 `;
+
+// ── Deterministic jurisdiction guard ─────────────────────────────────────────
+// The model occasionally downgrades an OMIT rule to "contractual" (e.g. CBK and
+// SAMA-CSF recommended for a UAE central bank). These checks restate the OMIT
+// rules and weight caps above in code, so they hold regardless of model output.
+const OMIT_UNLESS = {
+  'CBK':         p => p.geography === 'Kuwait' && p.sector === 'Banking & financial services',
+  'SAMA-CSF':    p => p.geography === 'Saudi Arabia',
+  'NCA-ECC':     p => !['UAE', 'Kuwait', 'Qatar', 'Bahrain', 'Oman'].includes(p.geography),
+  'UAE-NIAF':    p => p.geography === 'UAE',
+  'KUWAIT-NBCC': p => p.geography === 'Kuwait',
+  'QATAR-NIAS':  p => ['Qatar', 'Multiple'].includes(p.geography),
+  'PCI-DSS':     p => (p.dataTypes || []).includes('Payment card data'),
+};
+const MANDATORY_ONLY_IN = { 'PDPL-UAE': 'UAE', 'PDPL-QAT': 'Qatar' };
+
+export function enforceJurisdiction(profile, result) {
+  const adjustments = [];
+  const frameworks = (result.recommendedFrameworks || []).filter(f => {
+    const allowed = OMIT_UNLESS[f.frameworkId];
+    if (allowed && !allowed(profile)) { adjustments.push(`removed ${f.frameworkId}`); return false; }
+    return true;
+  }).map(f => {
+    const home = MANDATORY_ONLY_IN[f.frameworkId];
+    if (home && f.weight === 'mandatory' && profile.geography !== home) {
+      adjustments.push(`${f.frameworkId} mandatory → contractual`);
+      return { ...f, weight: 'contractual' };
+    }
+    return f;
+  });
+  return { result: { ...result, recommendedFrameworks: frameworks }, adjustments };
+}
 
 export function buildIntakePrompt(profile) {
   return `Organisation profile:\n${JSON.stringify(profile, null, 2)}\n\nRecommend applicable regulatory frameworks.`;
