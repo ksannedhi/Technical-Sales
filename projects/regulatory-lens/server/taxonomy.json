@@ -2414,44 +2414,6 @@
       "notes": "The NBCC is explicitly a MINIMUM BASELINE and starting point, not an end state. Entities MAY implement stronger or additional controls based on risk profile, legal obligations, or sector-specific requirements. Where sector regulators impose stricter requirements (e.g. CBK for banking), Article 4 of Decision 2/2026 requires compliance with the stricter standard without prejudice to NBCC and NCSC authority. Undefined technical terms default to the NIST glossary unless otherwise defined in national instruments. Annual self-assessments using NCSC-issued checklists are mandatory (GOV-5) with records retained for at least 3 years. DOMAIN COVERAGE NOTE — privacy-rights-management is intentionally empty for KUWAIT-NBCC: the NBCC is a cybersecurity controls framework (NCSC Decision 2/2026), not a data protection law. Kuwait has no standalone comprehensive PDPL. Privacy rights obligations for Kuwait entities processing GCC residents' personal data are governed by the applicable PDPL of the data subjects' home jurisdiction (PDPL-KSA, PDPL-UAE, or PDPL-QAT) — not by KUWAIT-NBCC."
     }
   },
-  "pdplTriggers": {
-    "description": "PDPL frameworks are triggered by data handling, not just geography. Include PDPL-UAE when processing personal data of UAE residents. Include PDPL-QAT when processing personal data of Qatar residents. Include PDPL-KSA when processing personal data of individuals residing in Saudi Arabia (Art.2 extraterritorial). All three PDPLs can apply simultaneously to an organisation processing GCC-wide personal data. PDPL-KSA additionally requires compliance with the Implementing Regulation (IR-Art.X) and, for any data leaving the Kingdom, the Regulation on Personal Data Transfer outside the Kingdom (TR-Art.X).",
-    "PDPL-UAE": {
-      "trigger": "Processing personal data of any natural person who is a UAE resident, or operating as a Controller/Processor located in UAE",
-      "exemptions": [
-        "UAE government entities",
-        "Security and judicial authorities",
-        "Personal health data with separate legislation",
-        "Banking and credit data with separate legislation",
-        "DIFC and ADGM free zone companies with own data protection regimes"
-      ]
-    },
-    "PDPL-QAT": {
-      "trigger": "Electronically processing personal data of Qatar residents",
-      "exemptions": [
-        "Personal or family use",
-        "Official statistical data processing"
-      ]
-    },
-    "PDPL-KSA": {
-      "trigger": "Processing personal data of any individual residing in the Kingdom of Saudi Arabia, by any means, including processing by parties outside the Kingdom (extraterritorial per Art.2). Also applies to data of deceased persons where it could identify them or a family member.",
-      "exemptions": [
-        "Personal or family use not disclosed outside the family or limited social circle (IR-Art.2); purely professional/commercial/non-profit uses are never personal-or-family use",
-        "Banking and credit data regulated jointly with Saudi Central Bank (SAMA) under separate frameworks (Art.30-1; IR-Art.27)"
-      ],
-      "sensitiveDataDefinition": "Racial or ethnic origin; religious, intellectual or political belief; criminal convictions and offenses; biometric or genetic data for identification; health data; data indicating unknown parentage (Art.1-11)",
-      "implementingRegulationTrigger": "Whenever PDPL-KSA applies, the Implementing Regulation applies by default — there is no separate applicability test. Treat them as one framework for selection purposes.",
-      "transferRegulationTrigger": "Applies whenever the Controller transfers Personal Data outside the Kingdom or discloses it to a party outside the Kingdom, regardless of the transfer mechanism. A mandatory written risk assessment is required for transfers relying on appropriate safeguards (TR-Art.5), exemption cases (TR-Art.6), or involving continuous or large-scale Sensitive Data (TR-Art.8). Include whenever cloud processors, SaaS vendors, group companies, or subcontractors are outside the Kingdom.",
-      "implementingRegulationTimelines": {
-        "breachNotificationToSDAIA": "72 hours (IR-Art.24.1)",
-        "dataSubjectResponse": "30 days, extendable 30 (IR-Art.3.1.a)",
-        "indirectCollectionNotice": "30 days (IR-Art.4.3)",
-        "complaintWindow": "90 days (IR-Art.37.1)",
-        "RoPARetention": "processing period +5 years (IR-Art.33.1)",
-        "adequacyReview": "4 years (TR-Art.4.3)"
-      }
-    }
-  },
   "pendingFrameworks": {
     "SDAIA-DPO-RULES": {
       "name": "SDAIA Rules for Data Protection Officer Appointment",
