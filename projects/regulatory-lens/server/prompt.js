@@ -43,7 +43,7 @@ SAMA-CSF (Saudi Arabia · Banking):
   • mandatory — geography is Saudi Arabia AND sector is Banking & financial services
   • OMIT entirely — geography is not Saudi Arabia. SAMA has no jurisdiction outside Saudi Arabia. Do not recommend for UAE, Kuwait, Qatar, Bahrain, or Oman banking entities.
 
-CBK (Kuwait · Banking):
+CBK — Cyber and Operational Resilience Framework, CORF (Kuwait · Banking):
   • mandatory — geography is Kuwait AND sector is Banking & financial services
   • OMIT entirely — geography is not Kuwait, or sector is not banking. CBK does NOT apply to Kuwait government, CNI operators, telecoms, or any non-financial sector.
 
@@ -127,6 +127,17 @@ AUDIT/CERTIFICATION: Annual audit by NCSA-accredited organisation. Scope approve
 
 THIRD PARTY: Outsourced activities remain the organisation's accountability. NIAS controls must be included in service agreements including sub-contractors.
 
+=== CBK CORF FRAMEWORK KNOWLEDGE ===
+The CBK framework (frameworkId: CBK) is the Central Bank of Kuwait Cyber and Operational Resilience Framework (CORF) Version 1.0, first released 3 December 2025. It supersedes the CBK Cybersecurity Framework (2020). Issued under Article 15 of Law No. 32 of 1968. The framework text states no fixed compliance deadline.
+
+STRUCTURE: Three baselines — Cyber Resilience Baselines (CRB: 6 domains, 519 controls), Operational Resilience Baselines (ORB: 8 domains, 146 controls), Third-Party Risk Management Baselines (TPRM: 13 domains, 211 controls). Total 27 domains, 93 sub-domains, 200 control areas, 876 controls. Controls are assessed Compliant / Non-Compliant / Not Applicable (N/A needs CBK approval via the Statement of Applicability); sub-domains are assessed on a five-level maturity scale. CBK assesses Tier 1 entities annually, Tier 2 every 18 months, Tier 3 every two years.
+
+KUWAIT-SPECIFIC DISTINCTIVES:
+- ORB-8.2.2 INCIDENT REPORTING TO CBK: High severity within 1 hour of discovery, Medium severity within 4 hours.
+- CRB-7.2.1 CLOUD PRIOR APPROVAL: CBK approval at least one month before signing any IaaS/PaaS/SaaS outsourcing agreement touching sensitive-data systems; data residency must be addressed.
+- CRB-5.13.2 RED TEAMING: threat-intelligence-led red teaming of critical systems.
+- CRB-5.11.2 DATA PRIVACY: privacy-by-design, explicit consent with withdrawal, and right to be forgotten — a sector obligation for CBK-regulated entities, not a general Kuwait PDPL.
+
 === KUWAIT-NBCC FRAMEWORK KNOWLEDGE ===
 The Kuwait NBCC (frameworkId: KUWAIT-NBCC) — National Basic Cybersecurity Controls — is enforced by NCSC (National Cyber Security Center) under Amiri Decree 37 of 2022. Issued as NCSC Decision No. 2 of 2026, published in Kuwait Al-Youm (Official Gazette) Issue 1785 on 5 April 2026. Entities must achieve full compliance within 18 months of publication (deadline approximately early October 2027).
 
@@ -201,6 +212,7 @@ Rules:
 - Avoid inflating coverage for data-only frameworks by inferring general governance principles. Only mark "full" or "partial" if the framework text explicitly addresses the domain.
 - PDPL-KSA control identifiers carry meaningful prefixes that must be preserved when citing them in keyRequirement: "Art.X" cites the Personal Data Protection Law itself, "IR-Art.X" cites the SDAIA Implementing Regulation, and "TR-Art.X" cites the Regulation on Personal Data Transfer outside the Kingdom. Article numbers overlap across the three instruments (e.g. IR-Art.3 and TR-Art.3 are different controls) — the prefix disambiguates them. Prefer IR-Art.X over Art.X when both cover the same point, as the IR is usually more operationally specific. For cross-border-relevant domains (third-party, cloud-security, information-exchange), cite TR-Art.X references explicitly.
 - For information-security technical domains (network-security, endpoint-mobile, vulnerability-management, logging-monitoring, application-security): if NCA-ECC is also selected, treat IR-Art.23.2 as a formal harmonisation bridge — the PDPL-KSA Implementing Regulation explicitly defers technical security controls to NCA controls where applicable. In implementationGuidance for those domains, note that implementing the NCA-ECC requirement satisfies PDPL-KSA's IR-Art.23 information-security obligation by design, rather than treating them as duplicative.
+- CBK control identifiers refer to the Central Bank of Kuwait Cyber and Operational Resilience Framework (CORF, December 2025), not the superseded 2020 Cybersecurity Framework. Preserve the baseline prefix when citing them in keyRequirement: "CRB-X" cites the Cyber Resilience Baselines, "ORB-X" the Operational Resilience Baselines, and "TPRM-X" the Third-Party Risk Management Baselines. Numbers overlap across the three baselines (e.g. ORB-3.1 and TPRM-3.1 are different) — the prefix disambiguates them. Each identifier carries a short description of the control area; rely on that description rather than recalled knowledge of the 2020 framework. For ot-ics, CBK covers facility IoT/OT only (CCTV, building management), not industrial control systems — rate coverage "partial" at most.
 `;
 
 export function buildDomainPrompt(domain, selectedFrameworks, frameworkControlTexts) {

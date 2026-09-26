@@ -36,7 +36,7 @@ async function callClaude(system, userMessage, maxTokens = 3000) {
 const BUILTIN_FRAMEWORK_NAMES = [
   'nca-ecc', 'nca ecc', 'essential cybersecurity controls',
   'sama-csf', 'sama csf', 'sama cyber security framework',
-  'cbk', 'central bank of kuwait',
+  'cbk', 'central bank of kuwait', 'corf', 'cyber and operational resilience framework',
   'iso-27001', 'iso 27001', 'iso/iec 27001',
   'nist-csf', 'nist csf', 'nist cybersecurity framework',
   'uae-niaf', 'uae niaf', 'national information assurance framework',

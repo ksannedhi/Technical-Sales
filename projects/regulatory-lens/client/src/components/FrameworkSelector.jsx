@@ -61,7 +61,7 @@ function ExtractionPreview({ framework }) {
 const ALL_FRAMEWORKS = [
   { id: 'NCA-ECC',   label: 'NCA ECC 2024',             jurisdiction: 'Saudi Arabia' },
   { id: 'SAMA-CSF',  label: 'SAMA CSF',                  jurisdiction: 'Saudi Arabia · Banking' },
-  { id: 'CBK',       label: 'CBK Framework',             jurisdiction: 'Kuwait · Banking' },
+  { id: 'CBK',       label: 'CBK CORF (Dec 2025)',       jurisdiction: 'Kuwait · Banking' },
   { id: 'ISO-27001', label: 'ISO 27001:2022',            jurisdiction: 'International' },
   { id: 'NIST-CSF',  label: 'NIST CSF 2.0',             jurisdiction: 'International' },
   { id: 'UAE-NIAF',  label: 'UAE NIAF',                  jurisdiction: 'UAE' },

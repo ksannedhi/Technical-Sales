@@ -106,7 +106,7 @@ Docs: `projects/threat-briefing/README.md`
 
 ### Cross-Framework Regulatory Harmoniser
 - Path: `projects/regulatory-lens`
-- Purpose: GCC compliance tool mapping an organisation profile across 12 regulatory frameworks, producing a unified coverage matrix and weighted implementation roadmap.
+- Purpose: GCC compliance tool mapping an organisation profile across 14 regulatory frameworks, producing a unified coverage matrix and weighted implementation roadmap.
 - One-click launch (Windows):
 ```
 cd projects/regulatory-lens && "Launch Cross-Framework Harmoniser.cmd"

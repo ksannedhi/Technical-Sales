@@ -26,7 +26,7 @@ The control taxonomy (`server/taxonomy.json`) was built from actual GCC framewor
 
 **Kuwait privacy gap** — Kuwait has no standalone PDPL. The tool correctly routes Kuwait entities to applicable foreign PDPLs based on where their data subjects reside. KUWAIT-NBCC (a cybersecurity mandate, not a privacy law) carries no Privacy & Rights Management controls — intentional by design.
 
-**Framework type fidelity** — cybersecurity frameworks (KUWAIT-NBCC, QATAR-NIAS) have no privacy-rights-management controls mapped; PDPL frameworks carry no OT/ICS controls. The taxonomy does not cross-contaminate framework scopes.
+**Framework type fidelity** — controls are mapped only where the source text addresses a domain. General cybersecurity frameworks (KUWAIT-NBCC, QATAR-NIAS) have no privacy-rights-management controls; CBK CORF does, because its Data Privacy controls explicitly mandate consent and right to be forgotten. PDPL frameworks carry no OT/ICS controls. The taxonomy does not cross-contaminate framework scopes.
 
 **Jurisdiction scoping rules** — 14 recommendation rules prevent cross-border hallucination: NCA-ECC and SAMA-CSF Saudi-only, CBK Kuwait banking only, PDPL-UAE exempt for UAE government/federal entities, PDPL-QAT omitted for non-Qatar orgs, PCI-DSS downgraded to contractual for central bank profiles.
 
@@ -45,7 +45,7 @@ The control taxonomy (`server/taxonomy.json`) was built from actual GCC framewor
 |-----------|-------------|--------|
 | NCA ECC 2024 | Saudi Arabia | All |
 | SAMA CSF | Saudi Arabia | Banking |
-| CBK Framework | Kuwait | Banking & Financial Services |
+| CBK CORF (Dec 2025) | Kuwait | Banking & Financial Services |
 | ISO 27001:2022 | International | All |
 | NIST CSF 2.0 | International | All |
 | UAE NIAF | UAE | All |

@@ -1,6 +1,6 @@
 {
-  "version": "5.0",
-  "description": "Cross-framework domain taxonomy for GCC regulatory harmonisation — v5.0 promotes Kuwait NBCC (NCSC Decision No. 2 of 2026 — National Basic Cybersecurity Controls) from pending to a first-class framework with 35 core controls across six NIST CSF functions plus a 16-control Cloud Security appendix. The NBCC is aligned with CIS Controls v8.1 IG1 and NIST CSF and references the National Data Classification Framework (Decision No. 1 of 2025). All other frameworks — including PDPL-KSA with its Implementing Regulation and Transfer Regulation — are unchanged from v4.0.",
+  "version": "5.1",
+  "description": "Cross-framework domain taxonomy for GCC regulatory harmonisation — v5.1 replaces the CBK Cybersecurity Framework (2020) with the CBK Cyber and Operational Resilience Framework (CORF) v1.0, issued 3 December 2025: three baselines (Cyber Resilience, Operational Resilience, Third-Party Risk Management) totalling 27 domains, 93 sub-domains, 200 control areas and 876 controls, cited at control-area level with CRB-/ORB-/TPRM- prefixes. The framework id remains CBK. This was a targeted edit of the CBK entry only; all other frameworks — including KUWAIT-NBCC (NCSC Decision No. 2 of 2026, promoted in v5.0) and PDPL-KSA — are unchanged from v5.0.",
   "domains": [
     {
       "domainId": "governance-strategy",
@@ -21,7 +21,14 @@
           "3.1.4"
         ],
         "CBK": [
-          "GRC-Governance"
+          "CRB-4.1.1-Board of Directors approves cybersecurity strategy, risk appetite, and budget; retains ultimate accountability",
+          "CRB-4.1.2-Cybersecurity Steering Committee with Board-approved charter, meeting at least four times a year",
+          "CRB-4.1.3-Executive/Senior Management approves cyber resilience policy and sizes the Information Security function",
+          "CRB-4.1.4-Information Security Function",
+          "CRB-4.1.5-Cybersecurity Strategy aligned to business objectives and CORF",
+          "CRB-5.1.1-Security architecture formalization and governance",
+          "ORB-3.1-Operational resilience governance structure and oversight (Board, Steering Committee, Senior Management, Operational Resilience Function)",
+          "ORB-3.2.1-Operational Resilience Strategy"
         ],
         "ISO-27001": [
           "5.1",
@@ -94,7 +101,15 @@
           "3.2.1"
         ],
         "CBK": [
-          "GRC-RiskManagement"
+          "CRB-4.2.1-Cybersecurity risk management methodology",
+          "CRB-4.2.2-Cybersecurity risk identification and assessment",
+          "CRB-4.2.3-Cybersecurity risk treatment and monitoring",
+          "CRB-4.2.4-Cyber insurance",
+          "CRB-4.2.5-Cybersecurity in project management",
+          "ORB-4.1.1-Business disruption risk assessment methodology",
+          "ORB-4.2.1-Risk identification and analysis",
+          "ORB-4.3.1-Risk treatment and monitoring",
+          "ORB-4.3.2-Risk reporting"
         ],
         "ISO-27001": [
           "5.7",
@@ -174,7 +189,13 @@
           "3.2.5"
         ],
         "CBK": [
-          "GRC-Compliance"
+          "CRB-4.1.6-Cyber Resilience Policy approved and reviewed",
+          "CRB-4.3.1-Regulatory, statutory, and standards compliance",
+          "CRB-4.4.1-Audit function of the Regulated Entity",
+          "CRB-4.4.2-Audit planning and execution",
+          "CRB-4.4.3-Independent third-party audits",
+          "CRB-4.4.4-Independent audit reporting",
+          "ORB-3.3.1-Operational resilience compliance"
         ],
         "ISO-27001": [
           "5.1",
@@ -262,7 +283,8 @@
           "3.3.1"
         ],
         "CBK": [
-          "TO-HumanResourceSecurity"
+          "CRB-4.5.1-Personnel security (screening, terms of employment, termination)",
+          "CRB-4.5.3-Cybersecurity talent management"
         ],
         "ISO-27001": [
           "5.2",
@@ -345,7 +367,8 @@
           "3.1.7"
         ],
         "CBK": [
-          "TO-SecurityAwarenessTraining"
+          "CRB-4.5.2-Cybersecurity training and awareness",
+          "ORB-10.1.6-Operational resilience training and awareness"
         ],
         "ISO-27001": [
           "6.3",
@@ -408,7 +431,11 @@
           "3.3.3"
         ],
         "CBK": [
-          "TO-AssetManagementClassification"
+          "CRB-5.2.1-Asset management governance",
+          "CRB-5.2.2-Assets identification and inventory",
+          "CRB-5.2.3-Assets classification, labelling, and handling",
+          "CRB-5.2.4-Acquisition, acceptable use, and disposal of assets",
+          "CRB-5.2.5-Detection and monitoring of unauthorized assets"
         ],
         "ISO-27001": [
           "5.9",
@@ -489,7 +516,10 @@
           "3.3.5"
         ],
         "CBK": [
-          "TO-AccessControlManagement"
+          "CRB-5.6.1-Identity and access control management",
+          "CRB-5.6.2-Remote access management",
+          "CRB-5.6.3-Password management",
+          "CRB-8.1.3-Customer authentication and access management for electronic payment systems"
         ],
         "ISO-27001": [
           "5.15",
@@ -603,7 +633,10 @@
           "3.3.8"
         ],
         "CBK": [
-          "TO-InfrastructureSecurity"
+          "CRB-5.1.2-Security architecture core principles",
+          "CRB-5.3.2-Network security",
+          "CRB-5.3.3-Network connections and application interfaces",
+          "CRB-5.6.2-Remote access management"
         ],
         "ISO-27001": [
           "8.20",
@@ -687,7 +720,8 @@
           "3.3.8"
         ],
         "CBK": [
-          "TO-EmailSecurity"
+          "CRB-5.5.1-Email usage",
+          "CRB-5.5.2-Email security and risk mitigation"
         ],
         "ISO-27001": [
           "8.23"
@@ -746,7 +780,8 @@
           "3.3.10"
         ],
         "CBK": [
-          "TO-PortableDeviceSecurity"
+          "CRB-5.4.1-Portable device security",
+          "CRB-5.4.2-Removable media"
         ],
         "ISO-27001": [
           "8.1",
@@ -815,8 +850,12 @@
           "3.3.9"
         ],
         "CBK": [
-          "TO-DataPrivacySecurity",
-          "TO-Cryptography"
+          "CRB-5.11.1-Data protection",
+          "CRB-5.11.2-Data privacy policy and privacy-by-design",
+          "CRB-5.7.1-Cryptographic controls and key management",
+          "TPRM-12.1-Data storage security (access, segmentation, configuration)",
+          "TPRM-12.2-Storage lifecycle management (retention, archival, purge)",
+          "TPRM-12.3-Data integrity and availability"
         ],
         "ISO-27001": [
           "5.12",
@@ -939,7 +978,10 @@
           "3.3.6"
         ],
         "CBK": [
-          "TO-SecureSoftwareLifecycleManagement"
+          "CRB-5.1.3-Security-by-design considerations",
+          "CRB-5.8.1-Secure software development lifecycle (SDLC)",
+          "CRB-5.8.2-Application security",
+          "CRB-5.8.3-Application Programming Interface (API) security"
         ],
         "ISO-27001": [
           "8.25",
@@ -1026,7 +1068,8 @@
           "3.3.17"
         ],
         "CBK": [
-          "TO-VulnerabilityManagement"
+          "CRB-5.13.1-Vulnerability management and penetration testing",
+          "CRB-5.13.2-Security patch management, including red teaming and adversarial simulations"
         ],
         "ISO-27001": [
           "8.8",
@@ -1087,7 +1130,9 @@
           "3.3.14"
         ],
         "CBK": [
-          "TO-LoggingMonitoringSecurityIncidentManagement"
+          "CRB-5.12.1-Logging and monitoring",
+          "CRB-5.12.2-Detection and analysis",
+          "CRB-5.16.1-Digital risk and brand protection"
         ],
         "ISO-27001": [
           "8.15",
@@ -1172,8 +1217,15 @@
           "3.3.16"
         ],
         "CBK": [
-          "TO-LoggingMonitoringSecurityIncidentManagement",
-          "GRC-CyberCrisisManagement"
+          "CRB-5.12.2-Detection and analysis",
+          "CRB-5.12.3-Response and recovery",
+          "CRB-5.12.4-Forensics and evidence collection",
+          "CRB-5.15.1-Cyber threat intelligence (CTI) management",
+          "CRB-5.15.2-CTI collaboration and continuous improvement",
+          "ORB-8.1.1-Incident and crisis response team and severity impact matrix",
+          "ORB-8.1.2-Incident and crisis plans development",
+          "ORB-8.2.1-Internal and external communication",
+          "ORB-8.2.2-Escalation and reporting to CBK — High severity within 1 hour, Medium within 4 hours"
         ],
         "ISO-27001": [
           "5.24",
@@ -1267,8 +1319,27 @@
           "3.3.4"
         ],
         "CBK": [
-          "TO-BusinessContinuityDisasterRecovery",
-          "GRC-CyberCrisisManagement"
+          "CRB-9.1.1-Business continuity and disaster recovery planning and management",
+          "CRB-9.1.2-Backup and recovery management",
+          "CRB-9.1.3-Critical services and dependencies management",
+          "CRB-9.1.4-BC/DR testing and validation",
+          "CRB-9.2.1-Cyber crisis management planning and governance",
+          "CRB-9.2.2-Crisis response and communication",
+          "CRB-9.2.3-Crisis training, testing, and continuous improvement",
+          "CRB-5.10.1-Capacity and performance management",
+          "ORB-5.1-Business impact analysis (methodology, processes, recovery resources, single points of failure)",
+          "ORB-5.2-Recovery strategies (identification, selection, monitoring)",
+          "ORB-5.3.1-Business continuity plan components",
+          "ORB-6.1.1-Service management",
+          "ORB-6.2.1-Backup capabilities",
+          "ORB-6.3.1-High availability design",
+          "ORB-6.4-Technology recovery plans (technology impact analysis, recovery planning)",
+          "ORB-6.5-Cyber recovery plans (capabilities, planning, testing)",
+          "ORB-10.1.1-Table-top exercises",
+          "ORB-10.1.2-Business continuity and disaster recovery testing",
+          "ORB-10.1.3-Crisis simulation",
+          "ORB-10.1.4-Sector-wide simulation",
+          "ORB-10.1.5-Continuous improvement"
         ],
         "ISO-27001": [
           "5.29",
@@ -1333,7 +1404,7 @@
           "3.3.2"
         ],
         "CBK": [
-          "TO-PhysicalEnvironmentalSecurity"
+          "CRB-5.14.1-Physical and environmental security controls"
         ],
         "ISO-27001": [
           "7.1",
@@ -1405,7 +1476,35 @@
           "3.4.2"
         ],
         "CBK": [
-          "TPS-ThirdPartyOutsourcing"
+          "CRB-6.1.1-Third-party risk management",
+          "CRB-6.2.1-Supply chain risk management",
+          "TPRM-3.1-TPRM policy and strategy",
+          "TPRM-3.2-TPRM roles and responsibilities (ownership, three lines of defence)",
+          "TPRM-3.3-Board and senior management oversight of third-party risk",
+          "TPRM-3.4-Approvals and periodic reviews",
+          "TPRM-4.1-Critical third-party service identification and inventory",
+          "TPRM-4.2-Third-party risk identification, scoring, due diligence, and ongoing monitoring",
+          "TPRM-4.3-Dependency mapping to critical processes and concentration risk",
+          "TPRM-5.1-Contractual safeguards (scope of service, termination, right to audit)",
+          "TPRM-5.2-Legally binding agreements and contract repository",
+          "TPRM-5.3-Ongoing oversight of contractual compliance",
+          "TPRM-5.5-Third-party financial viability",
+          "TPRM-5.6-Third-party compliance (geopolitical, regulatory, legal, anti-bribery)",
+          "TPRM-6.1-Periodic reassessment and mitigation planning",
+          "TPRM-6.2-Third-party risk classification and oversight intensity",
+          "TPRM-6.3-Ongoing monitoring of critical third parties (SLA, compliance, risk intelligence)",
+          "TPRM-7.1-Third-party business continuity and disaster recovery plans",
+          "TPRM-7.3-Periodic testing of third-party DR capabilities",
+          "TPRM-8.1-Third-party incident detection and monitoring",
+          "TPRM-8.2-Third-party incident escalation and communication protocols",
+          "TPRM-8.3-Third-party incident root cause analysis",
+          "TPRM-9.1-Third-party data encryption and masking",
+          "TPRM-9.3-Third-party data classification and handling",
+          "TPRM-10.1-Disclosure and approval of sub-contractors",
+          "TPRM-10.2-Sub-contracting monitoring and oversight",
+          "TPRM-11.1-Exit strategy planning",
+          "TPRM-15.1-Inter-affiliate due diligence and periodic review",
+          "TPRM-15.3-Foreign affiliates"
         ],
         "ISO-27001": [
           "5.19",
@@ -1502,7 +1601,11 @@
           "3.4.3"
         ],
         "CBK": [
-          "TPS-CloudSecurity"
+          "CRB-7.2.1-Cloud governance, including data residency and CBK approval at least one month before signing cloud outsourcing agreements",
+          "CRB-7.2.2-Cloud risk management, including location and data residency",
+          "CRB-7.2.3-Cloud providers oversight and agreements",
+          "CRB-7.2.4-Cloud security architecture and compliance",
+          "TPRM-14.1-Cloud security safeguards for cloud service usage"
         ],
         "ISO-27001": [
           "5.23",
@@ -1586,7 +1689,9 @@
           "2-5-5"
         ],
         "SAMA-CSF": [],
-        "CBK": [],
+        "CBK": [
+          "CRB-5.14.2-Connected devices (IoT/OT) security — segregation of facility IoT/OT networks (CCTV, BMS) from IT, inventory, quarterly VA and annual penetration testing, MFA and monthly access-log review"
+        ],
         "ISO-27001": [
           "8.20",
           "8.21"
@@ -1635,11 +1740,19 @@
           "3.3.13"
         ],
         "CBK": [
-          "PEPS-CommonControls",
-          "PEPS-TransactionMonitoring",
-          "PEPS-OnlineBanking",
-          "PEPS-MobileBanking",
-          "PEPS-ATM"
+          "CRB-8.1.1-Electronic payment systems policy and governance",
+          "CRB-8.1.2-Digital onboarding",
+          "CRB-8.1.3-Authentication and access management",
+          "CRB-8.1.4-Transaction security",
+          "CRB-8.2.1-E-payment transactions monitoring and control",
+          "CRB-8.2.2-Fraud management",
+          "CRB-8.3.1-Online and mobile banking security",
+          "CRB-8.3.2-Open banking security",
+          "CRB-8.3.3-Digital wallets security",
+          "CRB-8.4.1-Payment card data protection",
+          "CRB-8.5.1-Physical and environmental security of customer self-service machines",
+          "CRB-8.5.2-Self-service machine transaction and customer data security",
+          "CRB-8.6.1-Contactless payment security controls"
         ],
         "ISO-27001": [
           "5.14",
@@ -1693,7 +1806,9 @@
           "3.3.7"
         ],
         "CBK": [
-          "TO-ChangeReleaseManagement"
+          "CRB-5.9.1-Change and release management process",
+          "CRB-5.3.1-Security configuration standards",
+          "TPRM-7.2.3-Contingency environments change management"
         ],
         "ISO-27001": [
           "8.9",
@@ -1753,7 +1868,11 @@
       "controls": {
         "NCA-ECC": [],
         "SAMA-CSF": [],
-        "CBK": [],
+        "CBK": [
+          "CRB-5.11.2-Data privacy principles — lawfulness, purpose limitation, minimisation, explicit freely-given consent with withdrawal at any time, and right to be forgotten",
+          "TPRM-15.2-Customer consent for data sharing with affiliates",
+          "TPRM-13.3-Data minimisation and privacy for cross-border data transfers"
+        ],
         "ISO-27001": [
           "5.34"
         ],
@@ -1830,7 +1949,12 @@
       "controls": {
         "NCA-ECC": [],
         "SAMA-CSF": [],
-        "CBK": [],
+        "CBK": [
+          "CRB-5.3.3-Network connections and application interfaces",
+          "CRB-5.8.3-Application Programming Interface (API) security",
+          "CRB-8.3.2-Open banking security",
+          "TPRM-13.3-Secure transmission for cross-border data transfers"
+        ],
         "ISO-27001": [
           "5.14",
           "8.22",
@@ -1917,16 +2041,33 @@
       "confidenceLevel": "high"
     },
     "CBK": {
-      "name": "CBK Cybersecurity Framework for Kuwaiti Banking Sector",
-      "version": "1.0 (2020)",
+      "name": "CBK Cyber and Operational Resilience Framework (CORF)",
+      "version": "1.0 — First Release, 3 December 2025 (supersedes the CBK Cybersecurity Framework 2020)",
       "jurisdiction": [
         "Kuwait"
       ],
+      "mandatory": true,
       "sector": [
         "Banking"
       ],
-      "mandatory": true,
-      "confidenceLevel": "high"
+      "enforcer": "Central Bank of Kuwait (CBK) — Supervision Sector",
+      "legalBasis": "Article 15 of Law No. 32 of 1968 (CBK Law); Law No. 20 of 2014",
+      "effectiveDate": "Issued 3 December 2025 (Version 1.0, First Release). The framework text states no fixed compliance deadline; implementation timelines are communicated by CBK to Regulated Entities.",
+      "supersedes": "CBK Cybersecurity Framework (CSF) 2020 — CORF is described by CBK as its 'comprehensive and enhanced successor'",
+      "structure": "Six chapters: (1) Framework, (2) Cyber and Operational Resilience Working Group (CORWG) Terms of Reference, (3) CORF Toolkit (assessment criteria, Statement of Applicability, Cyber Resilience Workforce Framework, inherent risk profiling, circulars), (4) Cyber Resilience Baselines (CRB) — 6 domains, 33 sub-domains, 87 control areas, 519 controls, (5) Operational Resilience Baselines (ORB) — 8 domains, 17 sub-domains, 35 control areas, 146 controls, (6) Third-Party Risk Management Baselines (TPRM) — 13 domains, 43 sub-domains, 78 control areas, 211 controls. Total 27 domains, 93 sub-domains, 200 control areas, 876 controls. Each baseline uses a Domain > Sub-domain > Control Area > Control hierarchy (X / X.1 / X.1.1 / X.1.1.1).",
+      "confidenceLevel": "high",
+      "controlIdConvention": "Control references are cited at control-area level as <BASELINE>-<number>-<title>, where BASELINE is CRB, ORB, or TPRM. Numbers overlap across the three baselines (e.g. ORB-3.1 and TPRM-3.1 are different), so the prefix disambiguates. TPRM references in the third-party domain are cited at sub-domain level because almost the entire TPRM baseline maps to that one domain.",
+      "assessmentModel": "Dual-layer: each control assessed Compliant / Non-Compliant / Not Applicable (N/A requires CBK approval via the Statement of Applicability), rolled up to control-area and domain compliance percentages; each sub-domain assessed on a five-level maturity scale (1 Initial, 2 Ad-hoc, 3 Baseline, 4 Advanced, 5 Innovative).",
+      "supervisoryTiering": "Tier 1 High-Impact (D-SIBs, large foreign branches, FMIs) — annual CBK CORF assessment; Tier 2 Medium-Impact — every 18 months; Tier 3 Low-Impact — every two years.",
+      "kuwaitSpecificDistinctives": [
+        "ORB-8.2.2 incident reporting to CBK: High severity within 1 hour of discovery, Medium severity within 4 hours; ongoing situation reports and closure reports per ORB Appendix 12.1",
+        "CRB-7.2.1 cloud prior approval: CBK approval required at least one month before signing any IaaS/PaaS/SaaS outsourcing agreement that directly or indirectly interacts with systems involving sensitive data; cloud policy must address data residency",
+        "CRB-5.13.2 red teaming: threat-intelligence-led red teaming and adversarial simulation of critical systems, with findings reported to Executive/Senior Management",
+        "CRB-5.11.2 data privacy: privacy-by-design plus explicit data-subject consent, withdrawal of consent, and right to be forgotten — a sector-specific privacy regime in the absence of a Kuwait PDPL",
+        "Statement of Applicability must be submitted to CBK before any CORF assessment; any control exception requires a formally justified request with compensating controls and prior CBK approval (CRB section 10)",
+        "Cyber Resilience Workforce Framework (Toolkit) defines sector job roles, a Senior Cybersecurity Leadership Program, and a Cybersecurity Resilience Assessor Program"
+      ],
+      "notes": "CORF applies to all Regulated Entities supervised by CBK (banks, and also finance, investment and exchange companies, credit information companies, and e-payment service providers). The recommendation gate in prompt.js is intentionally unchanged: CBK is recommended only for Kuwait + Banking & financial services, and never for Kuwait government, CNI operators, telecoms, or non-financial sectors. For Kuwait banking, KUWAIT-NBCC still applies alongside CBK (Article 4 of NCSC Decision 2/2026 — comply with the stricter standard). DOMAIN COVERAGE NOTES — privacy-rights-management is mapped because CRB-5.11.2 explicitly mandates consent, withdrawal, and right-to-be-forgotten for personal data; this is a CBK sector obligation, not a general Kuwait privacy law. ot-ics maps only CRB-5.14.2 (facility IoT/OT such as CCTV and building management systems) — CORF does not address industrial control systems, so expect partial coverage at most. NOT MAPPED to any taxonomy domain: CRB-7.1 Advanced Technologies Security (AI/ML, blockchain/DLT, quantum, 5G) and TPRM-13.1/13.2/13.4 cross-border transaction KYC/AML and regulatory reporting. SOURCE DISCREPANCY: CRB states 87 control areas but numbers 86; the unnumbered 'Red Teaming and Adversarial Simulations' heading inside CRB-5.13.2 is the likely 87th. Source: cbk.gov.kw CORF PDF (corf-170113_v10), 389 pages, verified September 2026."
     },
     "ISO-27001": {
       "name": "ISO/IEC 27001:2022",

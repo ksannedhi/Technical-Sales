@@ -43,7 +43,7 @@ server/
   excel.js          ExcelJS matrix export
   pdf.js            Puppeteer PDF export
   reportTemplate.js HTML template for PDF
-  taxonomy.json     24 domain × 14 framework control mapping (v5.0) — do not regenerate
+  taxonomy.json     24 domain × 14 framework control mapping (v5.1) — do not regenerate
 client/src/
   App.jsx                    top-level state machine (intake → frameworks → harmonising → matrix → posture → roadmap)
   components/IntakeForm.jsx
@@ -102,11 +102,13 @@ Health check: `GET http://localhost:3004/api/health` → `{ status: "ok", domain
 
 - **Harmonisation cache**: `harmonise.js` caches results in a module-level `Map` keyed by `domainId + sorted framework list`. Adding/removing one framework only recomputes affected domains.
 - **Custom frameworks**: stored in-memory in `customFrameworkStore` — lost on server restart (intentional for demo).
-- **taxonomy.json**: pre-built from actual framework documents (v5.0). Do not regenerate. Contains 24 domains × 14 frameworks (NCA-ECC, SAMA-CSF, CBK, ISO-27001, NIST-CSF, UAE-NIAF, PCI-DSS, IEC-62443, SOC2, PDPL-UAE, PDPL-QAT, QATAR-NIAS, PDPL-KSA, KUWAIT-NBCC).
+- **taxonomy.json**: pre-built from actual framework documents (v5.1). Do not regenerate. Contains 24 domains × 14 frameworks (NCA-ECC, SAMA-CSF, CBK, ISO-27001, NIST-CSF, UAE-NIAF, PCI-DSS, IEC-62443, SOC2, PDPL-UAE, PDPL-QAT, QATAR-NIAS, PDPL-KSA, KUWAIT-NBCC).
 - **Concurrency**: `runWithConcurrency(domains, 2, fn)` — max 2 simultaneous Claude calls during harmonisation. 429 rate-limit responses are retried with 15s/30s/60s backoff (up to 4 attempts).
 - **dotenv**: `import 'dotenv/config'` in `server/index.js` reads `.env` from `process.cwd()`. The launcher runs node from the project root so `.env` is found correctly. Do not run the server from inside `server/` directly.
 - **pdf-parse ESM**: must import as `pdf-parse/lib/pdf-parse.js`, not `pdf-parse`.
 - **Puppeteer PDF**: landscape A4. If Chromium auto-download fails, set `executablePath` in `server/pdf.js` to point at the system Chrome installation.
+- **CBK = CORF (v5.1)**: the `CBK` id now holds the Cyber and Operational Resilience Framework (Dec 2025), which superseded the 2020 CBK Cybersecurity Framework. The id was kept so the UI, cache keys, and prompts stay stable. CBK references are cited at control-area level with `CRB-`/`ORB-`/`TPRM-` prefixes (numbers repeat across the three baselines). A later framework replacement should follow the same pattern: a targeted edit of one framework entry, documented in `description`, never a regeneration.
+- **Standard frameworks send control IDs only** `[model-behavior · 2026-09]`: `buildDomainPrompt` passes built-in framework control IDs without their text and relies on the model's training knowledge. That fails for frameworks newer than the model's training data (CORF, NBCC), so their IDs carry a short description. Check this again if the model changes, or if control text gets passed in.
 - **SSE streaming**: `/api/harmonise/stream` uses `text/event-stream`. Do not add response buffering middleware upstream of this route.
 
 ---

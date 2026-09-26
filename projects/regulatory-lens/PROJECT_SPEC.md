@@ -66,7 +66,7 @@ The domain taxonomy is pre-built and stored in `server/taxonomy.json` (v5.0). It
 |---|---|---|---|
 | NCA-ECC | NCA Essential Cybersecurity Controls 2024 | Saudi Arabia | All Saudi organisations |
 | SAMA-CSF | SAMA Cyber Security Framework | Saudi Arabia | Banking & financial services |
-| CBK | Central Bank of Kuwait Framework | Kuwait | Banking & financial services only |
+| CBK | CBK Cyber and Operational Resilience Framework (CORF) v1.0, Dec 2025 — supersedes the 2020 Cybersecurity Framework | Kuwait | Banking & financial services only |
 | ISO-27001 | ISO/IEC 27001:2022 | International | Baseline / contractual |
 | NIST-CSF | NIST Cybersecurity Framework 2.0 | International | Voluntary reference |
 | UAE-NIAF | UAE National Information Assurance Framework | UAE | Government and CNI |
