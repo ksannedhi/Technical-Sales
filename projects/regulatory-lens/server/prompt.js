@@ -403,7 +403,7 @@ Schema:
       "changeId": string,
       "type": "added" | "modified" | "removed" | "restructured",
       "controlReference": string,   // control ID or section reference if identifiable
-      "domainId": string,           // map to taxonomy domain (use closest match)
+      "domainId": string,           // MUST be one of the valid domain IDs listed in the prompt — never invent one
       "description": string,        // what changed, in plain language
       "implementationImpact": "policy-change" | "config-change" | "new-technology" | "process-change" | "no-action",
       "urgency": "immediate" | "next-review-cycle" | "monitor",
@@ -415,6 +415,10 @@ Schema:
 }
 `;
 
+function taxonomyDomainList() {
+  return taxonomy.domains.map(d => `${d.domainId} — ${d.domainLabel}`).join('\n');
+}
+
 export function buildChangeTrackerPrompt(oldText, newText, frameworkName) {
   const truncate = (t, n) => t.length > n ? t.slice(0, n) + '...[truncated]' : t;
   return `Compare these two versions of ${frameworkName} and identify all changes.
@@ -425,6 +429,9 @@ ${truncate(oldText, 8000)}
 === NEW VERSION ===
 ${truncate(newText, 8000)}
 
+Valid domain IDs (use one of these exactly for every "domainId" and "staleAssessments" entry — never invent a new one):
+${taxonomyDomainList()}
+
 Identify every meaningful change and assess the implementation impact for GCC organisations.`;
 }
 
@@ -433,8 +440,11 @@ export function buildChangeTrackerDescriptionPrompt(description, frameworkName) 
 
 "${description}"
 
+Valid domain IDs (use one of these exactly for every "domainId" and "staleAssessments" entry — never invent a new one):
+${taxonomyDomainList()}
+
 Based on this described change:
-1. Identify the most likely control domain(s) affected using the GCC regulatory taxonomy
+1. Identify the most likely control domain(s) affected, using only the domain IDs listed above
 2. Assess the implementation impact
 3. Recommend actions
 
