@@ -27,9 +27,9 @@ ATLAS IDs are mapped only where the technique's own description matches the thre
 
 | Instrument | Verified | Clauses used |
 |---|---|---|
-| CITRA Cloud Computing Regulatory Framework (Resolution 112 of 2021) | primary | §3.1.4.2, §3.2.1.2.2, §3.2.1.3.2, §4.2.1.1, §4.2.1.2 |
+| CITRA Cloud Computing Regulatory Framework (Resolution 112 of 2021) | primary | §3.1.4.2, §3.2.1.2.2, §3.2.1.3.2, §4.2.1.1, §4.2.1.2 (public, hybrid, community cloud only) |
 | Kuwait NBCC (NCSC) | compiled | GOV-3, CLD-12, CLD-13 |
-| CBK Cyber and Operational Resilience Framework (CORF), 3 Dec 2025 | compiled | CRB-7.2.1, CRB-7.2.2 |
+| CBK Cyber and Operational Resilience Framework (CORF) v1.0, Dec 2025 | primary | Ch. 4 Cyber Resilience Baselines: 7.1 scope (names AI and ML as emerging technologies), 7.1.1.2 (CBK approval one month before go-live), 7.2 scope (public, community, hybrid cloud only), 7.2.1.3 (approval one month before signing cloud outsourcing involving sensitive data), 7.2.2.2(d) (location and data residency in cloud risk assessment) |
 | Saudi PDPL + Transfer Regulation (2023) | compiled | Art. 29; TR Art. 2, Art. 8 |
 | SDAIA AI Ethics Principles | primary | Advisory only |
 | SDAIA Generative AI Guidelines for Government (Jan 2024) | secondary | Advisory only |

@@ -55,6 +55,12 @@ Default a new question to multi-select; real agents mix audiences, identities, h
 ## Scoring
 Residual = inherent severity − number of mitigating controls in place, floored at 1. Every control counts the same — a known simplification, stated in the README. Blast radius = max action scale × autonomy scale × data sensitivity, normalised to 100.
 
+## Regulatory scope, not just clause IDs
+Check a clause's **scope** in the primary text, not only its number. CORF 7.2 and CITRA 4.2.1.2 cover public, community, and hybrid cloud, not private cloud; CORF 7.2.1.3 applies only where sensitive data is involved. An earlier rule widened the CBK approval to private cloud from a compiled summary and was wrong. `hosting` keeps `private_cloud` and `hybrid_cloud` as separate options for this reason.
+
+## Data files are read at startup
+`node --watch` restarts on `.js` changes only. After editing anything in `backend/data/`, restart the backend (or touch `engine.js`) before testing in the UI.
+
 ## Adding a threat or rule
 Add it to the data file, then run `npm test` — the suite checks every field, option, control, and mapping ID the rule references. If you add a preset, give it an `expectedVerdict`.
 

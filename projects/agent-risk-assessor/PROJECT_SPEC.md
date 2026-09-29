@@ -34,7 +34,7 @@ The final output is one of three verdicts — **Go**, **Go with conditions**, **
 ```
 Step 1: Profile (or load one of three demo presets)
   → org name, agent name, business purpose, sector, jurisdictions
-  → where the model runs: vendor API / hyperscaler-hosted / private or hybrid cloud / on-prem
+  → where the model runs: vendor API / hyperscaler-hosted / private cloud / hybrid cloud / on-prem (private and hybrid are separate because CORF 7.2 and CITRA 4.2.1.2 cover hybrid but not private cloud)
   → every country where inference can happen, including failover and vendor routing (drives the residency check; any location outside the jurisdiction triggers)
 
 Step 2: Architecture (11 questions across 5 sections)
@@ -70,6 +70,14 @@ An agent that has all three of the following can be made to leak data by a singl
 3. A way to communicate externally (email, web requests, write to a shared location)
 
 If all three are present and no control breaks the chain, the verdict cannot be **Go**. This is the most demoable finding in the tool — it is simple, correct, and most prospects have not thought about it.
+
+### What counts as "untrusted content"
+
+Untrusted content is text written by someone **other than the person the agent is serving**: inbound email, web pages, uploaded files, documents others can edit, third-party tool output, messages from other agents. Anonymous public users also count, because anyone can type anything.
+
+**Authenticated staff or customers talking to their own agent do not count on their own.** A customer instructing their own banking agent is not injecting into someone else's session: at worst they reach their own data. The risk from a malicious authenticated user is real but different, and it is assessed separately: direct prompt injection (T-INJ-01), and, where the agent uses a shared or privileged identity, disclosure of other users' data (T-LEAK-01) and privilege abuse (T-PRV-01). This follows the original framing of the lethal trifecta, which is about content from outside the conversation.
+
+In practice most customer-facing agents do read outsider-written content (uploads, email, shared documents), and then all three parts are present.
 
 ### Blast radius
 
@@ -190,4 +198,4 @@ Presales demos need a one-click start. Ship three presets:
 1. **Name** — "Agent Risk Assessor" is a working title; rename before the first sync.
 2. **Pending instruments** — NCA Cloud Cybersecurity Controls, ISO/IEC 42001, Bahrain and Oman PDPLs. Listed in `residency.json`; they produce no findings until verified.
 
-Resolved: one-level-per-control scoring accepted for v1 (stated in the README); GCC AI guidance researched (see `backend/data/SOURCES.md`); CBK now covered via CORF CRB-7.2.1; attack replay is Stage 2.
+Resolved: one-level-per-control scoring accepted for v1 (stated in the README); GCC AI guidance researched (see `backend/data/SOURCES.md`); CBK CORF verified against CBK's own text (7.1.1.2 AI approval, 7.2.1.3 cloud outsourcing approval); attack replay is Stage 2.

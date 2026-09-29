@@ -110,7 +110,11 @@
             },
             {
               "value": "private_cloud",
-              "label": "Private or hybrid cloud"
+              "label": "Private cloud (dedicated to the organisation)"
+            },
+            {
+              "value": "hybrid_cloud",
+              "label": "Hybrid cloud (private + public)"
             },
             {
               "value": "on_prem",

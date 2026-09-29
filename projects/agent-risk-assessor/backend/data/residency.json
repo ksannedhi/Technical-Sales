@@ -124,13 +124,13 @@
             "in": [
               "vendor_api",
               "public_cloud",
-              "private_cloud"
+              "hybrid_cloud"
             ]
           }
         ]
       },
       "severity": 1,
-      "finding": "Shared content may only go to public, hybrid, or community cloud providers registered and licensed by CITRA. A model vendor's API is a cloud service for this purpose.",
+      "finding": "Shared content may only go to public, hybrid, or community cloud providers registered and licensed by CITRA. A model vendor's API is a cloud service for this purpose. A private cloud dedicated to the organisation is outside this clause.",
       "remediation": "Confirm the model provider (or the cloud hosting it) is CITRA-licensed before go-live.",
       "sources": [
         {
@@ -200,19 +200,53 @@
             "in": [
               "vendor_api",
               "public_cloud",
-              "private_cloud"
+              "hybrid_cloud"
+            ]
+          },
+          {
+            "flag": "sensitiveData"
+          }
+        ]
+      },
+      "severity": 3,
+      "finding": "A model vendor's API, a hyperscaler-hosted model, or a hybrid cloud is a public, community, or hybrid cloud service under CORF. Where it interacts with systems holding sensitive data (customer, financial, transactional), the bank must seek CBK approval at least one month before signing the agreement, submitting the scope, risk assessment, data storage location, the provider's controls and audit reports, and proposed service levels. The cloud risk assessment must cover location and data residency.",
+      "remediation": "Submit the CBK approval request at least one month before contract signature, with the items CORF lists, and record hosting location and residency in the cloud risk assessment.",
+      "sources": [
+        {
+          "instrument": "CBK Cyber and Operational Resilience Framework (CORF) v1.0, December 2025",
+          "clause": "Ch. 4 Cyber Resilience Baselines, 7.2 (scope), 7.2.1.3, 7.2.2.2(d)",
+          "verified": "primary"
+        }
+      ]
+    },
+    {
+      "id": "KW-06",
+      "jurisdiction": "KW",
+      "title": "CBK approval needed before an AI system goes live",
+      "when": {
+        "all": [
+          {
+            "field": "jurisdictions",
+            "in": [
+              "KW"
+            ]
+          },
+          {
+            "field": "sector",
+            "in": [
+              "banking"
             ]
           }
         ]
       },
       "severity": 3,
-      "finding": "For a CBK-regulated institution, a model vendor's API, a hyperscaler-hosted model, or a private or hybrid cloud operated by a third party is cloud outsourcing. CORF requires CBK approval at least one month before the cloud outsourcing agreement is signed, and cloud risk management that covers location and data residency. A private cloud the bank owns and operates itself is not outsourcing.",
-      "remediation": "Add the model provider to the cloud outsourcing register and seek CBK approval at least one month before contract signature. Record hosting location and residency in the cloud risk assessment.",
+      "finding": "CORF names artificial intelligence and machine learning as emerging technologies. A CBK-regulated entity must seek CBK approval at least one month before go-live, outlining the technology, how it is applied, the risk assessment results, and the risk response. This applies wherever the model is hosted, including on-premises.",
+      "remediation": "Submit the approval request at least one month before go-live. This assessment's threat register, residency findings, and path to Go can support the risk assessment and risk response sections.",
       "sources": [
         {
-          "instrument": "CBK Cyber and Operational Resilience Framework (CORF), 3 December 2025",
-          "clause": "CRB-7.2.1, CRB-7.2.2",
-          "verified": "compiled"
+          "instrument": "CBK Cyber and Operational Resilience Framework (CORF) v1.0, December 2025",
+          "clause": "Ch. 4 Cyber Resilience Baselines, 7.1 (scope), 7.1.1.2",
+          "verified": "primary"
         }
       ]
     },

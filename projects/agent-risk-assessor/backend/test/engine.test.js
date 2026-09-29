@@ -102,7 +102,7 @@ test('path to Go: bank needs in-country inference and CBK approval', () => {
   const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
   const p = pathToGo(bank.answers, bank.controls);
   assert.deepEqual(p.architecture.map((a) => a.id), ['KW-01']);
-  assert.deepEqual(p.approvals.map((a) => a.id), ['KW-05']);
+  assert.deepEqual(p.approvals.map((a) => a.id).sort(), ['KW-05', 'KW-06']);
 });
 
 test('risk register: one row per threat, AI RMF refs come only from the threat controls', () => {
@@ -148,11 +148,23 @@ test('mixed audiences and identities score as the worst case', () => {
   assert.ok(mixedId.threats.some((t) => t.id === 'T-LEAK-01'), 'one shared account is enough for cross-user leakage');
 });
 
-test('CBK cloud outsourcing: private cloud counts, own on-prem does not', () => {
-  const bank = { sector: 'banking', jurisdictions: ['KW'], hostingCountry: ['KW'], dataSensitivity: '2' };
-  const fired = (hosting) => assess({ ...bank, hosting }, []).residency.some((f) => f.id === 'KW-05');
-  assert.equal(fired(['private_cloud']), true);
-  assert.equal(fired(['on_prem']), false);
+test('CBK cloud outsourcing (CORF 7.2.1.3): public/hybrid cloud with sensitive data only', () => {
+  const bank = { sector: 'banking', jurisdictions: ['KW'], hostingCountry: ['KW'], dataSensitivity: '3', dataTypes: ['financial'] };
+  const fired = (over) => assess({ ...bank, ...over }, []).residency.some((f) => f.id === 'KW-05');
+  assert.equal(fired({ hosting: ['vendor_api'] }), true);
+  assert.equal(fired({ hosting: ['hybrid_cloud'] }), true);
+  assert.equal(fired({ hosting: ['private_cloud'] }), false, 'CORF 7.2 scope excludes private cloud');
+  assert.equal(fired({ hosting: ['on_prem'] }), false);
+  assert.equal(fired({ hosting: ['vendor_api'], dataSensitivity: '2', dataTypes: ['none'] }), false, 'no sensitive data');
+});
+
+test('CBK AI approval (CORF 7.1.1.2) applies to every Kuwaiti bank deployment, wherever hosted', () => {
+  for (const hosting of [['on_prem'], ['private_cloud'], ['vendor_api']]) {
+    const r = assess({ sector: 'banking', jurisdictions: ['KW'], hosting, hostingCountry: ['KW'], dataSensitivity: '1' }, []);
+    assert.ok(r.residency.some((f) => f.id === 'KW-06' && f.severity === 3), hosting[0]);
+  }
+  const nonBank = assess({ sector: 'retail', jurisdictions: ['KW'], hosting: ['on_prem'], hostingCountry: ['KW'] }, []);
+  assert.ok(!nonBank.residency.some((f) => f.id === 'KW-06'));
 });
 
 test('trifecta names what breaks it in plain words', () => {
