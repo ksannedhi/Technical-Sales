@@ -1,0 +1,16 @@
+{
+  "name": "agent-risk-assessor-backend",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=../.env server.js",
+    "dev": "node --env-file-if-exists=../.env --watch server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "puppeteer": "^25.12.0"
+  }
+}

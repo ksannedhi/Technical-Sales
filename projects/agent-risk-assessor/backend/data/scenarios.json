@@ -1,0 +1,170 @@
+{
+  "version": "0.1.0",
+  "note": "Fictional organisations. Each preset has an expected verdict that the test suite checks.",
+  "scenarios": [
+    {
+      "id": "bank-cs",
+      "label": "Bank customer-service agent",
+      "expectedVerdict": "not_yet",
+      "answers": {
+        "orgName": "Gulf Coast Bank (fictional)",
+        "agentName": "Customer Assist",
+        "purpose": "Answers retail customers' account questions in the mobile app and emails statements on request.",
+        "sector": "banking",
+        "jurisdictions": [
+          "KW"
+        ],
+        "hosting": [
+          "vendor_api"
+        ],
+        "hostingCountry": [
+          "EU"
+        ],
+        "dataSensitivity": "3",
+        "dataTypes": [
+          "personal",
+          "financial"
+        ],
+        "dataSources": [
+          "crm",
+          "rag_index"
+        ],
+        "actions": [
+          "read_only",
+          "internal_ticket",
+          "send_external"
+        ],
+        "users": [
+          "customers"
+        ],
+        "untrustedInputs": [
+          "uploaded_files"
+        ],
+        "autonomy": "autonomous",
+        "identity": [
+          "shared_service"
+        ],
+        "multiAgent": "no",
+        "supplyChain": [
+          "vendor_model"
+        ],
+        "memory": [
+          "session"
+        ]
+      },
+      "controls": [
+        "guardrails",
+        "audit_logging",
+        "rate_spend_limits"
+      ]
+    },
+    {
+      "id": "hr-policy",
+      "label": "Internal HR policy assistant",
+      "expectedVerdict": "go",
+      "answers": {
+        "orgName": "Al Noor Logistics (fictional)",
+        "agentName": "Policy Helper",
+        "purpose": "Answers staff questions about HR policies from the approved policy library.",
+        "sector": "other",
+        "jurisdictions": [
+          "KW"
+        ],
+        "hosting": [
+          "private_cloud"
+        ],
+        "hostingCountry": [
+          "KW"
+        ],
+        "dataSensitivity": "2",
+        "dataTypes": [
+          "none"
+        ],
+        "dataSources": [
+          "rag_index"
+        ],
+        "actions": [
+          "read_only"
+        ],
+        "users": [
+          "internal"
+        ],
+        "untrustedInputs": [
+          "shared_documents"
+        ],
+        "autonomy": "suggest",
+        "identity": [
+          "per_user"
+        ],
+        "multiAgent": "no",
+        "supplyChain": [
+          "vendor_model"
+        ],
+        "memory": [
+          "none"
+        ]
+      },
+      "controls": [
+        "audit_logging",
+        "content_provenance",
+        "no_secrets_in_prompt",
+        "guardrails"
+      ]
+    },
+    {
+      "id": "procurement",
+      "label": "Autonomous procurement agent",
+      "expectedVerdict": "not_yet",
+      "answers": {
+        "orgName": "Desert Grid Utilities (fictional)",
+        "agentName": "Buyer Bot",
+        "purpose": "Reads supplier quotes from the procurement mailbox and raises purchase orders under a spend threshold.",
+        "sector": "energy",
+        "jurisdictions": [
+          "SA"
+        ],
+        "hosting": [
+          "public_cloud"
+        ],
+        "hostingCountry": [
+          "SA"
+        ],
+        "dataSensitivity": "3",
+        "dataTypes": [
+          "financial"
+        ],
+        "dataSources": [
+          "mailbox",
+          "database"
+        ],
+        "actions": [
+          "write_records",
+          "financial",
+          "send_external"
+        ],
+        "users": [
+          "internal"
+        ],
+        "untrustedInputs": [
+          "inbound_email",
+          "uploaded_files"
+        ],
+        "autonomy": "autonomous",
+        "identity": [
+          "shared_service"
+        ],
+        "multiAgent": "no",
+        "supplyChain": [
+          "vendor_model",
+          "third_party_mcp"
+        ],
+        "memory": [
+          "persistent_shared"
+        ]
+      },
+      "controls": [
+        "audit_logging"
+      ]
+    }
+  ]
+}

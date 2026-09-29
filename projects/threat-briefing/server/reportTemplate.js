@@ -49,10 +49,14 @@ export function buildReportHTML(r) {
 
   const threatColor = SEV_COLOR[r.threatLevel] || '#888';
 
+  // Chrome copies <title> into the PDF's Title metadata; without it viewers show "about:blank".
+  const title = `GCC Threat Briefing — ${new Date(r.briefingDate || Date.now()).toISOString().slice(0, 10)}`;
+
   return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<title>${esc(title)}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; color: #1a1a1a; }

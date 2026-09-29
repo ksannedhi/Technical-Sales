@@ -1,0 +1,524 @@
+{
+  "version": "0.1.0",
+  "sections": [
+    {
+      "id": "profile",
+      "label": "Deployment profile",
+      "inputs": [
+        {
+          "id": "orgName",
+          "label": "Organisation",
+          "type": "text"
+        },
+        {
+          "id": "agentName",
+          "label": "Agent name",
+          "type": "text"
+        },
+        {
+          "id": "purpose",
+          "label": "Business purpose",
+          "type": "textarea"
+        },
+        {
+          "id": "sector",
+          "label": "Sector",
+          "type": "single",
+          "options": [
+            {
+              "value": "banking",
+              "label": "Banking & financial services"
+            },
+            {
+              "value": "government",
+              "label": "Government"
+            },
+            {
+              "value": "healthcare",
+              "label": "Healthcare"
+            },
+            {
+              "value": "telecom",
+              "label": "Telecommunications"
+            },
+            {
+              "value": "energy",
+              "label": "Energy & utilities"
+            },
+            {
+              "value": "retail",
+              "label": "Retail & e-commerce"
+            },
+            {
+              "value": "other",
+              "label": "Other private sector"
+            }
+          ]
+        },
+        {
+          "id": "jurisdictions",
+          "label": "Where are the data subjects and the organisation?",
+          "type": "multi",
+          "rationale": "Drives the residency check. Pick every jurisdiction whose residents' data the agent touches.",
+          "options": [
+            {
+              "value": "KW",
+              "label": "Kuwait"
+            },
+            {
+              "value": "SA",
+              "label": "Saudi Arabia"
+            },
+            {
+              "value": "AE",
+              "label": "UAE (mainland)"
+            },
+            {
+              "value": "AE-DIFC",
+              "label": "UAE — DIFC"
+            },
+            {
+              "value": "QA",
+              "label": "Qatar"
+            },
+            {
+              "value": "BH",
+              "label": "Bahrain"
+            },
+            {
+              "value": "OM",
+              "label": "Oman"
+            },
+            {
+              "value": "other",
+              "label": "Outside the GCC"
+            }
+          ]
+        },
+        {
+          "id": "hosting",
+          "label": "Where does the model run?",
+          "type": "multi",
+          "options": [
+            {
+              "value": "vendor_api",
+              "label": "Model vendor's API (vendor's own infrastructure)"
+            },
+            {
+              "value": "public_cloud",
+              "label": "Hyperscaler-hosted model (e.g. managed model service)"
+            },
+            {
+              "value": "private_cloud",
+              "label": "Private or hybrid cloud"
+            },
+            {
+              "value": "on_prem",
+              "label": "On-premises"
+            }
+          ],
+          "rationale": "If requests are routed to more than one, pick all. The least-controlled one drives the findings."
+        },
+        {
+          "id": "hostingCountry",
+          "label": "Countries where inference can happen",
+          "type": "multi",
+          "rationale": "Every country where prompts and retrieved data can be processed: primary region, failover regions, the vendor's global routing, and abuse-monitoring locations. Not where the contract is signed. Pick 'Other / unknown' if the vendor can't say.",
+          "options": [
+            {
+              "value": "KW",
+              "label": "Kuwait"
+            },
+            {
+              "value": "SA",
+              "label": "Saudi Arabia"
+            },
+            {
+              "value": "AE",
+              "label": "UAE"
+            },
+            {
+              "value": "QA",
+              "label": "Qatar"
+            },
+            {
+              "value": "BH",
+              "label": "Bahrain"
+            },
+            {
+              "value": "OM",
+              "label": "Oman"
+            },
+            {
+              "value": "EU",
+              "label": "European Union"
+            },
+            {
+              "value": "US",
+              "label": "United States"
+            },
+            {
+              "value": "other",
+              "label": "Other / unknown"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "label": "Data access",
+      "inputs": [
+        {
+          "id": "dataSensitivity",
+          "label": "Highest classification of data the agent can reach",
+          "type": "single",
+          "rationale": "Levels align with the four-level national classification schemes used across the GCC (e.g. CITRA's Level 1–4 in Kuwait).",
+          "options": [
+            {
+              "value": "1",
+              "label": "Level 1 — Public",
+              "scale": 1
+            },
+            {
+              "value": "2",
+              "label": "Level 2 — Internal",
+              "scale": 2
+            },
+            {
+              "value": "3",
+              "label": "Level 3 — Confidential / personal",
+              "scale": 3
+            },
+            {
+              "value": "4",
+              "label": "Level 4 — Restricted / highly sensitive",
+              "scale": 4
+            }
+          ]
+        },
+        {
+          "id": "dataTypes",
+          "label": "Data types in reach",
+          "type": "multi",
+          "options": [
+            {
+              "value": "personal",
+              "label": "Personal data"
+            },
+            {
+              "value": "financial",
+              "label": "Financial / account data"
+            },
+            {
+              "value": "health",
+              "label": "Health data"
+            },
+            {
+              "value": "government",
+              "label": "Government data"
+            },
+            {
+              "value": "credentials",
+              "label": "Credentials or secrets"
+            },
+            {
+              "value": "source_code",
+              "label": "Source code / IP"
+            },
+            {
+              "value": "none",
+              "label": "None of these"
+            }
+          ]
+        },
+        {
+          "id": "dataSources",
+          "label": "Sources the agent reads",
+          "type": "multi",
+          "options": [
+            {
+              "value": "rag_index",
+              "label": "Document index (RAG)"
+            },
+            {
+              "value": "crm",
+              "label": "CRM / core business system"
+            },
+            {
+              "value": "mailbox",
+              "label": "Mailbox"
+            },
+            {
+              "value": "database",
+              "label": "Databases"
+            },
+            {
+              "value": "file_share",
+              "label": "File shares"
+            },
+            {
+              "value": "web",
+              "label": "Public web"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "actions",
+      "label": "Actions",
+      "inputs": [
+        {
+          "id": "actions",
+          "label": "What can the agent do?",
+          "type": "multi",
+          "rationale": "Each option carries an impact weight used in the blast-radius score.",
+          "options": [
+            {
+              "value": "read_only",
+              "label": "Read and answer only",
+              "scale": 1
+            },
+            {
+              "value": "internal_ticket",
+              "label": "Create internal tickets or drafts",
+              "scale": 1
+            },
+            {
+              "value": "write_records",
+              "label": "Create or update records",
+              "scale": 2
+            },
+            {
+              "value": "send_external",
+              "label": "Send email or messages outside the organisation",
+              "scale": 3
+            },
+            {
+              "value": "http_requests",
+              "label": "Make arbitrary web / API requests",
+              "scale": 3
+            },
+            {
+              "value": "delete",
+              "label": "Delete records or files",
+              "scale": 4
+            },
+            {
+              "value": "execute_code",
+              "label": "Execute code or shell commands",
+              "scale": 4
+            },
+            {
+              "value": "financial",
+              "label": "Move money or commit spend",
+              "scale": 4
+            },
+            {
+              "value": "modify_permissions",
+              "label": "Change permissions or configuration",
+              "scale": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exposure",
+      "label": "Untrusted inputs",
+      "inputs": [
+        {
+          "id": "users",
+          "label": "Who talks to the agent?",
+          "type": "multi",
+          "options": [
+            {
+              "value": "internal",
+              "label": "Authenticated staff"
+            },
+            {
+              "value": "customers",
+              "label": "Authenticated customers"
+            },
+            {
+              "value": "public",
+              "label": "Anonymous public"
+            }
+          ],
+          "rationale": "Pick every group. The least-trusted one drives the findings."
+        },
+        {
+          "id": "untrustedInputs",
+          "label": "Content the agent reads that an outsider could have written",
+          "type": "multi",
+          "rationale": "Anything here is a channel for indirect prompt injection.",
+          "options": [
+            {
+              "value": "inbound_email",
+              "label": "Inbound email"
+            },
+            {
+              "value": "web_browsing",
+              "label": "Web pages"
+            },
+            {
+              "value": "uploaded_files",
+              "label": "User-uploaded files"
+            },
+            {
+              "value": "shared_documents",
+              "label": "Documents others can edit (shared drives, wikis, tickets)"
+            },
+            {
+              "value": "tool_output",
+              "label": "Third-party tool or API output"
+            },
+            {
+              "value": "other_agents",
+              "label": "Messages from other agents"
+            },
+            {
+              "value": "none",
+              "label": "None — only trusted, curated content"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "autonomy",
+      "label": "Autonomy and identity",
+      "inputs": [
+        {
+          "id": "autonomy",
+          "label": "Human oversight, for the least-supervised action",
+          "type": "single",
+          "options": [
+            {
+              "value": "suggest",
+              "label": "Suggests only — a human acts",
+              "scale": 1
+            },
+            {
+              "value": "approve_each",
+              "label": "Human approves every action",
+              "scale": 2
+            },
+            {
+              "value": "approve_high_risk",
+              "label": "Human approves high-risk actions only",
+              "scale": 3
+            },
+            {
+              "value": "autonomous",
+              "label": "Fully autonomous",
+              "scale": 4
+            }
+          ],
+          "rationale": "If some actions need approval and others don't, pick the weakest gate. That is the one an attacker will use."
+        },
+        {
+          "id": "identity",
+          "label": "Whose permissions does the agent use?",
+          "type": "multi",
+          "options": [
+            {
+              "value": "per_user",
+              "label": "The requesting user's own delegated permissions"
+            },
+            {
+              "value": "scoped_tool",
+              "label": "A dedicated identity scoped per tool"
+            },
+            {
+              "value": "shared_service",
+              "label": "One shared service account"
+            },
+            {
+              "value": "admin",
+              "label": "An administrative / privileged account"
+            }
+          ],
+          "rationale": "Pick every identity used by any tool. A single shared or admin account is enough to create the risk."
+        },
+        {
+          "id": "multiAgent",
+          "label": "Does it hand work to or take work from other agents?",
+          "type": "single",
+          "options": [
+            {
+              "value": "no",
+              "label": "No"
+            },
+            {
+              "value": "internal",
+              "label": "Yes — our own agents"
+            },
+            {
+              "value": "external",
+              "label": "Yes — including external agents"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "supply",
+      "label": "Supply chain and memory",
+      "inputs": [
+        {
+          "id": "supplyChain",
+          "label": "Components from outside the organisation",
+          "type": "multi",
+          "options": [
+            {
+              "value": "vendor_model",
+              "label": "Commercial model API"
+            },
+            {
+              "value": "open_weights",
+              "label": "Downloaded open-weight model"
+            },
+            {
+              "value": "third_party_mcp",
+              "label": "Third-party MCP servers or tool connectors"
+            },
+            {
+              "value": "community_plugins",
+              "label": "Community plugins or skills"
+            },
+            {
+              "value": "external_rag",
+              "label": "Externally sourced knowledge base content"
+            }
+          ]
+        },
+        {
+          "id": "memory",
+          "label": "Memory",
+          "type": "multi",
+          "options": [
+            {
+              "value": "none",
+              "label": "None"
+            },
+            {
+              "value": "session",
+              "label": "Within a session only"
+            },
+            {
+              "value": "persistent_user",
+              "label": "Persistent, per user"
+            },
+            {
+              "value": "persistent_shared",
+              "label": "Persistent, shared across users"
+            }
+          ],
+          "rationale": "Pick every kind of memory the agent keeps."
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,7 @@ documentation, or committing.
 
 ## What this repo is
 
-A portfolio of cybersecurity presales tooling: ten standalone demo applications and one
+A portfolio of cybersecurity presales tooling: eleven standalone demo applications and one
 Claude Code skill for bid drafting. Each project is self-contained and runs locally with no
 shared runtime — the intended mode is a laptop demo. `threat-briefing` also ships Railway
 deployment config; hosted instances are not maintained. See `README.md` for the project
@@ -19,7 +19,7 @@ skills/presales-skills/   autonomous-presales-engineer — SoW / HLD / Technical
 .claude-plugin/           marketplace.json — makes the skill installable as a Claude Code plugin
 ```
 
-`skills/presales-skills/` is authored here directly; it has no upstream copy. The ten
+`skills/presales-skills/` is authored here directly; it has no upstream copy. The
 projects under `projects/` are mirrors — their source of truth is a working folder outside
 this repo, so changes flow inward. Edit a project here only when you intend the repo to be
 the origin for that change.

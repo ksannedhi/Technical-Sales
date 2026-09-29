@@ -1,6 +1,6 @@
 # Technical-Sales
 
-Cybersecurity presales resources: a Claude Code skill for bid drafting and 10 standalone demo tools.
+Cybersecurity presales resources: a Claude Code skill for bid drafting and 11 standalone demo tools.
 
 ---
 
@@ -123,3 +123,14 @@ Docs: `projects/regulatory-lens/README.md`
 cd "projects/zta-advisor" && "Launch ZTA Advisor.cmd"
 ```
 Docs: `projects/zta-advisor/README.md`
+
+---
+
+### Agent Risk Assessor
+- Path: `projects/agent-risk-assessor`
+- Purpose: can this AI agent go to production? Describe an agent deployment and get a Go / Go with conditions / Not yet verdict, a lethal-trifecta check, the fewest changes needed to go live, GCC data-residency findings (Kuwait CITRA and CBK CORF, Saudi PDPL, UAE PDPL and DIFC Regulation 10, Qatar PDPPL), a threat register mapped to OWASP LLM and Agentic Top 10 and MITRE ATLAS, a NIST AI RMF risk register, an AI-written risk committee brief, and PDF export.
+- One-click launch (Windows):
+```
+cd "projects/agent-risk-assessor" && "Launch Agent Risk Assessor.cmd"
+```
+Docs: `projects/agent-risk-assessor/README.md`

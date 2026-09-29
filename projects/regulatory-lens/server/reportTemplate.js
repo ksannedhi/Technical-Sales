@@ -76,10 +76,14 @@ export function buildReportHTML(harmonisationResults, roadmap, selectedFramework
   }).join('');
 
 
+  // Chrome copies <title> into the PDF's Title metadata; without it viewers show "about:blank".
+  const title = `${orgName ? `${orgName} — ` : ''}GCC Regulatory Compliance Report`;
+
   return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<title>${esc(title)}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 12px; color: #1a1a1a; }

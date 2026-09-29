@@ -1,0 +1,324 @@
+{
+  "version": "0.1.0",
+  "note": "ATLAS mitigation IDs verified against ATLAS data release 2026.09. AI RMF subcategory IDs verified against NIST AI 100-1; the mapping itself is this tool's judgement. See SOURCES.md.",
+  "groups": [
+    {
+      "id": "input",
+      "label": "Untrusted input handling"
+    },
+    {
+      "id": "authority",
+      "label": "Authority and identity"
+    },
+    {
+      "id": "oversight",
+      "label": "Human oversight"
+    },
+    {
+      "id": "egress",
+      "label": "Output and egress"
+    },
+    {
+      "id": "supply",
+      "label": "Supply chain"
+    },
+    {
+      "id": "operate",
+      "label": "Operations and assurance"
+    }
+  ],
+  "controls": [
+    {
+      "id": "untrusted_tool_restriction",
+      "group": "input",
+      "title": "Restrict tool use after reading untrusted content",
+      "description": "Once untrusted content enters the context, high-impact tools are disabled or require approval for the rest of the task (plan-then-execute, or a quarantined reader model with no tools).",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0030",
+        "AML.M0032"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7",
+        "MANAGE 1.3"
+      ]
+    },
+    {
+      "id": "input_validation",
+      "group": "input",
+      "title": "Validate inputs and outputs between agent components",
+      "description": "Schema-check tool arguments and tool results; strip or flag instructions embedded in retrieved content.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0033"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7"
+      ]
+    },
+    {
+      "id": "guardrails",
+      "group": "input",
+      "title": "Prompt and response guardrails",
+      "description": "Classifier or rules-based screening of prompts and responses for injection, jailbreak, and policy violations. Probabilistic — reduces risk but never breaks an attack chain on its own.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0020"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7",
+        "MEASURE 2.6"
+      ]
+    },
+    {
+      "id": "content_provenance",
+      "group": "input",
+      "title": "Provenance and write control for indexed content",
+      "description": "Only curated, attributable sources enter the RAG index; write access to indexed repositories is restricted and changes are logged.",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0025"
+      ],
+      "aiRmf": [
+        "MAP 4.1",
+        "MANAGE 3.1"
+      ]
+    },
+    {
+      "id": "memory_hardening",
+      "group": "input",
+      "title": "Memory hardening",
+      "description": "Memory writes are validated, scoped per user, expire, and can be inspected and purged.",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0031"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7",
+        "MEASURE 2.10"
+      ]
+    },
+    {
+      "id": "least_privilege_tools",
+      "group": "authority",
+      "title": "Least-privilege tool permissions",
+      "description": "Each tool exposes only the operations the use case needs (e.g. read-only CRM, send to internal domains only). No wildcard scopes.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0028",
+        "AML.M0026"
+      ],
+      "aiRmf": [
+        "MAP 4.2",
+        "MANAGE 1.3"
+      ]
+    },
+    {
+      "id": "per_user_identity",
+      "group": "authority",
+      "title": "Act with the requesting user's permissions",
+      "description": "The agent uses delegated, per-user authorisation so it can never read or do more than the person asking.",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0027"
+      ],
+      "aiRmf": [
+        "MAP 4.2",
+        "MEASURE 2.10"
+      ]
+    },
+    {
+      "id": "secrets_management",
+      "group": "authority",
+      "title": "Secrets kept out of prompts and agent config",
+      "description": "Credentials live in a vault, are injected at the tool boundary, short-lived, and never visible to the model.",
+      "timeline": "short",
+      "atlas": [],
+      "aiRmf": [
+        "MEASURE 2.7"
+      ]
+    },
+    {
+      "id": "authority_expansion_controls",
+      "group": "authority",
+      "title": "Block self-granted authority",
+      "description": "The agent cannot install tools, change its own configuration, or escalate its permissions at runtime.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0037"
+      ],
+      "aiRmf": [
+        "MAP 4.2",
+        "MANAGE 2.4"
+      ]
+    },
+    {
+      "id": "human_approval",
+      "group": "oversight",
+      "title": "Human approval for high-impact actions",
+      "description": "External sends, deletions, payments, code execution, and permission changes wait for an explicit human decision.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0029"
+      ],
+      "aiRmf": [
+        "MAP 3.5",
+        "GOVERN 3.2"
+      ]
+    },
+    {
+      "id": "approval_transparency",
+      "group": "oversight",
+      "title": "Approvals show the raw action, not the agent's summary",
+      "description": "The approver sees the exact recipient, payload, amount, or command — not a model-written explanation of it.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0029"
+      ],
+      "aiRmf": [
+        "MAP 3.5",
+        "MAP 2.2"
+      ]
+    },
+    {
+      "id": "egress_restriction",
+      "group": "egress",
+      "title": "Egress allowlist",
+      "description": "The agent can only reach approved domains and recipients. Blocks exfiltration through URLs, image links, webhooks, and email.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0032"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7",
+        "MEASURE 2.10"
+      ]
+    },
+    {
+      "id": "output_handling",
+      "group": "egress",
+      "title": "Treat model output as untrusted downstream",
+      "description": "Encode or validate model output before it reaches browsers, databases, shells, or other systems.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0033"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7"
+      ]
+    },
+    {
+      "id": "dlp_redaction",
+      "group": "egress",
+      "title": "Data minimisation before the model",
+      "description": "Personal and sensitive fields are redacted or tokenised before prompts leave the trust boundary; responses are screened for sensitive data.",
+      "timeline": "medium",
+      "atlas": [],
+      "aiRmf": [
+        "MEASURE 2.10"
+      ]
+    },
+    {
+      "id": "sandboxed_execution",
+      "group": "egress",
+      "title": "Sandboxed code execution",
+      "description": "Code runs in an isolated, ephemeral environment with no network or credentials by default.",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0032"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7",
+        "MEASURE 2.6"
+      ]
+    },
+    {
+      "id": "no_secrets_in_prompt",
+      "group": "egress",
+      "title": "Nothing sensitive in the system prompt",
+      "description": "Assume the system prompt will be extracted. It holds no credentials, internal URLs, or business rules that matter if disclosed.",
+      "timeline": "short",
+      "atlas": [],
+      "aiRmf": [
+        "MEASURE 2.7"
+      ]
+    },
+    {
+      "id": "supply_chain_vetting",
+      "group": "supply",
+      "title": "Vetted, pinned third-party components",
+      "description": "MCP servers, plugins, and models come from an approved list, are version-pinned, verified, and recorded in an AI bill of materials. Tool definition changes trigger review.",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0023",
+        "AML.M0014"
+      ],
+      "aiRmf": [
+        "GOVERN 6.1",
+        "MAP 4.1",
+        "MANAGE 3.1",
+        "MANAGE 3.2"
+      ]
+    },
+    {
+      "id": "audit_logging",
+      "group": "operate",
+      "title": "Per-action audit logging",
+      "description": "Every prompt, tool call, argument, result, and approval is logged with user and agent identity, and retained per policy. Required for a Go verdict.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0024"
+      ],
+      "aiRmf": [
+        "MEASURE 2.4",
+        "MEASURE 2.8",
+        "MANAGE 4.3"
+      ]
+    },
+    {
+      "id": "rate_spend_limits",
+      "group": "operate",
+      "title": "Rate, token, and spend limits",
+      "description": "Per-user and per-task caps on requests, tokens, tool calls, and cost, with alerts.",
+      "timeline": "short",
+      "atlas": [
+        "AML.M0004",
+        "AML.M0036"
+      ],
+      "aiRmf": [
+        "MEASURE 2.4",
+        "MANAGE 4.1"
+      ]
+    },
+    {
+      "id": "scope_monitoring",
+      "group": "operate",
+      "title": "Scope-drift monitoring and kill switch",
+      "description": "Alerts when the agent acts outside its expected pattern; an operator can suspend it immediately.",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0038"
+      ],
+      "aiRmf": [
+        "MEASURE 2.4",
+        "MANAGE 2.4",
+        "MANAGE 4.1"
+      ]
+    },
+    {
+      "id": "red_team",
+      "group": "operate",
+      "title": "Pre-production AI red team",
+      "description": "Injection, exfiltration, and tool-misuse testing against this deployment before go-live, repeated on material change.",
+      "timeline": "medium",
+      "atlas": [
+        "AML.M0035"
+      ],
+      "aiRmf": [
+        "MEASURE 2.7",
+        "MEASURE 1.3",
+        "GOVERN 4.3"
+      ]
+    }
+  ]
+}
