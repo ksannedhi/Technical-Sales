@@ -21,7 +21,7 @@ async function download(url, body, fallbackName) {
 
 const Badge = ({ level }) => <span className={`badge b-${String(level).toLowerCase()}`}>{level}</span>;
 
-export default function Results({ answers, controls, narrative, onApply, onEditControls }) {
+export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls }) {
   const [data, setData] = useState(null);
   const [brief, setBrief] = useState({ state: narrative ? 'loading' : 'off', text: null });
   const [open, setOpen] = useState(null);
@@ -43,7 +43,7 @@ export default function Results({ answers, controls, narrative, onApply, onEditC
   }, [answers, controls, narrative]);
 
   if (!data) return <p className="muted">Assessing…</p>;
-  const { result, path, register } = data;
+  const { result, path, register, coverage = [] } = data;
   const v = result.verdict;
   const t = result.trifecta;
   const counts = ['Critical', 'High', 'Medium', 'Low'].map((p) => [p, result.threats.filter((x) => x.priority === p).length]);
@@ -51,17 +51,27 @@ export default function Results({ answers, controls, narrative, onApply, onEditC
   const exportFile = async (kind) => {
     setBusy(kind); setExportError(null);
     try {
-      if (kind === 'pdf') await download('/api/export/pdf', { answers, controls, brief: brief.text }, 'agent-risk-assessment.pdf');
-      else await download('/api/export/register', { answers, controls }, 'ai-risk-register.csv');
+      if (kind === 'pdf') await download('/api/export/pdf', { answers, controls, whatIf, brief: brief.text }, 'agent-risk-assessment.pdf');
+      else await download('/api/export/register', { answers, controls, whatIf }, 'ai-risk-register.csv');
     } catch (e) { setExportError(e.message); }
     setBusy(null);
   };
 
   return (
     <div className="results">
+      {whatIf && (
+        <section className="whatif-banner" role="status">
+          <div>
+            <strong>What-if, not your actual design.</strong> These results assume changes that haven't been made:
+            <ul>{whatIf.map((c) => <li key={c}>{c}</li>)}</ul>
+            <span className="small">Exports from this view are titled and labelled as what-if.</span>
+          </div>
+          <button className="primary" onClick={onExitWhatIf}>Back to actual design</button>
+        </section>
+      )}
       <section className={`verdict ${VERDICT_CLASS[v.decision]}`}>
         <div>
-          <span className="eyebrow">Production-readiness verdict</span>
+          <span className="eyebrow">{whatIf ? 'What-if verdict' : 'Production-readiness verdict'}</span>
           <div className="verdict-label">{v.label}</div>
           <span>{answers.agentName || 'Agent'} · {answers.orgName || 'Organisation'}</span>
         </div>
@@ -81,6 +91,7 @@ export default function Results({ answers, controls, narrative, onApply, onEditC
         <div className={`card kpi ${t.present && !t.broken ? 'alarm' : ''}`}>
           <span className="muted">Lethal trifecta</span>
           <b>{t.present ? (t.broken ? 'Broken' : 'Unbroken') : 'Not present'}</b>
+          {t.present && t.broken && <span className="small">Broken by: {t.breakerLabels.join('; ')}</span>}
           <span className="legs">
             {[['privateData', 'Private data'], ['untrustedContent', 'Untrusted content'], ['externalChannel', 'Outbound channel']].map(([k, l]) => (
               <span key={k} className={t.legs[k] ? 'leg on' : 'leg'}>{l}</span>
@@ -96,7 +107,7 @@ export default function Results({ answers, controls, narrative, onApply, onEditC
       {path.steps.length > 0 && (
         <section className="card">
           <h2>Path to Go</h2>
-          <p className="muted">Fewest changes that move the verdict up. Apply one to see the result.</p>
+          <p className="muted">Fewest changes that move the verdict up. <strong>Try this path</strong> shows the result as a what-if; your actual design stays unchanged.</p>
           {path.architecture.map((a) => (
             <p key={a.id} className="arch"><strong>Architecture change first:</strong> {a.change} <span className="muted">({a.id} — {a.title})</span></p>
           ))}
@@ -112,7 +123,7 @@ export default function Results({ answers, controls, narrative, onApply, onEditC
                       <p className="small"><strong>Plus approvals:</strong> {s.approvals.map((a) => a.action).join(' ')}</p>
                     )}
                     {s.reachable && (s.controls.length > 0 || path.architecture.length > 0) && (
-                      <button className="ghost" onClick={() => onApply(s.controls.map((c) => c.id), path.architecture)}>Apply this path</button>
+                      <button className="ghost" onClick={() => onApply(s, path.architecture)}>Try this path</button>
                     )}
                   </>
                 ) : <p className="muted">Not reachable with controls alone.</p>}
@@ -206,7 +217,28 @@ export default function Results({ answers, controls, narrative, onApply, onEditC
             ))}
           </tbody>
         </table>
-        <button className="ghost" onClick={onEditControls}>Change controls</button>
+        <button className="ghost" onClick={onEditControls}>{whatIf ? 'Edit actual controls' : 'Change controls'}</button>
+        <span className="muted small"> Goes back to step 3 to update what is actually in place, then re-assesses.</span>
+      </section>
+
+      <section className="card">
+        <h2>NIST AI RMF coverage</h2>
+        <p className="muted">Each AI RMF subcategory that the controls for this design's risks map to. <strong>Gap</strong>: none in place. <strong>Partial</strong>: some. <strong>Addressed</strong>: all.</p>
+        {coverage.length === 0 ? <p className="muted">No risks triggered.</p> : (
+          <table>
+            <thead><tr><th>Subcategory</th><th>Status</th><th>Risks</th><th>Missing</th></tr></thead>
+            <tbody>
+              {coverage.map((c) => (
+                <tr key={c.id}>
+                  <td><strong className="mono">{c.id}</strong><br /><span className="muted small">{c.text}</span></td>
+                  <td><span className={`badge s-${c.status.toLowerCase()}`}>{c.status}</span></td>
+                  <td>{c.risks.length}</td>
+                  <td className="small">{c.missing.length ? c.missing.join('; ') : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );

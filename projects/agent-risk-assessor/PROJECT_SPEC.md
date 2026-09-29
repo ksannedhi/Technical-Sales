@@ -54,6 +54,7 @@ Step 4: Results
   → risk committee brief (Claude, if API key present)
   → residency and regulatory findings with clause citations
   → threat register (expandable: triggers, OWASP / ASI / ATLAS / AI RMF)
+  → NIST AI RMF coverage (Gap / Partial / Addressed per subcategory)
   → control gap table
   → exports: PDF, risk register CSV
 ```
@@ -98,7 +99,7 @@ Residual risk = inherent severity, reduced by one level per mitigating control i
 | OWASP Top 10 for LLM Applications (2025) | Primary threat taxonomy (LLM01–LLM10) |
 | OWASP Top 10 for Agentic Applications (2026) | Agent-specific threats (ASI01–ASI10) |
 | MITRE ATLAS | Adversary technique IDs |
-| NIST AI RMF | Govern / Map / Measure / Manage mapping for the committee view |
+| NIST AI RMF | Per-risk subcategories in the register, and per-design coverage (Gap / Partial / Addressed) |
 | ISO/IEC 42001 | Not mapped — paywalled, so clause IDs can't be verified. Listed as pending. |
 
 IDs are verified against primary sources — see `backend/data/SOURCES.md`. Do not add an ID from memory.
@@ -111,9 +112,19 @@ Hosting country × data classification × jurisdiction → findings. Inference c
 
 For any verdict below Go, the engine finds the fewest missing controls that lift it one level, and a path to Go. Exact search over combinations of up to four controls, then a greedy search with redundant controls pruned. Residency Critical findings are treated as architecture changes (each rule's `architectureFix` is applied hypothetically before searching); residency High findings are approvals, assumed done for the Go target and listed alongside it. The UI can apply a path and re-assess in one click.
 
+### What-if view
+
+**Try this path** applies a Path-to-Go step — its architecture fix and controls — as a what-if layered over the actual design. The actual answers and controls are never changed. The what-if shows a banner listing every assumed change, the verdict is labelled "What-if verdict", and **Back to actual design** discards it. Editing the actual design, changing controls, or leaving the results step also discards it. In a what-if, the **Change controls** button reads **Edit actual controls**: it returns to step 3 to edit the real design, and the what-if is discarded.
+
+Blast radius does not move in a what-if that only adds controls: it is actions × autonomy × data sensitivity, the worst case before controls. Controls show up in residual threat levels, the trifecta status, and the verdict.
+
+Exports from a what-if carry the label everywhere a reader could see it out of context: the PDF title and filename start with "What-if", page 1 has a banner listing the assumed changes, Appendix A is marked "(what-if)", and every CSV row has a `basis` column naming the assumed changes. Actual-design exports have `basis: Actual design as assessed`.
+
 ### Risk register and NIST AI RMF evidence
 
-One row per triggered threat — inherent and residual risk, controls in place, treatment, OWASP, ATLAS, and NIST AI RMF subcategories — exported as CSV. `ai-rmf.json` also maps each report output to the subcategory it evidences (the verdict is MANAGE 1.1, residency findings GOVERN 1.1, and so on). ISO/IEC 42001 is not mapped: its text isn't freely available to verify clause IDs.
+One row per triggered threat — inherent and residual risk, controls in place, treatment, OWASP, ATLAS, and NIST AI RMF subcategories — exported as CSV. A row's AI RMF subcategories come only from the controls that treat that threat.
+
+**AI RMF coverage** (`rmfCoverage`) groups those mappings by subcategory: the risks that touch it, the controls in place, and the ones missing. Status is **Gap** (none in place), **Partial** (some), or **Addressed** (all), sorted Gap first. It changes with every design. The report-level evidence in `ai-rmf.json` (the verdict is MANAGE 1.1, residency findings GOVERN 1.1, and so on) is the same for every report, so it appears only as a footnote. ISO/IEC 42001 is not mapped: its text isn't freely available to verify clause IDs.
 
 ### Production-readiness verdict
 
@@ -134,7 +145,7 @@ Audit logging is a hard requirement for **Go** whatever the score — you can't 
 5. **Residency findings** — per jurisdiction, with clause citations; unverified instruments listed as not assessed
 6. **Risk register** — threat, inherent → residual, treatment, OWASP / ASI / ATLAS / NIST AI RMF; also exported as CSV
 7. **Control gap table** — missing control, threats it would reduce, timeline
-8. **Appendix A — Design as assessed** (every answer and control) and **Appendix B — NIST AI RMF evidence**
+8. **Appendix A — Design as assessed** (every answer and control) and **Appendix B — NIST AI RMF coverage** for this design
 9. **PDF** — Puppeteer, with internal links and bookmarks (side-panel outline) generated from the section headings
 
 ## Stack and ports

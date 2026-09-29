@@ -3,6 +3,7 @@ const esc = (s) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const COLORS = { Critical: '#b91c1c', High: '#c2410c', Medium: '#a16207', Low: '#15803d', Advisory: '#475569' };
+const STATUS_COLORS = { Gap: '#b91c1c', Partial: '#a16207', Addressed: '#15803d' };
 const VERDICT_COLORS = { not_yet: '#b91c1c', go_with_conditions: '#c2410c', go: '#15803d' };
 const badge = (level) => `<span class="badge" style="background:${COLORS[level] ?? '#475569'}">${esc(level)}</span>`;
 const list = (items) => (items?.length ? items.map(esc).join(', ') : '—');
@@ -12,12 +13,12 @@ const SHORT = {
   dataSensitivity: 'Highest data classification', actions: 'Agent can', users: 'Used by', autonomy: 'Human oversight',
 };
 
-export function buildReportHtml({ profile = {}, controls = [], result, path, register, brief, aiRmf, inputs, controlsData }) {
+export function buildReportHtml({ profile = {}, controls = [], result, path, register, brief, aiRmf, inputs, controlsData, coverage = [], whatIf = null }) {
   const v = result.verdict;
   const date = new Date().toISOString().slice(0, 10);
   const t = result.trifecta;
   const trifecta = t.present
-    ? t.broken ? `Present — broken by ${list(t.breakers)}` : 'Present and unbroken'
+    ? t.broken ? `Broken by: ${list(t.breakerLabels)}` : 'Present and unbroken'
     : 'Not present';
 
 
@@ -35,7 +36,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     </table>
     <p class="muted small">Every answer and control is listed in the <a href="#appendix-design">appendix</a>.</p>` : '';
 
-  const designHtml = inputs ? `<h2 id="appendix-design" class="newpage">Appendix A — Design as assessed</h2>
+  const designHtml = inputs ? `<h2 id="appendix-design" class="newpage">Appendix A — Design as assessed${whatIf ? ' (what-if)' : ''}</h2>
     <p class="muted">Every answer this verdict is based on. If the deployment changes, re-assess.</p>
     <table>${inputs.sections.flatMap((sec) => sec.inputs)
       .filter((i) => !['orgName', 'agentName', 'purpose'].includes(i.id))
@@ -50,7 +51,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     ...(path?.steps?.length ? [['path', 'Path to Go']] : []),
     ...(brief?.decision ? [['brief', 'Brief']] : []),
     ['findings', 'Regulatory findings'], ['register', 'Risk register'], ['gaps', 'Control gaps'],
-    ...(inputs ? [['appendix-design', 'Appendix A: Design']] : []), ['appendix-rmf', 'Appendix B: AI RMF'],
+    ...(inputs ? [['appendix-design', 'Appendix A: Design']] : []), ['appendix-rmf', 'Appendix B: AI RMF coverage'],
   ];
   const contentsHtml = `<nav class="contents"><strong>Contents</strong> ${sections.map(([id, label]) => `<a href="#${id}">${label}</a>`).join(' · ')}</nav>`;
 
@@ -66,7 +67,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
 
   // Chrome writes <title> into the PDF's Title metadata, which viewers show in the tab.
   // Without it the title is "about:blank".
-  const title = `AI Agent Risk Assessment — ${profile.orgName || 'Organisation'} — ${profile.agentName || 'Agent'}`;
+  const title = `${whatIf ? 'What-if — ' : ''}AI Agent Risk Assessment — ${profile.orgName || 'Organisation'} — ${profile.agentName || 'Agent'}`;
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
     body { font-family: Segoe UI, Arial, sans-serif; color: #0f172a; font-size: 10.5pt; margin: 0 14mm; }
     h1 { font-size: 18pt; margin: 0 0 2mm; } h2 { font-size: 12.5pt; margin: 7mm 0 2mm; border-bottom: 1px solid #cbd5e1; padding-bottom: 1mm; page-break-after: avoid; }
@@ -82,11 +83,16 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     .contents { margin: 4mm 0 2mm; padding: 2mm 3mm; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 2mm; font-size: 9pt; }
     .contents a { color: #1d4ed8; text-decoration: none; } a { color: #1d4ed8; }
     .small { font-size: 8.5pt; } .newpage { page-break-before: always; }
+    .whatif { border: 1.2mm solid #7c3aed; background: #f5f3ff; padding: 3mm 4mm; margin: 3mm 0; border-radius: 2mm; }
+    .whatif ul { margin: 1.5mm 0; padding-left: 6mm; }
     .brief { max-width: 165mm; line-height: 1.5; } .brief li { margin-bottom: 1.5mm; } .brief ul, .brief ol { margin: 0; padding-left: 6mm; }
     .brief h3 { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin: 4mm 0 1.5mm; }
     .brief-decision { font-size: 11pt; margin: 0; padding: 2.5mm 4mm; background: #f8fafc; border-left: 1.2mm solid #1d4ed8; } .foot { font-size: 8pt; color: #64748b; margin-top: 8mm; }
   </style></head><body>
-    <h1>AI Agent Risk Assessment</h1>
+    <h1>${whatIf ? 'What-if assessment' : 'AI Agent Risk Assessment'}</h1>
+    ${whatIf ? `<div class="whatif"><strong>What-if, not the current state.</strong> This report assumes these changes, which are not yet made:
+      <ul>${whatIf.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>
+      "Controls in place" below includes the assumed controls. Re-assess the actual design before anyone relies on this report.</div>` : ''}
     <div class="muted">${esc(profile.orgName || 'Organisation')} · ${esc(profile.agentName || 'Agent')} · ${date}</div>
     <p>${esc(profile.purpose)}</p>
 
@@ -130,10 +136,15 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
 
     ${designHtml}
 
-    <h2 id="appendix-rmf">Appendix B — NIST AI RMF evidence from this report</h2>
-    <table><tr><th>Report output</th><th>Subcategories</th></tr>
-    ${aiRmf.reportEvidence.map((e) => `<tr><td>${esc(e.output)}</td><td>${e.subcategories.map((s) => `<strong>${esc(s)}</strong> ${esc(aiRmf.subcategories[s])}`).join('<br>')}</td></tr>`).join('')}
-    </table>
+    <h2 id="appendix-rmf">Appendix B — NIST AI RMF coverage</h2>
+    <p class="muted">Each NIST AI RMF subcategory that the controls for this design's risks map to. <strong>Gap</strong>: none of those controls are in place. <strong>Partial</strong>: some are. <strong>Addressed</strong>: all are.</p>
+    ${coverage.length ? `<table><thead><tr><th>Subcategory</th><th>Status</th><th>Risks</th><th>In place</th><th>Missing</th></tr></thead>
+      ${coverage.map((c) => `<tr><td><strong>${esc(c.id)}</strong><br><span class="muted">${esc(c.text)}</span></td>
+        <td><span class="badge" style="background:${STATUS_COLORS[c.status]}">${esc(c.status)}</span></td>
+        <td>${c.risks.length}</td><td>${c.inPlace.length ? c.inPlace.map(esc).join('<br>') : '—'}</td>
+        <td>${c.missing.length ? c.missing.map(esc).join('<br>') : '—'}</td></tr>`).join('')}</table>`
+      : '<p class="muted">No risks triggered, so no subcategories to report.</p>'}
+    <p class="muted small">This report also evidences ${aiRmf.reportEvidence.map((e) => `${esc(e.subcategories.join(' / '))} (${esc(e.output.toLowerCase())})`).join('; ')}.</p>
 
     <div class="foot">Deterministic assessment: the same inputs always give the same verdict. Threat IDs verified against OWASP Top 10 for LLM Applications (2025),
     OWASP Top 10 for Agentic Applications (2026), and MITRE ATLAS (2026.09). AI RMF mappings are this tool's judgement.

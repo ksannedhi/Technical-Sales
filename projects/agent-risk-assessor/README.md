@@ -12,10 +12,11 @@ A presales tool for the question every AI pilot eventually hits: *can this agent
 4. **Results**
    - **Verdict** — Go, Go with conditions, or Not yet, with the blockers and conditions behind it
    - **Lethal trifecta check** — private data + untrusted content + an outbound channel means one injected instruction can leak data. Guardrails alone never break it.
-   - **Path to Go** — the fewest controls, architecture changes, and approvals that lift the verdict, with one click to apply them and re-assess
+   - **Path to Go** — the fewest controls, architecture changes, and approvals that lift the verdict. **Try this path** shows the result as a clearly bannered what-if without changing the design you entered; **Back to actual design** discards it
    - **Residency findings** — Kuwait (CITRA, NCSC NBCC, CBK CORF), Saudi Arabia (PDPL, SDAIA), UAE (PDPL, DIFC Regulation 10), Qatar (PDPPL, NCSA) — each with its clause
    - **Threat register** — 21 agent threats, each showing what triggered it and mapped to OWASP (LLM Top 10 2025, Agentic Top 10 2026) and MITRE ATLAS, MITRE's catalogue of attacks on AI systems
-   - **Risk register export** — CSV with NIST AI RMF subcategories, ready for a governance file
+   - **NIST AI RMF coverage** — every AI RMF subcategory this design's risks touch, marked Gap / Partial / Addressed from the controls actually in place
+   - **Risk register export** — CSV with NIST AI RMF subcategories per risk, ready for a governance file
    - **Risk committee brief** — a plain-language summary written by Claude from the assessment
    - **PDF export**
 
@@ -26,6 +27,7 @@ A presales tool for the question every AI pilot eventually hits: *can this agent
 - **Verified references only.** Every framework ID and regulatory clause was checked against its source (see [SOURCES.md](backend/data/SOURCES.md)). Instruments that could not be verified — including ISO/IEC 42001, whose text is paywalled — are listed as not assessed rather than guessed.
 - **Vendor-neutral.** Recommends control categories, never products.
 - **Nothing persists.** State lives in the browser tab and clears when it closes.
+- **What-ifs can't pass as the real thing.** A what-if never overwrites your answers, and its PDF and CSV are titled, bannered, and labelled on every row as what-if. **Change controls** returns to step 3 to update what is actually in place; in a what-if it reads **Edit actual controls**, because it edits your real design, not the what-if (which it discards).
 
 ## Known simplifications
 

@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  assess, pathToGo, riskRegister,
+  assess, pathToGo, riskRegister, rmfCoverage,
   inputs, controlsData, scenariosData, aiRmf,
 } from './engine.js';
 import { writeBrief, narrativeEnabled } from './narrative.js';
@@ -29,18 +29,22 @@ function run(body) {
   const answers = body?.answers;
   if (!answers || typeof answers !== 'object') return null;
   const controls = Array.isArray(body.controls) ? body.controls : [];
+  // A what-if is the design with Path-to-Go changes applied. Exports must say so, because its
+  // "controls in place" are assumptions, not the organisation's actual state.
+  const whatIf = Array.isArray(body.whatIf) && body.whatIf.length ? body.whatIf.map(String) : null;
   const result = assess(answers, controls);
   return {
-    answers, controls, result,
+    answers, controls, result, whatIf,
     path: pathToGo(answers, controls),
     register: riskRegister(answers, controls, result),
+    coverage: rmfCoverage(result),
   };
 }
 
 app.post('/api/assess', (req, res) => {
   const out = run(req.body);
   if (!out) return res.status(400).json({ error: 'answers object required' });
-  res.json({ result: out.result, path: out.path, register: out.register });
+  res.json({ result: out.result, path: out.path, register: out.register, coverage: out.coverage });
 });
 
 // Separate from /assess so the results render instantly and the brief fills in after.
@@ -65,10 +69,12 @@ app.post('/api/export/register', (req, res) => {
   const out = run(req.body);
   if (!out) return res.status(400).json({ error: 'answers object required' });
   const cell = (v) => `"${(Array.isArray(v) ? v.join('; ') : String(v ?? '')).replace(/"/g, '""')}"`;
-  const cols = ['id', 'risk', 'description', 'inherent', 'residual', 'controlsInPlace', 'treatment', 'owaspLlm', 'owaspAgentic', 'atlas', 'aiRmf'];
-  const csv = [cols.join(','), ...out.register.map((r) => cols.map((c) => cell(r[c])).join(','))].join('\r\n');
+  // `basis` on every row, so a what-if register can't be mistaken for the actual one once opened.
+  const basis = out.whatIf ? `What-if: ${out.whatIf.join('; ')}` : 'Actual design as assessed';
+  const cols = ['id', 'risk', 'description', 'inherent', 'residual', 'controlsInPlace', 'treatment', 'owaspLlm', 'owaspAgentic', 'atlas', 'aiRmf', 'basis'];
+  const csv = [cols.join(','), ...out.register.map((r) => cols.map((c) => cell(c === 'basis' ? basis : r[c])).join(','))].join('\r\n');
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="${slug(out.answers.orgName)}-ai-risk-register.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${slug(out.answers.orgName)}-${out.whatIf ? 'what-if-' : ''}ai-risk-register.csv"`);
   res.send('﻿' + csv);
 });
 
@@ -91,7 +97,7 @@ app.post('/api/export/pdf', async (req, res) => {
       format: 'A4', margin: { top: '12mm', bottom: '12mm' }, printBackground: true, tagged: true, outline: true,
     }));
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${slug(out.answers.orgName)}-agent-risk-assessment.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${slug(out.answers.orgName)}-${out.whatIf ? 'what-if-' : ''}agent-risk-assessment.pdf"`);
     res.send(pdf);
   } catch (err) {
     console.error('[agent-risk] PDF export failed:', err.message);

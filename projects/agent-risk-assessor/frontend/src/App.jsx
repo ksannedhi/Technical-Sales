@@ -19,6 +19,9 @@ export default function App() {
   const [step, setStep] = useState(saved.step ?? 0);
   const [answers, setAnswers] = useState(saved.answers ?? {});
   const [controls, setControls] = useState(saved.controls ?? []);
+  // A what-if sits on top of the actual design and never overwrites it. Leaving results or
+  // editing the actual design discards it.
+  const [whatIf, setWhatIf] = useState(saved.whatIf ?? null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -28,8 +31,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    try { sessionStorage.setItem(STORE, JSON.stringify({ step, answers, controls })); } catch { /* private mode */ }
-  }, [step, answers, controls]);
+    try { sessionStorage.setItem(STORE, JSON.stringify({ step, answers, controls, whatIf })); } catch { /* private mode */ }
+  }, [step, answers, controls, whatIf]);
 
   if (error) return <div className="shell"><p className="error">{error}</p></div>;
   if (!meta) return <div className="shell"><p className="muted">Loading…</p></div>;
@@ -43,13 +46,27 @@ export default function App() {
       return Array.isArray(v) ? v.length === 0 : !v;
     });
 
-  const set = (id, value) => setAnswers((a) => ({ ...a, [id]: value }));
-  const loadPreset = (s) => { setAnswers(s.answers); setControls(s.controls); setStep(3); };
-  const applyPath = (controlIds, architecture) => {
-    setAnswers((a) => Object.assign({ ...a }, ...architecture.map((x) => x.fix ?? {})));
-    setControls((c) => [...new Set([...c, ...controlIds])]);
+  const set = (id, value) => { setWhatIf(null); setAnswers((a) => ({ ...a, [id]: value })); };
+  const setActualControls = (c) => { setWhatIf(null); setControls(c); };
+  const goStep = (i) => { if (i !== 3) setWhatIf(null); setStep(i); };
+  const loadPreset = (s) => { setWhatIf(null); setAnswers(s.answers); setControls(s.controls); setStep(3); };
+  const reset = () => { setWhatIf(null); setAnswers({}); setControls([]); setStep(0); };
+
+  // Applies a Path-to-Go step to the current view (actual, or an existing what-if) as a new what-if.
+  const applyPath = (pathStep, architecture) => {
+    const base = whatIf ?? { answers, controls, changes: [] };
+    const changes = [
+      ...base.changes,
+      ...architecture.map((a) => a.change),
+      ...pathStep.controls.filter((c) => !base.controls.includes(c.id)).map((c) => `Control in place: ${c.title}`),
+    ];
+    setWhatIf({
+      answers: Object.assign({ ...base.answers }, ...architecture.map((a) => a.fix ?? {})),
+      controls: [...new Set([...base.controls, ...pathStep.controls.map((c) => c.id)])],
+      changes: [...new Set(changes)],
+    });
   };
-  const reset = () => { setAnswers({}); setControls([]); setStep(0); };
+  const view = whatIf ?? { answers, controls };
 
   const gate = [missing(profile), missing(architecture), []];
   const canOpen = (i) => gate.slice(0, i).every((m) => m.length === 0);
@@ -66,7 +83,7 @@ export default function App() {
 
       <nav className="steps">
         {STEPS.map((label, i) => (
-          <button key={label} className={i === step ? 'on' : ''} disabled={!canOpen(i)} onClick={() => setStep(i)}>
+          <button key={label} className={i === step ? 'on' : ''} disabled={!canOpen(i)} onClick={() => goStep(i)}>
             <span>{i + 1}</span> {label}
           </button>
         ))}
@@ -96,21 +113,25 @@ export default function App() {
           ))}
           <Footer
             missing={gate[step].length}
-            onBack={step > 0 ? () => setStep(step - 1) : null}
-            onNext={() => setStep(step + 1)}
+            onBack={step > 0 ? () => goStep(step - 1) : null}
+            onNext={() => goStep(step + 1)}
           />
         </>
       )}
 
       {step === 2 && (
         <>
-          <ControlsStep data={meta.controlsData} value={controls} onChange={setControls} />
-          <Footer missing={0} onBack={() => setStep(1)} onNext={() => setStep(3)} nextLabel="Assess" />
+          <ControlsStep data={meta.controlsData} value={controls} onChange={setActualControls} />
+          <Footer missing={0} onBack={() => goStep(1)} onNext={() => goStep(3)} nextLabel="Assess" />
         </>
       )}
 
       {step === 3 && (
-        <Results answers={answers} controls={controls} narrative={meta.health.narrative} onApply={applyPath} onEditControls={() => setStep(2)} />
+        <Results
+          answers={view.answers} controls={view.controls} whatIf={whatIf?.changes ?? null}
+          narrative={meta.health.narrative} onApply={applyPath}
+          onExitWhatIf={() => setWhatIf(null)} onEditControls={() => goStep(2)}
+        />
       )}
     </div>
   );

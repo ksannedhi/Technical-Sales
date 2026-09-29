@@ -31,7 +31,7 @@ backend/
     threats.json     threat rules (when-clause DSL), severity, OWASP/ASI/ATLAS, mitigating controls
     controls.json    control catalogue with ATLAS mitigation and NIST AI RMF mappings
     residency.json   GCC jurisdiction rules with verified clause citations; `pending` = unverified
-    ai-rmf.json      NIST AI RMF subcategory text + which report outputs evidence which subcategory
+    ai-rmf.json      NIST AI RMF subcategory text + report-level evidence (a footnote; same in every report)
     scenarios.json   three fictional presets with expected verdicts (tested)
     SOURCES.md       where every ID and clause was checked
   test/engine.test.js
@@ -45,6 +45,7 @@ frontend/src/
 - **Guardrails alone never break the lethal trifecta.** Only `egress_restriction`, `untrusted_tool_restriction`, suggest-only autonomy, or approve-each with `approval_transparency` do. A test enforces this.
 - **Audit logging is required for Go**, whatever the scores.
 - **No ID or clause from memory.** Every OWASP, ASI, ATLAS, AI RMF ID and every regulatory clause must be checked against the source and recorded in `SOURCES.md`. Loose fits get an empty list, not an approximate ID. Unverifiable instruments go in `residency.json` → `pending` and produce no findings. ISO/IEC 42001 is pending because its text is paywalled.
+- **A what-if never overwrites the actual design.** "Try this path" layers changes in a separate `whatIf` state. Any export from it must stay labelled what-if (title, filename, page-1 banner, Appendix A, CSV `basis` column): a report claiming controls that aren't in place is the one output this tool must never produce.
 - **Residency Critical findings are architecture changes, not controls.** `pathToGo` applies a rule's `architectureFix` hypothetically; High findings are approvals (waived only for the Go target, and listed).
 
 ## Question design

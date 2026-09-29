@@ -96,7 +96,12 @@ function trifectaStatus(a, flags, has) {
   if (has('untrusted_tool_restriction')) breakers.push('untrusted_tool_restriction');
   if (a.autonomy === 'suggest') breakers.push('autonomy:suggest');
   if (a.autonomy === 'approve_each' && has('approval_transparency')) breakers.push('autonomy:approve_each+approval_transparency');
-  return { present: flags.trifecta, legs, broken: flags.trifecta && breakers.length > 0, breakers };
+  const BREAKER_LABELS = {
+    'autonomy:suggest': 'Suggest-only autonomy (a human takes every action)',
+    'autonomy:approve_each+approval_transparency': 'Human approval of every action, showing the raw action',
+  };
+  const breakerLabels = breakers.map((b) => BREAKER_LABELS[b] ?? controlIndex[b]?.title ?? b);
+  return { present: flags.trifecta, legs, broken: flags.trifecta && breakers.length > 0, breakers, breakerLabels };
 }
 
 function blastRadius(a) {
@@ -275,8 +280,35 @@ export function riskRegister(answers, controlsInPlace = [], result = assess(answ
     owaspLlm: t.owaspLlm,
     owaspAgentic: t.owaspAgentic,
     atlas: t.atlas,
-    aiRmf: ['MAP 5.1', 'MANAGE 1.2', ...rmf([...t.controlsPresent, ...t.controlsMissing])],
+    aiRmf: rmf([...t.controlsPresent, ...t.controlsMissing]),
   }));
+}
+
+// NIST AI RMF coverage for this assessment: for every subcategory the triggered threats' controls
+// map to, which controls are in place and which are missing. Changes with every design.
+export function rmfCoverage(result) {
+  const bySub = new Map();
+  for (const t of result.threats) {
+    for (const [ids, present] of [[t.controlsPresent, true], [t.controlsMissing, false]]) {
+      for (const c of ids) {
+        for (const sub of controlIndex[c]?.aiRmf ?? []) {
+          const row = bySub.get(sub) ?? { id: sub, text: aiRmf.subcategories[sub], risks: new Set(), inPlace: new Set(), missing: new Set() };
+          row.risks.add(t.id);
+          (present ? row.inPlace : row.missing).add(c);
+          bySub.set(sub, row);
+        }
+      }
+    }
+  }
+  const ORDER = { Gap: 0, Partial: 1, Addressed: 2 };
+  return [...bySub.values()]
+    .map((r) => ({
+      id: r.id, text: r.text, risks: [...r.risks],
+      inPlace: [...r.inPlace].map((c) => controlIndex[c].title),
+      missing: [...r.missing].filter((c) => !r.inPlace.has(c)).map((c) => controlIndex[c].title),
+      status: r.inPlace.size === 0 ? 'Gap' : [...r.missing].some((c) => !r.inPlace.has(c)) ? 'Partial' : 'Addressed',
+    }))
+    .sort((a, b) => ORDER[a.status] - ORDER[b.status] || b.risks.length - a.risks.length || a.id.localeCompare(b.id));
 }
 
 

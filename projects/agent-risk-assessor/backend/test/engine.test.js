@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assess, evaluate, deriveFlags, pathToGo, riskRegister, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
+import { assess, evaluate, deriveFlags, pathToGo, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
 
 const inputIds = new Set(inputs.sections.flatMap((s) => s.inputs).map((i) => i.id));
 const optionValues = Object.fromEntries(
@@ -105,11 +105,29 @@ test('path to Go: bank needs in-country inference and CBK approval', () => {
   assert.deepEqual(p.approvals.map((a) => a.id), ['KW-05']);
 });
 
-test('risk register has one row per threat with AI RMF references', () => {
+test('risk register: one row per threat, AI RMF refs come only from the threat controls', () => {
   const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
-  const rows = riskRegister(bank.answers, bank.controls);
-  assert.equal(rows.length, assess(bank.answers, bank.controls).threats.length);
-  rows.forEach((r) => assert.ok(r.aiRmf.includes('MANAGE 1.2')));
+  const result = assess(bank.answers, bank.controls);
+  const rows = riskRegister(bank.answers, bank.controls, result);
+  assert.equal(rows.length, result.threats.length);
+  const byId = Object.fromEntries(controlsData.controls.map((c) => [c.id, c]));
+  for (const t of result.threats) {
+    const expected = new Set([...t.controlsPresent, ...t.controlsMissing].flatMap((c) => byId[c].aiRmf));
+    assert.deepEqual(new Set(rows.find((r) => r.id === t.id).aiRmf), expected, t.id);
+  }
+});
+
+test('AI RMF coverage differs by design and tracks controls in place', () => {
+  const [bank, hr] = ['bank-cs', 'hr-policy'].map((id) => scenariosData.scenarios.find((s) => s.id === id));
+  const covBank = rmfCoverage(assess(bank.answers, bank.controls));
+  const covHr = rmfCoverage(assess(hr.answers, hr.controls));
+  assert.notDeepEqual(covBank.map((r) => r.id), covHr.map((r) => r.id));
+  // Adding a control moves its subcategories toward Addressed, never away.
+  const before = Object.fromEntries(covBank.map((r) => [r.id, r.status]));
+  const after = rmfCoverage(assess(bank.answers, [...bank.controls, 'egress_restriction']));
+  const rank = { Gap: 0, Partial: 1, Addressed: 2 };
+  for (const r of after) if (before[r.id]) assert.ok(rank[r.status] >= rank[before[r.id]], r.id);
+  assert.ok(covBank.every((r) => r.status !== 'Addressed' || r.missing.length === 0));
 });
 
 test('any inference location outside Kuwait triggers KW-01, even alongside Kuwait', () => {
@@ -135,4 +153,11 @@ test('CBK cloud outsourcing: private cloud counts, own on-prem does not', () => 
   const fired = (hosting) => assess({ ...bank, hosting }, []).residency.some((f) => f.id === 'KW-05');
   assert.equal(fired(['private_cloud']), true);
   assert.equal(fired(['on_prem']), false);
+});
+
+test('trifecta names what breaks it in plain words', () => {
+  const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
+  const t = assess(bank.answers, [...bank.controls, 'untrusted_tool_restriction']).trifecta;
+  assert.deepEqual(t.breakerLabels, ['Restrict tool use after reading untrusted content']);
+  assert.ok(t.breakerLabels.every((l) => !l.includes('_')), 'no raw ids');
 });
