@@ -132,7 +132,7 @@ One row per triggered threat — inherent and residual risk, controls in place, 
 
 | Verdict | Rule |
 |---|---|
-| **Not yet** | Any Critical residual threat, OR lethal trifecta unbroken, OR a Critical residency finding |
+| **Not yet** | Any Critical residual threat, OR lethal trifecta open (nothing blocks the data-leak path), OR a Critical residency finding |
 | **Go with conditions** | No Critical, but ≥1 High — each High becomes a named go-live condition |
 | **Go** | Only Medium or lower, with per-action audit logging in place |
 

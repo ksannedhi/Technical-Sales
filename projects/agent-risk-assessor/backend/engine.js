@@ -102,7 +102,8 @@ function trifectaStatus(a, flags, has) {
   };
   const breakerLabels = breakers.map((b) => BREAKER_LABELS[b] ?? controlIndex[b]?.title ?? b);
   const broken = flags.trifecta && breakers.length > 0;
-  const status = !flags.trifecta ? 'Not present' : broken ? 'Broken' : 'Unbroken';
+  // Named for what the reader should conclude: "Unbroken" read as reassuring to non-specialists.
+  const status = !flags.trifecta ? 'Not present' : broken ? 'Blocked' : 'Open — data can leak';
   return {
     present: flags.trifecta, legs, broken, breakers, breakerLabels, status,
     explanation: TRIFECTA_TEXT.status[status], definition: TRIFECTA_TEXT.definition, reference: TRIFECTA_TEXT.reference,
@@ -114,8 +115,8 @@ function trifectaStatus(a, flags, has) {
 export const TRIFECTA_TEXT = {
   definition: 'Lethal trifecta: an agent that can read private data, reads content outsiders can write, and can send data out. With all three, one instruction hidden in that content can make it leak the data.',
   status: {
-    Unbroken: 'All three are present and nothing blocks the path, so the agent can be made to leak data.',
-    Broken: 'All three are present, but a control blocks the path from untrusted content to sending data out.',
+    'Open — data can leak': 'All three are present and nothing blocks the path, so the agent can be made to leak data.',
+    Blocked: 'All three are present, but a control blocks the path from untrusted content to sending data out.',
     'Not present': 'The agent lacks at least one of the three, so this leak path does not exist.',
   },
   reference: "Term coined by Simon Willison (2025); Meta's “Agents Rule of Two” states the same rule. Maps to OWASP LLM01, LLM02, ASI01 and MITRE ATLAS AML.T0086.",

@@ -23,6 +23,8 @@ const Badge = ({ level }) => <span className={`badge b-${String(level).toLowerCa
 
 export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls }) {
   const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [attempt, setAttempt] = useState(0);
   const [brief, setBrief] = useState({ state: narrative ? 'loading' : 'off', text: null });
   const [open, setOpen] = useState(null);
   const [busy, setBusy] = useState(null);
@@ -31,7 +33,11 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
   useEffect(() => {
     let live = true;
     setData(null);
-    post('/api/assess', { answers, controls }).then((r) => r.json()).then((d) => live && setData(d));
+    setLoadError(null);
+    post('/api/assess', { answers, controls })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d) => live && setData(d))
+      .catch((e) => live && setLoadError(e.message));
     if (narrative) {
       setBrief({ state: 'loading', text: null });
       post('/api/brief', { answers, controls })
@@ -40,8 +46,14 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
         .catch(() => live && setBrief({ state: 'failed', text: null }));
     }
     return () => { live = false; };
-  }, [answers, controls, narrative]);
+  }, [answers, controls, narrative, attempt]);
 
+  if (loadError) return (
+    <section className="card">
+      <p className="error">The assessment couldn't be loaded ({loadError}). The backend may be restarting.</p>
+      <button className="primary" onClick={() => setAttempt((n) => n + 1)}>Retry</button>
+    </section>
+  );
   if (!data) return <p className="muted">Assessing…</p>;
   const { result, path, register, coverage = [] } = data;
   const v = result.verdict;

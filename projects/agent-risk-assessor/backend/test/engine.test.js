@@ -180,7 +180,7 @@ test('every trifecta status comes with its explanation, definition and source', 
     assess(bank.answers, [...bank.controls, 'egress_restriction']).trifecta,
     assess(hr.answers, hr.controls).trifecta,
   ];
-  assert.deepEqual(seen.map((t) => t.status), ['Unbroken', 'Broken', 'Not present']);
+  assert.deepEqual(seen.map((t) => t.status), ['Open — data can leak', 'Blocked', 'Not present']);
   for (const t of seen) {
     assert.match(t.explanation, /^[A-Z]/, t.status);
     assert.match(t.definition, /private data/);
