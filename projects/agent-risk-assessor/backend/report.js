@@ -17,9 +17,8 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
   const v = result.verdict;
   const date = new Date().toISOString().slice(0, 10);
   const t = result.trifecta;
-  const trifecta = t.present
-    ? t.broken ? `Broken by: ${list(t.breakerLabels)}` : 'Present and unbroken'
-    : 'Not present';
+  const bc = result.blastRadius.components;
+  const count = (p) => result.threats.filter((x) => x.priority === p).length;
 
 
   const optionLabel = (input, v) => input.options?.find((o) => o.value === v)?.label ?? v;
@@ -60,7 +59,10 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
       ${path.architecture.map((a) => `<p><strong>Architecture change:</strong> ${esc(a.change)} <span class="muted">(${esc(a.id)})</span></p>`).join('')}
       <table><tr><th>Target</th><th>Add these controls</th><th>Also required</th></tr>
       ${path.steps.map((s) => `<tr><td>${esc(s.label)}</td>
-        <td>${!s.controls ? 'Not reachable with controls alone' : s.controls.length ? s.controls.map((c) => esc(c.title)).join('<br>') : 'No new controls needed'}</td>
+        <td>${!s.controls ? 'Not reachable with controls alone'
+          : !s.controls.length ? 'No new controls needed'
+          : (s.controls.some((c) => c.fromPrevious) ? '<em>Everything under Go with conditions, plus:</em><br>' : '')
+            + s.controls.filter((c) => !c.fromPrevious).map((c) => esc(c.title)).join('<br>')}</td>
         <td>${s.approvals?.length ? s.approvals.map((a) => esc(a.action)).join('<br>') : '—'}</td></tr>`).join('')}
       </table>`
     : '';
@@ -74,7 +76,10 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     thead { display: table-header-group; }
     .muted { color: #64748b; } .verdict { padding: 4mm 5mm; border-radius: 2mm; color: #fff; margin: 4mm 0; }
     .verdict b { font-size: 16pt; } .kpis { display: flex; gap: 6mm; margin: 2mm 0 4mm; }
-    .kpi { border: 1px solid #cbd5e1; border-radius: 2mm; padding: 2mm 4mm; } .kpi b { display: block; font-size: 13pt; }
+    .kpi { border: 1px solid #cbd5e1; border-radius: 2mm; padding: 2mm 4mm; flex: 1; display: flex; flex-direction: column; gap: 1mm; }
+    .kpi b { display: block; font-size: 13pt; } .kpi.wide { flex: 1.6; } .kpi.alarm { border-color: #b91c1c; border-left-width: 1.2mm; }
+    .legs { display: flex; flex-wrap: wrap; gap: 1mm; } .leg { font-size: 7.5pt; border: 1px solid #cbd5e1; color: #64748b; border-radius: 3mm; padding: 0.3mm 2mm; }
+    .leg.on { border-color: #b91c1c; color: #b91c1c; background: #fef2f2; } .counts { font-size: 9pt; } .trifecta-def { margin: 0 0 3mm; }
     table { width: 100%; border-collapse: collapse; margin: 2mm 0; font-size: 9pt; page-break-inside: auto; }
     tr { page-break-inside: avoid; } th, td { border: 1px solid #e2e8f0; padding: 1.5mm 2mm; text-align: left; vertical-align: top; }
     th { background: #f1f5f9; } .badge { color: #fff; border-radius: 1mm; padding: 0.3mm 1.5mm; font-size: 8pt; white-space: nowrap; }
@@ -85,7 +90,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     .small { font-size: 8.5pt; } .newpage { page-break-before: always; }
     .whatif { border: 1.2mm solid #7c3aed; background: #f5f3ff; padding: 3mm 4mm; margin: 3mm 0; border-radius: 2mm; }
     .whatif ul { margin: 1.5mm 0; padding-left: 6mm; }
-    .brief { max-width: 165mm; line-height: 1.5; } .brief li { margin-bottom: 1.5mm; } .brief ul, .brief ol { margin: 0; padding-left: 6mm; }
+    .brief { line-height: 1.5; } .brief li { margin-bottom: 1.5mm; } .brief ul, .brief ol { margin: 0; padding-left: 6mm; }
     .brief h3 { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin: 4mm 0 1.5mm; }
     .brief-decision { font-size: 11pt; margin: 0; padding: 2.5mm 4mm; background: #f8fafc; border-left: 1.2mm solid #1d4ed8; } .foot { font-size: 8pt; color: #64748b; margin-top: 8mm; }
   </style></head><body>
@@ -98,10 +103,18 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
 
     <div id="verdict" class="verdict" style="background:${VERDICT_COLORS[v.decision]}"><b>${esc(v.label)}</b></div>
     <div class="kpis">
-      <div class="kpi"><span class="muted">Blast radius</span><b>${result.blastRadius.score}/100</b></div>
-      <div class="kpi"><span class="muted">Lethal trifecta</span><b>${esc(trifecta)}</b></div>
-      <div class="kpi"><span class="muted">Threats</span><b>${result.threats.length}</b></div>
+      <div class="kpi"><span class="muted">Blast radius</span><b>${result.blastRadius.score}/100</b>
+        <span class="muted small">actions ${bc.action} × autonomy ${bc.autonomy} × data ${bc.data}</span>
+        <span class="muted small">Worst case if the agent is compromised, before controls count.</span></div>
+      <div class="kpi wide${t.present && !t.broken ? ' alarm' : ''}"><span class="muted">Lethal trifecta</span><b>${esc(t.status)}</b>
+        <span class="small">${esc(t.explanation)}</span>
+        ${t.broken ? `<span class="small">Blocked by: ${list(t.breakerLabels)}</span>` : ''}
+        <span class="legs">${[['privateData', 'Private data'], ['untrustedContent', 'Untrusted content'], ['externalChannel', 'Outbound channel']]
+          .map(([k, l]) => `<span class="leg${t.legs[k] ? ' on' : ''}">${l}${t.legs[k] ? '' : ' (absent)'}</span>`).join('')}</span></div>
+      <div class="kpi"><span class="muted">Threats by residual risk</span>
+        <span class="counts">${['Critical', 'High', 'Medium', 'Low'].map((p) => `${badge(p)} ${count(p)}`).join(' &nbsp;')}</span></div>
     </div>
+    <p class="muted small trifecta-def">${esc(t.definition)} ${esc(t.reference)}</p>
     ${summaryHtml}
     ${contentsHtml}
     ${v.blockers.length ? `<h2>Blockers</h2><ul>${v.blockers.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}

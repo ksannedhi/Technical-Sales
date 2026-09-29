@@ -51,8 +51,8 @@ function summarise(profile, result, path) {
     `Agent: ${profile.agentName || 'unnamed'} — ${profile.purpose || 'purpose not stated'}`,
     `Verdict: ${result.verdict.label}`,
     `Blast radius: ${result.blastRadius.score}/100`,
-    `Lethal trifecta (private data + untrusted content + outbound channel): ${
-      result.trifecta.present ? (result.trifecta.broken ? 'present, broken by controls' : 'present and unbroken') : 'not present'
+    `Data-leak path (the agent reads private data and outsider-written content and can send data out): ${
+      result.trifecta.present ? (result.trifecta.broken ? 'present but blocked by a control' : 'open, nothing blocks it') : 'not present'
     }`,
     'Blockers:', ...result.verdict.blockers.map((b) => `- ${b}`),
     'Go-live conditions:', ...result.verdict.conditions.map((c) => `- ${c}`),

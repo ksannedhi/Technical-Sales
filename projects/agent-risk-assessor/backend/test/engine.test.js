@@ -161,3 +161,29 @@ test('trifecta names what breaks it in plain words', () => {
   assert.deepEqual(t.breakerLabels, ['Restrict tool use after reading untrusted content']);
   assert.ok(t.breakerLabels.every((l) => !l.includes('_')), 'no raw ids');
 });
+
+test('path to Go is cumulative: the Go route contains the Go-with-conditions route', () => {
+  for (const s of scenariosData.scenarios) {
+    const steps = pathToGo(s.answers, s.controls).steps.filter((x) => x.controls);
+    if (steps.length < 2) continue;
+    const [first, second] = steps.map((x) => x.controls.map((c) => c.id));
+    assert.ok(first.every((c) => second.includes(c)), `${s.id}: Go route drops ${first.filter((c) => !second.includes(c))}`);
+    assert.deepEqual(second.slice(0, first.length), first, `${s.id}: stage-1 controls come first`);
+  }
+});
+
+test('every trifecta status comes with its explanation, definition and source', () => {
+  const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
+  const hr = scenariosData.scenarios.find((s) => s.id === 'hr-policy');
+  const seen = [
+    assess(bank.answers, bank.controls).trifecta,
+    assess(bank.answers, [...bank.controls, 'egress_restriction']).trifecta,
+    assess(hr.answers, hr.controls).trifecta,
+  ];
+  assert.deepEqual(seen.map((t) => t.status), ['Unbroken', 'Broken', 'Not present']);
+  for (const t of seen) {
+    assert.match(t.explanation, /^[A-Z]/, t.status);
+    assert.match(t.definition, /private data/);
+    assert.match(t.reference, /Willison/);
+  }
+});

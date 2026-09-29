@@ -4,7 +4,7 @@ const VERDICT_CLASS = { not_yet: 'v-no', go_with_conditions: 'v-cond', go: 'v-go
 const FLAG_LABELS = {
   untrustedContent: 'Reads untrusted content', sensitiveData: 'Reaches sensitive data',
   externalChannel: 'Has an outbound channel', highImpactAction: 'Can take high-impact actions',
-  trifecta: 'Lethal trifecta', personalData: 'Handles personal data',
+  trifecta: 'Open data-leak path (private data + untrusted content + outbound channel)', personalData: 'Handles personal data',
 };
 
 const post = (url, body) =>
@@ -90,13 +90,19 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
         </div>
         <div className={`card kpi ${t.present && !t.broken ? 'alarm' : ''}`}>
           <span className="muted">Lethal trifecta</span>
-          <b>{t.present ? (t.broken ? 'Broken' : 'Unbroken') : 'Not present'}</b>
-          {t.present && t.broken && <span className="small">Broken by: {t.breakerLabels.join('; ')}</span>}
+          <b>{t.status}</b>
+          <span className="small">{t.explanation}</span>
+          {t.broken && <span className="small">Blocked by: {t.breakerLabels.join('; ')}</span>}
           <span className="legs">
             {[['privateData', 'Private data'], ['untrustedContent', 'Untrusted content'], ['externalChannel', 'Outbound channel']].map(([k, l]) => (
-              <span key={k} className={t.legs[k] ? 'leg on' : 'leg'}>{l}</span>
+              <span key={k} className={t.legs[k] ? 'leg on' : 'leg'} title={t.legs[k] ? 'Present' : 'Absent'}>{l}</span>
             ))}
           </span>
+          <details className="small">
+            <summary>What is the lethal trifecta?</summary>
+            <p>{t.definition} Highlighted = present.</p>
+            <p className="muted">{t.reference}</p>
+          </details>
         </div>
         <div className="card kpi">
           <span className="muted">Threats by residual risk</span>
@@ -118,7 +124,16 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                 {s.controls ? (
                   <>
                     {s.controls.length === 0 && <p className="muted">No new controls needed.</p>}
-                    <ol>{s.controls.map((c) => <li key={c.id}>{c.title} <span className="muted small">({c.timeline} term)</span></li>)}</ol>
+                    {(() => {
+                      const carried = s.controls.filter((c) => c.fromPrevious).length;
+                      const added = s.controls.filter((c) => !c.fromPrevious);
+                      return (
+                        <>
+                          {carried > 0 && <p className="small carried">1–{carried}: everything under Go with conditions, plus:</p>}
+                          <ol start={carried + 1}>{added.map((c) => <li key={c.id}>{c.title} <span className="muted small">({c.timeline} term)</span></li>)}</ol>
+                        </>
+                      );
+                    })()}
                     {s.approvals.length > 0 && (
                       <p className="small"><strong>Plus approvals:</strong> {s.approvals.map((a) => a.action).join(' ')}</p>
                     )}
@@ -148,12 +163,18 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
         {brief.state === 'ok' && (
           <div className="brief">
             <p className="brief-decision">{brief.text.decision}</p>
-            <h3>Why</h3>
-            <ul className="brief-reasons">
-              {brief.text.reasons.map((r, i) => <li key={i}><strong>{r.headline}.</strong> {r.detail}</li>)}
-            </ul>
-            <h3>Before go-live</h3>
-            <ol className="brief-actions">{brief.text.actions.map((a, i) => <li key={i}>{a}</li>)}</ol>
+            <div className="brief-cols">
+              <div>
+                <h3>Why</h3>
+                <ul className="brief-reasons">
+                  {brief.text.reasons.map((r, i) => <li key={i}><strong>{r.headline}.</strong> {r.detail}</li>)}
+                </ul>
+              </div>
+              <div>
+                <h3>Before go-live</h3>
+                <ol className="brief-actions">{brief.text.actions.map((a, i) => <li key={i}>{a}</li>)}</ol>
+              </div>
+            </div>
             <p className="muted small">Written by Claude from the assessment on this page. It adds no findings of its own.</p>
           </div>
         )}

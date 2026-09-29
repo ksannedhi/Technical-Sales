@@ -112,6 +112,8 @@ Hosting country × data classification × jurisdiction → findings. Inference c
 
 For any verdict below Go, the engine finds the fewest missing controls that lift it one level, and a path to Go. Exact search over combinations of up to four controls, then a greedy search with redundant controls pruned. Residency Critical findings are treated as architecture changes (each rule's `architectureFix` is applied hypothetically before searching); residency High findings are approvals, assumed done for the Go target and listed alongside it. The UI can apply a path and re-assess in one click.
 
+The steps are **cumulative**: the Go route starts from the Go-with-conditions route and adds to it, so the plan reads as stage 1 then stage 2. Searching each target separately can return two unrelated sets (both valid, since several controls can break the same chain), which reads as a contradiction. On the presets, building on stage 1 costs no extra controls. The UI and PDF show the Go column as "everything under Go with conditions, plus" the additions, numbered on from stage 1.
+
 ### What-if view
 
 **Try this path** applies a Path-to-Go step — its architecture fix and controls — as a what-if layered over the actual design. The actual answers and controls are never changed. The what-if shows a banner listing every assumed change, the verdict is labelled "What-if verdict", and **Back to actual design** discards it. Editing the actual design, changing controls, or leaving the results step also discards it. In a what-if, the **Change controls** button reads **Edit actual controls**: it returns to step 3 to edit the real design, and the what-if is discarded.

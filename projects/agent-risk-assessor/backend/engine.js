@@ -101,8 +101,25 @@ function trifectaStatus(a, flags, has) {
     'autonomy:approve_each+approval_transparency': 'Human approval of every action, showing the raw action',
   };
   const breakerLabels = breakers.map((b) => BREAKER_LABELS[b] ?? controlIndex[b]?.title ?? b);
-  return { present: flags.trifecta, legs, broken: flags.trifecta && breakers.length > 0, breakers, breakerLabels };
+  const broken = flags.trifecta && breakers.length > 0;
+  const status = !flags.trifecta ? 'Not present' : broken ? 'Broken' : 'Unbroken';
+  return {
+    present: flags.trifecta, legs, broken, breakers, breakerLabels, status,
+    explanation: TRIFECTA_TEXT.status[status], definition: TRIFECTA_TEXT.definition, reference: TRIFECTA_TEXT.reference,
+  };
 }
+
+// Single source for how the web page and the PDF explain the term. "Lethal trifecta" is an AI
+// security term, not a regulatory one, so it is always shown with this explanation beside it.
+export const TRIFECTA_TEXT = {
+  definition: 'Lethal trifecta: an agent that can read private data, reads content outsiders can write, and can send data out. With all three, one instruction hidden in that content can make it leak the data.',
+  status: {
+    Unbroken: 'All three are present and nothing blocks the path, so the agent can be made to leak data.',
+    Broken: 'All three are present, but a control blocks the path from untrusted content to sending data out.',
+    'Not present': 'The agent lacks at least one of the three, so this leak path does not exist.',
+  },
+  reference: "Term coined by Simon Willison (2025); Meta's “Agents Rule of Two” states the same rule. Maps to OWASP LLM01, LLM02, ASI01 and MITRE ATLAS AML.T0086.",
+};
 
 function blastRadius(a) {
   const action = Math.max(1, ...asList(a.actions).map((v) => scaleOf('actions', v)));
@@ -211,19 +228,29 @@ export function pathToGo(answers, controlsInPlace = []) {
   for (const t of assess(design, controlsInPlace).threats) t.controlsMissing.forEach((c) => candidates.add(c));
   const pool = [...candidates].filter((c) => !controlsInPlace.includes(c));
 
-  const reaches = (combo, target) =>
-    RANK[assess(design, [...controlsInPlace, ...combo], { waiveResidency: waiveFor[target] }).verdict.decision] >= RANK[target];
+  const reaches = (base, combo, target) =>
+    RANK[assess(design, [...base, ...combo], { waiveResidency: waiveFor[target] }).verdict.decision] >= RANK[target];
+  const describe = (id, fromPrevious) => ({ id, title: controlIndex[id].title, timeline: controlIndex[id].timeline, fromPrevious });
 
+  // The steps are cumulative: the Go route starts from the Go-with-conditions route and adds to it,
+  // so the plan reads as stage 1 then stage 2 rather than two unrelated control sets.
   const targets = ['go_with_conditions', 'go'].filter((t) => RANK[t] > RANK[current]);
+  let carried = [];
   const steps = targets.map((target) => {
-    const combo = exactSearch(pool, (c) => reaches(c, target)) ?? greedySearch(pool, design, controlsInPlace, waiveFor[target], (c) => reaches(c, target));
-    return {
+    const base = [...controlsInPlace, ...carried];
+    const rest = pool.filter((c) => !carried.includes(c));
+    const extra = exactSearch(rest, (c) => reaches(base, c, target))
+      ?? greedySearch(rest, design, base, waiveFor[target], (c) => reaches(base, c, target));
+    const combo = extra ? [...carried, ...extra] : null;
+    const step = {
       target,
       label: target === 'go' ? 'Go' : 'Go with conditions',
-      controls: combo?.map((id) => ({ id, title: controlIndex[id].title, timeline: controlIndex[id].timeline })) ?? null,
+      controls: combo?.map((id) => describe(id, carried.includes(id))) ?? null,
       approvals: target === 'go' ? approvals : [],
       reachable: Boolean(combo) && architecture.every((a) => a.fixable),
     };
+    if (combo) carried = combo;
+    return step;
   });
   return { current, architecture, approvals, steps };
 }
@@ -317,7 +344,7 @@ function decideVerdict({ threats, residency, trifecta, has }) {
   const conditions = [];
 
   if (trifecta.present && !trifecta.broken)
-    blockers.push('Lethal trifecta unbroken: private data, untrusted content, and an outbound channel with nothing cutting the chain.');
+    blockers.push('Open data-leak path: the agent reads private data and outsider-written content and can send data out, and nothing blocks the path.');
   for (const t of threats.filter((t) => t.residual === 4))
     blockers.push(`${t.id} ${t.title} — residual Critical.`);
   for (const r of residency.filter((r) => r.severity === 4))

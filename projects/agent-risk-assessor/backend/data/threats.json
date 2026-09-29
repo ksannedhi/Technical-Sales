@@ -13,224 +13,696 @@
       "id": "T-INJ-01",
       "title": "Direct prompt injection and jailbreak by users",
       "description": "People talking to the agent try to override its instructions to get restricted data or actions.",
-      "when": { "all": [{ "field": "users", "in": ["customers", "public"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "users",
+            "in": [
+              "customers",
+              "public"
+            ]
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM01"], "owaspAgentic": ["ASI01"], "atlas": ["AML.T0051.000", "AML.T0054"],
-      "mitigatedBy": ["guardrails", "least_privilege_tools", "per_user_identity"]
+      "owaspLlm": [
+        "LLM01"
+      ],
+      "owaspAgentic": [
+        "ASI01"
+      ],
+      "atlas": [
+        "AML.T0051.000",
+        "AML.T0054"
+      ],
+      "mitigatedBy": [
+        "guardrails",
+        "least_privilege_tools",
+        "per_user_identity"
+      ]
     },
     {
       "id": "T-INJ-02",
       "title": "Indirect prompt injection drives agent actions",
       "description": "Instructions hidden in email, web pages, or documents the agent reads make it take actions nobody asked for.",
-      "when": { "all": [{ "flag": "untrustedContent" }, { "flag": "highImpactAction" }] },
+      "when": {
+        "all": [
+          {
+            "flag": "untrustedContent"
+          },
+          {
+            "flag": "highImpactAction"
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM01"], "owaspAgentic": ["ASI01", "ASI02"], "atlas": ["AML.T0051.001", "AML.T0053"],
-      "mitigatedBy": ["untrusted_tool_restriction", "human_approval", "input_validation"]
+      "owaspLlm": [
+        "LLM01"
+      ],
+      "owaspAgentic": [
+        "ASI01",
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0051.001",
+        "AML.T0053"
+      ],
+      "mitigatedBy": [
+        "untrusted_tool_restriction",
+        "human_approval",
+        "input_validation"
+      ]
     },
     {
       "id": "T-EXF-01",
       "title": "Data exfiltration through the agent's own tools",
-      "description": "The lethal trifecta: an injected instruction tells the agent to send private data somewhere the attacker can read it.",
-      "when": { "all": [{ "flag": "trifecta" }] },
+      "description": "An instruction hidden in content the agent reads tells it to send private data somewhere the attacker can read it.",
+      "when": {
+        "all": [
+          {
+            "flag": "trifecta"
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM01", "LLM02"], "owaspAgentic": ["ASI01", "ASI02"], "atlas": ["AML.T0086", "AML.T0057"],
-      "mitigatedBy": ["egress_restriction", "untrusted_tool_restriction", "dlp_redaction"]
+      "owaspLlm": [
+        "LLM01",
+        "LLM02"
+      ],
+      "owaspAgentic": [
+        "ASI01",
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0086",
+        "AML.T0057"
+      ],
+      "mitigatedBy": [
+        "egress_restriction",
+        "untrusted_tool_restriction",
+        "dlp_redaction"
+      ]
     },
     {
       "id": "T-AGY-01",
       "title": "Excessive agency — irreversible actions without a human",
       "description": "The agent can delete, pay, or change permissions with little or no human review, so any error or manipulation lands directly.",
-      "when": { "all": [
-        { "field": "actions", "in": ["delete", "financial", "modify_permissions"] },
-        { "field": "autonomy", "gte": 3 }
-      ] },
+      "when": {
+        "all": [
+          {
+            "field": "actions",
+            "in": [
+              "delete",
+              "financial",
+              "modify_permissions"
+            ]
+          },
+          {
+            "field": "autonomy",
+            "gte": 3
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM06"], "owaspAgentic": ["ASI02"], "atlas": ["AML.T0053", "AML.T0101"],
-      "mitigatedBy": ["human_approval", "least_privilege_tools", "scope_monitoring"]
+      "owaspLlm": [
+        "LLM06"
+      ],
+      "owaspAgentic": [
+        "ASI02"
+      ],
+      "atlas": [
+        "AML.T0053",
+        "AML.T0101"
+      ],
+      "mitigatedBy": [
+        "human_approval",
+        "least_privilege_tools",
+        "scope_monitoring"
+      ]
     },
     {
       "id": "T-PRV-01",
       "title": "Privilege abuse through a shared or privileged agent identity",
       "description": "The agent acts with more authority than the person asking, so a manipulated request can do things that user never could.",
-      "when": { "all": [
-        { "field": "identity", "in": ["shared_service", "admin"] },
-        { "flag": "highImpactAction" }
-      ] },
+      "when": {
+        "all": [
+          {
+            "field": "identity",
+            "in": [
+              "shared_service",
+              "admin"
+            ]
+          },
+          {
+            "flag": "highImpactAction"
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM06"], "owaspAgentic": ["ASI03"], "atlas": ["AML.T0053"],
-      "mitigatedBy": ["per_user_identity", "least_privilege_tools", "authority_expansion_controls"]
+      "owaspLlm": [
+        "LLM06"
+      ],
+      "owaspAgentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0053"
+      ],
+      "mitigatedBy": [
+        "per_user_identity",
+        "least_privilege_tools",
+        "authority_expansion_controls"
+      ]
     },
     {
       "id": "T-PRV-02",
       "title": "Agent runs on an administrative account",
       "description": "Compromise of the agent is compromise of an administrator.",
-      "when": { "all": [{ "field": "identity", "in": ["admin"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "identity",
+            "in": [
+              "admin"
+            ]
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM06"], "owaspAgentic": ["ASI03"], "atlas": ["AML.T0053"],
-      "mitigatedBy": ["per_user_identity", "least_privilege_tools", "human_approval"]
+      "owaspLlm": [
+        "LLM06"
+      ],
+      "owaspAgentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0053"
+      ],
+      "mitigatedBy": [
+        "per_user_identity",
+        "least_privilege_tools",
+        "human_approval"
+      ]
     },
     {
       "id": "T-LEAK-01",
       "title": "Sensitive data disclosed to the wrong user",
       "description": "The agent can reach data the requesting user is not entitled to, and returns it when asked the right way.",
-      "when": { "all": [
-        { "field": "identity", "in": ["shared_service", "admin", "scoped_tool"] },
-        { "field": "dataSensitivity", "gte": 3 }
-      ] },
+      "when": {
+        "all": [
+          {
+            "field": "identity",
+            "in": [
+              "shared_service",
+              "admin",
+              "scoped_tool"
+            ]
+          },
+          {
+            "field": "dataSensitivity",
+            "gte": 3
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM02"], "owaspAgentic": ["ASI03"], "atlas": ["AML.T0057"],
-      "mitigatedBy": ["per_user_identity", "dlp_redaction", "least_privilege_tools"]
+      "owaspLlm": [
+        "LLM02"
+      ],
+      "owaspAgentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0057"
+      ],
+      "mitigatedBy": [
+        "per_user_identity",
+        "dlp_redaction",
+        "least_privilege_tools"
+      ]
     },
     {
       "id": "T-CRD-01",
       "title": "Credential harvesting from agent configuration or tools",
       "description": "Keys and tokens reachable by the agent are extracted through prompts or compromised tools.",
-      "when": { "any": [
-        { "field": "dataTypes", "in": ["credentials"] },
-        { "field": "supplyChain", "in": ["third_party_mcp", "community_plugins"] },
-        { "field": "actions", "in": ["execute_code", "http_requests"] }
-      ] },
+      "when": {
+        "any": [
+          {
+            "field": "dataTypes",
+            "in": [
+              "credentials"
+            ]
+          },
+          {
+            "field": "supplyChain",
+            "in": [
+              "third_party_mcp",
+              "community_plugins"
+            ]
+          },
+          {
+            "field": "actions",
+            "in": [
+              "execute_code",
+              "http_requests"
+            ]
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM02"], "owaspAgentic": ["ASI03"], "atlas": ["AML.T0083", "AML.T0098"],
-      "mitigatedBy": ["secrets_management", "sandboxed_execution", "supply_chain_vetting"]
+      "owaspLlm": [
+        "LLM02"
+      ],
+      "owaspAgentic": [
+        "ASI03"
+      ],
+      "atlas": [
+        "AML.T0083",
+        "AML.T0098"
+      ],
+      "mitigatedBy": [
+        "secrets_management",
+        "sandboxed_execution",
+        "supply_chain_vetting"
+      ]
     },
     {
       "id": "T-SUP-01",
       "title": "Poisoned or rug-pulled third-party tool",
       "description": "An MCP server or plugin ships malicious tool definitions, or changes behaviour after it was approved.",
-      "when": { "all": [{ "field": "supplyChain", "in": ["third_party_mcp", "community_plugins"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "supplyChain",
+            "in": [
+              "third_party_mcp",
+              "community_plugins"
+            ]
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM03"], "owaspAgentic": ["ASI04"], "atlas": ["AML.T0010.005", "AML.T0109", "AML.T0110"],
-      "mitigatedBy": ["supply_chain_vetting", "least_privilege_tools", "audit_logging"]
+      "owaspLlm": [
+        "LLM03"
+      ],
+      "owaspAgentic": [
+        "ASI04"
+      ],
+      "atlas": [
+        "AML.T0010.005",
+        "AML.T0109",
+        "AML.T0110"
+      ],
+      "mitigatedBy": [
+        "supply_chain_vetting",
+        "least_privilege_tools",
+        "audit_logging"
+      ]
     },
     {
       "id": "T-SUP-02",
       "title": "Compromised model artefact",
       "description": "A downloaded open-weight model is tampered with or backdoored.",
-      "when": { "all": [{ "field": "supplyChain", "in": ["open_weights"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "supplyChain",
+            "in": [
+              "open_weights"
+            ]
+          }
+        ]
+      },
       "severity": 2,
-      "owaspLlm": ["LLM03", "LLM04"], "owaspAgentic": ["ASI04"], "atlas": ["AML.T0010.003"],
-      "mitigatedBy": ["supply_chain_vetting", "red_team"]
+      "owaspLlm": [
+        "LLM03",
+        "LLM04"
+      ],
+      "owaspAgentic": [
+        "ASI04"
+      ],
+      "atlas": [
+        "AML.T0010.003"
+      ],
+      "mitigatedBy": [
+        "supply_chain_vetting",
+        "red_team"
+      ]
     },
     {
       "id": "T-RCE-01",
       "title": "Unexpected code execution",
       "description": "Model-generated code or commands run with real access to systems or data.",
-      "when": { "all": [{ "field": "actions", "in": ["execute_code"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "actions",
+            "in": [
+              "execute_code"
+            ]
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM05"], "owaspAgentic": ["ASI05"], "atlas": ["AML.T0053"],
-      "mitigatedBy": ["sandboxed_execution", "human_approval", "output_handling"]
+      "owaspLlm": [
+        "LLM05"
+      ],
+      "owaspAgentic": [
+        "ASI05"
+      ],
+      "atlas": [
+        "AML.T0053"
+      ],
+      "mitigatedBy": [
+        "sandboxed_execution",
+        "human_approval",
+        "output_handling"
+      ]
     },
     {
       "id": "T-OUT-01",
       "title": "Improper output handling downstream",
       "description": "Agent output is written into systems or rendered to users without validation — injection into databases, web pages, or other agents.",
-      "when": { "any": [
-        { "field": "actions", "in": ["write_records", "http_requests"] },
-        { "field": "multiAgent", "in": ["internal", "external"] }
-      ] },
+      "when": {
+        "any": [
+          {
+            "field": "actions",
+            "in": [
+              "write_records",
+              "http_requests"
+            ]
+          },
+          {
+            "field": "multiAgent",
+            "in": [
+              "internal",
+              "external"
+            ]
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM05"], "owaspAgentic": ["ASI08"], "atlas": [],
-      "mitigatedBy": ["output_handling", "input_validation"]
+      "owaspLlm": [
+        "LLM05"
+      ],
+      "owaspAgentic": [
+        "ASI08"
+      ],
+      "atlas": [],
+      "mitigatedBy": [
+        "output_handling",
+        "input_validation"
+      ]
     },
     {
       "id": "T-MEM-01",
       "title": "Memory poisoning",
       "description": "Planted instructions persist in memory and change the agent's behaviour in later sessions.",
-      "when": { "all": [
-        { "field": "memory", "in": ["persistent_user"] },
-        { "flag": "untrustedContent" }
-      ] },
+      "when": {
+        "all": [
+          {
+            "field": "memory",
+            "in": [
+              "persistent_user"
+            ]
+          },
+          {
+            "flag": "untrustedContent"
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM04"], "owaspAgentic": ["ASI06"], "atlas": ["AML.T0080.000"],
-      "mitigatedBy": ["memory_hardening", "untrusted_tool_restriction"]
+      "owaspLlm": [
+        "LLM04"
+      ],
+      "owaspAgentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0080.000"
+      ],
+      "mitigatedBy": [
+        "memory_hardening",
+        "untrusted_tool_restriction"
+      ]
     },
     {
       "id": "T-MEM-02",
       "title": "Cross-user memory poisoning and leakage",
       "description": "Shared memory lets one user plant instructions or data that surface for everyone else.",
-      "when": { "all": [{ "field": "memory", "in": ["persistent_shared"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "memory",
+            "in": [
+              "persistent_shared"
+            ]
+          }
+        ]
+      },
       "severity": 4,
-      "owaspLlm": ["LLM02", "LLM04"], "owaspAgentic": ["ASI06"], "atlas": ["AML.T0080.000"],
-      "mitigatedBy": ["memory_hardening", "per_user_identity", "dlp_redaction"]
+      "owaspLlm": [
+        "LLM02",
+        "LLM04"
+      ],
+      "owaspAgentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0080.000"
+      ],
+      "mitigatedBy": [
+        "memory_hardening",
+        "per_user_identity",
+        "dlp_redaction"
+      ]
     },
     {
       "id": "T-RAG-01",
       "title": "Knowledge base poisoning",
       "description": "Someone who can write to an indexed source plants content that the agent retrieves and trusts.",
-      "when": { "all": [
-        { "field": "dataSources", "in": ["rag_index"] },
-        { "any": [
-          { "field": "untrustedInputs", "in": ["shared_documents"] },
-          { "field": "supplyChain", "in": ["external_rag"] }
-        ] }
-      ] },
+      "when": {
+        "all": [
+          {
+            "field": "dataSources",
+            "in": [
+              "rag_index"
+            ]
+          },
+          {
+            "any": [
+              {
+                "field": "untrustedInputs",
+                "in": [
+                  "shared_documents"
+                ]
+              },
+              {
+                "field": "supplyChain",
+                "in": [
+                  "external_rag"
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM04", "LLM08"], "owaspAgentic": ["ASI06"], "atlas": ["AML.T0070", "AML.T0071"],
-      "mitigatedBy": ["content_provenance", "input_validation"]
+      "owaspLlm": [
+        "LLM04",
+        "LLM08"
+      ],
+      "owaspAgentic": [
+        "ASI06"
+      ],
+      "atlas": [
+        "AML.T0070",
+        "AML.T0071"
+      ],
+      "mitigatedBy": [
+        "content_provenance",
+        "input_validation"
+      ]
     },
     {
       "id": "T-SPL-01",
       "title": "System prompt extraction",
       "description": "Outside users extract the system prompt and learn internal rules, tool names, or endpoints.",
-      "when": { "all": [{ "field": "users", "in": ["customers", "public"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "users",
+            "in": [
+              "customers",
+              "public"
+            ]
+          }
+        ]
+      },
       "severity": 2,
-      "owaspLlm": ["LLM07"], "owaspAgentic": [], "atlas": ["AML.T0056"],
-      "mitigatedBy": ["no_secrets_in_prompt", "guardrails"]
+      "owaspLlm": [
+        "LLM07"
+      ],
+      "owaspAgentic": [],
+      "atlas": [
+        "AML.T0056"
+      ],
+      "mitigatedBy": [
+        "no_secrets_in_prompt",
+        "guardrails"
+      ]
     },
     {
       "id": "T-DOS-01",
       "title": "Unbounded consumption and cost harvesting",
       "description": "Anonymous traffic or runaway agent loops burn tokens, tool calls, and budget.",
-      "when": { "any": [
-        { "field": "users", "in": ["public"] },
-        { "field": "autonomy", "gte": 4 }
-      ] },
+      "when": {
+        "any": [
+          {
+            "field": "users",
+            "in": [
+              "public"
+            ]
+          },
+          {
+            "field": "autonomy",
+            "gte": 4
+          }
+        ]
+      },
       "severity": 2,
-      "owaspLlm": ["LLM10"], "owaspAgentic": [], "atlas": ["AML.T0034", "AML.T0034.002"],
-      "mitigatedBy": ["rate_spend_limits", "scope_monitoring"]
+      "owaspLlm": [
+        "LLM10"
+      ],
+      "owaspAgentic": [],
+      "atlas": [
+        "AML.T0034",
+        "AML.T0034.002"
+      ],
+      "mitigatedBy": [
+        "rate_spend_limits",
+        "scope_monitoring"
+      ]
     },
     {
       "id": "T-MIS-01",
       "title": "Confident wrong answers in a regulated context",
       "description": "Customers or the public act on fabricated or outdated answers about accounts, health, or entitlements.",
-      "when": { "all": [
-        { "field": "users", "in": ["customers", "public"] },
-        { "field": "sector", "in": ["banking", "healthcare", "government"] }
-      ] },
+      "when": {
+        "all": [
+          {
+            "field": "users",
+            "in": [
+              "customers",
+              "public"
+            ]
+          },
+          {
+            "field": "sector",
+            "in": [
+              "banking",
+              "healthcare",
+              "government"
+            ]
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM09"], "owaspAgentic": ["ASI09"], "atlas": [],
-      "mitigatedBy": ["guardrails", "human_approval", "red_team"]
+      "owaspLlm": [
+        "LLM09"
+      ],
+      "owaspAgentic": [
+        "ASI09"
+      ],
+      "atlas": [],
+      "mitigatedBy": [
+        "guardrails",
+        "human_approval",
+        "red_team"
+      ]
     },
     {
       "id": "T-TRU-01",
       "title": "Approval fatigue and persuasive explanations",
       "description": "Approvers rubber-stamp actions based on the agent's own summary, so a manipulated agent talks its way past the human gate.",
-      "when": { "all": [
-        { "field": "autonomy", "in": ["approve_each", "approve_high_risk"] },
-        { "flag": "highImpactAction" }
-      ] },
+      "when": {
+        "all": [
+          {
+            "field": "autonomy",
+            "in": [
+              "approve_each",
+              "approve_high_risk"
+            ]
+          },
+          {
+            "flag": "highImpactAction"
+          }
+        ]
+      },
       "severity": 2,
-      "owaspLlm": [], "owaspAgentic": ["ASI09"], "atlas": [],
-      "mitigatedBy": ["approval_transparency"]
+      "owaspLlm": [],
+      "owaspAgentic": [
+        "ASI09"
+      ],
+      "atlas": [],
+      "mitigatedBy": [
+        "approval_transparency"
+      ]
     },
     {
       "id": "T-A2A-01",
       "title": "Insecure agent-to-agent communication",
       "description": "Spoofed or compromised agents pass instructions along a chain, and errors cascade.",
-      "when": { "all": [{ "field": "multiAgent", "in": ["internal", "external"] }] },
+      "when": {
+        "all": [
+          {
+            "field": "multiAgent",
+            "in": [
+              "internal",
+              "external"
+            ]
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": [], "owaspAgentic": ["ASI07", "ASI08"], "atlas": ["AML.T0118"],
-      "mitigatedBy": ["input_validation", "untrusted_tool_restriction", "audit_logging"]
+      "owaspLlm": [],
+      "owaspAgentic": [
+        "ASI07",
+        "ASI08"
+      ],
+      "atlas": [
+        "AML.T0118"
+      ],
+      "mitigatedBy": [
+        "input_validation",
+        "untrusted_tool_restriction",
+        "audit_logging"
+      ]
     },
     {
       "id": "T-ROG-01",
       "title": "Autonomous agent drifts out of scope unnoticed",
       "description": "With no human in the loop, a misbehaving agent keeps acting until someone notices the damage.",
-      "when": { "all": [{ "field": "autonomy", "gte": 4 }] },
+      "when": {
+        "all": [
+          {
+            "field": "autonomy",
+            "gte": 4
+          }
+        ]
+      },
       "severity": 3,
-      "owaspLlm": ["LLM06"], "owaspAgentic": ["ASI10"], "atlas": [],
-      "mitigatedBy": ["scope_monitoring", "audit_logging", "authority_expansion_controls"]
+      "owaspLlm": [
+        "LLM06"
+      ],
+      "owaspAgentic": [
+        "ASI10"
+      ],
+      "atlas": [],
+      "mitigatedBy": [
+        "scope_monitoring",
+        "audit_logging",
+        "authority_expansion_controls"
+      ]
     }
   ]
 }
