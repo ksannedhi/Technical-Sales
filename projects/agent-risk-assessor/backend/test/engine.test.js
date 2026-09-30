@@ -199,3 +199,22 @@ test('every trifecta status comes with its explanation, definition and source', 
     assert.match(t.reference, /Willison/);
   }
 });
+
+test('code execution is a way out (DNS); a no-network sandbox closes only that route', () => {
+  const base = { dataSensitivity: '3', dataTypes: ['personal'], untrustedInputs: ['inbound_email'], autonomy: 'autonomous' };
+  const tri = (actions, controls = []) => assess({ ...base, actions }, controls).trifecta;
+  assert.equal(tri(['read_only']).present, false, 'no way out');
+  assert.equal(tri(['execute_code']).status, 'Open — data can leak');
+  assert.equal(tri(['execute_code'], ['sandboxed_execution']).status, 'Blocked');
+  assert.deepEqual(tri(['execute_code'], ['sandboxed_execution']).breakerLabels, ['Sandboxed code execution']);
+  assert.equal(tri(['execute_code', 'send_external'], ['sandboxed_execution']).status, 'Open — data can leak', 'email still open');
+  assert.equal(tri(['network_other']).status, 'Open — data can leak', 'DNS / other network access');
+  assert.equal(tri(['network_other'], ['egress_restriction']).status, 'Blocked');
+});
+
+test('a blocked leak path is not contradicted by a Critical exfiltration threat', () => {
+  const a = { dataSensitivity: '3', dataTypes: ['personal'], untrustedInputs: ['inbound_email'], autonomy: 'autonomous', actions: ['execute_code'] };
+  const r = assess(a, ['sandboxed_execution']);
+  assert.equal(r.trifecta.status, 'Blocked');
+  assert.notEqual(r.threats.find((t) => t.id === 'T-EXF-01').priority, 'Critical');
+});

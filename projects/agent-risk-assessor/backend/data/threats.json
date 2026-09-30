@@ -100,7 +100,8 @@
       "mitigatedBy": [
         "egress_restriction",
         "untrusted_tool_restriction",
-        "dlp_redaction"
+        "dlp_redaction",
+        "sandboxed_execution"
       ]
     },
     {

@@ -184,7 +184,7 @@
       "id": "egress_restriction",
       "group": "egress",
       "title": "Egress allowlist",
-      "description": "The agent can only reach approved domains and recipients. Blocks exfiltration through URLs, image links, webhooks, and email.",
+      "description": "The agent can only reach approved domains and recipients, including DNS resolution. Blocks exfiltration through URLs, image links, webhooks, email, and DNS lookups.",
       "timeline": "short",
       "atlas": [
         "AML.M0032"
@@ -222,7 +222,7 @@
       "id": "sandboxed_execution",
       "group": "egress",
       "title": "Sandboxed code execution",
-      "description": "Code runs in an isolated, ephemeral environment with no network or credentials by default.",
+      "description": "Code runs in an isolated, ephemeral environment with no network (including DNS) or credentials by default.",
       "timeline": "medium",
       "atlas": [
         "AML.M0032"

@@ -79,6 +79,12 @@ Untrusted content is text written by someone **other than the person the agent i
 
 In practice most customer-facing agents do read outsider-written content (uploads, email, shared documents), and then all three parts are present.
 
+### What counts as a way out
+
+Sending email or messages outside the organisation, web requests, web browsing, **other network access (including DNS lookups)**, and **code execution**. Code execution counts because running code can reach the network, and DNS lookups alone can carry data out. The tool can only flag the routes the assessor declares, so the Actions question asks for every way data could leave, not only the intended ones.
+
+An egress allowlist (which covers DNS) or restricting tools after untrusted content blocks every route at once. A no-network sandbox closes only the code-execution route: the path counts as blocked only when every declared route is closed.
+
 ### Blast radius
 
 `blast_radius = action_severity × autonomy_factor × data_sensitivity`, each on a 1–4 scale, normalised to 0–100. It shows the worst case if the agent is fully compromised, before controls are counted.

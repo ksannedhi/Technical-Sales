@@ -277,7 +277,7 @@
           "id": "actions",
           "label": "What can the agent do?",
           "type": "multi",
-          "rationale": "Each option carries an impact weight used in the blast-radius score.",
+          "rationale": "Each option carries an impact weight used in the blast-radius score. Include every way data could leave, not only the intended ones: an agent that can run code or resolve hostnames can send data out through DNS.",
           "options": [
             {
               "value": "read_only",
@@ -302,6 +302,11 @@
             {
               "value": "http_requests",
               "label": "Make arbitrary web / API requests",
+              "scale": 3
+            },
+            {
+              "value": "network_other",
+              "label": "Other network access (DNS lookups, package installs, any outbound connection)",
               "scale": 3
             },
             {

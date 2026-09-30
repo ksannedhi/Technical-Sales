@@ -17,8 +17,10 @@ const inputIndex = Object.fromEntries(
 );
 const controlIndex = Object.fromEntries(controlsData.controls.map((c) => [c.id, c]));
 
-const HIGH_IMPACT = ['write_records', 'send_external', 'http_requests', 'delete', 'execute_code', 'financial', 'modify_permissions'];
-const EXTERNAL_ACTIONS = ['send_external', 'http_requests'];
+const HIGH_IMPACT = ['write_records', 'send_external', 'http_requests', 'network_other', 'delete', 'execute_code', 'financial', 'modify_permissions'];
+// Ways data can leave. Code execution counts: running code can reach the network, and DNS lookups
+// alone can carry data out, unless the code runs in a sandbox with no network.
+const EXTERNAL_ACTIONS = ['send_external', 'http_requests', 'network_other', 'execute_code'];
 const SENSITIVE_TYPES = ['personal', 'financial', 'health', 'government', 'credentials', 'source_code'];
 const PERSONAL_TYPES = ['personal', 'financial', 'health'];
 
@@ -91,11 +93,23 @@ function trifectaStatus(a, flags, has) {
     untrustedContent: flags.untrustedContent || asList(a.users).includes('public'),
     externalChannel: flags.externalChannel,
   };
+  // Controls that block every way out at once.
   const breakers = [];
   if (has('egress_restriction')) breakers.push('egress_restriction');
   if (has('untrusted_tool_restriction')) breakers.push('untrusted_tool_restriction');
   if (a.autonomy === 'suggest') breakers.push('autonomy:suggest');
   if (a.autonomy === 'approve_each' && has('approval_transparency')) breakers.push('autonomy:approve_each+approval_transparency');
+  // Otherwise the path is blocked only if every open way out is individually closed. A no-network
+  // sandbox closes the code-execution route, but not email or web requests.
+  const actions = asList(a.actions);
+  const routes = [
+    ...actions.filter((x) => EXTERNAL_ACTIONS.includes(x)),
+    ...(asList(a.untrustedInputs).includes('web_browsing') || asList(a.dataSources).includes('web') ? ['web'] : []),
+  ];
+  const ROUTE_BLOCKERS = { execute_code: 'sandboxed_execution' };
+  const openRoutes = routes.filter((r) => !(ROUTE_BLOCKERS[r] && has(ROUTE_BLOCKERS[r])));
+  if (!breakers.length && routes.length && !openRoutes.length)
+    routes.forEach((r) => breakers.push(ROUTE_BLOCKERS[r]));
   const BREAKER_LABELS = {
     'autonomy:suggest': 'Suggest-only autonomy (a human takes every action)',
     'autonomy:approve_each+approval_transparency': 'Human approval of every action, showing the raw action',
