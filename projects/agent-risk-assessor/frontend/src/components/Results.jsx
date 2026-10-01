@@ -262,7 +262,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
 
       <section className="card">
         <h2>NIST AI RMF coverage</h2>
-        <p className="muted">Each AI RMF subcategory that the controls for this design's risks map to. <strong>Gap</strong>: none in place. <strong>Partial</strong>: some. <strong>Addressed</strong>: all.</p>
+        <p className="muted">Each AI RMF subcategory that the controls for this design's risks map to. Rows are AI RMF subcategories, not controls; one control can count towards several. <strong>Gap</strong>: none in place. <strong>Partial</strong>: some. <strong>Addressed</strong>: all.</p>
         {coverage.length === 0 ? <p className="muted">No risks triggered.</p> : (
           <table>
             <thead><tr><th>Subcategory</th><th>Status</th><th>Risks</th><th>Missing</th></tr></thead>

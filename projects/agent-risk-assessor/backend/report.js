@@ -154,7 +154,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     ${designHtml}
 
     <h2 id="appendix-rmf">Appendix B — NIST AI RMF coverage</h2>
-    <p class="muted">Each NIST AI RMF subcategory that the controls for this design's risks map to. <strong>Gap</strong>: none of those controls are in place. <strong>Partial</strong>: some are. <strong>Addressed</strong>: all are.</p>
+    <p class="muted">Each NIST AI RMF subcategory that the controls for this design's risks map to. Rows are NIST AI RMF subcategories, not controls; one control can count towards several. <strong>Gap</strong>: none of those controls are in place. <strong>Partial</strong>: some are. <strong>Addressed</strong>: all are.</p>
     ${coverage.length ? `<table><thead><tr><th>Subcategory</th><th>Status</th><th>Risks</th><th>In place</th><th>Missing</th></tr></thead>
       ${coverage.map((c) => `<tr><td><strong>${esc(c.id)}</strong><br><span class="muted">${esc(c.text)}</span></td>
         <td><span class="badge" style="background:${STATUS_COLORS[c.status]}">${esc(c.status)}</span></td>
