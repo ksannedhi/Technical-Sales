@@ -105,7 +105,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
           <b>{t.status}</b>
           <span className="small">{t.explanation}</span>
           {t.broken && <span className="small">Blocked by: {t.breakerLabels.join('; ')}</span>}
-          <span className="legs">
+          <span className={t.broken ? 'legs blocked' : 'legs'}>
             {[['privateData', 'Private data'], ['untrustedContent', 'Untrusted content'], ['externalChannel', 'Outbound channel']].map(([k, l]) => (
               <span key={k} className={t.legs[k] ? 'leg on' : 'leg'} title={t.legs[k] ? 'Present' : 'Absent'}>{l}</span>
             ))}

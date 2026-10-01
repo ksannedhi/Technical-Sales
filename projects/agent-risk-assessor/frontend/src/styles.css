@@ -61,6 +61,8 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .legs { display: flex; gap: 6px; flex-wrap: wrap; }
 .leg { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .leg.on { border-color: var(--crit); color: var(--crit); background: #fef2f2; }
+/* Blocked: the legs are still present, but red beside "Blocked" reads as alarm. */
+.legs.blocked .leg.on { border-color: #94a3b8; color: #334155; background: #f1f5f9; }
 .counts { display: flex; gap: 12px; flex-wrap: wrap; }
 
 .badge { display: inline-block; color: #fff; border-radius: 4px; padding: 1px 7px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
