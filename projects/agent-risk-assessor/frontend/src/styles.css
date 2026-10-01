@@ -17,6 +17,9 @@ button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid v
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 .primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ghost { background: transparent; }
+.action { background: var(--accent-soft); border: 1.5px solid var(--accent); color: var(--accent); font-weight: 600; transition: background 0.15s, color 0.15s; }
+.action:hover { background: var(--accent); color: #fff; }
+.action:focus-visible, .primary:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
 
 .steps { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .steps button { display: flex; gap: 8px; align-items: center; }

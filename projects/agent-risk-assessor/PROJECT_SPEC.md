@@ -138,6 +138,24 @@ IDs are verified against primary sources — see `backend/data/SOURCES.md`. Do n
 
 Hosting country × data classification × jurisdiction → findings. Inference counts as processing: prompts and retrieved context go wherever the model runs. Clauses come from primary sources or from a compiled control taxonomy built from the framework documents (see `backend/data/SOURCES.md`); instruments not yet verified are listed as pending and produce no findings. Headline rule: Kuwait Level 3/4 or personal data processed outside Kuwait → Critical (CITRA Cloud Computing Regulatory Framework §4.2.1.1).
 
+
+**Finding IDs** follow `<jurisdiction>-<number>` (KW Kuwait, SA Saudi Arabia, AE UAE mainland, DIFC Dubai International Financial Centre, QA Qatar). They are **this tool's own labels**, not regulators' clause numbers; the regulation and clause each finding rests on is in its source line, and that is what to cite. The report says so under the findings.
+
+| ID | Level | What it checks | Source |
+|---|---|---|---|
+| KW-01 | Critical | Level 3/4 or personal data processed outside Kuwait | CITRA cloud framework §4.2.1.1; NBCC GOV-3 |
+| KW-02 | Medium | Level 2 data on a foreign public cloud (customer-held keys don't protect inference) | CITRA §3.1.4.2 |
+| KW-03 | Advisory | Cloud provider must be CITRA-licensed | CITRA §4.2.1.2 |
+| KW-04 | Advisory | Vendor telemetry and logs may carry prompts out of Kuwait | NBCC CLD-12, CLD-13 |
+| KW-05 | High | Bank: CBK approval before signing cloud outsourcing involving sensitive data | CBK CORF 7.2.1.3 |
+| KW-06 | High | Bank: CBK approval before an AI system goes live | CBK CORF 7.1.1.2 |
+| SA-01 | High | Saudi personal data transferred outside the Kingdom | PDPL Art. 29; Transfer Regulation Art. 2, 8 |
+| SA-02 | Advisory | SDAIA AI Ethics Principles apply | SDAIA AI Ethics Principles |
+| SA-03 | Advisory | Government use of generative AI | SDAIA Generative AI Guidelines for Government |
+| AE-01 | High | UAE personal data transferred outside the UAE | UAE PDPL Art. 22, 23 |
+| DIFC-01 | High | Personal data processed by AI systems in the DIFC | DIFC Data Protection Regulations, Regulation 10 |
+| QA-01 | High | Qatar personal data processed outside Qatar | PDPPL Art. 15 |
+| QA-02 | Advisory | NCSA guidelines for secure AI adoption | NCSA Guidelines v1.0 (2024) |
 ### Path to Go
 
 For any verdict below Go, the engine finds the fewest missing controls that lift it one level, and a path to Go. Exact search over combinations of up to four controls, then a greedy search with redundant controls pruned. Residency Critical findings are treated as architecture changes (each rule's `architectureFix` is applied hypothetically before searching); residency High findings are approvals, assumed done for the Go target and listed alongside it. The UI can apply a path and re-assess in one click.

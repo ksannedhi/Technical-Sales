@@ -129,6 +129,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
       <div class="muted" style="font-size:8pt">Written by Claude from the assessment above; adds no findings of its own.</div>` : ''}
 
     <h2 id="findings">Regulatory and residency findings</h2>
+    <p class="muted small">Finding IDs (KW-01 …) are this tool's own labels, not regulators' clause numbers. Cite the regulation and clause in each finding's source line.</p>
     ${result.residency.length ? `<table><tr><th>Finding</th><th>Level</th><th>Detail</th><th>Source</th></tr>
       ${result.residency.map((r) => `<tr><td>${esc(r.title)}</td><td>${badge(r.level)}</td><td>${esc(r.finding)}<br><em>${esc(r.remediation)}</em></td>
         <td>${r.sources.map((s) => `${esc(s.instrument)} — ${esc(s.clause)}`).join('<br>')}</td></tr>`).join('')}</table>`

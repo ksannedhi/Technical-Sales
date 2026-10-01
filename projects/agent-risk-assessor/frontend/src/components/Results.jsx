@@ -150,7 +150,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                       <p className="small"><strong>Plus approvals:</strong> {s.approvals.map((a) => a.action).join(' ')}</p>
                     )}
                     {s.reachable && (s.controls.length > 0 || path.architecture.length > 0) && (
-                      <button className="ghost" onClick={() => onApply(s, path.architecture)}>Try this path</button>
+                      <button className="action" onClick={() => onApply(s, path.architecture)}>Try this path →</button>
                     )}
                   </>
                 ) : <p className="muted">Not reachable with controls alone.</p>}
@@ -194,6 +194,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
 
       <section className="card">
         <h2>Regulatory and residency findings</h2>
+        <p className="muted small">Finding IDs (KW-01 …) are this tool's own labels, not regulators' clause numbers. Cite the regulation and clause in each finding's source line.</p>
         {result.residency.length === 0 && <p className="muted">No findings for the selected jurisdictions.</p>}
         {result.residency.map((r) => (
           <div key={r.id} className="finding">
@@ -255,7 +256,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
             ))}
           </tbody>
         </table>
-        <button className="ghost" onClick={onEditControls}>{whatIf ? 'Edit actual controls' : 'Change controls'}</button>
+        <button className="action" onClick={onEditControls}>{whatIf ? 'Edit actual controls' : 'Change controls'} →</button>
         <span className="muted small"> Goes back to step 3 to update what is actually in place, then re-assesses.</span>
       </section>
 
