@@ -20,6 +20,20 @@ A presales tool for the question every AI pilot eventually hits: *can this agent
    - **Risk committee brief** — a plain-language summary written by Claude from the assessment
    - **PDF export**
 
+## Screenshots
+
+The bank customer-service preset: a **Not yet** verdict, an open data-leak path, and the path to Go.
+
+![Results page: Not yet verdict, lethal trifecta open, path to Go](screenshots/results.png)
+
+**Try this path** on the Go-with-conditions route. The banner lists every assumed change, and the verdict is labelled what-if.
+
+![What-if view: banner listing assumed changes above a Go with conditions verdict](screenshots/what-if.png)
+
+Page 1 of the PDF export.
+
+![PDF page 1: verdict, trifecta summary, what was assessed, blockers](screenshots/pdf-page-1.png)
+
 ## Design choices
 
 - **Deterministic.** The verdict, threats, and path come from rules in data files. The same inputs always give the same answer, and every finding shows the inputs that triggered it.
