@@ -211,6 +211,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
       <section className="card">
         <h2>Threat register</h2>
         <p className="muted">Click a threat to see what triggered it and how it maps to OWASP, MITRE ATLAS, and NIST AI RMF.</p>
+        <p className="muted small">Threat IDs (T-…) are this tool's own labels, used to cross-reference blockers, gaps, and the CSV. The standard references are the OWASP and MITRE ATLAS IDs.</p>
         {result.threats.length === 0 && <p className="muted">No threats triggered by this design.</p>}
         {result.threats.map((th) => {
           const reg = register.find((r) => r.id === th.id);
@@ -218,7 +219,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
             <div key={th.id} className={`threat ${open === th.id ? 'open' : ''}`}>
               <button className="threat-head" onClick={() => setOpen(open === th.id ? null : th.id)} aria-expanded={open === th.id}>
                 <Badge level={th.priority} />
-                <span className="grow">{th.title}</span>
+                <span className="grow">{th.title} <span className="tid">{th.id}</span></span>
                 <span className="muted small">inherent {['', 'Low', 'Medium', 'High', 'Critical'][th.severity]}</span>
               </button>
               {open === th.id && (
@@ -245,7 +246,11 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                 <td><strong>{g.control.title}</strong><br /><span className="muted small">{g.control.description}</span></td>
                 <td><Badge level={g.priority} /></td>
                 <td>{g.control.timeline}</td>
-                <td className="mono small">{g.threats.join(', ')}</td>
+                <td className="small">
+                  {g.threats.map((id) => (
+                    <div key={id}>{result.threats.find((t) => t.id === id)?.title ?? id} <span className="tid">{id}</span></div>
+                  ))}
+                </td>
               </tr>
             ))}
           </tbody>

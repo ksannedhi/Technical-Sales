@@ -89,6 +89,22 @@ An egress allowlist (which covers DNS) or restricting tools after untrusted cont
 
 `blast_radius = action_severity × autonomy_factor × data_sensitivity`, each on a 1–4 scale, normalised to 0–100. It shows the worst case if the agent is fully compromised, before controls are counted.
 
+### Threat IDs
+
+Threat IDs follow `T-<category>-<number>` and are **this tool's own labels**, not a standard. They cross-reference a threat across blockers, the control gap table, and the CSV. The standard references carried on every threat are OWASP Top 10 for LLM Applications (LLM01–LLM10), OWASP Top 10 for Agentic Applications (ASI01–ASI10), and MITRE ATLAS technique IDs; those are the ones to quote to a regulator or auditor. The report says so under the risk register.
+
+| Prefix | Category | Prefix | Category |
+|---|---|---|---|
+| INJ | Prompt injection | MEM | Memory poisoning |
+| EXF | Data exfiltration | RAG | Knowledge-base poisoning |
+| LEAK | Data shown to the wrong user | SPL | System prompt leakage |
+| PRV | Privilege abuse | DOS | Runaway cost / denial of service |
+| AGY | Excessive agency | MIS | Wrong answers acted on |
+| CRD | Credential harvesting | TRU | Approval fatigue / misplaced trust |
+| SUP | Supply chain (tools, models) | A2A | Agent-to-agent communication |
+| RCE | Unexpected code execution | ROG | Agent drifting out of scope |
+| OUT | Unsafe output handling | | |
+
 ### Threat derivation
 
 Stored in `threats.json`. Each threat has a `when` clause over the architecture inputs, an inherent severity, framework mappings, and the controls that mitigate it. For example:

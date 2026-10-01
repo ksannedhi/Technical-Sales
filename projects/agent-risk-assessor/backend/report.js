@@ -88,6 +88,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     .contents { margin: 4mm 0 2mm; padding: 2mm 3mm; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 2mm; font-size: 9pt; }
     .contents a { color: #1d4ed8; text-decoration: none; } a { color: #1d4ed8; }
     .small { font-size: 8.5pt; } .newpage { page-break-before: always; }
+    .tid { font-family: Consolas, monospace; font-size: 7.5pt; color: #64748b; white-space: nowrap; }
     .whatif { border: 1.2mm solid #7c3aed; background: #f5f3ff; padding: 3mm 4mm; margin: 3mm 0; border-radius: 2mm; }
     .whatif ul { margin: 1.5mm 0; padding-left: 6mm; }
     .brief { line-height: 1.5; } .brief li { margin-bottom: 1.5mm; } .brief ul, .brief ol { margin: 0; padding-left: 6mm; }
@@ -135,8 +136,9 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     ${result.pendingInstruments.length ? `<p class="muted">Not assessed (not yet verified): ${list(result.pendingInstruments.map((p) => p.instrument))}</p>` : ''}
 
     <h2 id="register">Risk register</h2>
+    <p class="muted small">Threat IDs (T-…) are this tool's own labels, used to cross-reference blockers, gaps, and the CSV. The standard references are the OWASP and MITRE ATLAS IDs.</p>
     <table><tr><th>Risk</th><th>Inherent</th><th>Residual</th><th>Treatment</th><th>OWASP</th><th>ATLAS</th><th>NIST AI RMF</th></tr>
-    ${register.map((r) => `<tr><td><strong>${esc(r.risk)}</strong><br><span class="muted">${esc(r.description)}</span></td>
+    ${register.map((r) => `<tr><td><strong>${esc(r.risk)}</strong> <span class="tid">${esc(r.id)}</span><br><span class="muted">${esc(r.description)}</span></td>
       <td>${badge(r.inherent)}</td><td>${badge(r.residual)}</td><td>${r.treatment.length ? r.treatment.map(esc).join('<br>') : 'Controls in place'}</td>
       <td>${list([...r.owaspLlm, ...r.owaspAgentic])}</td><td>${list(r.atlas)}</td><td>${list(r.aiRmf)}</td></tr>`).join('')}
     </table>
@@ -144,7 +146,8 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     <h2 id="gaps">Control gaps</h2>
     <table><tr><th>Control</th><th>Priority</th><th>Timeline</th><th>Reduces</th></tr>
     ${result.gaps.map((g) => `<tr><td><strong>${esc(g.control.title)}</strong><br><span class="muted">${esc(g.control.description)}</span></td>
-      <td>${badge(g.priority)}</td><td>${esc(g.control.timeline)}</td><td>${list(g.threats)}</td></tr>`).join('')}
+      <td>${badge(g.priority)}</td><td>${esc(g.control.timeline)}</td>
+      <td>${g.threats.map((id) => `${esc(result.threats.find((t) => t.id === id)?.title ?? id)} <span class="tid">${esc(id)}</span>`).join('<br>')}</td></tr>`).join('')}
     </table>
 
     ${designHtml}

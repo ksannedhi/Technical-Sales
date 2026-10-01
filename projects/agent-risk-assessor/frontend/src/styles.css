@@ -98,3 +98,5 @@ th { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
 .s-gap { background: var(--crit); } .s-partial { background: var(--med); } .s-addressed { background: var(--low); }
 
 .carried { margin: 0 0 4px; color: var(--muted); font-style: italic; }
+
+.tid { font-family: Consolas, monospace; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
