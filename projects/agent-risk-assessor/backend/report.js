@@ -79,7 +79,8 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     .kpi { border: 1px solid #cbd5e1; border-radius: 2mm; padding: 2mm 4mm; flex: 1; display: flex; flex-direction: column; gap: 1mm; }
     .kpi b { display: block; font-size: 13pt; } .kpi.wide { flex: 1.6; } .kpi.alarm { border-color: #b91c1c; border-left-width: 1.2mm; }
     .legs { display: flex; flex-wrap: wrap; gap: 1mm; } .leg { font-size: 7.5pt; border: 1px solid #cbd5e1; color: #64748b; border-radius: 3mm; padding: 0.3mm 2mm; }
-    .leg.on { border-color: #b91c1c; color: #b91c1c; background: #fef2f2; } .counts { font-size: 9pt; } .trifecta-def { margin: 0 0 3mm; }
+    .leg.on { border-color: #b91c1c; color: #b91c1c; background: #fef2f2; } .counts { display: grid; grid-template-columns: auto auto; gap: 1.5mm 5mm; justify-content: start; margin-top: 1mm; }
+    .cnt { display: flex; align-items: center; gap: 1.5mm; } .cnt .badge { min-width: 13mm; text-align: center; } .cnt b { font-size: 10pt; } .trifecta-def { margin: 0 0 3mm; }
     table { width: 100%; border-collapse: collapse; margin: 2mm 0; font-size: 9pt; page-break-inside: auto; }
     tr { page-break-inside: avoid; } th, td { border: 1px solid #e2e8f0; padding: 1.5mm 2mm; text-align: left; vertical-align: top; }
     th { background: #f1f5f9; } .badge { color: #fff; border-radius: 1mm; padding: 0.3mm 1.5mm; font-size: 8pt; white-space: nowrap; }
@@ -113,7 +114,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
         <span class="legs">${[['privateData', 'Private data'], ['untrustedContent', 'Untrusted content'], ['externalChannel', 'Outbound channel']]
           .map(([k, l]) => `<span class="leg${t.legs[k] ? ' on' : ''}">${l}${t.legs[k] ? '' : ' (absent)'}</span>`).join('')}</span></div>
       <div class="kpi"><span class="muted">Threats by residual risk</span>
-        <span class="counts">${['Critical', 'High', 'Medium', 'Low'].map((p) => `${badge(p)} ${count(p)}`).join(' &nbsp;')}</span></div>
+        <span class="counts">${['Critical', 'High', 'Medium', 'Low'].map((p) => `<span class="cnt">${badge(p)}<b>${count(p)}</b></span>`).join('')}</span></div>
     </div>
     <p class="muted small trifecta-def">${esc(t.definition)} ${esc(t.reference)}</p>
     ${summaryHtml}
