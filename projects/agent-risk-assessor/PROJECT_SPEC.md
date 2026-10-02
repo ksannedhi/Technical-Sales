@@ -197,6 +197,7 @@ A fully autonomous agent that can take a high-impact action (write records, send
 1. **Page 1** — verdict, blast radius, trifecta status, a "What was assessed" summary (jurisdictions, hosting, inference countries, data classification, actions, users, oversight, controls in place by name), and a linked contents strip
 2. **Blockers and go-live conditions**
 3. **Path to Go** — architecture changes, controls, and approvals per target verdict
+   **Current vs target** — the actual design beside the design once the Path to Go is complete (verdict, blast radius, trifecta, threat counts, control gaps, and each threat whose residual risk changes), labelled as a projection; not included in what-if exports
 4. **Risk committee brief** (Claude) — plain-language summary a non-technical committee can sign against
 5. **Residency findings** — per jurisdiction, with clause citations; unverified instruments listed as not assessed
 6. **Risk register** — threat, inherent → residual, treatment, OWASP / ASI / ATLAS / NIST AI RMF; also exported as CSV

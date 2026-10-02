@@ -17,6 +17,15 @@ AI RMF subcategory text in `ai-rmf.json` is copied from NIST AI 100-1 (a US Gove
 
 ATLAS IDs are mapped only where the technique's own description matches the threat. Threats with no clean match carry an empty `atlas` list rather than a loose one.
 
+## Lethal trifecta
+
+| Source | Date | What it says |
+|---|---|---|
+| Simon Willison, "The lethal trifecta for AI agents" (simonwillison.net/2025/Jun/16/the-lethal-trifecta) | 16 June 2025 | Private data + untrusted content + the ability to externally communicate. The trifecta check uses exactly these three. |
+| Meta, "Agents Rule of Two" (ai.meta.com/blog/practical-ai-agent-security) | 31 October 2025 | An agent should have no more than two of: [A] process untrustworthy inputs, [B] access sensitive systems or private data, [C] change state or communicate externally. |
+
+[C] is broader than Willison's third leg: it includes changing state, not only sending data out. The trifecta check keeps Willison's narrower leg because its status reads "data can leak". The wider [A]+[C] case is assessed as T-INJ-02, which fires on untrusted content plus any high-impact action (including writes, deletes, payments, and permission changes) with or without private data. Checked October 2026; an earlier version wrongly said Meta "states the same rule".
+
 ## Residency and governance
 
 `verified` values in `residency.json`:

@@ -201,7 +201,7 @@ export const TRIFECTA_TEXT = {
     Blocked: 'All three are present, but a control blocks the path from untrusted content to sending data out.',
     'Not present': 'The agent lacks at least one of the three, so this leak path does not exist.',
   },
-  reference: "Term coined by Simon Willison (2025); Meta's “Agents Rule of Two” states the same rule. Maps to OWASP LLM01, LLM02, ASI01 and MITRE ATLAS AML.T0086.",
+  reference: "Term coined by Simon Willison (June 2025). Meta's “Agents Rule of Two” (October 2025) is broader: its third property also counts any change of state, which this tool assesses separately as injected instructions driving the agent's actions. Maps to OWASP LLM01, LLM02, ASI01 and MITRE ATLAS AML.T0086.",
 };
 
 // Bands on the product of the three 1–4 scales (max 64). This tool's judgement: Low when no factor is
@@ -390,6 +390,25 @@ export function pathToGo(answers, controlsGiven = []) {
     return { current, architecture, approvals, steps: [{ ...go, controls: go.controls.map((c) => ({ ...c, fromPrevious: false })) }] };
   }
   return { current, architecture, approvals, steps };
+}
+
+// The design once the furthest reachable Path-to-Go step is done: architecture fixes and derived-control
+// answer changes applied, the step's controls in place, and that step's approvals treated as granted.
+// A projection for the "Current vs target" comparison, never a second verdict on the actual design.
+export function pathTarget(answers, controlsGiven = [], path = pathToGo(answers, controlsGiven)) {
+  const step = [...path.steps].reverse().find((s) => s.reachable && s.controls);
+  if (!step) return null;
+  const controls = [...new Set([...effectiveControls(answers, controlsGiven), ...step.controls.map((c) => c.id)])];
+  const fixed = Object.assign({ ...answers }, ...path.architecture.map((a) => a.fix ?? {}));
+  const design = applyDerivedFixes(fixed, controls);
+  const approvals = step.approvals ?? [];
+  return {
+    label: step.label,
+    answers: design,
+    controls,
+    approvals,
+    result: assess(design, controls, { waiveResidency: approvals.map((a) => a.id) }),
+  };
 }
 
 function exactSearch(pool, ok) {

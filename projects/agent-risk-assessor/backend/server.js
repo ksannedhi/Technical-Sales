@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  assess, pathToGo, riskRegister, rmfCoverage,
+  assess, pathToGo, pathTarget, riskRegister, rmfCoverage,
   inputs, controlsData, scenariosData, aiRmf,
 } from './engine.js';
 import { writeBrief, narrativeEnabled, briefStats } from './narrative.js';
@@ -36,9 +36,11 @@ function run(body) {
   // not-applicable ones are dropped); exports list only those.
   const result = assess(answers, ticked);
   const controls = result.controlsInPlace;
+  const path = pathToGo(answers, ticked);
   return {
-    answers, controls, result, whatIf,
-    path: pathToGo(answers, ticked),
+    answers, controls, result, whatIf, path,
+    // A what-if export already is a target, so it gets no second comparison.
+    target: whatIf ? null : pathTarget(answers, ticked, path),
     register: riskRegister(answers, controls, result),
     coverage: rmfCoverage(result),
   };

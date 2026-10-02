@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node --env-file-if-exists=../.env server.js",
     "dev": "node --env-file-if-exists=../.env --watch server.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "test:ui": "node --test --test-concurrency=1 test/ui/*.test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

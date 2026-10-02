@@ -84,10 +84,13 @@ npm run dev                     # http://localhost:5181
 ## Tests
 
 ```bash
-cd backend && npm test
+cd backend && npm test          # engine rules
+cd backend && npm run test:ui   # browser tests (about 45 s)
 ```
 
-The suite checks that every rule references real fields, options, and controls; that every mapping ID is well-formed and every AI RMF reference exists; that each preset gives its expected verdict; that guardrails alone never break the trifecta; and that applying a suggested path to Go actually lifts the verdict.
+The engine suite checks that every rule references real fields, options, and controls; that every mapping ID is well-formed and every AI RMF reference exists; that each preset gives its expected verdict; that guardrails alone never break the trifecta; and that applying a suggested path to Go actually lifts the verdict.
+
+The browser tests build the frontend, run a separate backend with no API key, and drive it in the installed Chrome: the presets, what-if isolation, brief reuse, read-only and not-applicable controls, contradiction warnings, phone-width layout, and PDF export. No Claude call is made.
 
 ## Environment
 

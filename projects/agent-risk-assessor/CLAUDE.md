@@ -16,6 +16,10 @@ cd frontend && npm install && npm run dev
 
 # Engine tests — must pass before any data-file change is committed
 cd backend && npm test
+
+# Browser tests (about 45 s): builds the frontend, starts a second backend on :3099 with no API key,
+# drives it with Puppeteer + installed Chrome, removes the build afterwards. Run before UI changes ship.
+cd backend && npm run test:ui
 ```
 Or double-click `Launch Agent Risk Assessor.cmd`. `.env` lives at the project root and is optional (`--env-file-if-exists`); without `ANTHROPIC_API_KEY` only the brief is disabled.
 
@@ -76,6 +80,8 @@ Add it to the data file, then run `npm test` — the suite checks every field, o
 ## Claude call
 - Model defaults to `claude-opus-5-5` ($4 / $20 per MTok), overridable with `CLAUDE_MODEL`. Effort is set explicitly to `medium`; thinking can't be disabled on this model, and its tokens bill as output. A bank-preset brief measured 2,065 in / 605 out, about $0.02. [model-behavior · 2026-10]
 - **Every brief is a paid call, so it is never repeated for the same input.** `writeBrief` caches by a hash of model + prompt and merges concurrent requests; the frontend also remembers briefs per design for the tab; a what-if gets a brief only when the user clicks for one. The backend logs tokens and approximate cost per call (`PRICES` in `narrative.js`), and `GET /api/brief/stats` returns the running totals. A 2026-10 audit found 6 calls for 2 distinct designs in one ordinary session before this.
+- **Current vs target** (PDF): `pathTarget()` applies the furthest reachable Path-to-Go step (architecture fixes, derived-control answer changes, its controls, its approvals treated as granted) and the report compares it with the actual design. It is labelled a projection, and what-if exports don't get one.
+- **Browser tests must fail when the behaviour breaks.** When adding one, break the feature it covers once and confirm the test goes red; an early scroll test passed vacuously because the page was never scrolled.
 - **Automated UI runs must stub `/api/brief`** (Puppeteer `setRequestInterception`, respond with a fixed brief). Screenshot and UI-check scripts opening Results otherwise pay for a brief on every run.
 - Uses the beta server-side fallback (`fallbacks: "default"`, header `server-side-fallback-2026-07-01`) because security content can trip safety classifiers; `stop_reason: "refusal"` still returns `null` and the UI says the brief couldn't be generated. [model-behavior · 2026-10]
 - `max_tokens: 16000` is set explicitly; the SDK requires it. [model-behavior · 2026-10]

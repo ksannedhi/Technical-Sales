@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assess, evaluate, deriveFlags, pathToGo, effectiveControls, applyDerivedFixes, normaliseAnswers, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
+import { assess, evaluate, deriveFlags, pathToGo, pathTarget, effectiveControls, applyDerivedFixes, normaliseAnswers, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
 
 const inputIds = new Set(inputs.sections.flatMap((s) => s.inputs).map((i) => i.id));
 const optionValues = Object.fromEntries(
@@ -249,6 +249,18 @@ test('a missing derived control is recommended as an architecture change everywh
 test('the data lever reads as a limit, not a double negative', () => {
   const lever = assess({ ...tracker, dataTypes: ['none'], dataSources: ['crm'] }, []).blastRadius.lever;
   assert.equal(lever.change, 'limit the data it can reach to "Level 1 — Public" or lower');
+});
+
+test('current vs target: the target is the furthest reachable path step, applied', () => {
+  const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
+  const t = pathTarget(bank.answers, bank.controls);
+  assert.equal(t.label, 'Go');
+  assert.equal(t.result.verdict.decision, 'go');
+  assert.ok(t.result.trifecta.broken, 'the data-leak path is blocked in the target');
+  assert.deepEqual(t.answers.hostingCountry, ['KW'], 'architecture fix applied');
+  assert.deepEqual(t.answers.identity, ['per_user'], 'derived-control fix applied');
+  const hr = scenariosData.scenarios.find((s) => s.id === 'hr-policy');
+  assert.equal(pathTarget(hr.answers, hr.controls), null, 'nothing to project for a Go design');
 });
 
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {

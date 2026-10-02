@@ -7,6 +7,7 @@ const STATUS_COLORS = { Gap: '#b91c1c', Partial: '#a16207', Addressed: '#15803d'
 const VERDICT_COLORS = { not_yet: '#b91c1c', go_with_conditions: '#c2410c', go: '#15803d' };
 // Blast-radius bands reuse the risk colours.
 const BAND_LEVEL = { Low: 'Low', Moderate: 'Medium', High: 'High', Severe: 'Critical' };
+const badgeVerdict = (v) => `<span class="badge" style="background:${VERDICT_COLORS[v.decision]}">${esc(v.label)}</span>`;
 const badge = (level) => `<span class="badge" style="background:${COLORS[level] ?? '#475569'}">${esc(level)}</span>`;
 const list = (items) => (items?.length ? items.map(esc).join(', ') : '—');
 
@@ -15,7 +16,7 @@ const SHORT = {
   dataSensitivity: 'Highest data classification', actions: 'Agent can', users: 'Used by', autonomy: 'Human oversight',
 };
 
-export function buildReportHtml({ profile = {}, controls = [], result, path, register, brief, aiRmf, inputs, controlsData, coverage = [], whatIf = null }) {
+export function buildReportHtml({ profile = {}, controls = [], result, path, register, brief, aiRmf, inputs, controlsData, coverage = [], whatIf = null, target = null }) {
   const v = result.verdict;
   const date = new Date().toISOString().slice(0, 10);
   const t = result.trifecta;
@@ -54,6 +55,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
   const sections = [
     ['verdict', 'Verdict'],
     ...(path?.steps?.length ? [['path', 'Path to Go']] : []),
+    ...(target ? [['target', 'Current vs target']] : []),
     ...(brief?.decision ? [['brief', 'Brief']] : []),
     ['findings', 'Regulatory findings'], ['register', 'Risk register'], ['gaps', 'Control gaps'],
     ...(inputs ? [['appendix-design', 'Appendix A: Design']] : []), ['appendix-rmf', 'Appendix B: AI RMF coverage'],
@@ -72,6 +74,27 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
         <td>${s.approvals?.length ? s.approvals.map((a) => esc(a.action)).join('<br>') : '—'}</td></tr>`).join('')}
       </table>`
     : '';
+
+  // Current vs target: what the Path to Go buys, side by side. The target is a projection of the
+  // design with the path applied (pathTarget in the engine), labelled so it can't pass as the actual state.
+  const trow = (label, now, then) => `<tr><td>${label}</td><td>${now}</td><td>${then}</td></tr>`;
+  const counts = (r) => ['Critical', 'High', 'Medium', 'Low'].map((p) => `${p} ${r.threats.filter((t) => t.priority === p).length}`).join(' · ');
+  const blast = (r) => `${r.blastRadius.score}/100 ${esc(r.blastRadius.band)}`;
+  const tr = target?.result;
+  const moved = tr ? result.threats.map((t) => ({ t, to: tr.threats.find((x) => x.id === t.id) }))
+    .filter(({ t, to }) => !to || to.priority !== t.priority) : [];
+  const targetHtml = tr ? `<h2 id="target">Current vs target</h2>
+    <p class="muted">Target: the design once the Path to Go is complete${target.label === 'Go' ? '' : ` as far as <strong>${esc(target.label)}</strong> (Go is not reachable with controls alone)`}${target.approvals.length ? ', with its approvals granted' : ''}. A projection, not an assessment of the actual design.</p>
+    <table><tr><th></th><th>Current</th><th>Target</th></tr>
+      ${trow('Verdict', badgeVerdict(result.verdict), badgeVerdict(tr.verdict))}
+      ${trow('Blast radius', blast(result), blast(tr))}
+      ${trow('Lethal trifecta', esc(result.trifecta.status), esc(tr.trifecta.status))}
+      ${trow('Threats by residual risk', counts(result), counts(tr))}
+      ${trow('Control gaps', String(result.gaps.length), String(tr.gaps.length))}
+    </table>
+    ${moved.length ? `<table><tr><th>Threat</th><th>Current</th><th>Target</th></tr>
+      ${moved.map(({ t, to }) => trow(`${esc(t.title)} <span class="tid">${esc(t.id)}</span>`, badge(t.priority), to ? badge(to.priority) : 'No longer applies')).join('')}
+    </table>` : ''}` : '';
 
   // Chrome writes <title> into the PDF's Title metadata, which viewers show in the tab.
   // Without it the title is "about:blank".
@@ -129,6 +152,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     ${v.blockers.length ? `<h2>Blockers</h2><ul>${v.blockers.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
     ${v.conditions.length ? `<h2>Go-live conditions</h2><ul>${v.conditions.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>` : ''}
     ${pathHtml}
+    ${targetHtml}
 
     ${brief?.decision ? `<h2 id="brief">Risk committee brief</h2><div class="brief">
       <p class="brief-decision">${esc(brief.decision)}</p>
