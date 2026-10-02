@@ -61,13 +61,15 @@ export default function App() {
   // Applies a Path-to-Go step to the current view (actual, or an existing what-if) as a new what-if.
   const applyPath = (pathStep, architecture) => {
     const base = whatIf ?? { answers, controls, changes: [] };
+    // A control derived from an Architecture answer (c.fix) changes that answer instead.
     const changes = [
       ...base.changes,
       ...architecture.map((a) => a.change),
-      ...pathStep.controls.filter((c) => !base.controls.includes(c.id)).map((c) => `Control in place: ${c.title}`),
+      ...pathStep.controls.filter((c) => !base.controls.includes(c.id))
+        .map((c) => (c.fix ? c.change : `Control in place: ${c.title}`)),
     ];
     setWhatIf({
-      answers: Object.assign({ ...base.answers }, ...architecture.map((a) => a.fix ?? {})),
+      answers: Object.assign({ ...base.answers }, ...architecture.map((a) => a.fix ?? {}), ...pathStep.controls.map((c) => c.fix ?? {})),
       controls: [...new Set([...base.controls, ...pathStep.controls.map((c) => c.id)])],
       changes: [...new Set(changes)],
     });
@@ -127,7 +129,7 @@ export default function App() {
 
       {step === 2 && (
         <>
-          <ControlsStep data={meta.controlsData} value={controls} onChange={setActualControls} />
+          <ControlsStep data={meta.controlsData} value={controls} onChange={setActualControls} answers={answers} />
           <Footer missing={0} onBack={() => goStep(1)} onNext={() => goStep(3)} nextLabel="Assess" />
         </>
       )}

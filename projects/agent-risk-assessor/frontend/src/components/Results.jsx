@@ -158,7 +158,9 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                       return (
                         <>
                           {carried > 0 && <p className="small carried">1–{carried}: everything under Go with conditions, plus:</p>}
-                          <ol start={carried + 1}>{added.map((c) => <li key={c.id}>{c.title} <span className="muted small">({c.timeline} term)</span></li>)}</ol>
+                          <ol start={carried + 1}>{added.map((c) => (
+                            <li key={c.id}>{c.change ?? c.title} <span className="muted small">({c.change ? 'architecture change' : `${c.timeline} term`})</span></li>
+                          ))}</ol>
                         </>
                       );
                     })()}

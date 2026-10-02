@@ -61,7 +61,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
         <td>${!s.controls ? 'Not reachable with controls alone'
           : !s.controls.length ? 'No new controls needed'
           : (s.controls.some((c) => c.fromPrevious) ? '<em>Everything under Go with conditions, plus:</em><br>' : '')
-            + s.controls.filter((c) => !c.fromPrevious).map((c) => esc(c.title)).join('<br>')}</td>
+            + s.controls.filter((c) => !c.fromPrevious).map((c) => c.change ? `${esc(c.change)} <span class="muted">(architecture change)</span>` : esc(c.title)).join('<br>')}</td>
         <td>${s.approvals?.length ? s.approvals.map((a) => esc(a.action)).join('<br>') : '—'}</td></tr>`).join('')}
       </table>`
     : '';

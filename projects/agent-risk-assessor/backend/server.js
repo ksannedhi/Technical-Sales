@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  assess, pathToGo, riskRegister, rmfCoverage,
+  assess, pathToGo, riskRegister, rmfCoverage, effectiveControls,
   inputs, controlsData, scenariosData, aiRmf,
 } from './engine.js';
 import { writeBrief, narrativeEnabled } from './narrative.js';
@@ -28,7 +28,8 @@ app.get('/api/scenarios', (_req, res) => res.json(scenariosData));
 function run(body) {
   const answers = body?.answers;
   if (!answers || typeof answers !== 'object') return null;
-  const controls = Array.isArray(body.controls) ? body.controls : [];
+  // Controls that restate an Architecture answer follow that answer, whatever the checkbox says.
+  const controls = effectiveControls(answers, Array.isArray(body.controls) ? body.controls : []);
   // A what-if is the design with Path-to-Go changes applied. Exports must say so, because its
   // "controls in place" are assumptions, not the organisation's actual state.
   const whatIf = Array.isArray(body.whatIf) && body.whatIf.length ? body.whatIf.map(String) : null;

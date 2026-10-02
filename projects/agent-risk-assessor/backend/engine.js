@@ -29,6 +29,26 @@ export const PRIORITY = { 4: 'Critical', 3: 'High', 2: 'Medium', 1: 'Low' };
 const asList = (v) => (Array.isArray(v) ? v : v == null || v === '' ? [] : [v]);
 const intersects = (a, b) => asList(a).some((x) => b.includes(x));
 
+// Some controls restate an Architecture answer (a control with `setBy`). Their state comes only
+// from that answer, never from the checkbox, so the two can't contradict each other: "act with the
+// requesting user's permissions" is in place only when every identity the agent uses is per-user.
+const DERIVED = controlsData.controls.filter((c) => c.setBy);
+const derivedHolds = (c, a) => {
+  const v = asList(a[c.setBy.field]);
+  return v.length > 0 && v.every((x) => c.setBy.only.includes(x));
+};
+export function effectiveControls(answers, controls = []) {
+  const a = answers ?? {};
+  const kept = controls.filter((id) => !DERIVED.some((c) => c.id === id));
+  return [...kept, ...DERIVED.filter((c) => derivedHolds(c, a)).map((c) => c.id)];
+}
+// Adding a derived control in a Path-to-Go combo means changing the answer it is derived from.
+export function applyDerivedFixes(answers, controls = []) {
+  const out = { ...answers };
+  for (const c of DERIVED) if (controls.includes(c.id)) out[c.setBy.field] = [...c.setBy.only];
+  return out;
+}
+
 // Highest scale among the selected values, so a multi-select answer scores as its worst case.
 function scaleOf(fieldId, value) {
   const opts = inputIndex[fieldId]?.options ?? [];
@@ -150,7 +170,8 @@ function blastRadius(a) {
 // for approval-type findings that no control can close).
 export function assess(answers, controlsInPlace = [], opts = {}) {
   const a = answers ?? {};
-  const inPlace = new Set(controlsInPlace);
+  const effective = effectiveControls(a, controlsInPlace);
+  const inPlace = new Set(effective);
   const has = (id) => inPlace.has(id);
   const flags = deriveFlags(a);
 
@@ -200,7 +221,7 @@ export function assess(answers, controlsInPlace = [], opts = {}) {
 
   return {
     verdict, trifecta, blastRadius: blastRadius(a), flags,
-    threats, gaps, residency,
+    threats, gaps, residency, controlsInPlace: effective,
     pendingInstruments: residencyData.pending.filter(
       (p) => p.jurisdiction === '*' || asList(a.jurisdictions).includes(p.jurisdiction)
     ),
@@ -212,7 +233,8 @@ const EXACT_SEARCH_SIZE = 4;
 
 // Fewest missing controls that lift the verdict one level, and a path to Go.
 // Exact search over small combinations first; a greedy search takes over for longer paths.
-export function pathToGo(answers, controlsInPlace = []) {
+export function pathToGo(answers, controlsGiven = []) {
+  const controlsInPlace = effectiveControls(answers, controlsGiven);
   const base = assess(answers, controlsInPlace);
   const current = base.verdict.decision;
   if (current === 'go') return { current, architecture: [], approvals: [], steps: [] };
@@ -243,9 +265,15 @@ export function pathToGo(answers, controlsInPlace = []) {
   for (const t of assess(design, controlsInPlace).threats) t.controlsMissing.forEach((c) => candidates.add(c));
   const pool = [...candidates].filter((c) => !controlsInPlace.includes(c));
 
-  const reaches = (base, combo, target) =>
-    RANK[assess(design, [...base, ...combo], { waiveResidency: waiveFor[target] }).verdict.decision] >= RANK[target];
-  const describe = (id, fromPrevious) => ({ id, title: controlIndex[id].title, timeline: controlIndex[id].timeline, fromPrevious });
+  const reaches = (base, combo, target) => {
+    const all = [...base, ...combo];
+    return RANK[assess(applyDerivedFixes(design, all), all, { waiveResidency: waiveFor[target] }).verdict.decision] >= RANK[target];
+  };
+  // A derived control is reached by changing its Architecture answer, so it carries that change.
+  const describe = (id, fromPrevious) => ({
+    id, title: controlIndex[id].title, timeline: controlIndex[id].timeline, fromPrevious,
+    ...(controlIndex[id].setBy && { change: controlIndex[id].setBy.change, fix: applyDerivedFixes({}, [id]) }),
+  });
 
   // The steps are cumulative: the Go route starts from the Go-with-conditions route and adds to it,
   // so the plan reads as stage 1 then stage 2 rather than two unrelated control sets.
@@ -280,7 +308,8 @@ function exactSearch(pool, ok) {
 // Add whichever control most improves the result, then drop any that turn out redundant.
 function greedySearch(pool, design, inPlace, waive, ok) {
   const score = (combo) => {
-    const r = assess(design, [...inPlace, ...combo], { waiveResidency: waive });
+    const all = [...inPlace, ...combo];
+    const r = assess(applyDerivedFixes(design, all), all, { waiveResidency: waive });
     const residual = r.threats.reduce((n, t) => n + t.residual, 0);
     return RANK[r.verdict.decision] * 1000 - residual + (r.trifecta.present && !r.trifecta.broken ? -500 : 0);
   };

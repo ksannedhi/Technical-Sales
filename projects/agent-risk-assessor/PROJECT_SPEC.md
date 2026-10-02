@@ -45,7 +45,7 @@ Step 2: Architecture (11 questions across 5 sections)
   → Autonomy          — suggest / approve each / approve high-risk / autonomous; whose permissions; multi-agent
   → Supply chain      — vendor model, open weights, third-party MCP, community plugins, external RAG; memory
 
-Step 3: Controls in place (21 controls in 6 groups; audit logging marked as required for Go)
+Step 3: Controls in place (21 controls in 6 groups; audit logging marked as required for Go). "Act with the requesting user's permissions" is read-only here: it is in place only when every identity answered in step 2 is the requesting user's own, and Path to Go offers it as an architecture change, so the two answers can never contradict each other.
 
 Step 4: Results
   → verdict, blast radius, lethal trifecta check, threats by residual risk

@@ -119,6 +119,11 @@
       "title": "Act with the requesting user's permissions",
       "description": "The agent acts with the permissions of the person asking, so it can never see or do more than they could themselves.",
       "timeline": "medium",
+      "setBy": {
+        "field": "identity",
+        "only": ["per_user"],
+        "change": "Switch every tool to the requesting user's own delegated permissions"
+      },
       "atlas": [
         "AML.M0027"
       ],

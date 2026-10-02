@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assess, evaluate, deriveFlags, pathToGo, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
+import { assess, evaluate, deriveFlags, pathToGo, effectiveControls, applyDerivedFixes, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
 
 const inputIds = new Set(inputs.sections.flatMap((s) => s.inputs).map((i) => i.id));
 const optionValues = Object.fromEntries(
@@ -94,6 +94,31 @@ test('every multi-select offers None, and None triggers nothing', () => {
   }
 });
 
+test('per-user permissions follow the identity answer, never the checkbox', () => {
+  const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
+  const shared = bank.answers; // one shared service account
+  // Ticking the control on a shared account must not lower any threat.
+  const unticked = assess(shared, bank.controls);
+  const ticked = assess(shared, [...bank.controls, 'per_user_identity']);
+  assert.deepEqual(ticked.threats.map((t) => [t.id, t.residual]), unticked.threats.map((t) => [t.id, t.residual]));
+  assert.ok(!ticked.controlsInPlace.includes('per_user_identity'));
+  // Answering per-user on Architecture puts it in place without the checkbox, and it is no gap.
+  const perUser = assess({ ...shared, identity: ['per_user'] }, bank.controls);
+  assert.ok(perUser.controlsInPlace.includes('per_user_identity'));
+  assert.ok(!perUser.gaps.some((g) => g.control.id === 'per_user_identity'));
+  // Mixed identities score as the worst case: not in place.
+  assert.ok(!effectiveControls({ identity: ['per_user', 'shared_service'] }, ['per_user_identity']).includes('per_user_identity'));
+});
+
+test('path to Go offers per-user permissions as an architecture change', () => {
+  const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
+  const p = pathToGo(bank.answers, bank.controls);
+  const step = p.steps.flatMap((s) => s.controls ?? []).find((c) => c.id === 'per_user_identity');
+  assert.ok(step, 'bank path should include per-user permissions');
+  assert.deepEqual(step.fix, { identity: ['per_user'] });
+  assert.ok(step.change);
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));
@@ -119,7 +144,8 @@ test('path to Go: applying the suggested controls actually lifts the verdict', (
     for (const step of p.steps.filter((x) => x.reachable)) {
       const fixed = { ...s.answers };
       for (const a of p.architecture) Object.assign(fixed, residencyData.rules.find((r) => r.id === a.id).architectureFix);
-      const r = assess(fixed, [...s.controls, ...step.controls.map((c) => c.id)], { waiveResidency: step.approvals.map((a) => a.id) });
+      const all = [...s.controls, ...step.controls.map((c) => c.id)];
+      const r = assess(applyDerivedFixes(fixed, all), all, { waiveResidency: step.approvals.map((a) => a.id) });
       const rank = { not_yet: 0, go_with_conditions: 1, go: 2 };
       assert.ok(rank[r.verdict.decision] >= rank[step.target], `${s.id} -> ${step.target}`);
     }
