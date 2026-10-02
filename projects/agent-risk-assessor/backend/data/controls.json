@@ -16,7 +16,7 @@
     },
     {
       "id": "egress",
-      "label": "Output and egress"
+      "label": "Outputs and outbound data"
     },
     {
       "id": "supply",
@@ -73,7 +73,7 @@
     {
       "id": "content_provenance",
       "group": "input",
-      "title": "Provenance and write control for indexed content",
+      "title": "Approved sources only in the knowledge base",
       "description": "Only approved, known sources go into the knowledge base the agent searches (its RAG index). Adding or changing those documents is restricted, and every change is logged.",
       "timeline": "medium",
       "atlas": [
@@ -87,7 +87,7 @@
     {
       "id": "memory_hardening",
       "group": "input",
-      "title": "Memory hardening",
+      "title": "Safeguards on what the agent remembers",
       "description": "What the agent remembers between conversations is checked before it is saved, kept separate for each user, expires, and can be reviewed and deleted.",
       "timeline": "medium",
       "atlas": [
@@ -183,7 +183,7 @@
     {
       "id": "egress_restriction",
       "group": "egress",
-      "title": "Egress allowlist",
+      "title": "Outbound allowlist",
       "description": "The agent can contact only approved websites, services, and recipients. This also closes the less obvious ways data can leave: links, images, webhooks, email, and DNS lookups.",
       "timeline": "short",
       "atlas": [
@@ -197,7 +197,7 @@
     {
       "id": "output_handling",
       "group": "egress",
-      "title": "Treat model output as untrusted downstream",
+      "title": "Check model output before other systems use it",
       "description": "What the model produces is checked before it reaches a web page, database, or command line, so it cannot be used to attack those systems.",
       "timeline": "short",
       "atlas": [

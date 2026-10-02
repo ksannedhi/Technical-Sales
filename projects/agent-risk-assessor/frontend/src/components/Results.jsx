@@ -114,6 +114,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
           <span className="muted">Blast radius</span>
           <b>{result.blastRadius.score}<small>/100</small></b>
           <span className="muted small">actions {result.blastRadius.components.action} × autonomy {result.blastRadius.components.autonomy} × data {result.blastRadius.components.data}</span>
+          <span className="muted small">Worst case if the agent is compromised, before controls count.</span>
         </div>
         <div className={`card kpi ${t.present && !t.broken ? 'alarm' : ''}`}>
           <span className="muted">Lethal trifecta</span>
