@@ -154,6 +154,7 @@ export default function App() {
           narrative={meta.health.narrative} onApply={applyPath}
           onExitWhatIf={() => setWhatIf(null)} onEditControls={() => goStep(2)}
           controlTitles={Object.fromEntries(meta.controlsData.controls.map((c) => [c.id, c.title]))}
+          controlNotes={Object.fromEntries(meta.controlsData.controls.filter((c) => c.appliesNote).map((c) => [c.id, c.appliesNote]))}
         />
       )}
     </div>

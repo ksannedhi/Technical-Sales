@@ -51,7 +51,7 @@ function rememberBrief(key, brief) {
 
 const Badge = ({ level }) => <span className={`badge b-${String(level).toLowerCase()}`}>{level}</span>;
 
-export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls, controlTitles = {} }) {
+export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls, controlTitles = {}, controlNotes = {} }) {
   const controlTitle = (id) => controlTitles[id] ?? id;
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState(null);
@@ -312,7 +312,12 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
           </tbody>
         </table>
         {result.notApplicable?.length > 0 && (
-          <p className="muted small">Ticked but not applicable to this design, so not counted: {result.notApplicable.map((id) => controlTitle(id)).join('; ')}.</p>
+          <div className="muted small">
+            Ticked but not applicable to this design, so not counted:
+            <ul>{result.notApplicable.map((id) => (
+              <li key={id}>{controlTitle(id)}{controlNotes[id] ? ` — ${controlNotes[id]}` : ''}</li>
+            ))}</ul>
+          </div>
         )}
         <button className="action" onClick={onEditControls}>{whatIf ? 'Edit actual controls' : 'Change controls'} →</button>
         <span className="muted small"> Goes back to step 3 to update what is actually in place, then re-assesses.</span>
