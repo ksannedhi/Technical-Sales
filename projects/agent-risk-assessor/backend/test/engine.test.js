@@ -221,6 +221,36 @@ test('blast radius comes with a band and the single change that lowers it most',
   assert.ok(!personal.lever.change.includes('Level'), personal.lever.change);
 });
 
+// An appointment tracker as entered in a real assessment: reads a mailbox, but "no outsider content".
+const tracker = {
+  sector: 'other', jurisdictions: ['KW'], hosting: ['vendor_api'], hostingCountry: ['KW'], dataSensitivity: '2',
+  dataTypes: ['personal'], dataSources: ['crm', 'mailbox'], actions: ['read_only', 'internal_ticket', 'write_records', 'send_external'],
+  users: ['customers'], untrustedInputs: ['none'], autonomy: 'approve_high_risk', identity: ['scoped_tool'],
+  multiAgent: 'no', supplyChain: ['vendor_model'], memory: ['session'],
+};
+
+test('reading a mailbox counts as reading content outsiders wrote', () => {
+  const r = assess(tracker, ['egress_restriction', 'audit_logging']);
+  assert.ok(r.flags.untrustedContent);
+  assert.equal(r.trifecta.status.startsWith('Blocked'), true, r.trifecta.status);
+  assert.ok(r.adjustments.some((x) => x.includes('inbound email') && x.includes('Mailbox')), r.adjustments.join(' | '));
+  assert.ok(r.adjustments.some((x) => x.startsWith('Data scored as Level 3')));
+  assert.deepEqual(assess({ ...tracker, dataSources: ['crm'] }, []).adjustments.filter((x) => x.includes('Mailbox')), []);
+});
+
+test('a missing derived control is recommended as an architecture change everywhere', () => {
+  const r = assess(tracker, []);
+  const reg = riskRegister(tracker, [], r);
+  const leak = reg.find((x) => x.id === 'T-LEAK-01');
+  assert.ok(leak.treatment.includes("Switch every tool to the requesting user's own delegated permissions (architecture change)"), leak.treatment.join(' | '));
+  assert.ok(!leak.treatment.includes("Act with the requesting user's permissions"));
+});
+
+test('the data lever reads as a limit, not a double negative', () => {
+  const lever = assess({ ...tracker, dataTypes: ['none'], dataSources: ['crm'] }, []).blastRadius.lever;
+  assert.equal(lever.change, 'limit the data it can reach to "Level 1 — Public" or lower');
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));

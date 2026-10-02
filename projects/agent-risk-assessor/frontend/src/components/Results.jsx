@@ -150,7 +150,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
           {result.blastRadius.lever && (
             <span className="small">Biggest single reduction: {result.blastRadius.lever.change} ({result.blastRadius.score} → {result.blastRadius.lever.score}).</span>
           )}
-          {result.dataLevel && <span className="small">Scored as Level {result.dataLevel.used}, not the Level {result.dataLevel.stated} answered: the agent reaches {result.dataLevel.raisedBy.join(', ')} data.</span>}
+
         </div>
         <div className={`card kpi ${t.present && !t.broken ? 'alarm' : ''}`}>
           <span className="muted">Lethal trifecta</span>
@@ -173,6 +173,14 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
           <span className="counts">{counts.map(([p, n]) => <span key={p}><Badge level={p} /> {n}</span>)}</span>
         </div>
       </div>
+
+      {result.adjustments?.length > 0 && (
+        <section className="warn" role="note">
+          <strong>Some answers were adjusted for scoring</strong>, because they contradicted others:
+          <ul>{result.adjustments.map((x) => <li key={x}>{x}</li>)}</ul>
+          Correct the answers on the Architecture page if the adjustment is wrong for this design.
+        </section>
+      )}
 
       {path.steps.length > 0 && (
         <section className="card">
@@ -243,7 +251,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                 </ul>
               </div>
               <div>
-                <h3>Before go-live</h3>
+                <h3>{v.decision === 'go' ? 'Recommended before go-live' : 'Before go-live'}</h3>
                 <ol className="brief-actions">{brief.text.actions.map((a, i) => <li key={i}>{a}</li>)}</ol>
               </div>
             </div>
@@ -304,9 +312,9 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
           <tbody>
             {result.gaps.map((g) => (
               <tr key={g.control.id}>
-                <td><strong>{g.control.title}</strong><br /><span className="muted small">{g.control.description}</span></td>
+                <td><strong>{g.control.setBy ? g.control.setBy.change : g.control.title}</strong><br /><span className="muted small">{g.control.description}</span></td>
                 <td><Badge level={g.priority} /></td>
-                <td>{g.control.timeline}</td>
+                <td>{g.control.setBy ? 'architecture change' : g.control.timeline}</td>
                 <td className="small">
                   {g.threats.map((id) => (
                     <div key={id}>{result.threats.find((t) => t.id === id)?.title ?? id} <span className="tid">{id}</span></div>

@@ -34,7 +34,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
   const SUMMARY = ['jurisdictions', 'hosting', 'hostingCountry', 'dataSensitivity', 'actions', 'users', 'autonomy'];
   const summaryHtml = inputs ? `<h2 id="scope">What was assessed</h2>
     <table class="scope">${SUMMARY.map((id) => `<tr><td class="k">${esc(SHORT[id])}</td><td>${answerText(inputById[id]).replace(/<br>/g, ', ')}</td></tr>`).join('')}
-      ${result.dataLevel ? `<tr><td class="k">Scored as</td><td>Level ${result.dataLevel.used}: the agent reaches ${esc(result.dataLevel.raisedBy.join(', '))} data, which is at least Level 3</td></tr>` : ''}
+      ${result.adjustments?.length ? `<tr><td class="k">Adjusted for scoring</td><td>${result.adjustments.map(esc).join('<br>')}</td></tr>` : ''}
       <tr><td class="k">Controls in place</td><td>${controlTitles.length ? controlTitles.join('; ') : '<span class="muted">None</span>'}</td></tr>
     </table>
     <p class="muted small">Every answer and control is listed in the <a href="#appendix-design">appendix</a>.</p>` : '';
@@ -133,7 +133,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     ${brief?.decision ? `<h2 id="brief">Risk committee brief</h2><div class="brief">
       <p class="brief-decision">${esc(brief.decision)}</p>
       <h3>Why</h3><ul>${brief.reasons.map((r) => `<li><strong>${esc(r.headline)}.</strong> ${esc(r.detail)}</li>`).join('')}</ul>
-      <h3>Before go-live</h3><ol>${brief.actions.map((a) => `<li>${esc(a)}</li>`).join('')}</ol></div>
+      <h3>${v.decision === 'go' ? 'Recommended before go-live' : 'Before go-live'}</h3><ol>${brief.actions.map((a) => `<li>${esc(a)}</li>`).join('')}</ol></div>
       <div class="muted" style="font-size:8pt">Written by Claude from the assessment above; adds no findings of its own.</div>` : ''}
 
     <h2 id="findings">Regulatory and residency findings</h2>
@@ -154,8 +154,8 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
 
     <h2 id="gaps">Control gaps</h2>
     <table><tr><th>Control</th><th>Priority</th><th>Timeline</th><th>Reduces</th></tr>
-    ${result.gaps.map((g) => `<tr><td><strong>${esc(g.control.title)}</strong><br><span class="muted">${esc(g.control.description)}</span></td>
-      <td>${badge(g.priority)}</td><td>${esc(g.control.timeline)}</td>
+    ${result.gaps.map((g) => `<tr><td><strong>${esc(g.control.setBy ? g.control.setBy.change : g.control.title)}</strong><br><span class="muted">${esc(g.control.description)}</span></td>
+      <td>${badge(g.priority)}</td><td>${g.control.setBy ? 'architecture change' : esc(g.control.timeline)}</td>
       <td>${g.threats.map((id) => `${esc(result.threats.find((t) => t.id === id)?.title ?? id)} <span class="tid">${esc(id)}</span>`).join('<br>')}</td></tr>`).join('')}
     </table>
 

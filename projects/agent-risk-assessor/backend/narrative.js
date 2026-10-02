@@ -20,7 +20,7 @@ export const narrativeEnabled = () => Boolean(client);
 
 const SYSTEM = `You write risk-committee briefs about AI agent deployments for boards and risk committees in regulated Gulf organisations.
 Write for non-technical senior readers who must decide whether to accept the risk, and who will skim.
-Use only the facts in the assessment you are given. Do not add threats, controls, regulations, or numbers that are not in it.
+Use only the facts in the assessment you are given. Do not add threats, controls, regulations, numbers, or governance steps (such as formal risk acceptance or naming an owner) that are not in it.
 Regulatory findings state what is required, not what is missing: write "requires" or "must", never claim an approval, basis, or assessment is absent unless the assessment says so.
 Short sentences. Plain business language; name a regulation only where the assessment does, and keep its clause numbers out.`;
 
@@ -44,7 +44,7 @@ const BRIEF_SCHEMA = {
     },
     actions: {
       type: 'array',
-      description: 'What must happen before go-live, in order. One action per item, imperative, one sentence each. At most five.',
+      description: 'Actions taken only from the assessment, in order. For Not yet or Go with conditions: what must happen before go-live (blockers, conditions, approvals). For Go: the advisory checks to confirm, then the recommended controls, never described as required. One action per item, imperative, one sentence each. At most five.',
       items: { type: 'string' },
     },
   },
@@ -65,6 +65,9 @@ function summarise(profile, result, path) {
     'Go-live conditions:', ...result.verdict.conditions.map((c) => `- ${c}`),
     'Top threats (residual):', ...result.threats.slice(0, 6).map((t) => `- ${t.title}: ${t.priority}`),
     'Regulatory findings:', ...result.residency.filter((r) => r.severity >= 3).map((r) => `- ${r.title} (${r.level}): ${r.finding}`),
+    'Advisory checks (confirm before go-live):', ...result.residency.filter((r) => r.severity < 3).map((r) => `- ${r.title}: ${r.remediation}`),
+    'Recommended controls (reduce the remaining risks; not required for this verdict unless listed above):',
+    ...result.gaps.slice(0, 3).map((g) => `- ${g.control.setBy ? `${g.control.setBy.change} (architecture change)` : g.control.title} (${g.priority})`),
   ];
   if (path?.steps?.length) {
     lines.push('Path forward:');

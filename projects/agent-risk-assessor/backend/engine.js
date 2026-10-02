@@ -31,16 +31,36 @@ const intersects = (a, b) => asList(a).some((x) => b.includes(x));
 
 // Answers that contradict each other are resolved towards the riskier reading before scoring:
 // - personal, health, financial, or credential data is at least Level 3, whatever level was picked;
-// - a model vendor's API is a component from outside the organisation, even if "None" was picked.
+// - a model vendor's API is a component from outside the organisation, even if "None" was picked;
+// - reading a mailbox or the public web is reading content outsiders wrote, even if "None" was picked.
 const LEVEL_FLOOR_TYPES = ['personal', 'health', 'financial', 'credentials'];
+const SOURCE_IMPLIES_UNTRUSTED = { mailbox: 'inbound_email', web: 'web_browsing' };
+const addTo = (list, v) => [...asList(list).filter((x) => x !== 'none'), v];
 export function normaliseAnswers(answers) {
   const a = { ...(answers ?? {}) };
   const raisedBy = asList(a.dataTypes).filter((t) => LEVEL_FLOOR_TYPES.includes(t));
   const stated = Number(a.dataSensitivity) || 0;
   if (raisedBy.length && stated > 0 && stated < 3) a.dataSensitivity = '3';
   if (asList(a.hosting).includes('vendor_api') && !asList(a.supplyChain).includes('vendor_model'))
-    a.supplyChain = [...asList(a.supplyChain).filter((v) => v !== 'none'), 'vendor_model'];
+    a.supplyChain = addTo(a.supplyChain, 'vendor_model');
+  for (const [source, input] of Object.entries(SOURCE_IMPLIES_UNTRUSTED))
+    if (asList(a.dataSources).includes(source) && !asList(a.untrustedInputs).includes(input))
+      a.untrustedInputs = addTo(a.untrustedInputs, input);
   return a;
+}
+// Plain-language list of what normaliseAnswers changed, for the results page and the PDF.
+export function answerAdjustments(answers) {
+  const raw = answers ?? {};
+  const a = normaliseAnswers(raw);
+  const out = [];
+  const note = dataLevelNote(raw);
+  if (note) out.push(`Data scored as Level 3, not the Level ${note.stated} answered: the agent reaches ${note.raisedBy.map((t) => optionLabel('dataTypes', t).toLowerCase()).join(', ')}.`);
+  if (asList(a.supplyChain).includes('vendor_model') && !asList(raw.supplyChain).includes('vendor_model'))
+    out.push(`Commercial model API counted as an outside component: the model runs on a vendor's API.`);
+  for (const [source, input] of Object.entries(SOURCE_IMPLIES_UNTRUSTED))
+    if (asList(a.untrustedInputs).includes(input) && !asList(raw.untrustedInputs).includes(input))
+      out.push(`Scored as reading ${optionLabel('untrustedInputs', input).toLowerCase()}: the agent's sources include ${optionLabel('dataSources', source)}, which outsiders write to.`);
+  return out;
 }
 export function dataLevelNote(answers) {
   const raisedBy = asList(answers?.dataTypes).filter((t) => LEVEL_FLOOR_TYPES.includes(t));
@@ -213,7 +233,7 @@ function blastRadius(a) {
   const floored = intersects(a.dataTypes, LEVEL_FLOOR_TYPES);
   if (data > 1 && !(floored && data === 3)) {
     const lower = inputIndex.dataSensitivity.options.find((o) => o.scale === data - 1);
-    levers.push({ change: `keep data above "${lower.label}" out of its reach`, score: toScore(action * autonomy * (data - 1)) });
+    levers.push({ change: `limit the data it can reach to "${lower.label}" or lower`, score: toScore(action * autonomy * (data - 1)) });
   }
   const lever = levers.sort((x, y) => x.score - y.score)[0] ?? null;
 
@@ -286,6 +306,7 @@ export function assess(answers, controlsInPlace = [], opts = {}) {
     threats, gaps, residency, controlsInPlace: effective,
     notApplicable: notApplicableControls(a, controlsInPlace),
     dataLevel: dataLevelNote(answers),
+    adjustments: answerAdjustments(answers),
     pendingInstruments: residencyData.pending.filter(
       (p) => p.jurisdiction === '*' || asList(a.jurisdictions).includes(p.jurisdiction)
     ),
@@ -420,7 +441,7 @@ export function riskRegister(answers, controlsInPlace = [], result = assess(answ
     inherent: PRIORITY[t.severity],
     residual: t.priority,
     controlsInPlace: t.controlsPresent.map((c) => controlIndex[c].title),
-    treatment: t.controlsMissing.map((c) => controlIndex[c].title),
+    treatment: t.controlsMissing.map(controlLabel),
     owaspLlm: t.owaspLlm,
     owaspAgentic: t.owaspAgentic,
     atlas: t.atlas,
@@ -456,11 +477,13 @@ export function rmfCoverage(result) {
 }
 
 
-// A control derived from an Architecture answer is reached by changing the answer, so name the change.
-const fixLabel = (id) => {
+// A control derived from an Architecture answer is reached by changing the answer, so name the change
+// wherever a missing control is recommended (conditions, gaps, register).
+export const controlLabel = (id) => {
   const c = controlIndex[id];
-  return c.setBy ? `${c.setBy.change} (architecture change)` : `add ${c.title}`;
+  return c.setBy ? `${c.setBy.change} (architecture change)` : c.title;
 };
+const fixLabel = (id) => (controlIndex[id].setBy ? controlLabel(id) : `add ${controlIndex[id].title}`);
 
 function decideVerdict({ threats, residency, trifecta, has, a }) {
   const blockers = [];
