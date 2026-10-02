@@ -91,6 +91,8 @@ An egress allowlist (which covers DNS) or restricting tools after untrusted cont
 
 `blast_radius = action_severity × autonomy_factor × data_sensitivity`, each on a 1–4 scale, normalised to 0–100. It shows the worst case if the agent is fully compromised, before controls are counted.
 
+Each score carries a band on the raw product (max 64): **Low** ≤ 8 (score ≤ 13), **Moderate** ≤ 27 (≤ 42), **High** ≤ 47 (≤ 73), **Severe** above that (75 and 100). The bands are this tool's judgement: the HR preset is Low, the bank preset High, the procurement preset Severe. The card also names the biggest single reduction: the one answer change (stricter oversight, dropping the highest-impact actions, or keeping the top data level out of reach) that lowers the score most, with the new score. Where personal, health, financial, or credential data floors the level at 3, the data change offered is never "pick a lower level". The band is information only; the verdict never uses it.
+
 ### Threat IDs
 
 Threat IDs follow `T-<category>-<number>` and are **this tool's own labels**, not a standard. They cross-reference a threat across blockers, the control gap table, and the CSV. The standard references carried on every threat are OWASP Top 10 for LLM Applications (LLM01–LLM10), OWASP Top 10 for Agentic Applications (ASI01–ASI10), and MITRE ATLAS technique IDs; those are the ones to quote to a regulator or auditor. The report says so under the risk register.

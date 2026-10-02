@@ -59,7 +59,7 @@ Every question except the free-text profile fields is required. Where nothing ma
 Default a new question to multi-select; real agents mix audiences, identities, hosting, and regions. Use single only when the question is inherently one value (sector, *highest* classification, *weakest* oversight). Multi answers score as the worst case: `in` matches any selected value, `anyNotIn` fires if any value falls outside the list (residency), and `scaleOf` takes the highest scale.
 
 ## Scoring
-Residual = inherent severity − number of mitigating controls in place, floored at 1. Every control counts the same — a known simplification, stated in the README. Blast radius = max action scale × autonomy scale × data sensitivity, normalised to 100.
+Residual = inherent severity − number of mitigating controls in place, floored at 1. Every control counts the same — a known simplification, stated in the README. Blast radius = max action scale × autonomy scale × data sensitivity, normalised to 100. It carries a band (`BLAST_BANDS` in `engine.js`, on the raw product: Low ≤ 8, Moderate ≤ 27, High ≤ 47, Severe above) and the single answer change that lowers it most; the verdict never uses either.
 
 ## Regulatory scope, not just clause IDs
 Check a clause's **scope** in the primary text, not only its number. CORF 7.2 and CITRA 4.2.1.2 cover public, community, and hybrid cloud, not private cloud; CORF 7.2.1.3 applies only where sensitive data is involved. An earlier rule widened the CBK approval to private cloud from a compiled summary and was wrong. `hosting` keeps `private_cloud` and `hybrid_cloud` as separate options for this reason.

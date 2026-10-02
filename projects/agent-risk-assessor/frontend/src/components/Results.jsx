@@ -49,7 +49,9 @@ function rememberBrief(key, brief) {
   } catch { /* storage full or private mode: the server cache still applies */ }
 }
 
-const Badge = ({ level }) => <span className={`badge b-${String(level).toLowerCase()}`}>{level}</span>;
+const Badge = ({ level, label = level }) => <span className={`badge b-${String(level).toLowerCase()}`}>{label}</span>;
+// Blast-radius bands reuse the risk colours.
+const BAND_LEVEL = { Low: 'Low', Moderate: 'Medium', High: 'High', Severe: 'Critical' };
 
 export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls, controlTitles = {}, controlNotes = {} }) {
   const controlTitle = (id) => controlTitles[id] ?? id;
@@ -142,9 +144,12 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
       <div className="kpis">
         <div className="card kpi">
           <span className="muted">Blast radius</span>
-          <b>{result.blastRadius.score}<small>/100</small></b>
+          <b>{result.blastRadius.score}<small>/100</small> <Badge level={BAND_LEVEL[result.blastRadius.band]} label={result.blastRadius.band} /></b>
           <span className="muted small">actions {result.blastRadius.components.action} × autonomy {result.blastRadius.components.autonomy} × data {result.blastRadius.components.data}</span>
           <span className="muted small">Worst case if the agent is compromised, before controls count.</span>
+          {result.blastRadius.lever && (
+            <span className="small">Biggest single reduction: {result.blastRadius.lever.change} ({result.blastRadius.score} → {result.blastRadius.lever.score}).</span>
+          )}
           {result.dataLevel && <span className="small">Scored as Level {result.dataLevel.used}, not the Level {result.dataLevel.stated} answered: the agent reaches {result.dataLevel.raisedBy.join(', ')} data.</span>}
         </div>
         <div className={`card kpi ${t.present && !t.broken ? 'alarm' : ''}`}>

@@ -184,13 +184,44 @@ export const TRIFECTA_TEXT = {
   reference: "Term coined by Simon Willison (2025); Meta's “Agents Rule of Two” states the same rule. Maps to OWASP LLM01, LLM02, ASI01 and MITRE ATLAS AML.T0086.",
 };
 
+// Bands on the product of the three 1–4 scales (max 64). This tool's judgement: Low when no factor is
+// above 2 on average, Severe only when two factors are at their maximum and the third at 3 or more.
+const BLAST_BANDS = [[8, 'Low'], [27, 'Moderate'], [47, 'High'], [64, 'Severe']];
+const toScore = (p) => Math.round((p / 64) * 100);
+const optionLabel = (fieldId, v) => inputIndex[fieldId]?.options?.find((o) => o.value === v)?.label ?? v;
+
 function blastRadius(a) {
   const action = Math.max(1, ...asList(a.actions).map((v) => scaleOf('actions', v)));
   const autonomy = scaleOf('autonomy', a.autonomy) || 1;
   const data = scaleOf('dataSensitivity', a.dataSensitivity) || 1;
+  const product = action * autonomy * data;
+  const band = BLAST_BANDS.find(([max]) => product <= max)[1];
+
+  // The one answer change that lowers the score most, so the number comes with a next step.
+  const levers = [];
+  if (autonomy > 1) {
+    const stricter = inputIndex.autonomy.options.find((o) => o.scale === autonomy - 1);
+    levers.push({ change: `change oversight to "${stricter.label}"`, score: toScore(action * (autonomy - 1) * data) });
+  }
+  if (action > 1) {
+    const top = asList(a.actions).filter((v) => scaleOf('actions', v) === action);
+    const rest = Math.max(1, ...asList(a.actions).filter((v) => !top.includes(v)).map((v) => scaleOf('actions', v)));
+    levers.push({ change: `remove ${top.map((v) => `"${optionLabel('actions', v)}"`).join(' and ')}`, score: toScore(rest * autonomy * data) });
+  }
+  // Personal, health, financial, or credential data is floored at Level 3, so below that the data
+  // lever is keeping those data types out of reach rather than picking a lower level.
+  const floored = intersects(a.dataTypes, LEVEL_FLOOR_TYPES);
+  if (data > 1 && !(floored && data === 3)) {
+    const lower = inputIndex.dataSensitivity.options.find((o) => o.scale === data - 1);
+    levers.push({ change: `keep data above "${lower.label}" out of its reach`, score: toScore(action * autonomy * (data - 1)) });
+  }
+  const lever = levers.sort((x, y) => x.score - y.score)[0] ?? null;
+
   return {
-    score: Math.round(((action * autonomy * data) / 64) * 100),
+    score: toScore(product),
+    band,
     components: { action, autonomy, data },
+    lever,
   };
 }
 

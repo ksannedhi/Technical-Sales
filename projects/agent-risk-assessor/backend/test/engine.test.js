@@ -200,6 +200,27 @@ test('every appliesWhen and setBy condition references real fields and options',
   }
 });
 
+test('blast radius comes with a band and the single change that lowers it most', () => {
+  const band = (id) => { const s = scenariosData.scenarios.find((x) => x.id === id); return assess(s.answers, s.controls).blastRadius; };
+  assert.equal(band('hr-policy').band, 'Low');
+  assert.equal(band('bank-cs').band, 'High');
+  assert.equal(band('procurement').band, 'Severe');
+  // Sends outside, approves high-risk only, internal data: 3 x 3 x 2 = 28.
+  const tracker = { actions: ['read_only', 'send_external'], autonomy: 'approve_high_risk', dataSensitivity: '2', dataTypes: ['none'] };
+  const b = assess(tracker, []).blastRadius;
+  assert.equal(b.score, 28);
+  assert.equal(b.band, 'Moderate');
+  assert.ok(b.lever.score < b.score);
+  // The biggest reduction: dropping the outbound action leaves read-only (28 -> 9), which beats
+  // halving the data level (14) or approving every action (19).
+  assert.equal(b.lever.score, 9);
+  assert.ok(b.lever.change.includes('Send email or messages outside the organisation'));
+  // With personal data the level is floored at 3, so the data lever is not "pick Level 2".
+  const personal = assess({ ...tracker, dataTypes: ['personal'] }, []).blastRadius;
+  assert.equal(personal.score, 42);
+  assert.ok(!personal.lever.change.includes('Level'), personal.lever.change);
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));

@@ -5,6 +5,8 @@ const esc = (s) =>
 const COLORS = { Critical: '#b91c1c', High: '#c2410c', Medium: '#a16207', Low: '#15803d', Advisory: '#475569' };
 const STATUS_COLORS = { Gap: '#b91c1c', Partial: '#a16207', Addressed: '#15803d' };
 const VERDICT_COLORS = { not_yet: '#b91c1c', go_with_conditions: '#c2410c', go: '#15803d' };
+// Blast-radius bands reuse the risk colours.
+const BAND_LEVEL = { Low: 'Low', Moderate: 'Medium', High: 'High', Severe: 'Critical' };
 const badge = (level) => `<span class="badge" style="background:${COLORS[level] ?? '#475569'}">${esc(level)}</span>`;
 const list = (items) => (items?.length ? items.map(esc).join(', ') : '—');
 
@@ -109,9 +111,10 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
 
     <div id="verdict" class="verdict" style="background:${VERDICT_COLORS[v.decision]}"><b>${esc(v.label)}</b></div>
     <div class="kpis">
-      <div class="kpi"><span class="muted">Blast radius</span><b>${result.blastRadius.score}/100</b>
+      <div class="kpi"><span class="muted">Blast radius</span><b>${result.blastRadius.score}/100 <span class="badge" style="background:${COLORS[BAND_LEVEL[result.blastRadius.band]]}">${esc(result.blastRadius.band)}</span></b>
         <span class="muted small">actions ${bc.action} × autonomy ${bc.autonomy} × data ${bc.data}</span>
-        <span class="muted small">Worst case if the agent is compromised, before controls count.</span></div>
+        <span class="muted small">Worst case if the agent is compromised, before controls count.</span>
+        ${result.blastRadius.lever ? `<span class="small">Biggest single reduction: ${esc(result.blastRadius.lever.change)} (${result.blastRadius.score} → ${result.blastRadius.lever.score}).</span>` : ''}</div>
       <div class="kpi wide${t.present && !t.broken ? ' alarm' : ''}"><span class="muted">Lethal trifecta</span><b>${esc(t.status)}</b>
         <span class="small">${esc(t.explanation)}</span>
         ${t.broken ? `<span class="small">Blocked by: ${list(t.breakerLabels)}</span>` : ''}
