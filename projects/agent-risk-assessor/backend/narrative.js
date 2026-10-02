@@ -1,8 +1,15 @@
 // The only Claude call in the tool: a plain-language brief for the risk committee.
 // Everything it says comes from the deterministic assessment passed in — it adds no findings.
 import Anthropic from '@anthropic-ai/sdk';
+import { createHash } from 'node:crypto';
 
-const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5';
+const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-5-5';
+
+// USD per million tokens (input, output), for the usage log only. [model-behavior · 2026-10]
+const PRICES = {
+  'claude-opus-5-5': [4, 20], 'claude-opus-5': [5, 25], 'claude-opus-4-8': [5, 25],
+  'claude-sonnet-5-5': [2, 10], 'claude-haiku-4-5': [1, 5],
+};
 const KEY = (process.env.ANTHROPIC_API_KEY || '').trim();
 const client = KEY && KEY !== 'your_key_here' ? new Anthropic({ apiKey: KEY }) : null;
 
@@ -69,14 +76,41 @@ function summarise(profile, result, path) {
   return lines.join('\n');
 }
 
+// The same assessment always gets the same brief, so it is written once and reused: going back to
+// the actual design, revisiting Results, or refreshing must not pay for it again. Keyed by the exact
+// prompt and model; concurrent requests for the same key share one call.
+const cache = new Map();
+const pending = new Map();
+const CACHE_MAX = 200;
+const totals = { calls: 0, cached: 0, inputTokens: 0, outputTokens: 0, usd: 0 };
+export const briefStats = () => ({ ...totals, usd: Number(totals.usd.toFixed(4)) });
+
 export async function writeBrief(profile, result, path) {
-  if (!client) return null;
-  const prompt = `Write the risk-committee brief for this assessment.
+  if (!client) return { brief: null };
+  const prompt = buildPrompt(profile, result, path);
+  const key = createHash('sha256').update(`${MODEL}\n${prompt}`).digest('hex');
+  if (cache.has(key)) {
+    totals.cached++;
+    return { brief: cache.get(key), cached: true };
+  }
+  if (!pending.has(key)) pending.set(key, callClaude(prompt).finally(() => pending.delete(key)));
+  const out = await pending.get(key);
+  if (out.brief) {
+    if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
+    cache.set(key, out.brief);
+  }
+  return out;
+}
+
+function buildPrompt(profile, result, path) {
+  return `Write the risk-committee brief for this assessment.
 
 ${summarise(profile, result, path)}
 
 Return the decision, the reasons that drive it, and the actions required before go-live.`;
+}
 
+async function callClaude(prompt) {
   // Server-side fallback: if the primary model declines (security topics can trip safety
   // classifiers), the API reruns the request on a fallback model inside the same call.
   const response = await client.beta.messages.create({
@@ -89,16 +123,32 @@ Return the decision, the reasons that drive it, and the actions required before 
     messages: [{ role: 'user', content: prompt }],
   });
 
+  const usage = logUsage(response);
   if (response.stop_reason === 'refusal') {
     console.warn('[agent-risk] Brief declined:', response.stop_details?.category ?? 'no category');
-    return null;
+    return { brief: null, usage };
   }
   const text = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
   try {
     const brief = JSON.parse(text);
-    return brief?.decision ? brief : null;
+    return { brief: brief?.decision ? brief : null, usage };
   } catch {
     console.warn('[agent-risk] Brief was not valid JSON');
-    return null;
+    return { brief: null, usage };
   }
+}
+
+// One line per paid call, plus a running total, so spend is visible in the backend window.
+function logUsage(response) {
+  const u = response.usage ?? {};
+  const model = response.model ?? MODEL;
+  const price = PRICES[Object.keys(PRICES).find((m) => model.startsWith(m))];
+  const usd = price ? (u.input_tokens * price[0] + u.output_tokens * price[1]) / 1e6 : null;
+  totals.calls++;
+  totals.inputTokens += u.input_tokens ?? 0;
+  totals.outputTokens += u.output_tokens ?? 0;
+  totals.usd += usd ?? 0;
+  console.log(`[agent-risk] Brief: ${model}, ${u.input_tokens} in / ${u.output_tokens} out (incl. thinking)`
+    + `${usd != null ? `, ~$${usd.toFixed(4)}` : ''} | session: ${totals.calls} calls, ${totals.cached} reused, ~$${totals.usd.toFixed(3)}`);
+  return { model, inputTokens: u.input_tokens, outputTokens: u.output_tokens, usd };
 }

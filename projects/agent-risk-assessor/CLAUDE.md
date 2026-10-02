@@ -74,10 +74,12 @@ Check a clause's **scope** in the primary text, not only its number. CORF 7.2 an
 Add it to the data file, then run `npm test` — the suite checks every field, option, control, and mapping ID the rule references. If you add a preset, give it an `expectedVerdict`.
 
 ## Claude call
-- Model defaults to `claude-opus-5`, overridable with `CLAUDE_MODEL`. [model-behavior · 2026-09]
-- Uses the beta server-side fallback (`fallbacks: "default"`, header `server-side-fallback-2026-07-01`) because security content can trip safety classifiers; `stop_reason: "refusal"` still returns `null` and the UI says the brief couldn't be generated. [model-behavior · 2026-09]
-- `max_tokens: 16000` is set explicitly; the SDK requires it. [model-behavior · 2026-09]
-- The brief uses structured output (`output_config.format`, JSON schema): `{ decision, reasons[{headline, detail}], actions[] }`, rendered as decision → Why → Before go-live in both the UI and the PDF. Invalid JSON or a refusal returns `null`. [model-behavior · 2026-09]
+- Model defaults to `claude-opus-5-5` ($4 / $20 per MTok), overridable with `CLAUDE_MODEL`. Effort is set explicitly to `medium`; thinking can't be disabled on this model, and its tokens bill as output. A bank-preset brief measured 2,065 in / 605 out, about $0.02. [model-behavior · 2026-10]
+- **Every brief is a paid call, so it is never repeated for the same input.** `writeBrief` caches by a hash of model + prompt and merges concurrent requests; the frontend also remembers briefs per design for the tab; a what-if gets a brief only when the user clicks for one. The backend logs tokens and approximate cost per call (`PRICES` in `narrative.js`), and `GET /api/brief/stats` returns the running totals. A 2026-10 audit found 6 calls for 2 distinct designs in one ordinary session before this.
+- **Automated UI runs must stub `/api/brief`** (Puppeteer `setRequestInterception`, respond with a fixed brief). Screenshot and UI-check scripts opening Results otherwise pay for a brief on every run.
+- Uses the beta server-side fallback (`fallbacks: "default"`, header `server-side-fallback-2026-07-01`) because security content can trip safety classifiers; `stop_reason: "refusal"` still returns `null` and the UI says the brief couldn't be generated. [model-behavior · 2026-10]
+- `max_tokens: 16000` is set explicitly; the SDK requires it. [model-behavior · 2026-10]
+- The brief uses structured output (`output_config.format`, JSON schema): `{ decision, reasons[{headline, detail}], actions[] }`, rendered as decision → Why → Before go-live in both the UI and the PDF. Invalid JSON or a refusal returns `null`. [model-behavior · 2026-10]
 - The system prompt forbids claiming an approval or basis is *missing*: regulatory findings are requirements. An earlier free-text brief said "no transfer basis is in place", which the assessment never established.
 
 ## Express 5

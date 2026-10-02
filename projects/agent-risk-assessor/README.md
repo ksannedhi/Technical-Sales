@@ -37,7 +37,7 @@ Page 1 of the PDF export.
 ## Design choices
 
 - **Deterministic.** The verdict, threats, and path come from rules in data files. The same inputs always give the same answer, and every finding shows the inputs that triggered it.
-- **Claude writes one thing:** the brief. It is given the finished assessment and adds no findings. Without an API key, everything else still works.
+- **Claude writes one thing:** the brief. It is given the finished assessment and adds no findings. Without an API key, everything else still works. Each brief is written once per design and reused, a what-if gets one only on request, and the backend logs each call's tokens and approximate cost.
 - **Verified references only.** Every framework ID and regulatory clause was checked against its source (see [SOURCES.md](backend/data/SOURCES.md)). Instruments that could not be verified — including ISO/IEC 42001, whose text is paywalled — are listed as not assessed rather than guessed.
 - **Answers can't contradict each other.** Controls that restate a design answer (per-user permissions, human approval) follow that answer, controls that don't fit the design count for nothing, and conflicting answers resolve to the riskier reading, such as health data scored as at least Level 3.
 - **Vendor-neutral.** Recommends control categories, never products.
@@ -94,6 +94,6 @@ The suite checks that every rule references real fields, options, and controls; 
 | Variable | Purpose |
 |---|---|
 | `ANTHROPIC_API_KEY` | Enables the risk committee brief. Optional. |
-| `CLAUDE_MODEL` | Model for the brief. Defaults to `claude-opus-5`. |
+| `CLAUDE_MODEL` | Model for the brief. Defaults to `claude-opus-5-5`. |
 | `PUPPETEER_EXECUTABLE_PATH` | Chrome path, if Puppeteer can't find the installed Chrome. |
 | `PORT` / `CORS_ORIGIN` | Defaults 3006 / http://localhost:5181. |

@@ -10,7 +10,7 @@ import {
   assess, pathToGo, riskRegister, rmfCoverage,
   inputs, controlsData, scenariosData, aiRmf,
 } from './engine.js';
-import { writeBrief, narrativeEnabled } from './narrative.js';
+import { writeBrief, narrativeEnabled, briefStats } from './narrative.js';
 import { buildReportHtml } from './report.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -51,22 +51,21 @@ app.post('/api/assess', (req, res) => {
 });
 
 // Separate from /assess so the results render instantly and the brief fills in after.
-let briefInFlight = false;
+// writeBrief reuses a brief already written for the same assessment and merges duplicate requests.
 app.post('/api/brief', async (req, res) => {
   if (!narrativeEnabled()) return res.json({ brief: null, reason: 'disabled' });
-  if (briefInFlight) return res.status(429).json({ error: 'A brief is already being written.' });
   const out = run(req.body);
   if (!out) return res.status(400).json({ error: 'answers object required' });
-  briefInFlight = true;
   try {
-    res.json({ brief: await writeBrief(out.answers, out.result, out.path) });
+    const { brief, cached = false, usage = null } = await writeBrief(out.answers, out.result, out.path);
+    res.json({ brief, cached, usage });
   } catch (err) {
     console.error('[agent-risk] Brief failed:', err.message);
     res.status(502).json({ error: 'Brief generation failed', detail: err.message });
-  } finally {
-    briefInFlight = false;
   }
 });
+
+app.get('/api/brief/stats', (_req, res) => res.json(briefStats()));
 
 app.post('/api/export/register', (req, res) => {
   const out = run(req.body);

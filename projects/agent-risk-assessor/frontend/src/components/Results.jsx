@@ -34,6 +34,21 @@ async function download(url, body, fallbackName) {
   URL.revokeObjectURL(a.href);
 }
 
+// Briefs already written in this tab, keyed by design, so revisiting Results or refreshing reuses them.
+const BRIEFS = 'agent-risk-assessor:briefs';
+function recalledBrief(key) {
+  try { return JSON.parse(sessionStorage.getItem(BRIEFS))?.[key] ?? null; } catch { return null; }
+}
+function rememberBrief(key, brief) {
+  try {
+    const all = JSON.parse(sessionStorage.getItem(BRIEFS)) ?? {};
+    all[key] = brief;
+    const keys = Object.keys(all);
+    if (keys.length > 20) delete all[keys[0]];
+    sessionStorage.setItem(BRIEFS, JSON.stringify(all));
+  } catch { /* storage full or private mode: the server cache still applies */ }
+}
+
 const Badge = ({ level }) => <span className={`badge b-${String(level).toLowerCase()}`}>{level}</span>;
 
 export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls, controlTitles = {} }) {
@@ -46,6 +61,21 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
   const [busy, setBusy] = useState(null);
   const [exportError, setExportError] = useState(null);
 
+  // Each brief is a paid Claude call. Briefs are remembered per design (here for the tab, and on the
+  // server), and a what-if gets one only when asked for, since what-ifs are usually quick looks.
+  const briefKey = JSON.stringify({ answers, controls });
+  const requestBrief = (isLive = () => true) => {
+    setBrief({ state: 'loading', text: null });
+    return postRetry('/api/brief', { answers, controls })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!isLive()) return;
+        if (d.brief) rememberBrief(briefKey, d.brief);
+        setBrief(d.brief ? { state: 'ok', text: d.brief } : { state: 'failed', text: null });
+      })
+      .catch(() => isLive() && setBrief({ state: 'failed', text: null }));
+  };
+
   useEffect(() => {
     let live = true;
     setData(null);
@@ -55,14 +85,13 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
       .then((d) => live && setData(d))
       .catch((e) => live && setLoadError(e.message));
     if (narrative) {
-      setBrief({ state: 'loading', text: null });
-      postRetry('/api/brief', { answers, controls })
-        .then((r) => r.json())
-        .then((d) => live && setBrief(d.brief ? { state: 'ok', text: d.brief } : { state: 'failed', text: null }))
-        .catch(() => live && setBrief({ state: 'failed', text: null }));
+      const known = recalledBrief(briefKey);
+      if (known) setBrief({ state: 'ok', text: known });
+      else if (whatIf) setBrief({ state: 'idle', text: null });
+      else requestBrief(() => live);
     }
     return () => { live = false; };
-  }, [answers, controls, narrative, attempt]);
+  }, [briefKey, narrative, attempt]);
 
   if (loadError) return (
     <section className="card">
@@ -190,6 +219,12 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
       <section className="card">
         <h2>Risk committee brief</h2>
         {brief.state === 'off' && <p className="muted">Add ANTHROPIC_API_KEY to <code>.env</code> to generate a plain-language brief. Everything else works without it.</p>}
+        {brief.state === 'idle' && (
+          <p className="muted">
+            Not written automatically for a what-if, to save API cost.{' '}
+            <button className="action" onClick={() => requestBrief()}>Write brief for this what-if</button>
+          </p>
+        )}
         {brief.state === 'loading' && <p className="muted">Writing the brief…</p>}
         {brief.state === 'failed' && <p className="muted">The brief couldn't be generated this time. The assessment above is unaffected.</p>}
         {brief.state === 'ok' && (
