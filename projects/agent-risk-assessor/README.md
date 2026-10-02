@@ -39,6 +39,7 @@ Page 1 of the PDF export.
 - **Deterministic.** The verdict, threats, and path come from rules in data files. The same inputs always give the same answer, and every finding shows the inputs that triggered it.
 - **Claude writes one thing:** the brief. It is given the finished assessment and adds no findings. Without an API key, everything else still works.
 - **Verified references only.** Every framework ID and regulatory clause was checked against its source (see [SOURCES.md](backend/data/SOURCES.md)). Instruments that could not be verified — including ISO/IEC 42001, whose text is paywalled — are listed as not assessed rather than guessed.
+- **Answers can't contradict each other.** Controls that restate a design answer (per-user permissions, human approval) follow that answer, controls that don't fit the design count for nothing, and conflicting answers resolve to the riskier reading, such as health data scored as at least Level 3.
 - **Vendor-neutral.** Recommends control categories, never products.
 - **Nothing persists.** State lives in the browser tab and clears when it closes.
 - **What-ifs can't pass as the real thing.** A what-if never overwrites your answers, and its PDF and CSV are titled, bannered, and labelled on every row as what-if. **Change controls** returns to step 3 to update what is actually in place; in a what-if it reads **Edit actual controls**, because it edits your real design, not the what-if (which it discards).

@@ -76,6 +76,7 @@
       "title": "Approved sources only in the knowledge base",
       "description": "Only approved, known sources go into the knowledge base the agent searches (its RAG index). Adding or changing those documents is restricted, and every change is logged.",
       "timeline": "medium",
+      "appliesWhen": { "any": [{ "field": "dataSources", "in": ["rag_index"] }, { "field": "supplyChain", "in": ["external_rag"] }] },
       "atlas": [
         "AML.M0025"
       ],
@@ -90,6 +91,7 @@
       "title": "Safeguards on what the agent remembers",
       "description": "What the agent remembers between conversations is checked before it is saved, kept separate for each user, expires, and can be reviewed and deleted.",
       "timeline": "medium",
+      "appliesWhen": { "field": "memory", "in": ["persistent_user", "persistent_shared"] },
       "atlas": [
         "AML.M0031"
       ],
@@ -122,6 +124,10 @@
       "setBy": {
         "field": "identity",
         "only": ["per_user"],
+        "unless": { "field": "users", "in": ["public"] },
+        "fix": ["per_user"],
+        "question": "Whose permissions does the agent use?",
+        "rule": "every identity the agent uses is the requesting user's own, and no anonymous public users (they have no permissions to delegate)",
         "change": "Switch every tool to the requesting user's own delegated permissions"
       },
       "atlas": [
@@ -163,6 +169,14 @@
       "title": "Human approval for high-impact actions",
       "description": "Sending outside the organisation, deleting, paying, running code, and changing permissions all wait for a person to approve.",
       "timeline": "short",
+      "setBy": {
+        "field": "autonomy",
+        "only": ["suggest", "approve_each", "approve_high_risk"],
+        "fix": "approve_high_risk",
+        "question": "Human oversight, for the least-supervised action",
+        "rule": "a person approves high-risk actions, approves every action, or takes every action",
+        "change": "Require a person to approve high-risk actions (oversight: human approves high-risk actions)"
+      },
       "atlas": [
         "AML.M0029"
       ],
@@ -177,6 +191,7 @@
       "title": "Approvals show the raw action, not the agent's summary",
       "description": "The approver sees exactly what will happen (the recipient, the content, the amount, the command), not the agent's own summary of it.",
       "timeline": "short",
+      "appliesWhen": { "field": "autonomy", "in": ["approve_each", "approve_high_risk"] },
       "atlas": [
         "AML.M0029"
       ],
@@ -229,6 +244,7 @@
       "title": "Sandboxed code execution",
       "description": "Any code the agent runs is in a sealed, throwaway environment with no network access (including DNS) and no passwords.",
       "timeline": "medium",
+      "appliesWhen": { "field": "actions", "in": ["execute_code"] },
       "atlas": [
         "AML.M0032"
       ],
@@ -254,6 +270,7 @@
       "title": "Vetted, pinned third-party components",
       "description": "Plug-ins, tool connectors (MCP servers), and models come only from an approved list, are locked to a checked version, and are recorded in an inventory (an AI bill of materials). Any change to a tool's definition is reviewed.",
       "timeline": "medium",
+      "appliesWhen": { "field": "supplyChain", "in": ["vendor_model", "open_weights", "third_party_mcp", "community_plugins", "external_rag"] },
       "atlas": [
         "AML.M0023",
         "AML.M0014"

@@ -36,7 +36,8 @@ async function download(url, body, fallbackName) {
 
 const Badge = ({ level }) => <span className={`badge b-${String(level).toLowerCase()}`}>{level}</span>;
 
-export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls }) {
+export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls, controlTitles = {} }) {
+  const controlTitle = (id) => controlTitles[id] ?? id;
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [attempt, setAttempt] = useState(0);
@@ -115,6 +116,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
           <b>{result.blastRadius.score}<small>/100</small></b>
           <span className="muted small">actions {result.blastRadius.components.action} × autonomy {result.blastRadius.components.autonomy} × data {result.blastRadius.components.data}</span>
           <span className="muted small">Worst case if the agent is compromised, before controls count.</span>
+          {result.dataLevel && <span className="small">Scored as Level {result.dataLevel.used}, not the Level {result.dataLevel.stated} answered: the agent reaches {result.dataLevel.raisedBy.join(', ')} data.</span>}
         </div>
         <div className={`card kpi ${t.present && !t.broken ? 'alarm' : ''}`}>
           <span className="muted">Lethal trifecta</span>
@@ -274,6 +276,9 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
             ))}
           </tbody>
         </table>
+        {result.notApplicable?.length > 0 && (
+          <p className="muted small">Ticked but not applicable to this design, so not counted: {result.notApplicable.map((id) => controlTitle(id)).join('; ')}.</p>
+        )}
         <button className="action" onClick={onEditControls}>{whatIf ? 'Edit actual controls' : 'Change controls'} →</button>
         <span className="muted small"> Goes back to step 3 to update what is actually in place, then re-assesses.</span>
       </section>

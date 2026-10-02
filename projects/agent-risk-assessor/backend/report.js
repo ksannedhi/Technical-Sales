@@ -32,6 +32,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
   const SUMMARY = ['jurisdictions', 'hosting', 'hostingCountry', 'dataSensitivity', 'actions', 'users', 'autonomy'];
   const summaryHtml = inputs ? `<h2 id="scope">What was assessed</h2>
     <table class="scope">${SUMMARY.map((id) => `<tr><td class="k">${esc(SHORT[id])}</td><td>${answerText(inputById[id]).replace(/<br>/g, ', ')}</td></tr>`).join('')}
+      ${result.dataLevel ? `<tr><td class="k">Scored as</td><td>Level ${result.dataLevel.used}: the agent reaches ${esc(result.dataLevel.raisedBy.join(', '))} data, which is at least Level 3</td></tr>` : ''}
       <tr><td class="k">Controls in place</td><td>${controlTitles.length ? controlTitles.join('; ') : '<span class="muted">None</span>'}</td></tr>
     </table>
     <p class="muted small">Every answer and control is listed in the <a href="#appendix-design">appendix</a>.</p>` : '';
@@ -42,6 +43,7 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
       .filter((i) => !['orgName', 'agentName', 'purpose'].includes(i.id))
       .map((i) => `<tr><td style="width:40%">${esc(i.label)}</td><td>${answerText(i)}</td></tr>`).join('')}
       <tr><td>Controls in place</td><td>${controlTitles.length ? controlTitles.join('<br>') : '<span class="muted">None</span>'}</td></tr>
+      ${result.notApplicable?.length ? `<tr><td>Ticked but not applicable (not counted)</td><td>${result.notApplicable.map((id) => esc(controlsData?.controls.find((c) => c.id === id)?.title ?? id)).join('<br>')}</td></tr>` : ''}
     </table>` : '';
 
   const sections = [

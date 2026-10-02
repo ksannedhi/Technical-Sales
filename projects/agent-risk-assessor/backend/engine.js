@@ -29,23 +29,51 @@ export const PRIORITY = { 4: 'Critical', 3: 'High', 2: 'Medium', 1: 'Low' };
 const asList = (v) => (Array.isArray(v) ? v : v == null || v === '' ? [] : [v]);
 const intersects = (a, b) => asList(a).some((x) => b.includes(x));
 
+// Answers that contradict each other are resolved towards the riskier reading before scoring:
+// - personal, health, financial, or credential data is at least Level 3, whatever level was picked;
+// - a model vendor's API is a component from outside the organisation, even if "None" was picked.
+const LEVEL_FLOOR_TYPES = ['personal', 'health', 'financial', 'credentials'];
+export function normaliseAnswers(answers) {
+  const a = { ...(answers ?? {}) };
+  const raisedBy = asList(a.dataTypes).filter((t) => LEVEL_FLOOR_TYPES.includes(t));
+  const stated = Number(a.dataSensitivity) || 0;
+  if (raisedBy.length && stated > 0 && stated < 3) a.dataSensitivity = '3';
+  if (asList(a.hosting).includes('vendor_api') && !asList(a.supplyChain).includes('vendor_model'))
+    a.supplyChain = [...asList(a.supplyChain).filter((v) => v !== 'none'), 'vendor_model'];
+  return a;
+}
+export function dataLevelNote(answers) {
+  const raisedBy = asList(answers?.dataTypes).filter((t) => LEVEL_FLOOR_TYPES.includes(t));
+  const stated = Number(answers?.dataSensitivity) || 0;
+  return raisedBy.length && stated > 0 && stated < 3 ? { stated, used: 3, raisedBy } : null;
+}
+
 // Some controls restate an Architecture answer (a control with `setBy`). Their state comes only
 // from that answer, never from the checkbox, so the two can't contradict each other: "act with the
 // requesting user's permissions" is in place only when every identity the agent uses is per-user.
 const DERIVED = controlsData.controls.filter((c) => c.setBy);
 const derivedHolds = (c, a) => {
   const v = asList(a[c.setBy.field]);
+  if (c.setBy.unless && evaluate(c.setBy.unless, a, {})) return false;
   return v.length > 0 && v.every((x) => c.setBy.only.includes(x));
 };
+// Controls with `appliesWhen` only make sense for some designs (a code sandbox needs code
+// execution). Ticked when they don't apply, they are listed as not applicable and count for nothing.
+const appliesTo = (c, a) => !c.appliesWhen || evaluate(c.appliesWhen, a, {});
+export function notApplicableControls(answers, controls = []) {
+  const a = normaliseAnswers(answers);
+  return controls.filter((id) => controlIndex[id] && !controlIndex[id].setBy && !appliesTo(controlIndex[id], a));
+}
 export function effectiveControls(answers, controls = []) {
-  const a = answers ?? {};
-  const kept = controls.filter((id) => !DERIVED.some((c) => c.id === id));
-  return [...kept, ...DERIVED.filter((c) => derivedHolds(c, a)).map((c) => c.id)];
+  const a = normaliseAnswers(answers);
+  const na = new Set(notApplicableControls(a, controls));
+  const kept = controls.filter((id) => !DERIVED.some((c) => c.id === id) && !na.has(id));
+  return [...new Set([...kept, ...DERIVED.filter((c) => derivedHolds(c, a)).map((c) => c.id)])];
 }
 // Adding a derived control in a Path-to-Go combo means changing the answer it is derived from.
 export function applyDerivedFixes(answers, controls = []) {
   const out = { ...answers };
-  for (const c of DERIVED) if (controls.includes(c.id)) out[c.setBy.field] = [...c.setBy.only];
+  for (const c of DERIVED) if (controls.includes(c.id)) out[c.setBy.field] = c.setBy.fix;
   return out;
 }
 
@@ -169,7 +197,7 @@ function blastRadius(a) {
 // opts.waiveResidency: residency finding ids treated as already satisfied (used by pathToGo
 // for approval-type findings that no control can close).
 export function assess(answers, controlsInPlace = [], opts = {}) {
-  const a = answers ?? {};
+  const a = normaliseAnswers(answers);
   const effective = effectiveControls(a, controlsInPlace);
   const inPlace = new Set(effective);
   const has = (id) => inPlace.has(id);
@@ -178,8 +206,11 @@ export function assess(answers, controlsInPlace = [], opts = {}) {
   const threats = threatsData.threats
     .filter((t) => evaluate(t.when, a, flags))
     .map((t) => {
-      const present = t.mitigatedBy.filter(has);
-      const missing = t.mitigatedBy.filter((c) => !has(c));
+      // A control that doesn't fit this design (no code execution, so no sandbox) is neither in
+      // place nor recommended for it.
+      const applicable = t.mitigatedBy.filter((c) => appliesTo(controlIndex[c], a));
+      const present = applicable.filter(has);
+      const missing = applicable.filter((c) => !has(c));
       const residual = Math.max(1, t.severity - present.length);
       return {
         id: t.id, title: t.title, description: t.description,
@@ -222,6 +253,8 @@ export function assess(answers, controlsInPlace = [], opts = {}) {
   return {
     verdict, trifecta, blastRadius: blastRadius(a), flags,
     threats, gaps, residency, controlsInPlace: effective,
+    notApplicable: notApplicableControls(a, controlsInPlace),
+    dataLevel: dataLevelNote(answers),
     pendingInstruments: residencyData.pending.filter(
       (p) => p.jurisdiction === '*' || asList(a.jurisdictions).includes(p.jurisdiction)
     ),
@@ -261,7 +294,9 @@ export function pathToGo(answers, controlsGiven = []) {
     .map((r) => ({ id: r.id, title: r.title, action: r.remediation }));
   const waiveFor = { go_with_conditions: [], go: approvals.map((a) => a.id) };
 
-  const candidates = new Set(['audit_logging', 'egress_restriction', 'untrusted_tool_restriction']);
+  // human_approval is always a candidate: a fully autonomous agent needs it for Go even when no
+  // triggered threat lists it.
+  const candidates = new Set(['audit_logging', 'egress_restriction', 'untrusted_tool_restriction', 'human_approval']);
   for (const t of assess(design, controlsInPlace).threats) t.controlsMissing.forEach((c) => candidates.add(c));
   const pool = [...candidates].filter((c) => !controlsInPlace.includes(c));
 
@@ -295,6 +330,13 @@ export function pathToGo(answers, controlsGiven = []) {
     if (combo) carried = combo;
     return step;
   });
+  // If the Go route adds nothing to the Go-with-conditions route (no controls, no approvals),
+  // the two cards would be identical: show only Go, with its controls as its own.
+  const [cond, go] = steps;
+  if (steps.length === 2 && cond.controls && go.controls && !go.approvals.length
+      && go.controls.every((c) => c.fromPrevious)) {
+    return { current, architecture, approvals, steps: [{ ...go, controls: go.controls.map((c) => ({ ...c, fromPrevious: false })) }] };
+  }
   return { current, architecture, approvals, steps };
 }
 
@@ -402,8 +444,9 @@ function decideVerdict({ threats, residency, trifecta, has, a }) {
     conditions.push('Per-action audit logging is required before any agent goes live.');
   // Per-threat scoring can let a fully autonomous agent reach Go once each threat is mitigated;
   // a risk committee still expects a human in the loop for high-impact actions.
-  if (a.autonomy === 'autonomous' && intersects(a.actions, HIGH_IMPACT) && !has('human_approval'))
-    conditions.push('Fully autonomous with high-impact actions: add Human approval for high-impact actions.');
+  // human_approval follows the oversight answer, so for a fully autonomous agent it is never in place.
+  if (a.autonomy === 'autonomous' && intersects(a.actions, HIGH_IMPACT))
+    conditions.push('Fully autonomous with high-impact actions: require a person to approve high-risk actions (Human approval for high-impact actions).');
 
   const decision = blockers.length ? 'not_yet' : conditions.length ? 'go_with_conditions' : 'go';
   const label = { not_yet: 'Not yet', go_with_conditions: 'Go with conditions', go: 'Go' }[decision];

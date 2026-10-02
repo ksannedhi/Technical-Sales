@@ -45,7 +45,9 @@ Step 2: Architecture (11 questions across 5 sections)
   → Autonomy          — suggest / approve each / approve high-risk / autonomous; whose permissions; multi-agent
   → Supply chain      — vendor model, open weights, third-party MCP, community plugins, external RAG; memory
 
-Step 3: Controls in place (21 controls in 6 groups; audit logging marked as required for Go). "Act with the requesting user's permissions" is read-only here: it is in place only when every identity answered in step 2 is the requesting user's own, and Path to Go offers it as an architecture change, so the two answers can never contradict each other.
+Step 3: Controls in place (21 controls in 6 groups; audit logging marked as required for Go). Two controls are read-only here because they restate a step 2 answer: "Act with the requesting user's permissions" (in place only when every identity is the requesting user's own and there are no anonymous public users) and "Human approval for high-impact actions" (in place unless oversight is fully autonomous). Path to Go offers them as architecture changes, so the answers can never contradict each other. Controls that don't fit the design (a code sandbox with no code execution, memory safeguards with no persistent memory, knowledge-base controls with no knowledge base, supply-chain vetting with no outside components, approval display with no approvals) are flagged as not applicable, count for nothing, and are never recommended.
+
+Contradictory answers resolve towards the riskier reading: personal, health, financial, or credential data is scored as at least Level 3 (the Architecture page warns, and the results say "Scored as Level 3"), and a model vendor's API counts as an outside component (the Architecture page blocks "None" for it).
 
 Step 4: Results
   → verdict, blast radius, lethal trifecta check, threats by residual risk
@@ -182,11 +184,11 @@ One row per triggered threat — inherent and residual risk, controls in place, 
 |---|---|
 | **Not yet** | Any Critical residual threat, OR lethal trifecta open (nothing blocks the data-leak path), OR a Critical residency finding |
 | **Go with conditions** | No Critical, but ≥1 High — each High becomes a named go-live condition |
-| **Go** | Only Medium or lower, with per-action audit logging in place, and human approval for high-impact actions if the agent is fully autonomous |
+| **Go** | Only Medium or lower, with per-action audit logging in place, and not fully autonomous if it can take a high-impact action |
 
 Audit logging is a hard requirement for **Go** whatever the score — you can't govern what you can't see.
 
-A fully autonomous agent that can take a high-impact action (write records, send externally, make network requests, delete, run code, move money, change permissions) needs **Human approval for high-impact actions** to reach **Go**. Per-threat scoring alone could otherwise clear an agent with no human in the loop once each threat is mitigated. "Human approves high-risk actions" oversight also satisfies it.
+A fully autonomous agent that can take a high-impact action (write records, send externally, make network requests, delete, run code, move money, change permissions) needs **Human approval for high-impact actions** to reach **Go**. Per-threat scoring alone could otherwise clear an agent with no human in the loop once each threat is mitigated. "Human approval for high-impact actions" follows the oversight answer (a person approves high-risk actions, every action, or takes every action), so only changing that answer satisfies it; ticking the box cannot.
 
 ## Outputs
 

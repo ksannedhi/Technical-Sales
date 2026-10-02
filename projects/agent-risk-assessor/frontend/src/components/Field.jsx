@@ -1,5 +1,5 @@
 // Renders one question from inputs.json. Multi-selects treat "none" as exclusive.
-export default function Field({ input, value, onChange }) {
+export default function Field({ input, value, onChange, warning }) {
   const { id, label, type, options = [], rationale } = input;
 
   if (type === 'text' || type === 'textarea') {
@@ -41,6 +41,7 @@ export default function Field({ input, value, onChange }) {
           </button>
         ))}
       </div>
+      {warning && <p className="warn" role="alert">{warning}</p>}
     </fieldset>
   );
 }

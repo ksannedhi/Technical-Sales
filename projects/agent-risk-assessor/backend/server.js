@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  assess, pathToGo, riskRegister, rmfCoverage, effectiveControls,
+  assess, pathToGo, riskRegister, rmfCoverage,
   inputs, controlsData, scenariosData, aiRmf,
 } from './engine.js';
 import { writeBrief, narrativeEnabled } from './narrative.js';
@@ -28,15 +28,17 @@ app.get('/api/scenarios', (_req, res) => res.json(scenariosData));
 function run(body) {
   const answers = body?.answers;
   if (!answers || typeof answers !== 'object') return null;
-  // Controls that restate an Architecture answer follow that answer, whatever the checkbox says.
-  const controls = effectiveControls(answers, Array.isArray(body.controls) ? body.controls : []);
+  const ticked = Array.isArray(body.controls) ? body.controls : [];
   // A what-if is the design with Path-to-Go changes applied. Exports must say so, because its
   // "controls in place" are assumptions, not the organisation's actual state.
   const whatIf = Array.isArray(body.whatIf) && body.whatIf.length ? body.whatIf.map(String) : null;
-  const result = assess(answers, controls);
+  // The engine decides which ticked controls count (derived ones follow their Architecture answer,
+  // not-applicable ones are dropped); exports list only those.
+  const result = assess(answers, ticked);
+  const controls = result.controlsInPlace;
   return {
     answers, controls, result, whatIf,
-    path: pathToGo(answers, controls),
+    path: pathToGo(answers, ticked),
     register: riskRegister(answers, controls, result),
     coverage: rmfCoverage(result),
   };

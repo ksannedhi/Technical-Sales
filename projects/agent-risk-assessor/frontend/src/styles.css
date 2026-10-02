@@ -105,3 +105,6 @@ th { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
 .carried { margin: 0 0 4px; color: var(--muted); font-style: italic; }
 
 .tid { font-family: Consolas, monospace; font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+
+.tag.warn { background: #fef3c7; color: #92400e; }
+.warn { margin: 6px 0 0; font-size: 0.85rem; color: #92400e; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 6px 10px; }

@@ -76,8 +76,21 @@ export default function App() {
   };
   const view = whatIf ?? { answers, controls };
 
+  // Answers that contradict each other. Blocking ones must be fixed before moving on; the others
+  // explain how the engine resolves them (the engine applies the same rules in normaliseAnswers).
+  const optLabel = (id, v) => meta.inputs.sections.flatMap((x) => x.inputs).find((i) => i.id === id)?.options.find((o) => o.value === v)?.label ?? v;
+  const list = (v) => [v ?? []].flat();
+  const conflicts = {};
+  const floorTypes = list(answers.dataTypes).filter((t) => ['personal', 'health', 'financial', 'credentials'].includes(t));
+  if (floorTypes.length && ['1', '2'].includes(String(answers.dataSensitivity)))
+    conflicts.dataSensitivity = { block: false, text: `${floorTypes.map((t) => optLabel('dataTypes', t)).join(', ')} is at least Level 3, so this design is scored as Level 3. Pick Level 3 or 4 to match.` };
+  if (list(answers.hosting).includes('vendor_api') && list(answers.supplyChain).includes('none'))
+    conflicts.supplyChain = { block: true, text: `Profile says the model runs on a model vendor's API, which is a component from outside the organisation. Pick "Commercial model API" instead of None.` };
+  const blocking = Object.entries(conflicts).filter(([, c]) => c.block).map(([id]) => id);
+
   const gate = [missing(profile), missing(architecture), []];
-  const canOpen = (i) => gate.slice(0, i).every((m) => m.length === 0);
+  const toFix = [[], blocking, []];
+  const canOpen = (i) => gate.slice(0, i).every((m) => m.length === 0) && toFix.slice(0, i).every((m) => m.length === 0);
 
   return (
     <div className="shell">
@@ -115,12 +128,13 @@ export default function App() {
             <section key={sec.id} className="card">
               <h2>{sec.label}</h2>
               {sec.inputs.map((input) => (
-                <Field key={input.id} input={input} value={answers[input.id]} onChange={(v) => set(input.id, v)} />
+                <Field key={input.id} input={input} value={answers[input.id]} onChange={(v) => set(input.id, v)} warning={conflicts[input.id]?.text} />
               ))}
             </section>
           ))}
           <Footer
             missing={gate[step].length}
+            toFix={toFix[step].length}
             onBack={step > 0 ? () => goStep(step - 1) : null}
             onNext={() => goStep(step + 1)}
           />
@@ -139,19 +153,21 @@ export default function App() {
           answers={view.answers} controls={view.controls} whatIf={whatIf?.changes ?? null}
           narrative={meta.health.narrative} onApply={applyPath}
           onExitWhatIf={() => setWhatIf(null)} onEditControls={() => goStep(2)}
+          controlTitles={Object.fromEntries(meta.controlsData.controls.map((c) => [c.id, c.title]))}
         />
       )}
     </div>
   );
 }
 
-function Footer({ missing, onBack, onNext, nextLabel = 'Next' }) {
+function Footer({ missing, toFix = 0, onBack, onNext, nextLabel = 'Next' }) {
   return (
     <div className="footer">
       {onBack ? <button className="ghost" onClick={onBack}>Back</button> : <span />}
       <div>
         {missing > 0 && <span className="muted">{missing} question{missing > 1 ? 's' : ''} left </span>}
-        <button className="primary" disabled={missing > 0} onClick={onNext}>{nextLabel}</button>
+        {toFix > 0 && <span className="muted">{toFix} answer{toFix > 1 ? 's' : ''} to fix (see the note) </span>}
+        <button className="primary" disabled={missing > 0 || toFix > 0} onClick={onNext}>{nextLabel}</button>
       </div>
     </div>
   );

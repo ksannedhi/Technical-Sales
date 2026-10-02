@@ -1,14 +1,24 @@
-// A control with `setBy` restates an Architecture answer, so it is read-only here and follows that
-// answer (the engine ignores its checkbox). Same rule as effectiveControls() in the engine.
-const derivedHolds = (c, answers) => {
-  const v = [answers[c.setBy.field] ?? []].flat();
-  return v.length > 0 && v.every((x) => c.setBy.only.includes(x));
-};
+import { useEffect, useState } from 'react';
 
+// Which ticked controls actually count comes from the engine (/api/assess), not from rules copied
+// here: a control with `setBy` follows an Architecture answer and is read-only, and a control with
+// `appliesWhen` that doesn't fit this design is flagged as not applicable.
 export default function ControlsStep({ data, value, onChange, answers }) {
   const has = new Set(value);
   const toggle = (id) => onChange(has.has(id) ? value.filter((x) => x !== id) : [...value, id]);
-  const checked = (c) => (c.setBy ? derivedHolds(c, answers) : has.has(c.id));
+  const [engine, setEngine] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    fetch('/api/assess', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers, controls: value }) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => live && d && setEngine({ inPlace: new Set(d.result.controlsInPlace), na: new Set(d.result.notApplicable) }))
+      .catch(() => {});
+    return () => { live = false; };
+  }, [answers, value]);
+
+  const derivedOn = (c) => engine?.inPlace.has(c.id) ?? false;
+  const checked = (c) => (c.setBy ? derivedOn(c) : has.has(c.id));
 
   return (
     <>
@@ -25,13 +35,16 @@ export default function ControlsStep({ data, value, onChange, answers }) {
               <span>
                 <strong>{c.title}</strong>
                 {c.id === 'audit_logging' && <span className="tag">Required for Go</span>}
+                {has.has(c.id) && engine?.na.has(c.id) && <span className="tag warn">Not applicable to this design</span>}
                 <span className="muted block">{c.description}</span>
                 {c.setBy && (
                   <span className="small block">
-                    Set by your Architecture answer to "Whose permissions does the agent use?": {checked(c)
-                      ? "every identity is the requesting user's own, so this is in place."
-                      : "it counts only when every identity the agent uses is the requesting user's own."}
+                    Set by your Architecture answer to "{c.setBy.question}": in place only when {c.setBy.rule}.
+                    {engine && (derivedOn(c) ? ' Your answers meet this.' : ' Your answers don’t meet this yet.')}
                   </span>
+                )}
+                {has.has(c.id) && engine?.na.has(c.id) && (
+                  <span className="small block">Your design doesn't need this, so it counts for nothing in the assessment.</span>
                 )}
               </span>
             </label>

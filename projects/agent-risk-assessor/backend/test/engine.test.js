@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assess, evaluate, deriveFlags, pathToGo, effectiveControls, applyDerivedFixes, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
+import { assess, evaluate, deriveFlags, pathToGo, effectiveControls, applyDerivedFixes, normaliseAnswers, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
 
 const inputIds = new Set(inputs.sections.flatMap((s) => s.inputs).map((i) => i.id));
 const optionValues = Object.fromEntries(
@@ -74,7 +74,8 @@ test('fully autonomous high-impact actions cap the verdict at Go with conditions
   const r = assess(design, noApproval);
   assert.equal(r.verdict.decision, 'go_with_conditions');
   assert.ok(r.verdict.conditions.some((c) => c.includes('Human approval for high-impact actions')));
-  assert.equal(assess(design, all).verdict.decision, 'go');
+  // Ticking the approval box can't clear it: approval follows the oversight answer.
+  assert.equal(assess(design, all).verdict.decision, 'go_with_conditions');
   // Read-only autonomy, or a human approving high-risk actions, does not trigger it.
   assert.equal(assess({ ...design, actions: ['read_only'] }, noApproval).verdict.decision, 'go');
   assert.equal(assess({ ...design, autonomy: 'approve_high_risk' }, noApproval).verdict.decision, 'go');
@@ -117,6 +118,77 @@ test('path to Go offers per-user permissions as an architecture change', () => {
   assert.ok(step, 'bank path should include per-user permissions');
   assert.deepEqual(step.fix, { identity: ['per_user'] });
   assert.ok(step.change);
+});
+
+// A clinic appointments agent, as entered in a real assessment: health data marked Level 2.
+const clinic = {
+  sector: 'healthcare', jurisdictions: ['KW'], hosting: ['vendor_api'], hostingCountry: ['KW', 'SA', 'AE'],
+  dataSensitivity: '2', dataTypes: ['health'], dataSources: ['crm', 'database'],
+  actions: ['read_only', 'internal_ticket', 'send_external', 'write_records'], users: ['customers'],
+  untrustedInputs: ['uploaded_files'], autonomy: 'approve_high_risk', identity: ['scoped_tool'],
+  multiAgent: 'no', supplyChain: ['vendor_model'], memory: ['session'],
+};
+
+test('human approval follows the oversight answer, never the checkbox', () => {
+  const auto = { ...clinic, autonomy: 'autonomous' };
+  assert.ok(!assess(auto, ['human_approval']).controlsInPlace.includes('human_approval'));
+  assert.ok(assess(clinic, []).controlsInPlace.includes('human_approval'));
+  assert.ok(assess({ ...clinic, autonomy: 'suggest' }, []).controlsInPlace.includes('human_approval'));
+  assert.deepEqual(applyDerivedFixes(auto, ['human_approval']).autonomy, 'approve_high_risk');
+});
+
+test('per-user permissions never count for anonymous public users', () => {
+  const perUser = { ...clinic, identity: ['per_user'] };
+  assert.ok(assess(perUser, []).controlsInPlace.includes('per_user_identity'));
+  assert.ok(!assess({ ...perUser, users: ['customers', 'public'] }, []).controlsInPlace.includes('per_user_identity'));
+});
+
+test('personal, health, financial or credential data scores as at least Level 3', () => {
+  const r = assess(clinic, []);
+  assert.equal(r.blastRadius.components.data, 3);
+  assert.ok(r.threats.some((t) => t.id === 'T-LEAK-01'), 'wrong-user disclosure is assessed');
+  assert.deepEqual(r.dataLevel, { stated: 2, used: 3, raisedBy: ['health'] });
+  assert.equal(assess({ ...clinic, dataTypes: ['none'] }, []).dataLevel, null);
+  assert.equal(assess({ ...clinic, dataSensitivity: '4' }, []).blastRadius.components.data, 4);
+});
+
+test('a model vendor API counts as an outside component even if None was picked', () => {
+  const none = { ...clinic, supplyChain: ['none'] };
+  assert.deepEqual(normaliseAnswers(none).supplyChain, ['vendor_model']);
+  assert.deepEqual(assess(none, []).residency.map((f) => f.id), assess(clinic, []).residency.map((f) => f.id));
+});
+
+test('controls that do not apply to the design are listed as such and count for nothing', () => {
+  const all = controlsData.controls.map((c) => c.id);
+  const r = assess(clinic, all);
+  for (const id of ['sandboxed_execution', 'memory_hardening', 'content_provenance']) {
+    assert.ok(r.notApplicable.includes(id), `${id} should not apply`);
+    assert.ok(!r.controlsInPlace.includes(id), `${id} should not count`);
+  }
+  const without = assess(clinic, all.filter((c) => !r.notApplicable.includes(c)));
+  assert.deepEqual(r.threats.map((t) => [t.id, t.residual]), without.threats.map((t) => [t.id, t.residual]));
+  assert.ok(assess({ ...clinic, actions: [...clinic.actions, 'execute_code'] }, all).controlsInPlace.includes('sandboxed_execution'));
+  // Nor is a control that doesn't apply ever recommended as a gap.
+  assert.ok(!assess(clinic, []).gaps.some((g) => g.control.id === 'sandboxed_execution'));
+});
+
+test('path to Go shows one card when the Go route adds nothing to Go with conditions', () => {
+  const all = controlsData.controls.map((c) => c.id).filter((c) => c !== 'untrusted_tool_restriction');
+  const p = pathToGo(clinic, all);
+  assert.equal(p.steps.length, 1);
+  assert.equal(p.steps[0].target, 'go');
+  assert.ok(p.architecture.some((a) => a.id === 'KW-01'));
+});
+
+test('every appliesWhen and setBy condition references real fields and options', () => {
+  for (const c of controlsData.controls) {
+    if (c.appliesWhen) checkCondition(c.appliesWhen, `${c.id}.appliesWhen`);
+    if (c.setBy) {
+      checkCondition({ field: c.setBy.field, in: c.setBy.only }, `${c.id}.setBy`);
+      if (c.setBy.unless) checkCondition(c.setBy.unless, `${c.id}.setBy.unless`);
+      [c.setBy.fix].flat().forEach((v) => assert.ok(c.setBy.only.includes(v), `${c.id}.setBy.fix ${v}`));
+    }
+  }
 });
 
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
