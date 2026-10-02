@@ -77,6 +77,7 @@
       "description": "Only approved, known sources go into the knowledge base the agent searches (its RAG index). Adding or changing those documents is restricted, and every change is logged.",
       "timeline": "medium",
       "appliesWhen": { "any": [{ "field": "dataSources", "in": ["rag_index"] }, { "field": "supplyChain", "in": ["external_rag"] }] },
+      "appliesNote": "it applies only when the agent searches a document index (RAG) or uses outside knowledge-base content",
       "atlas": [
         "AML.M0025"
       ],
@@ -92,6 +93,7 @@
       "description": "What the agent remembers between conversations is checked before it is saved, kept separate for each user, expires, and can be reviewed and deleted.",
       "timeline": "medium",
       "appliesWhen": { "field": "memory", "in": ["persistent_user", "persistent_shared"] },
+      "appliesNote": "it applies only when the agent remembers things between conversations",
       "atlas": [
         "AML.M0031"
       ],
@@ -192,6 +194,7 @@
       "description": "The approver sees exactly what will happen (the recipient, the content, the amount, the command), not the agent's own summary of it.",
       "timeline": "short",
       "appliesWhen": { "field": "autonomy", "in": ["approve_each", "approve_high_risk"] },
+      "appliesNote": "it applies only when a person approves the agent's actions before they run",
       "atlas": [
         "AML.M0029"
       ],
@@ -245,6 +248,7 @@
       "description": "Any code the agent runs is in a sealed, throwaway environment with no network access (including DNS) and no passwords.",
       "timeline": "medium",
       "appliesWhen": { "field": "actions", "in": ["execute_code"] },
+      "appliesNote": "it applies only when the agent can run code",
       "atlas": [
         "AML.M0032"
       ],
@@ -271,6 +275,7 @@
       "description": "Plug-ins, tool connectors (MCP servers), and models come only from an approved list, are locked to a checked version, and are recorded in an inventory (an AI bill of materials). Any change to a tool's definition is reviewed.",
       "timeline": "medium",
       "appliesWhen": { "field": "supplyChain", "in": ["vendor_model", "open_weights", "third_party_mcp", "community_plugins", "external_rag"] },
+      "appliesNote": "it applies only when the agent uses models, tools, or content from outside the organisation",
       "atlas": [
         "AML.M0023",
         "AML.M0014"

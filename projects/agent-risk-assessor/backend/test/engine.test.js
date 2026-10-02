@@ -191,6 +191,7 @@ test('path to Go shows one card when the Go route adds nothing to Go with condit
 test('every appliesWhen and setBy condition references real fields and options', () => {
   for (const c of controlsData.controls) {
     if (c.appliesWhen) checkCondition(c.appliesWhen, `${c.id}.appliesWhen`);
+    assert.equal(Boolean(c.appliesWhen), Boolean(c.appliesNote), `${c.id}: appliesWhen and appliesNote go together`);
     if (c.setBy) {
       checkCondition({ field: c.setBy.field, in: c.setBy.only }, `${c.id}.setBy`);
       if (c.setBy.unless) checkCondition(c.setBy.unless, `${c.id}.setBy.unless`);
