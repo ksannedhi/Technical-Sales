@@ -43,7 +43,10 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
       .filter((i) => !['orgName', 'agentName', 'purpose'].includes(i.id))
       .map((i) => `<tr><td style="width:40%">${esc(i.label)}</td><td>${answerText(i)}</td></tr>`).join('')}
       <tr><td>Controls in place</td><td>${controlTitles.length ? controlTitles.join('<br>') : '<span class="muted">None</span>'}</td></tr>
-      ${result.notApplicable?.length ? `<tr><td>Ticked but not applicable (not counted)</td><td>${result.notApplicable.map((id) => esc(controlsData?.controls.find((c) => c.id === id)?.title ?? id)).join('<br>')}</td></tr>` : ''}
+      ${result.notApplicable?.length ? `<tr><td>Ticked but not applicable (not counted)</td><td>${result.notApplicable.map((id) => {
+        const c = controlsData?.controls.find((x) => x.id === id);
+        return `${esc(c?.title ?? id)}${c?.appliesNote ? ` <span class="muted">— ${esc(c.appliesNote)}</span>` : ''}`;
+      }).join('<br>')}</td></tr>` : ''}
     </table>` : '';
 
   const sections = [
