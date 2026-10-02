@@ -425,6 +425,12 @@ export function rmfCoverage(result) {
 }
 
 
+// A control derived from an Architecture answer is reached by changing the answer, so name the change.
+const fixLabel = (id) => {
+  const c = controlIndex[id];
+  return c.setBy ? `${c.setBy.change} (architecture change)` : `add ${c.title}`;
+};
+
 function decideVerdict({ threats, residency, trifecta, has, a }) {
   const blockers = [];
   const conditions = [];
@@ -437,7 +443,7 @@ function decideVerdict({ threats, residency, trifecta, has, a }) {
     blockers.push(`${r.id} ${r.title}.`);
 
   for (const t of threats.filter((t) => t.residual === 3))
-    conditions.push(`${t.id} ${t.title}: add one of — ${t.controlsMissing.map((c) => controlIndex[c].title).join('; ')}.`);
+    conditions.push(`${t.id} ${t.title}: do one of — ${t.controlsMissing.map(fixLabel).join('; ')}.`);
   for (const r of residency.filter((r) => r.severity === 3))
     conditions.push(`${r.id} ${r.title}: ${r.remediation}`);
   if (!has('audit_logging'))

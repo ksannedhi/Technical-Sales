@@ -111,6 +111,14 @@ test('per-user permissions follow the identity answer, never the checkbox', () =
   assert.ok(!effectiveControls({ identity: ['per_user', 'shared_service'] }, ['per_user_identity']).includes('per_user_identity'));
 });
 
+test('conditions name a derived control as an architecture change, not a box to tick', () => {
+  const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
+  const prv = assess(bank.answers, bank.controls).verdict.conditions.find((c) => c.startsWith('T-PRV-01'));
+  assert.ok(prv.includes("Switch every tool to the requesting user's own delegated permissions (architecture change)"), prv);
+  assert.ok(prv.includes('add Least-privilege tool permissions'), prv);
+  assert.ok(!prv.includes("add Act with the requesting user's permissions"), prv);
+});
+
 test('path to Go offers per-user permissions as an architecture change', () => {
   const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
   const p = pathToGo(bank.answers, bank.controls);
