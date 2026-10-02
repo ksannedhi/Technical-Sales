@@ -32,7 +32,7 @@
       "id": "untrusted_tool_restriction",
       "group": "input",
       "title": "Restrict tool use after reading untrusted content",
-      "description": "Once untrusted content enters the context, high-impact tools are disabled or require approval for the rest of the task (plan-then-execute, or a quarantined reader model with no tools).",
+      "description": "After the agent reads anything an outsider could have written (an email, an upload, a web page), its high-impact tools are switched off or need approval for the rest of that task. Typical designs: plan the task before reading anything, or pass untrusted content to a separate model that has no tools.",
       "timeline": "medium",
       "atlas": [
         "AML.M0030",
@@ -47,7 +47,7 @@
       "id": "input_validation",
       "group": "input",
       "title": "Validate inputs and outputs between agent components",
-      "description": "Schema-check tool arguments and tool results; strip or flag instructions embedded in retrieved content.",
+      "description": "What the agent sends to its tools, and what comes back, is checked against the expected format. Instructions hidden inside documents or tool results are removed or flagged.",
       "timeline": "short",
       "atlas": [
         "AML.M0033"
@@ -60,7 +60,7 @@
       "id": "guardrails",
       "group": "input",
       "title": "Prompt and response guardrails",
-      "description": "Classifier or rules-based screening of prompts and responses for injection, jailbreak, and policy violations. Probabilistic — reduces risk but never breaks an attack chain on its own.",
+      "description": "Automatic screening of what goes into and comes out of the model, for jailbreaks, hidden instructions, and policy breaches. It catches many attacks but not all, so on its own it never closes a data-leak path.",
       "timeline": "short",
       "atlas": [
         "AML.M0020"
@@ -74,7 +74,7 @@
       "id": "content_provenance",
       "group": "input",
       "title": "Provenance and write control for indexed content",
-      "description": "Only curated, attributable sources enter the RAG index; write access to indexed repositories is restricted and changes are logged.",
+      "description": "Only approved, known sources go into the knowledge base the agent searches (its RAG index). Adding or changing those documents is restricted, and every change is logged.",
       "timeline": "medium",
       "atlas": [
         "AML.M0025"
@@ -88,7 +88,7 @@
       "id": "memory_hardening",
       "group": "input",
       "title": "Memory hardening",
-      "description": "Memory writes are validated, scoped per user, expire, and can be inspected and purged.",
+      "description": "What the agent remembers between conversations is checked before it is saved, kept separate for each user, expires, and can be reviewed and deleted.",
       "timeline": "medium",
       "atlas": [
         "AML.M0031"
@@ -102,7 +102,7 @@
       "id": "least_privilege_tools",
       "group": "authority",
       "title": "Least-privilege tool permissions",
-      "description": "Each tool exposes only the operations the use case needs (e.g. read-only CRM, send to internal domains only). No wildcard scopes.",
+      "description": "Each tool can do only what this use case needs: for example, read the CRM but not edit it, or email internal addresses only. No blanket access.",
       "timeline": "short",
       "atlas": [
         "AML.M0028",
@@ -117,7 +117,7 @@
       "id": "per_user_identity",
       "group": "authority",
       "title": "Act with the requesting user's permissions",
-      "description": "The agent uses delegated, per-user authorisation so it can never read or do more than the person asking.",
+      "description": "The agent acts with the permissions of the person asking, so it can never see or do more than they could themselves.",
       "timeline": "medium",
       "atlas": [
         "AML.M0027"
@@ -131,7 +131,7 @@
       "id": "secrets_management",
       "group": "authority",
       "title": "Secrets kept out of prompts and agent config",
-      "description": "Credentials live in a vault, are injected at the tool boundary, short-lived, and never visible to the model.",
+      "description": "Passwords and API keys are kept in a vault and added only at the moment a tool runs. The model never sees them, and they expire quickly.",
       "timeline": "short",
       "atlas": [],
       "aiRmf": [
@@ -142,7 +142,7 @@
       "id": "authority_expansion_controls",
       "group": "authority",
       "title": "Block self-granted authority",
-      "description": "The agent cannot install tools, change its own configuration, or escalate its permissions at runtime.",
+      "description": "The agent cannot add tools, change its own settings, or give itself more permissions while it runs.",
       "timeline": "short",
       "atlas": [
         "AML.M0037"
@@ -156,7 +156,7 @@
       "id": "human_approval",
       "group": "oversight",
       "title": "Human approval for high-impact actions",
-      "description": "External sends, deletions, payments, code execution, and permission changes wait for an explicit human decision.",
+      "description": "Sending outside the organisation, deleting, paying, running code, and changing permissions all wait for a person to approve.",
       "timeline": "short",
       "atlas": [
         "AML.M0029"
@@ -170,7 +170,7 @@
       "id": "approval_transparency",
       "group": "oversight",
       "title": "Approvals show the raw action, not the agent's summary",
-      "description": "The approver sees the exact recipient, payload, amount, or command — not a model-written explanation of it.",
+      "description": "The approver sees exactly what will happen (the recipient, the content, the amount, the command), not the agent's own summary of it.",
       "timeline": "short",
       "atlas": [
         "AML.M0029"
@@ -184,7 +184,7 @@
       "id": "egress_restriction",
       "group": "egress",
       "title": "Egress allowlist",
-      "description": "The agent can only reach approved domains and recipients, including DNS resolution. Blocks exfiltration through URLs, image links, webhooks, email, and DNS lookups.",
+      "description": "The agent can contact only approved websites, services, and recipients. This also closes the less obvious ways data can leave: links, images, webhooks, email, and DNS lookups.",
       "timeline": "short",
       "atlas": [
         "AML.M0032"
@@ -198,7 +198,7 @@
       "id": "output_handling",
       "group": "egress",
       "title": "Treat model output as untrusted downstream",
-      "description": "Encode or validate model output before it reaches browsers, databases, shells, or other systems.",
+      "description": "What the model produces is checked before it reaches a web page, database, or command line, so it cannot be used to attack those systems.",
       "timeline": "short",
       "atlas": [
         "AML.M0033"
@@ -211,7 +211,7 @@
       "id": "dlp_redaction",
       "group": "egress",
       "title": "Data minimisation before the model",
-      "description": "Personal and sensitive fields are redacted or tokenised before prompts leave the trust boundary; responses are screened for sensitive data.",
+      "description": "Personal and sensitive details are removed or masked before anything is sent to the model, and its replies are checked for sensitive data.",
       "timeline": "medium",
       "atlas": [],
       "aiRmf": [
@@ -222,7 +222,7 @@
       "id": "sandboxed_execution",
       "group": "egress",
       "title": "Sandboxed code execution",
-      "description": "Code runs in an isolated, ephemeral environment with no network (including DNS) or credentials by default.",
+      "description": "Any code the agent runs is in a sealed, throwaway environment with no network access (including DNS) and no passwords.",
       "timeline": "medium",
       "atlas": [
         "AML.M0032"
@@ -236,7 +236,7 @@
       "id": "no_secrets_in_prompt",
       "group": "egress",
       "title": "Nothing sensitive in the system prompt",
-      "description": "Assume the system prompt will be extracted. It holds no credentials, internal URLs, or business rules that matter if disclosed.",
+      "description": "The agent's built-in instructions (its system prompt) hold nothing that would matter if leaked: no passwords, internal addresses, or confidential business rules. Assume someone will extract them.",
       "timeline": "short",
       "atlas": [],
       "aiRmf": [
@@ -247,7 +247,7 @@
       "id": "supply_chain_vetting",
       "group": "supply",
       "title": "Vetted, pinned third-party components",
-      "description": "MCP servers, plugins, and models come from an approved list, are version-pinned, verified, and recorded in an AI bill of materials. Tool definition changes trigger review.",
+      "description": "Plug-ins, tool connectors (MCP servers), and models come only from an approved list, are locked to a checked version, and are recorded in an inventory (an AI bill of materials). Any change to a tool's definition is reviewed.",
       "timeline": "medium",
       "atlas": [
         "AML.M0023",
@@ -264,7 +264,7 @@
       "id": "audit_logging",
       "group": "operate",
       "title": "Per-action audit logging",
-      "description": "Every prompt, tool call, argument, result, and approval is logged with user and agent identity, and retained per policy. Required for a Go verdict.",
+      "description": "Every request, tool action, result, and approval is recorded with the user and agent behind it, and kept as long as policy requires. Required for a Go verdict.",
       "timeline": "short",
       "atlas": [
         "AML.M0024"
@@ -279,7 +279,7 @@
       "id": "rate_spend_limits",
       "group": "operate",
       "title": "Rate, token, and spend limits",
-      "description": "Per-user and per-task caps on requests, tokens, tool calls, and cost, with alerts.",
+      "description": "Caps per user and per task on requests, usage, tool calls, and cost, with alerts when they are reached.",
       "timeline": "short",
       "atlas": [
         "AML.M0004",
@@ -294,7 +294,7 @@
       "id": "scope_monitoring",
       "group": "operate",
       "title": "Scope-drift monitoring and kill switch",
-      "description": "Alerts when the agent acts outside its expected pattern; an operator can suspend it immediately.",
+      "description": "Alerts when the agent acts outside its normal pattern, and an operator can stop it immediately.",
       "timeline": "medium",
       "atlas": [
         "AML.M0038"
@@ -309,7 +309,7 @@
       "id": "red_team",
       "group": "operate",
       "title": "Pre-production AI red team",
-      "description": "Injection, exfiltration, and tool-misuse testing against this deployment before go-live, repeated on material change.",
+      "description": "Before go-live, testers attack this deployment (hidden instructions, data theft, tool misuse), and again after any significant change.",
       "timeline": "medium",
       "atlas": [
         "AML.M0035"

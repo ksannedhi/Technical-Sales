@@ -66,6 +66,20 @@ test('missing audit logging blocks a clean Go', () => {
   assert.equal(r.verdict.decision, 'go_with_conditions');
 });
 
+test('fully autonomous high-impact actions cap the verdict at Go with conditions without human approval', () => {
+  const hr = scenariosData.scenarios.find((s) => s.id === 'hr-policy');
+  const design = { ...hr.answers, autonomy: 'autonomous', actions: ['read_only', 'write_records'] };
+  const all = controlsData.controls.map((c) => c.id);
+  const noApproval = all.filter((c) => c !== 'human_approval');
+  const r = assess(design, noApproval);
+  assert.equal(r.verdict.decision, 'go_with_conditions');
+  assert.ok(r.verdict.conditions.some((c) => c.includes('Human approval for high-impact actions')));
+  assert.equal(assess(design, all).verdict.decision, 'go');
+  // Read-only autonomy, or a human approving high-risk actions, does not trigger it.
+  assert.equal(assess({ ...design, actions: ['read_only'] }, noApproval).verdict.decision, 'go');
+  assert.equal(assess({ ...design, autonomy: 'approve_high_risk' }, noApproval).verdict.decision, 'go');
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));

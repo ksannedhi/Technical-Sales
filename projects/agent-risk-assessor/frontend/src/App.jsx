@@ -34,6 +34,11 @@ export default function App() {
     try { sessionStorage.setItem(STORE, JSON.stringify({ step, answers, controls, whatIf })); } catch { /* private mode */ }
   }, [step, answers, controls, whatIf]);
 
+  // A new step, or entering/leaving a what-if, is a new page: start it at the top (the button that
+  // got you here is usually at the bottom of the previous one, and the what-if banner sits above the verdict).
+  const viewKey = `${step}:${whatIf?.changes.length ?? 0}`;
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [viewKey]);
+
   if (error) return <div className="shell"><p className="error">{error}</p></div>;
   if (!meta) return <div className="shell"><p className="muted">Loading…</p></div>;
 

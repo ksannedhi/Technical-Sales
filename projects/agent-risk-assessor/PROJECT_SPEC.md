@@ -182,13 +182,15 @@ One row per triggered threat — inherent and residual risk, controls in place, 
 |---|---|
 | **Not yet** | Any Critical residual threat, OR lethal trifecta open (nothing blocks the data-leak path), OR a Critical residency finding |
 | **Go with conditions** | No Critical, but ≥1 High — each High becomes a named go-live condition |
-| **Go** | Only Medium or lower, with per-action audit logging in place |
+| **Go** | Only Medium or lower, with per-action audit logging in place, and human approval for high-impact actions if the agent is fully autonomous |
 
 Audit logging is a hard requirement for **Go** whatever the score — you can't govern what you can't see.
 
+A fully autonomous agent that can take a high-impact action (write records, send externally, make network requests, delete, run code, move money, change permissions) needs **Human approval for high-impact actions** to reach **Go**. Per-threat scoring alone could otherwise clear an agent with no human in the loop once each threat is mitigated. "Human approves high-risk actions" oversight also satisfies it.
+
 ## Outputs
 
-1. **Page 1** — verdict, blast radius, trifecta status, a "What was assessed" summary (jurisdictions, hosting, inference countries, data classification, actions, users, oversight, controls count), and a linked contents strip
+1. **Page 1** — verdict, blast radius, trifecta status, a "What was assessed" summary (jurisdictions, hosting, inference countries, data classification, actions, users, oversight, controls in place by name), and a linked contents strip
 2. **Blockers and go-live conditions**
 3. **Path to Go** — architecture changes, controls, and approvals per target verdict
 4. **Risk committee brief** (Claude) — plain-language summary a non-technical committee can sign against

@@ -354,7 +354,7 @@ export function rmfCoverage(result) {
 }
 
 
-function decideVerdict({ threats, residency, trifecta, has }) {
+function decideVerdict({ threats, residency, trifecta, has, a }) {
   const blockers = [];
   const conditions = [];
 
@@ -371,6 +371,10 @@ function decideVerdict({ threats, residency, trifecta, has }) {
     conditions.push(`${r.id} ${r.title}: ${r.remediation}`);
   if (!has('audit_logging'))
     conditions.push('Per-action audit logging is required before any agent goes live.');
+  // Per-threat scoring can let a fully autonomous agent reach Go once each threat is mitigated;
+  // a risk committee still expects a human in the loop for high-impact actions.
+  if (a.autonomy === 'autonomous' && intersects(a.actions, HIGH_IMPACT) && !has('human_approval'))
+    conditions.push('Fully autonomous with high-impact actions: add Human approval for high-impact actions.');
 
   const decision = blockers.length ? 'not_yet' : conditions.length ? 'go_with_conditions' : 'go';
   const label = { not_yet: 'Not yet', go_with_conditions: 'Go with conditions', go: 'Go' }[decision];
