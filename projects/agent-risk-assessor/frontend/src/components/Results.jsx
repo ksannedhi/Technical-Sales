@@ -10,6 +10,21 @@ const FLAG_LABELS = {
 const post = (url, body) =>
   fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
+// The dev backend restarts under `node --watch` (sometimes with no file change on Windows), dropping
+// in-flight requests as a proxy 500. Retry a few times quietly before showing an error. Only 500 and
+// network errors retry: a 502 from /api/brief is a real model failure and must not re-call Claude.
+async function postRetry(url, body, tries = 4) {
+  for (let i = 1; ; i++) {
+    try {
+      const res = await post(url, body);
+      if (res.status !== 500 || i >= tries) return res;
+    } catch (e) {
+      if (i >= tries) throw e;
+    }
+    await new Promise((r) => setTimeout(r, 1000 * i));
+  }
+}
+
 async function download(url, body, fallbackName) {
   const res = await post(url, body);
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || `HTTP ${res.status}`);
@@ -34,13 +49,13 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
     let live = true;
     setData(null);
     setLoadError(null);
-    post('/api/assess', { answers, controls })
+    postRetry('/api/assess', { answers, controls })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((d) => live && setData(d))
       .catch((e) => live && setLoadError(e.message));
     if (narrative) {
       setBrief({ state: 'loading', text: null });
-      post('/api/brief', { answers, controls })
+      postRetry('/api/brief', { answers, controls })
         .then((r) => r.json())
         .then((d) => live && setBrief(d.brief ? { state: 'ok', text: d.brief } : { state: 'failed', text: null }))
         .catch(() => live && setBrief({ state: 'failed', text: null }));

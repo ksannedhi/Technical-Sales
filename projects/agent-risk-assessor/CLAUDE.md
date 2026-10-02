@@ -61,6 +61,9 @@ Check a clause's **scope** in the primary text, not only its number. CORF 7.2 an
 ## Data files are read at startup
 `node --watch` restarts on `.js` changes only. After editing anything in `backend/data/`, restart the backend (or touch `engine.js`) before testing in the UI.
 
+## Backend restarts drop requests
+`node --watch` restarts the backend on any change, and on Windows sometimes with no change at all; the Vite proxy turns the dropped request into a 500. `Results.jsx` retries `/api/assess` and `/api/brief` on 500 or a network error only. Keep it that way: `/api/brief` returns 502 for a real model failure, and retrying that would call Claude again.
+
 ## Adding a threat or rule
 Add it to the data file, then run `npm test` — the suite checks every field, option, control, and mapping ID the rule references. If you add a preset, give it an `expectedVerdict`.
 
