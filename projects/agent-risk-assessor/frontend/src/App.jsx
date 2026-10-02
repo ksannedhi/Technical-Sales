@@ -4,8 +4,9 @@ import ControlsStep from './components/ControlsStep.jsx';
 import Results from './components/Results.jsx';
 
 const STEPS = ['Profile', 'Architecture', 'Controls', 'Results'];
-// Optional multi-selects — an empty answer is a real answer ("none").
-const OPTIONAL = new Set(['orgName', 'agentName', 'purpose', 'dataSources', 'supplyChain']);
+// Only the free-text profile fields are optional. Every multi-select needs an answer, with an
+// explicit "None" where nothing applies, so a skipped question can't silently drop findings.
+const OPTIONAL = new Set(['orgName', 'agentName', 'purpose']);
 const STORE = 'agent-risk-assessor:v1';
 
 // sessionStorage: survives a refresh, clears when the tab closes — no leakage between prospects.

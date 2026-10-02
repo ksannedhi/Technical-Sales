@@ -264,6 +264,10 @@
             {
               "value": "web",
               "label": "Public web"
+            },
+            {
+              "value": "none",
+              "label": "None — only the conversation itself"
             }
           ]
         }
@@ -500,6 +504,10 @@
             {
               "value": "external_rag",
               "label": "Externally sourced knowledge base content"
+            },
+            {
+              "value": "none",
+              "label": "None — model and tools are all built and run in-house"
             }
           ]
         },

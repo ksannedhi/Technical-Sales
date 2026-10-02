@@ -80,6 +80,20 @@ test('fully autonomous high-impact actions cap the verdict at Go with conditions
   assert.equal(assess({ ...design, autonomy: 'approve_high_risk' }, noApproval).verdict.decision, 'go');
 });
 
+test('every multi-select offers None, and None triggers nothing', () => {
+  const multis = inputs.sections.flatMap((s) => s.inputs).filter((i) => i.type === 'multi');
+  const withoutNone = ['jurisdictions', 'hosting', 'hostingCountry', 'actions', 'users', 'identity'];
+  for (const i of multis.filter((i) => !withoutNone.includes(i.id)))
+    assert.ok(optionValues[i.id].has('none'), `${i.id} has no "none" option`);
+  const hr = scenariosData.scenarios.find((s) => s.id === 'hr-policy');
+  for (const field of ['dataSources', 'supplyChain']) {
+    const empty = assess({ ...hr.answers, [field]: [] }, hr.controls);
+    const none = assess({ ...hr.answers, [field]: ['none'] }, hr.controls);
+    assert.deepEqual(none.threats.map((t) => t.id), empty.threats.map((t) => t.id), field);
+    assert.deepEqual(none.residency.map((r) => r.id), empty.residency.map((r) => r.id), field);
+  }
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));

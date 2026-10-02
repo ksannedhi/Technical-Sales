@@ -51,6 +51,8 @@ frontend/src/
 - **Residency Critical findings are architecture changes, not controls.** `pathToGo` applies a rule's `architectureFix` hypothetically; High findings are approvals (waived only for the Go target, and listed).
 
 ## Question design
+Every question except the free-text profile fields is required. Where nothing may apply, give the multi-select an explicit `none` option (exclusive in the UI, matched by no rule) instead of making it optional: a skipped question silently drops the findings it drives. A test checks that `none` exists and triggers nothing.
+
 Default a new question to multi-select; real agents mix audiences, identities, hosting, and regions. Use single only when the question is inherently one value (sector, *highest* classification, *weakest* oversight). Multi answers score as the worst case: `in` matches any selected value, `anyNotIn` fires if any value falls outside the list (residency), and `scaleOf` takes the highest scale.
 
 ## Scoring
