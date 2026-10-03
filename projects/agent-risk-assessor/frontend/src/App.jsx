@@ -40,6 +40,17 @@ export default function App() {
   const viewKey = `${step}:${whatIf?.changes.length ?? 0}`;
   useEffect(() => { window.scrollTo({ top: 0 }); }, [viewKey]);
 
+  // Contradictions come from the engine (/api/check), so warnings and scoring use the same rules.
+  const [conflicts, setConflicts] = useState({});
+  useEffect(() => {
+    let live = true;
+    fetch('/api/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers }) })
+      .then((r) => (r.ok ? r.json() : { conflicts: {} }))
+      .then((d) => live && setConflicts(d.conflicts ?? {}))
+      .catch(() => {});
+    return () => { live = false; };
+  }, [answers]);
+
   if (error) return <div className="shell"><p className="error">{error}</p></div>;
   if (!meta) return <div className="shell"><p className="muted">Loading…</p></div>;
 
@@ -76,29 +87,6 @@ export default function App() {
   };
   const view = whatIf ?? { answers, controls };
 
-  // Answers that contradict each other. Blocking ones must be fixed before moving on; the others
-  // explain how the engine resolves them (the engine applies the same rules in normaliseAnswers).
-  const optLabel = (id, v) => meta.inputs.sections.flatMap((x) => x.inputs).find((i) => i.id === id)?.options.find((o) => o.value === v)?.label ?? v;
-  const list = (v) => [v ?? []].flat();
-  const conflicts = {};
-  // Minimum level per data type, following CITRA's examples (same table as LEVEL_FLOORS in the engine).
-  const FLOORS = { personal: 2, health: 3, financial: 3, credentials: 4 };
-  const stated = Number(answers.dataSensitivity) || 0;
-  const raising = list(answers.dataTypes).filter((t) => (FLOORS[t] ?? 0) > stated);
-  if (stated > 0 && raising.length) {
-    const used = Math.max(...raising.map((t) => FLOORS[t]));
-    conflicts.dataSensitivity = { block: false, text: `${raising.map((t) => optLabel('dataTypes', t)).join(', ')} is at least Level ${used}, so this design is scored as Level ${used}. Pick Level ${used} or higher to match.` };
-  }
-  if (list(answers.hosting).includes('vendor_api') && list(answers.supplyChain).includes('none'))
-    conflicts.supplyChain = { block: true, text: `Profile says the model runs on a model vendor's API, which is a component from outside the organisation. Pick "Commercial model API" instead of None.` };
-  const outsiderSources = list(answers.dataSources).filter((v) => ['mailbox', 'web'].includes(v));
-  if (outsiderSources.length && list(answers.untrustedInputs).includes('none'))
-    conflicts.untrustedInputs = { block: false, text: `Sources include ${outsiderSources.map((v) => optLabel('dataSources', v)).join(' and ')}, which outsiders write to, so this design is scored as reading that content. Pick the matching options here instead of None.` };
-  if (list(answers.users).some((u) => ['customers', 'public'].includes(u)) && list(answers.dataTypes).includes('none') && !conflicts.dataTypes)
-    conflicts.dataTypes = { block: false, text: 'Customer- or public-facing agents usually handle personal data (names, phone numbers, email addresses). Pick Personal data if that applies; it changes the score.' };
-  const acting = list(answers.actions).filter((v) => !['read_only', 'internal_ticket'].includes(v));
-  if (answers.autonomy === 'suggest' && acting.length)
-    conflicts.autonomy = { block: true, text: `"Suggests only" means a person takes every action, but the agent can ${acting.map((v) => optLabel('actions', v).toLowerCase()).join(', ')} itself. Pick the oversight it really has, or remove those actions.` };
   const blocking = Object.entries(conflicts).filter(([, c]) => c.block).map(([id]) => id);
 
   const gate = [missing(profile), missing(architecture), []];

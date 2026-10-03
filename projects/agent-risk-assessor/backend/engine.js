@@ -72,6 +72,33 @@ export function answerAdjustments(answers) {
     out.push(`Oversight scored as "${optionLabel('autonomy', 'approve_each')}", not suggest-only: the agent itself can ${asList(raw.actions).filter((v) => !SUGGEST_ONLY_ACTIONS.includes(v)).map((v) => optionLabel('actions', v).toLowerCase()).join(', ')}.`);
   return out;
 }
+// Contradictions to show on the Architecture page, keyed by question id. `block: true` must be fixed
+// before moving on; the others say how scoring resolves them. Built from the same rules as
+// normaliseAnswers, so the page and the score can't disagree; the frontend asks /api/check.
+export function answerConflicts(answers) {
+  const a = answers ?? {};
+  const out = {};
+  const labels = (field, vals) => vals.map((v) => optionLabel(field, v));
+  const stated = Number(a.dataSensitivity) || 0;
+  const raising = asList(a.dataTypes).filter((t) => (LEVEL_FLOORS[t] ?? 0) > stated);
+  if (stated > 0 && raising.length) {
+    const used = Math.max(...raising.map((t) => LEVEL_FLOORS[t]));
+    out.dataSensitivity = { block: false, text: `${labels('dataTypes', raising).join(', ')} is at least Level ${used}, so this design is scored as Level ${used}. Pick Level ${used} or higher to match.` };
+  }
+  if (asList(a.hosting).includes('vendor_api') && asList(a.supplyChain).includes('none'))
+    out.supplyChain = { block: true, text: `Profile says the model runs on a model vendor's API, which is a component from outside the organisation. Pick "${optionLabel('supplyChain', 'vendor_model')}" instead of None.` };
+  const outsider = asList(a.dataSources).filter((v) => SOURCE_IMPLIES_UNTRUSTED[v]);
+  if (outsider.length && asList(a.untrustedInputs).includes('none'))
+    out.untrustedInputs = { block: false, text: `Sources include ${labels('dataSources', outsider).join(' and ')}, which outsiders write to, so this design is scored as reading that content. Pick the matching options here instead of None.` };
+  if (asList(a.users).some((u) => ['customers', 'public'].includes(u)) && asList(a.dataTypes).includes('none'))
+    out.dataTypes = { block: false, text: 'Customer- or public-facing agents usually handle personal data (names, phone numbers, email addresses). Pick Personal data if that applies; it changes the score.' };
+  if (suggestButActs(a)) {
+    const acting = asList(a.actions).filter((v) => !SUGGEST_ONLY_ACTIONS.includes(v));
+    out.autonomy = { block: true, text: `"${optionLabel('autonomy', 'suggest')}" means a person takes every action, but the agent can ${labels('actions', acting).map((x) => x.toLowerCase()).join(', ')} itself. Pick the oversight it really has, or remove those actions.` };
+  }
+  return out;
+}
+
 export function dataLevelNote(answers) {
   const a = answers ?? {};
   const stated = Number(a.dataSensitivity) || 0;

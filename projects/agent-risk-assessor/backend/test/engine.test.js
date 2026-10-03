@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assess, evaluate, deriveFlags, pathToGo, pathTarget, effectiveControls, applyDerivedFixes, normaliseAnswers, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
+import { assess, evaluate, deriveFlags, pathToGo, pathTarget, answerConflicts, effectiveControls, applyDerivedFixes, normaliseAnswers, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
 
 const inputIds = new Set(inputs.sections.flatMap((s) => s.inputs).map((i) => i.id));
 const optionValues = Object.fromEntries(
@@ -333,6 +333,24 @@ test('jurisdictions the tool does not assess cap the verdict and are named', () 
   assert.ok(go?.approvals.some((a) => a.id === 'NA-01'));
   // Assessed jurisdictions only: no such finding.
   assert.ok(!assess({ ...hr.answers, jurisdictions: ['KW', 'SA', 'AE', 'AE-DIFC', 'QA'] }, hr.controls).residency.some((f) => f.id === 'NA-01'));
+});
+
+test('page warnings and scoring agree: every conflict matches a scoring adjustment', () => {
+  const c = answerConflicts({
+    hosting: ['vendor_api'], supplyChain: ['none'], dataSources: ['mailbox'], untrustedInputs: ['none'],
+    users: ['customers'], dataTypes: ['health'], dataSensitivity: '1', autonomy: 'suggest', actions: ['write_records'],
+  });
+  assert.deepEqual(Object.keys(c).sort(), ['autonomy', 'dataSensitivity', 'supplyChain', 'untrustedInputs']);
+  assert.equal(c.supplyChain.block, true);
+  assert.equal(c.autonomy.block, true);
+  assert.match(c.dataSensitivity.text, /Level 3/);
+  // The soft personal-data nudge fires only with "None of these".
+  assert.ok(answerConflicts({ users: ['public'], dataTypes: ['none'] }).dataTypes);
+  // Every non-nudge conflict is something normaliseAnswers changes.
+  const a = { hosting: ['vendor_api'], supplyChain: ['none'], dataSources: ['web'], untrustedInputs: ['none'], dataTypes: ['credentials'], dataSensitivity: '2', autonomy: 'suggest', actions: ['delete'] };
+  const n = normaliseAnswers(a);
+  assert.ok(n.supplyChain.includes('vendor_model') && n.untrustedInputs.includes('web_browsing') && n.dataSensitivity === '4' && n.autonomy === 'approve_each');
+  assert.deepEqual(Object.keys(answerConflicts(a)).sort(), ['autonomy', 'dataSensitivity', 'supplyChain', 'untrustedInputs']);
 });
 
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {

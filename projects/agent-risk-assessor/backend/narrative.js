@@ -73,7 +73,7 @@ function summarise(profile, result, path) {
     lines.push('Path forward:');
     for (const a of path.architecture ?? []) lines.push(`- Architecture change: ${a.change}`);
     for (const s of path.steps)
-      lines.push(`- To reach ${s.label}: ${s.controls ? s.controls.map((c) => c.title).join('; ') : 'not reachable with controls alone'}`
+      lines.push(`- To reach ${s.label}: ${s.controls ? s.controls.map((c) => (c.change ? `${c.change} (architecture change)` : c.title)).join('; ') : 'not reachable with controls alone'}`
         + (s.approvals?.length ? ` — plus approvals: ${s.approvals.map((a) => a.title).join('; ')}` : ''));
   }
   return lines.join('\n');
@@ -127,17 +127,23 @@ async function callClaude(prompt) {
   });
 
   const usage = logUsage(response);
+  return { brief: parseBrief(response), usage };
+}
+
+// The brief from a response, or null for a refusal (after any server-side fallback), invalid JSON, or
+// a brief without a decision. Exported so tests can check this without an API call.
+export function parseBrief(response) {
   if (response.stop_reason === 'refusal') {
     console.warn('[agent-risk] Brief declined:', response.stop_details?.category ?? 'no category');
-    return { brief: null, usage };
+    return null;
   }
-  const text = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+  const text = (response.content ?? []).filter((b) => b.type === 'text').map((b) => b.text).join('');
   try {
     const brief = JSON.parse(text);
-    return { brief: brief?.decision ? brief : null, usage };
+    return brief?.decision && Array.isArray(brief.reasons) && Array.isArray(brief.actions) ? brief : null;
   } catch {
     console.warn('[agent-risk] Brief was not valid JSON');
-    return { brief: null, usage };
+    return null;
   }
 }
 

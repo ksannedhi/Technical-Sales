@@ -209,7 +209,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                       );
                     })()}
                     {s.approvals.length > 0 && (
-                      <p className="small"><strong>Plus approvals:</strong> {s.approvals.map((a) => a.action).join(' ')}</p>
+                      <p className="small"><strong>Also required:</strong> {s.approvals.map((a) => a.action).join(' ')}</p>
                     )}
                     {s.reachable && (s.controls.length > 0 || path.architecture.length > 0) && (
                       <button className="action" onClick={() => onApply(s, path.architecture)}>Try this path →</button>

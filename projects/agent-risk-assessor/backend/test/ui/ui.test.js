@@ -161,6 +161,7 @@ test('architecture page: a blocking contradiction disables Next; a soft one only
   state.answers = { ...state.answers, supplyChain: ['none'], dataSources: ['crm', 'mailbox'], untrustedInputs: ['none'] };
   await setState(page, state);
   await page.waitForSelector('[data-field="supplyChain"]');
+  await page.waitForFunction(() => document.querySelectorAll('p.warn').length >= 2);
   const warnings = await page.$$eval('p.warn', (w) => w.map((x) => x.textContent));
   assert.ok(warnings.some((w) => w.includes('Commercial model API')), 'vendor API with None is flagged');
   assert.ok(warnings.some((w) => w.includes('Mailbox')), 'mailbox with no outsider content is flagged');
@@ -177,17 +178,24 @@ test('architecture page: suggest-only oversight with record writes is blocked', 
   state.answers = { ...state.answers, autonomy: 'suggest', actions: ['read_only', 'write_records'] };
   await setState(page, state);
   await page.waitForSelector('[data-field="autonomy"]');
+  await page.waitForFunction(() => document.querySelector('p.warn'));
   const warnings = await page.$$eval('p.warn', (w) => w.map((x) => x.textContent));
   assert.ok(warnings.some((w) => w.includes('Suggests only') && w.includes('create or update records')), warnings.join(' | '));
   assert.equal(await page.$eval('.footer button.primary', (b) => b.disabled), true);
   await page.close();
 });
 
-test('results fit a phone screen without sideways scrolling', async () => {
+test('every step fits a phone screen without sideways scrolling', async () => {
   const { page } = await openApp({ width: 375, height: 812 });
+  const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   await loadPreset(page, 'Bank customer-service agent');
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  assert.ok(overflow <= 0, `page is ${overflow}px wider than the screen`);
+  for (const [tab, ready] of [['Results', '.verdict'], ['Profile', '[data-field="sector"]'], ['Architecture', '[data-field="autonomy"]'], ['Controls', 'label.control']]) {
+    await click(page, 'nav button, button', tab);
+    await page.waitForSelector(ready);
+    await settle();
+    const o = await overflow();
+    assert.ok(o <= 0, `${tab} is ${o}px wider than the screen`);
+  }
   await page.close();
 });
 
