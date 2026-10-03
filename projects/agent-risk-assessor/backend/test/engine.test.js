@@ -248,7 +248,7 @@ test('a missing derived control is recommended as an architecture change everywh
 
 test('the data lever reads as a limit, not a double negative', () => {
   const lever = assess({ ...tracker, dataTypes: ['none'], dataSources: ['crm'] }, []).blastRadius.lever;
-  assert.equal(lever.change, 'limit the data it can reach to "Level 1 — Public" or lower');
+  assert.equal(lever.change, 'limit the data it can reach to Level 1 or lower');
 });
 
 test('current vs target: the target is the furthest reachable path step, applied', () => {

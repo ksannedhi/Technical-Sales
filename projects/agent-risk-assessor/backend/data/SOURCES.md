@@ -17,6 +17,20 @@ AI RMF subcategory text in `ai-rmf.json` is copied from NIST AI 100-1 (a US Gove
 
 ATLAS IDs are mapped only where the technique's own description matches the threat. Threats with no clean match carry an empty `atlas` list rather than a loose one.
 
+## Data classification levels
+
+The four levels follow Kuwait's CITRA Level 1–4 (the levels its residency rules use). They are labelled by impact, not by any scheme's names, because the names don't line up across the GCC. Checked October 2026:
+
+| Scheme | Tiers, lowest to highest | Checked against |
+|---|---|---|
+| Qatar NIA Policy v2.0 | C0 Public · C1 Internal · C2 Limited Access (its example: HR data) · C3 Restricted; C4+ national security markings out of scope | Primary text |
+| Dubai Data Policies (Resolution 2 of 2017) | Open · Confidential · Sensitive · Secret | Primary text |
+| Saudi NDMO / SDAIA | Public · Restricted (or Confidential, by version) · Secret · Top Secret | Secondary sources only; SDAIA's PDFs refused automated access |
+| Bahrain | Top Secret · Secret · Restricted, plus public | Secondary source only |
+| Oman, UAE federal, other emirates | Not found or not checked | — |
+
+CITRA's own names for Levels 1–4 are not yet verified against the framework text, so the options carry no CITRA names.
+
 ## Lethal trifecta
 
 | Source | Date | What it says |

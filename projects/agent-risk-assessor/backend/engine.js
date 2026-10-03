@@ -232,8 +232,7 @@ function blastRadius(a) {
   // lever is keeping those data types out of reach rather than picking a lower level.
   const floored = intersects(a.dataTypes, LEVEL_FLOOR_TYPES);
   if (data > 1 && !(floored && data === 3)) {
-    const lower = inputIndex.dataSensitivity.options.find((o) => o.scale === data - 1);
-    levers.push({ change: `limit the data it can reach to "${lower.label}" or lower`, score: toScore(action * autonomy * (data - 1)) });
+    levers.push({ change: `limit the data it can reach to Level ${data - 1} or lower`, score: toScore(action * autonomy * (data - 1)) });
   }
   const lever = levers.sort((x, y) => x.score - y.score)[0] ?? null;
 

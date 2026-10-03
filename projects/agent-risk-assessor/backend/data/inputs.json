@@ -177,26 +177,26 @@
           "id": "dataSensitivity",
           "label": "Highest classification of data the agent can reach",
           "type": "single",
-          "rationale": "Levels align with the four-level national classification schemes used across the GCC (e.g. CITRA's Level 1–4 in Kuwait).",
+          "rationale": "Pick by the harm if this data were disclosed, not by your own scheme's label. Most GCC schemes have four tiers but name them differently: in Dubai, \"Confidential\" is the lowest restricted tier. The levels here follow Kuwait's CITRA Level 1–4.",
           "options": [
             {
               "value": "1",
-              "label": "Level 1 — Public",
+              "label": "Level 1 — no harm if disclosed (public)",
               "scale": 1
             },
             {
               "value": "2",
-              "label": "Level 2 — Internal",
+              "label": "Level 2 — limited harm if disclosed (internal business data)",
               "scale": 2
             },
             {
               "value": "3",
-              "label": "Level 3 — Confidential / personal",
+              "label": "Level 3 — serious harm if disclosed; includes personal data",
               "scale": 3
             },
             {
               "value": "4",
-              "label": "Level 4 — Restricted / highly sensitive",
+              "label": "Level 4 — severe harm if disclosed (highly sensitive or restricted)",
               "scale": 4
             }
           ]
