@@ -164,7 +164,8 @@ function triggers(cond, a, flags, out = []) {
     const hits = cond.in ? asList(a[cond.field]).filter((x) => cond.in.includes(x))
       : cond.anyNotIn ? asList(a[cond.field]).filter((x) => !cond.anyNotIn.includes(x))
       : asList(a[cond.field]);
-    out.push({ field: cond.field, label: inputIndex[cond.field]?.label, values: hits });
+    // Option labels, not stored values, so the page never shows internal codes like "suggest".
+    out.push({ field: cond.field, label: inputIndex[cond.field]?.label, values: hits.map((v) => optionLabel(cond.field, v)) });
   }
   return out;
 }
@@ -465,7 +466,8 @@ function* combinations(items, k, start = 0, acc = []) {
 // Governance-ready risk register: one row per triggered threat, with NIST AI RMF references.
 export function riskRegister(answers, controlsInPlace = [], result = assess(answers, controlsInPlace)) {
   const rmf = (ids) => [...new Set(ids.flatMap((id) => controlIndex[id]?.aiRmf ?? []))];
-  return result.threats.map((t) => ({
+  const threats = result.threats.map((t) => ({
+    type: 'Threat',
     id: t.id,
     risk: t.title,
     description: t.description,
@@ -477,7 +479,27 @@ export function riskRegister(answers, controlsInPlace = [], result = assess(answ
     owaspAgentic: t.owaspAgentic,
     atlas: t.atlas,
     aiRmf: rmf([...t.controlsPresent, ...t.controlsMissing]),
+    source: '',
   }));
+  // Regulatory findings belong in a risk committee's register too, so the register alone explains the
+  // verdict. Controls don't reduce them (only architecture changes or approvals do), so inherent and
+  // residual are the same level, and they stay out of the threat counts.
+  const regulatory = result.residency.map((r) => ({
+    type: 'Regulatory',
+    id: r.id,
+    risk: r.title,
+    description: r.finding,
+    inherent: r.level,
+    residual: r.level,
+    controlsInPlace: [],
+    treatment: [r.remediation],
+    owaspLlm: [],
+    owaspAgentic: [],
+    atlas: [],
+    aiRmf: ['GOVERN 1.1'],
+    source: r.sources.map((x) => `${x.instrument} — ${x.clause}`).join('; '),
+  }));
+  return [...threats, ...regulatory];
 }
 
 // NIST AI RMF coverage for this assessment: for every subcategory the triggered threats' controls

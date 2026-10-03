@@ -75,7 +75,7 @@ app.post('/api/export/register', (req, res) => {
   const cell = (v) => `"${(Array.isArray(v) ? v.join('; ') : String(v ?? '')).replace(/"/g, '""')}"`;
   // `basis` on every row, so a what-if register can't be mistaken for the actual one once opened.
   const basis = out.whatIf ? `What-if: ${out.whatIf.join('; ')}` : 'Actual design as assessed';
-  const cols = ['id', 'risk', 'description', 'inherent', 'residual', 'controlsInPlace', 'treatment', 'owaspLlm', 'owaspAgentic', 'atlas', 'aiRmf', 'basis'];
+  const cols = ['type', 'id', 'risk', 'description', 'inherent', 'residual', 'controlsInPlace', 'treatment', 'owaspLlm', 'owaspAgentic', 'atlas', 'aiRmf', 'source', 'basis'];
   const csv = [cols.join(','), ...out.register.map((r) => cols.map((c) => cell(c === 'basis' ? basis : r[c])).join(','))].join('\r\n');
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${slug(out.answers.orgName)}-${out.whatIf ? 'what-if-' : ''}ai-risk-register.csv"`);

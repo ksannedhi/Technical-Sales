@@ -16,7 +16,7 @@ A presales tool for the question every AI pilot eventually hits: *can this agent
    - **Residency findings** — Kuwait (CITRA, NCSC NBCC, CBK CORF), Saudi Arabia (PDPL, SDAIA), UAE (PDPL, DIFC Regulation 10), Qatar (PDPPL, NCSA) — each with its clause
    - **Threat register** — 21 agent threats, each showing what triggered it and mapped to OWASP (LLM Top 10 2025, Agentic Top 10 2026) and MITRE ATLAS, MITRE's catalogue of attacks on AI systems
    - **NIST AI RMF coverage** — every AI RMF subcategory this design's risks touch, marked Gap / Partial / Addressed from the controls actually in place
-   - **Risk register export** — CSV with NIST AI RMF subcategories per risk, ready for a governance file
+   - **Risk register** — threats and regulatory findings in one register (web, PDF, CSV), with NIST AI RMF subcategories per risk, ready for a governance file
    - **Risk committee brief** — a plain-language summary written by Claude from the assessment
    - **PDF export**
 

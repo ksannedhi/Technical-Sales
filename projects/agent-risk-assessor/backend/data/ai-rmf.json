@@ -32,7 +32,7 @@
   "reportEvidence": [
     { "output": "Deployment profile", "subcategories": ["MAP 1.1"] },
     { "output": "Residency and regulatory findings", "subcategories": ["GOVERN 1.1"] },
-    { "output": "Threat register (inherent severity, triggers)", "subcategories": ["MAP 5.1", "MEASURE 2.7"] },
+    { "output": "Risk register (threats with inherent severity and triggers, plus regulatory findings)", "subcategories": ["MAP 5.1", "MEASURE 2.7"] },
     { "output": "Control gap table (prioritised)", "subcategories": ["MANAGE 1.2", "MANAGE 1.3"] },
     { "output": "Residual risk per threat", "subcategories": ["MANAGE 1.4"] },
     { "output": "Production-readiness verdict", "subcategories": ["MANAGE 1.1"] }

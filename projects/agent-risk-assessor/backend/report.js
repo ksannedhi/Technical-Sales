@@ -169,9 +169,11 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     ${result.pendingInstruments.length ? `<p class="muted">Not assessed (not yet verified): ${list(result.pendingInstruments.map((p) => p.instrument))}</p>` : ''}
 
     <h2 id="register">Risk register</h2>
-    <p class="muted small">Threat IDs (T-…) are this tool's own labels, used to cross-reference blockers, gaps, and the CSV. The standard references are the OWASP and MITRE ATLAS IDs.</p>
+    <p class="muted small">Threats (T-…) and regulatory findings (KW-01 …) in one register. The IDs are this tool's own labels, used to cross-reference blockers, gaps, and the CSV; cite the OWASP and MITRE ATLAS IDs for threats and the regulation's clause for findings. Controls don't reduce regulatory findings, so their inherent and residual levels match.</p>
     <table><tr><th>Risk</th><th>Inherent</th><th>Residual</th><th>Treatment</th><th>OWASP</th><th>ATLAS</th><th>NIST AI RMF</th></tr>
-    ${register.map((r) => `<tr><td><strong>${esc(r.risk)}</strong> <span class="tid">${esc(r.id)}</span><br><span class="muted">${esc(r.description)}</span></td>
+    ${register.map((r) => `<tr><td><strong>${esc(r.risk)}</strong> <span class="tid">${esc(r.id)}</span>${r.type === 'Regulatory'
+        ? ' <span class="muted">· Regulatory</span><br><span class="muted">Requirement and source under <a href="#findings">Regulatory findings</a>.</span>'
+        : `<br><span class="muted">${esc(r.description)}</span>`}</td>
       <td>${badge(r.inherent)}</td><td>${badge(r.residual)}</td><td>${r.treatment.length ? r.treatment.map(esc).join('<br>') : 'Controls in place'}</td>
       <td>${list([...r.owaspLlm, ...r.owaspAgentic])}</td><td>${list(r.atlas)}</td><td>${list(r.aiRmf)}</td></tr>`).join('')}
     </table>

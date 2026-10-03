@@ -311,6 +311,13 @@ test('data levels follow CITRA examples: personal 2, health 3, financial 3, cred
   assert.ok(assess({ ...tracker, dataSensitivity: '2' }, []).threats.some((t) => t.id === 'T-LEAK-01'));
 });
 
+test('trigger values are shown as option labels, not stored codes', () => {
+  const r = assess({ ...tracker, autonomy: 'suggest', actions: ['read_only'], untrustedInputs: ['uploaded_files'] }, []);
+  const values = r.threats.flatMap((t) => t.triggeredBy.flatMap((x) => x.values ?? []));
+  assert.ok(values.includes('Suggests only — a human acts'), values.join(' | '));
+  assert.ok(!values.includes('suggest'));
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));
@@ -354,8 +361,13 @@ test('path to Go: bank needs in-country inference and CBK approval', () => {
 test('risk register: one row per threat, AI RMF refs come only from the threat controls', () => {
   const bank = scenariosData.scenarios.find((s) => s.id === 'bank-cs');
   const result = assess(bank.answers, bank.controls);
-  const rows = riskRegister(bank.answers, bank.controls, result);
+  const all = riskRegister(bank.answers, bank.controls, result);
+  const rows = all.filter((r) => r.type === 'Threat');
   assert.equal(rows.length, result.threats.length);
+  // Every regulatory finding is a row too, with its source, and isn't reduced by controls.
+  const reg = all.filter((r) => r.type === 'Regulatory');
+  assert.deepEqual(reg.map((r) => r.id), result.residency.map((r) => r.id));
+  assert.ok(reg.every((r) => r.inherent === r.residual && r.source));
   const byId = Object.fromEntries(controlsData.controls.map((c) => [c.id, c]));
   for (const t of result.threats) {
     const expected = new Set([...t.controlsPresent, ...t.controlsMissing].flatMap((c) => byId[c].aiRmf));

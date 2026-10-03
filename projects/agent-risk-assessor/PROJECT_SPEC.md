@@ -200,7 +200,7 @@ A fully autonomous agent that can take a high-impact action (write records, send
    **Current vs target** — the actual design beside the design once the Path to Go is complete (verdict, blast radius, trifecta, threat counts, control gaps, and each threat whose residual risk changes), labelled as a projection; not included in what-if exports
 4. **Risk committee brief** (Claude) — plain-language summary a non-technical committee can sign against
 5. **Residency findings** — per jurisdiction, with clause citations; unverified instruments listed as not assessed
-6. **Risk register** — threat, inherent → residual, treatment, OWASP / ASI / ATLAS / NIST AI RMF; also exported as CSV
+6. **Risk register** — every threat (inherent → residual, treatment, OWASP / ASI / ATLAS / NIST AI RMF) and every regulatory finding (level, required action, source; not reduced by controls, kept out of the threat counts); also exported as CSV with `type` and `source` columns
 7. **Control gap table** — missing control, threats it would reduce, timeline
 8. **Appendix A — Design as assessed** (every answer and control) and **Appendix B — NIST AI RMF coverage** for this design
 9. **PDF** — Puppeteer, with internal links and bookmarks (side-panel outline) generated from the section headings

@@ -278,9 +278,9 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
       </section>
 
       <section className="card">
-        <h2>Threat register</h2>
-        <p className="muted">Click a threat to see what triggered it and how it maps to OWASP, MITRE ATLAS, and NIST AI RMF.</p>
-        <p className="muted small">Threat IDs (T-…) are this tool's own labels, used to cross-reference blockers, gaps, and the CSV. The standard references are the OWASP and MITRE ATLAS IDs.</p>
+        <h2>Risk register</h2>
+        <p className="muted">Threats, then regulatory findings. Click a threat to see what triggered it and how it maps to OWASP, MITRE ATLAS, and NIST AI RMF.</p>
+        <p className="muted small">IDs (T-…, KW-01 …) are this tool's own labels, used to cross-reference blockers, gaps, and the CSV. Cite the OWASP and MITRE ATLAS IDs for threats, and the regulation's clause for findings.</p>
         {result.threats.length === 0 && <p className="muted">No threats triggered by this design.</p>}
         {result.threats.map((th) => {
           const reg = register.find((r) => r.id === th.id);
@@ -295,7 +295,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                 <div className="threat-body">
                   <p>{th.description}</p>
                   <p className="small"><strong>Triggered by:</strong> {th.triggeredBy.map((x) => x.flag ? FLAG_LABELS[x.flag] : `${x.label}: ${x.values.join(', ')}`).join(' · ')}</p>
-                  <p className="small"><strong>In place:</strong> {th.controlsPresent.length ? th.controlsPresent.join(', ') : 'none'} · <strong>Missing:</strong> {th.controlsMissing.join(', ') || 'none'}</p>
+                  <p className="small"><strong>In place:</strong> {reg?.controlsInPlace.length ? reg.controlsInPlace.join('; ') : 'none'} · <strong>Missing:</strong> {reg?.treatment.join('; ') || 'none'}</p>
                   <p className="small mono">{[...th.owaspLlm, ...th.owaspAgentic, ...th.atlas].join(' · ')}</p>
                   <p className="small mono">NIST AI RMF: {reg?.aiRmf.join(' · ')}</p>
                 </div>
@@ -303,6 +303,15 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
             </div>
           );
         })}
+        {register.filter((r) => r.type === 'Regulatory').map((r) => (
+          <div key={r.id} className="threat">
+            <div className="threat-head static">
+              <Badge level={r.inherent} />
+              <span className="grow">{r.risk} <span className="tid">{r.id}</span> <span className="muted small">· Regulatory</span></span>
+              <span className="muted small">not reduced by controls</span>
+            </div>
+          </div>
+        ))}
       </section>
 
       <section className="card">
