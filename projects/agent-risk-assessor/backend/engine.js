@@ -98,9 +98,11 @@ export function effectiveControls(answers, controls = []) {
   return [...new Set([...kept, ...DERIVED.filter((c) => derivedHolds(c, a)).map((c) => c.id)])];
 }
 // Adding a derived control in a Path-to-Go combo means changing the answer it is derived from.
+// A derived control that already holds is left alone: re-applying human approval to a suggest-only
+// agent would loosen its oversight to "approves high-risk actions".
 export function applyDerivedFixes(answers, controls = []) {
   const out = { ...answers };
-  for (const c of DERIVED) if (controls.includes(c.id)) out[c.setBy.field] = c.setBy.fix;
+  for (const c of DERIVED) if (controls.includes(c.id) && !derivedHolds(c, out)) out[c.setBy.field] = c.setBy.fix;
   return out;
 }
 

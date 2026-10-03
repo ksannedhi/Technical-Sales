@@ -177,11 +177,11 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
     </table>
 
     <h2 id="gaps">Control gaps</h2>
-    <table><tr><th>Control</th><th>Priority</th><th>Timeline</th><th>Reduces</th></tr>
+    ${!result.gaps.length ? '<p class="muted">No control gaps: every control that would reduce the risks of this design is in place.</p>' : `<table><tr><th>Control</th><th>Priority</th><th>Timeline</th><th>Reduces</th></tr>
     ${result.gaps.map((g) => `<tr><td><strong>${esc(g.control.setBy ? g.control.setBy.change : g.control.title)}</strong><br><span class="muted">${esc(g.control.description)}</span></td>
       <td>${badge(g.priority)}</td><td>${g.control.setBy ? 'architecture change' : esc(g.control.timeline)}</td>
       <td>${g.threats.map((id) => `${esc(result.threats.find((t) => t.id === id)?.title ?? id)} <span class="tid">${esc(id)}</span>`).join('<br>')}</td></tr>`).join('')}
-    </table>
+    </table>`}
 
     ${designHtml}
 

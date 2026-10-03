@@ -285,6 +285,17 @@ test('a suggest-only agent that reads outsider content: people may act on its su
   assert.ok(q.notApplicable.includes('approval_transparency'));
 });
 
+test('the target never loosens a derived control that already holds', () => {
+  // Suggest-only CV screener, inference outside Kuwait: the target is the same design, in Kuwait.
+  const cv = { ...tracker, autonomy: 'suggest', actions: ['read_only', 'internal_ticket'], untrustedInputs: ['uploaded_files'], identity: ['per_user'], hostingCountry: ['AE', 'EU'] };
+  const controls = ['audit_logging', 'approval_transparency'];
+  const t = pathTarget(cv, controls);
+  assert.equal(t.answers.autonomy, 'suggest', 'oversight stays suggest-only');
+  assert.equal(t.result.blastRadius.score, assess(cv, controls).blastRadius.score, 'blast radius unchanged');
+  assert.deepEqual(applyDerivedFixes({ autonomy: 'suggest' }, ['human_approval']).autonomy, 'suggest');
+  assert.deepEqual(applyDerivedFixes({ autonomy: 'autonomous' }, ['human_approval']).autonomy, 'approve_high_risk');
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));
