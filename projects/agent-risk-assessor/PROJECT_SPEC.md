@@ -190,6 +190,8 @@ One row per triggered threat — inherent and residual risk, controls in place, 
 
 Audit logging is a hard requirement for **Go** whatever the score — you can't govern what you can't see.
 
+A selected jurisdiction this tool has no rules for (Bahrain, Oman, or data subjects outside the GCC) produces a **Not assessed** finding: it caps the verdict at **Go with conditions**, and Path to Go lists "get those rules reviewed" as a step for **Go**. A Go must never read as covering a jurisdiction nobody checked.
+
 A fully autonomous agent that can take a high-impact action (write records, send externally, make network requests, delete, run code, move money, change permissions) needs **Human approval for high-impact actions** to reach **Go**. Per-threat scoring alone could otherwise clear an agent with no human in the loop once each threat is mitigated. "Human approval for high-impact actions" follows the oversight answer (a person approves high-risk actions, every action, or takes every action), so only changing that answer satisfies it; ticking the box cannot.
 
 ## Outputs

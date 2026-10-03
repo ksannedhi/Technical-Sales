@@ -49,7 +49,7 @@ function rememberBrief(key, brief) {
   } catch { /* storage full or private mode: the server cache still applies */ }
 }
 
-const Badge = ({ level, label = level }) => <span className={`badge b-${String(level).toLowerCase()}`}>{label}</span>;
+const Badge = ({ level, label = level }) => <span className={`badge b-${String(level).toLowerCase().replace(/\s+/g, '-')}`}>{label}</span>;
 // Blast-radius bands reuse the risk colours.
 const BAND_LEVEL = { Low: 'Low', Moderate: 'Medium', High: 'High', Severe: 'Critical' };
 

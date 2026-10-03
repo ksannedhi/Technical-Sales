@@ -318,6 +318,23 @@ test('trigger values are shown as option labels, not stored codes', () => {
   assert.ok(!values.includes('suggest'));
 });
 
+test('jurisdictions the tool does not assess cap the verdict and are named', () => {
+  const hr = scenariosData.scenarios.find((s) => s.id === 'hr-policy');
+  assert.equal(assess(hr.answers, hr.controls).verdict.decision, 'go');
+  const wider = { ...hr.answers, jurisdictions: ['KW', 'BH', 'OM', 'other'] };
+  const r = assess(wider, hr.controls);
+  assert.equal(r.verdict.decision, 'go_with_conditions');
+  const na = r.residency.find((f) => f.id === 'NA-01');
+  assert.equal(na.level, 'Not assessed');
+  assert.match(na.finding, /Bahrain.*Oman.*outside the GCC/);
+  assert.ok(riskRegister(wider, hr.controls, r).some((x) => x.id === 'NA-01' && x.type === 'Regulatory'));
+  // Path to Go lists it as a review step for Go rather than leaving Go unreachable.
+  const go = pathToGo(wider, hr.controls).steps.find((x) => x.target === 'go');
+  assert.ok(go?.approvals.some((a) => a.id === 'NA-01'));
+  // Assessed jurisdictions only: no such finding.
+  assert.ok(!assess({ ...hr.answers, jurisdictions: ['KW', 'SA', 'AE', 'AE-DIFC', 'QA'] }, hr.controls).residency.some((f) => f.id === 'NA-01'));
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));

@@ -307,8 +307,24 @@ export function assess(answers, controlsInPlace = [], opts = {}) {
       id: r.id, jurisdiction: r.jurisdiction, title: r.title,
       severity: r.severity, level: residencyData.severityScale[r.severity],
       finding: r.finding, remediation: r.remediation, sources: r.sources,
-    }))
-    .sort((x, y) => y.severity - x.severity);
+    }));
+  // A jurisdiction the tool has no rules for must not pass silently: a Go would read as covering it.
+  // It becomes a High-weight finding labelled "Not assessed", so it caps the verdict at Go with
+  // conditions and shows in the register, the brief, and Path to Go (as a review step for Go).
+  const unassessed = asList(a.jurisdictions).filter((j) => !ASSESSED_JURISDICTIONS.has(j));
+  if (unassessed.length) {
+    const parts = unassessed.map((j) => (j === 'other' ? 'data subjects outside the GCC' : optionLabel('jurisdictions', j)));
+    const names = parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0];
+    const pending = residencyData.pending.filter((p) => unassessed.includes(p.jurisdiction)).map((p) => p.instrument);
+    residency.push({
+      id: 'NA-01', jurisdiction: '*', title: 'Jurisdictions not assessed by this tool',
+      severity: 3, level: 'Not assessed',
+      finding: `This tool has no verified rules for ${names}, so nothing here shows whether processing their data is allowed where the model runs.`,
+      remediation: `Get the data-protection and residency rules for ${names} reviewed before go-live.`,
+      sources: [{ instrument: 'Not assessed', clause: pending.length ? `instruments known but not yet verified: ${pending.join(', ')}` : 'no rules in this tool' }],
+    });
+  }
+  residency.sort((x, y) => y.severity - x.severity);
 
   const trifecta = trifectaStatus(a, flags, has);
   const waived = new Set(opts.waiveResidency ?? []);
@@ -327,6 +343,7 @@ export function assess(answers, controlsInPlace = [], opts = {}) {
 }
 
 const RANK = { not_yet: 0, go_with_conditions: 1, go: 2 };
+const ASSESSED_JURISDICTIONS = new Set(residencyData.rules.map((r) => r.jurisdiction));
 const EXACT_SEARCH_SIZE = 4;
 
 // Fewest missing controls that lift the verdict one level, and a path to Go.

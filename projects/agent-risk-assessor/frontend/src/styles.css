@@ -67,7 +67,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .badge { display: inline-block; color: #fff; border-radius: 4px; padding: 1px 7px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
 .b-critical { background: var(--crit); } .b-high { background: var(--high); } .b-medium { background: var(--med); }
-.b-low { background: var(--low); } .b-advisory { background: var(--adv); }
+.b-low { background: var(--low); } .b-advisory { background: var(--adv); } .b-not-assessed { background: #6b21a8; }
 
 .path { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
 .path ol { padding-left: 20px; margin: 0 0 10px; } .arch { background: #fff7ed; border-radius: 8px; padding: 10px 12px; }

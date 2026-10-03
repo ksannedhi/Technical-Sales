@@ -2,7 +2,7 @@
 const esc = (s) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-const COLORS = { Critical: '#b91c1c', High: '#c2410c', Medium: '#a16207', Low: '#15803d', Advisory: '#475569' };
+const COLORS = { Critical: '#b91c1c', High: '#c2410c', Medium: '#a16207', Low: '#15803d', Advisory: '#475569', 'Not assessed': '#6b21a8' };
 const STATUS_COLORS = { Gap: '#b91c1c', Partial: '#a16207', Addressed: '#15803d' };
 const VERDICT_COLORS = { not_yet: '#b91c1c', go_with_conditions: '#c2410c', go: '#15803d' };
 // Blast-radius bands reuse the risk colours.
