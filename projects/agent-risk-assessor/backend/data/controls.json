@@ -190,11 +190,11 @@
     {
       "id": "approval_transparency",
       "group": "oversight",
-      "title": "Approvals show the raw action, not the agent's summary",
-      "description": "The approver sees exactly what will happen (the recipient, the content, the amount, the command), not the agent's own summary of it.",
+      "title": "People see the source, not just the agent's summary",
+      "description": "Whoever approves or acts on the agent's output sees what it is based on: the exact action for an approval (the recipient, the content, the amount, the command), or the source material for a recommendation (for example the CV beside the agent's assessment).",
       "timeline": "short",
-      "appliesWhen": { "field": "autonomy", "in": ["approve_each", "approve_high_risk"] },
-      "appliesNote": "it applies only when a person approves the agent's actions before they run",
+      "appliesWhen": { "any": [{ "field": "autonomy", "in": ["approve_each", "approve_high_risk"] }, { "all": [{ "field": "autonomy", "in": ["suggest"] }, { "flag": "untrustedContent" }] }] },
+      "appliesNote": "it applies only when a person approves the agent's actions, or acts on its suggestions after it has read outsider content",
       "atlas": [
         "AML.M0029"
       ],

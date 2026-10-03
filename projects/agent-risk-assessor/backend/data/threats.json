@@ -624,18 +624,35 @@
     {
       "id": "T-TRU-01",
       "title": "Approval fatigue and persuasive explanations",
-      "description": "Approvers rubber-stamp actions based on the agent's own summary, so a manipulated agent talks its way past the human gate.",
+      "description": "People act on the agent's own summary instead of the source: approvers rubber-stamp its actions, or, with a suggest-only agent, staff follow its recommendation without checking what it read. A manipulated agent talks its way past the human.",
       "when": {
-        "all": [
+        "any": [
           {
-            "field": "autonomy",
-            "in": [
-              "approve_each",
-              "approve_high_risk"
+            "all": [
+              {
+                "field": "autonomy",
+                "in": [
+                  "approve_each",
+                  "approve_high_risk"
+                ]
+              },
+              {
+                "flag": "highImpactAction"
+              }
             ]
           },
           {
-            "flag": "highImpactAction"
+            "all": [
+              {
+                "field": "autonomy",
+                "in": [
+                  "suggest"
+                ]
+              },
+              {
+                "flag": "untrustedContent"
+              }
+            ]
           }
         ]
       },

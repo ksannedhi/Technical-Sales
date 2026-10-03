@@ -272,6 +272,19 @@ test('suggest-only oversight with actions beyond reading and drafting is read as
   assert.deepEqual(assess(drafts, []).adjustments.filter((x) => x.startsWith('Oversight')), []);
 });
 
+test('a suggest-only agent that reads outsider content: people may act on its summary', () => {
+  const cv = { ...tracker, autonomy: 'suggest', actions: ['read_only', 'internal_ticket'], untrustedInputs: ['uploaded_files'] };
+  const r = assess(cv, ['approval_transparency']);
+  assert.ok(r.threats.some((t) => t.id === 'T-TRU-01'), 'approval-fatigue threat applies');
+  assert.ok(!r.notApplicable.includes('approval_transparency'), 'seeing the source counts');
+  assert.ok(r.controlsInPlace.includes('approval_transparency'));
+  // Suggest-only with nothing outsiders wrote: no summary to be manipulated, so neither applies.
+  const internal = { ...cv, untrustedInputs: ['none'], dataSources: ['crm'] };
+  const q = assess(internal, ['approval_transparency']);
+  assert.ok(!q.threats.some((t) => t.id === 'T-TRU-01'));
+  assert.ok(q.notApplicable.includes('approval_transparency'));
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));

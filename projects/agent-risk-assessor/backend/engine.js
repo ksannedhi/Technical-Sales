@@ -86,7 +86,7 @@ const derivedHolds = (c, a) => {
 };
 // Controls with `appliesWhen` only make sense for some designs (a code sandbox needs code
 // execution). Ticked when they don't apply, they are listed as not applicable and count for nothing.
-const appliesTo = (c, a) => !c.appliesWhen || evaluate(c.appliesWhen, a, {});
+const appliesTo = (c, a) => !c.appliesWhen || evaluate(c.appliesWhen, a, deriveFlags(a));
 export function notApplicableControls(answers, controls = []) {
   const a = normaliseAnswers(answers);
   return controls.filter((id) => controlIndex[id] && !controlIndex[id].setBy && !appliesTo(controlIndex[id], a));
