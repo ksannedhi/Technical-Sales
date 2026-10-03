@@ -91,6 +91,9 @@ export default function App() {
     conflicts.untrustedInputs = { block: false, text: `Sources include ${outsiderSources.map((v) => optLabel('dataSources', v)).join(' and ')}, which outsiders write to, so this design is scored as reading that content. Pick the matching options here instead of None.` };
   if (list(answers.users).some((u) => ['customers', 'public'].includes(u)) && list(answers.dataTypes).includes('none') && !conflicts.dataTypes)
     conflicts.dataTypes = { block: false, text: 'Customer- or public-facing agents usually handle personal data (names, phone numbers, email addresses). Pick Personal data if that applies; it changes the score.' };
+  const acting = list(answers.actions).filter((v) => !['read_only', 'internal_ticket'].includes(v));
+  if (answers.autonomy === 'suggest' && acting.length)
+    conflicts.autonomy = { block: true, text: `"Suggests only" means a person takes every action, but the agent can ${acting.map((v) => optLabel('actions', v).toLowerCase()).join(', ')} itself. Pick the oversight it really has, or remove those actions.` };
   const blocking = Object.entries(conflicts).filter(([, c]) => c.block).map(([id]) => id);
 
   const gate = [missing(profile), missing(architecture), []];

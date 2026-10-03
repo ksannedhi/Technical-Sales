@@ -263,6 +263,15 @@ test('current vs target: the target is the furthest reachable path step, applied
   assert.equal(pathTarget(hr.answers, hr.controls), null, 'nothing to project for a Go design');
 });
 
+test('suggest-only oversight with actions beyond reading and drafting is read as approve-each', () => {
+  const resume = { ...tracker, actions: ['read_only', 'internal_ticket', 'write_records'], autonomy: 'suggest' };
+  assert.equal(normaliseAnswers(resume).autonomy, 'approve_each');
+  assert.ok(assess(resume, []).adjustments.some((x) => x.startsWith('Oversight scored as')));
+  const drafts = { ...resume, actions: ['read_only', 'internal_ticket'] };
+  assert.equal(normaliseAnswers(drafts).autonomy, 'suggest');
+  assert.deepEqual(assess(drafts, []).adjustments.filter((x) => x.startsWith('Oversight')), []);
+});
+
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
   const base = { jurisdictions: ['KW'], dataSensitivity: '3', dataTypes: ['personal'], hostingCountry: ['EU'] };
   assert.ok(assess(base, []).residency.some((f) => f.id === 'KW-01' && f.severity === 4));

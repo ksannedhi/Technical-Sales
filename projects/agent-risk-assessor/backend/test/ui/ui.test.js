@@ -169,6 +169,20 @@ test('architecture page: a blocking contradiction disables Next; a soft one only
   await page.close();
 });
 
+test('architecture page: suggest-only oversight with record writes is blocked', async () => {
+  const { page } = await openApp();
+  await loadPreset(page, 'Internal HR policy assistant');
+  const state = await page.evaluate(() => JSON.parse(sessionStorage.getItem('agent-risk-assessor:v1')));
+  state.step = 1;
+  state.answers = { ...state.answers, autonomy: 'suggest', actions: ['read_only', 'write_records'] };
+  await setState(page, state);
+  await page.waitForSelector('[data-field="autonomy"]');
+  const warnings = await page.$$eval('p.warn', (w) => w.map((x) => x.textContent));
+  assert.ok(warnings.some((w) => w.includes('Suggests only') && w.includes('create or update records')), warnings.join(' | '));
+  assert.equal(await page.$eval('.footer button.primary', (b) => b.disabled), true);
+  await page.close();
+});
+
 test('results fit a phone screen without sideways scrolling', async () => {
   const { page } = await openApp({ width: 375, height: 812 });
   await loadPreset(page, 'Bank customer-service agent');

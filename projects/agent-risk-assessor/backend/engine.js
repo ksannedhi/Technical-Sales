@@ -46,8 +46,13 @@ export function normaliseAnswers(answers) {
   for (const [source, input] of Object.entries(SOURCE_IMPLIES_UNTRUSTED))
     if (asList(a.dataSources).includes(source) && !asList(a.untrustedInputs).includes(input))
       a.untrustedInputs = addTo(a.untrustedInputs, input);
+  if (suggestButActs(a)) a.autonomy = 'approve_each';
   return a;
 }
+// "Suggests only — a human acts" can't be true of an agent that itself writes, sends, deletes, or
+// pays; reading and drafting are the only actions a suggest-only agent takes. Read as approve-each.
+const SUGGEST_ONLY_ACTIONS = ['read_only', 'internal_ticket'];
+const suggestButActs = (a) => a.autonomy === 'suggest' && asList(a.actions).some((v) => !SUGGEST_ONLY_ACTIONS.includes(v));
 // Plain-language list of what normaliseAnswers changed, for the results page and the PDF.
 export function answerAdjustments(answers) {
   const raw = answers ?? {};
@@ -60,6 +65,8 @@ export function answerAdjustments(answers) {
   for (const [source, input] of Object.entries(SOURCE_IMPLIES_UNTRUSTED))
     if (asList(a.untrustedInputs).includes(input) && !asList(raw.untrustedInputs).includes(input))
       out.push(`Scored as reading ${optionLabel('untrustedInputs', input).toLowerCase()}: the agent's sources include ${optionLabel('dataSources', source)}, which outsiders write to.`);
+  if (suggestButActs(raw))
+    out.push(`Oversight scored as "${optionLabel('autonomy', 'approve_each')}", not suggest-only: the agent itself can ${asList(raw.actions).filter((v) => !SUGGEST_ONLY_ACTIONS.includes(v)).map((v) => optionLabel('actions', v).toLowerCase()).join(', ')}.`);
   return out;
 }
 export function dataLevelNote(answers) {
