@@ -40,7 +40,7 @@
         ]
       },
       "severity": 4,
-      "finding": "CITRA's framework requires subscribers of cloud services, private companies included, to ensure that Level 3 and 4 data, and personal data of individuals of the kinds listed in §4.1.4 (identification, contact, behavioural and other personal data), is not hosted or stored outside Kuwait 'for any purpose, or in any form, whether temporarily or permanently'. Sending this data to a model outside Kuwait for inference falls inside that wording. §4.1.4 also requires explicit written permission to use such data to identify individuals; whether that permission can allow hosting abroad is not settled in the text, so confirm with counsel before relying on it.",
+      "finding": "CITRA's framework requires subscribers of cloud services, private companies included, to ensure that Level 3 and 4 data, and personal data of individuals of the kinds listed in §4.1.4 (identification, contact, behavioural and other personal data), is not hosted or stored outside Kuwait 'for any purpose, or in any form, whether temporarily or permanently'. Sending this data to a model outside Kuwait for inference falls inside that wording. The framework is not consistent here: §3.2.1.2.2, the duty for private companies, bars only personal data at Level 3 or 4, while §4.2.1.1.3 bars personal data generally. This tool takes the stricter reading; under the narrower one, Level 2 personal data (names, contact details, civil ID) could be hosted abroad. Confirm with counsel which reading applies before relying on either.",
       "remediation": "Run inference in Kuwait (in-country licensed cloud or on-premises), or keep Level 3/4 and personal data out of the agent's reach entirely.",
       "sources": [
         {

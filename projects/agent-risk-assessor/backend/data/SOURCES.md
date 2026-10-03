@@ -21,7 +21,8 @@ ATLAS IDs are mapped only where the technique's own description matches the thre
 
 - §1.2 applies the framework's regulations to licensed providers with Kuwaiti data centres hosting Level 3/4 data, but §4.1.1 and §4.2.1.1 place duties directly on **subscribers** of cloud services, government or private. A private company using a model vendor's API is a subscriber, so KW-01 applies to it.
 - §4.2.1.1 has three limbs: Level 3/4 data (4.2.1.1.1), government Level 4 data (4.2.1.1.2), and "personal data of individuals… as stipulated in article 4.1.4" (4.2.1.1.3). §4.1.4 lists personal identification, contact, marketing and communications, behavioural, technical, aggregated, and special-category data, and requires explicit written permission to use it to identify individuals.
-- So personal data is barred abroad through its own limb, even though the Data Classification Policy puts basic identity data at Tier 2. Read literally, the bar holds regardless of consent; whether §4.1.4's written permission can allow hosting abroad is not settled in the text. KW-01 says so and stays Critical.
+- The framework is inconsistent on personal data. §4.2.1.1.3 (via §4.1.4) bars personal data generally. But §3.2.1.2.2, the duty specific to private-sector subscribers, bars "personal data of individuals… that fall within the third and fourth level" only, and §3.2.1.3.2 says the same for the public sector. Under that narrower reading, Tier 2 personal data (names, contact details, civil ID) could be hosted abroad.
+- KW-01 takes the stricter reading (any personal data → Critical) and its finding states both readings, so a reader can take it to counsel. Found 3 Oct 2026; an earlier note the same day had treated §4.2.1.1.3 as settling it.
 - September's check recorded §4.2.1.1 but not its dependency on §4.1.4.
 
 ## Data classification levels
