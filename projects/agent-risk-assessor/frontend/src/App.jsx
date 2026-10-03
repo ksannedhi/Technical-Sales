@@ -81,9 +81,14 @@ export default function App() {
   const optLabel = (id, v) => meta.inputs.sections.flatMap((x) => x.inputs).find((i) => i.id === id)?.options.find((o) => o.value === v)?.label ?? v;
   const list = (v) => [v ?? []].flat();
   const conflicts = {};
-  const floorTypes = list(answers.dataTypes).filter((t) => ['personal', 'health', 'financial', 'credentials'].includes(t));
-  if (floorTypes.length && ['1', '2'].includes(String(answers.dataSensitivity)))
-    conflicts.dataSensitivity = { block: false, text: `${floorTypes.map((t) => optLabel('dataTypes', t)).join(', ')} is at least Level 3, so this design is scored as Level 3. Pick Level 3 or 4 to match.` };
+  // Minimum level per data type, following CITRA's examples (same table as LEVEL_FLOORS in the engine).
+  const FLOORS = { personal: 2, health: 3, financial: 3, credentials: 4 };
+  const stated = Number(answers.dataSensitivity) || 0;
+  const raising = list(answers.dataTypes).filter((t) => (FLOORS[t] ?? 0) > stated);
+  if (stated > 0 && raising.length) {
+    const used = Math.max(...raising.map((t) => FLOORS[t]));
+    conflicts.dataSensitivity = { block: false, text: `${raising.map((t) => optLabel('dataTypes', t)).join(', ')} is at least Level ${used}, so this design is scored as Level ${used}. Pick Level ${used} or higher to match.` };
+  }
   if (list(answers.hosting).includes('vendor_api') && list(answers.supplyChain).includes('none'))
     conflicts.supplyChain = { block: true, text: `Profile says the model runs on a model vendor's API, which is a component from outside the organisation. Pick "Commercial model API" instead of None.` };
   const outsiderSources = list(answers.dataSources).filter((v) => ['mailbox', 'web'].includes(v));

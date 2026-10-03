@@ -36,7 +36,7 @@ The four levels follow Kuwait's CITRA Level 1–4 (the levels its residency rule
 | Bahrain | Top Secret · Secret · Restricted, plus public | Secondary source only |
 | Oman, UAE federal, other emirates | Not found or not checked | — |
 
-CITRA's own tier names, from its Data Classification Policy: Tier 1 Public Data, Tier 2 Private Insensitive Data, Tier 3 Private Sensitive Data, Tier 4 Highly Sensitive Data (examples under Kuwait in the residency table below). The options still describe levels by impact rather than by these names.
+CITRA's own tier names, from its Data Classification Policy: Tier 1 Public Data, Tier 2 Private Insensitive Data, Tier 3 Private Sensitive Data, Tier 4 Highly Sensitive Data (examples under Kuwait in the residency table below). The options describe levels by impact with CITRA's examples. Minimum levels per data type follow the same examples: personal 2, health 3, credentials 4; financial 3 is this tool's judgement.
 
 ## Lethal trifecta
 

@@ -220,8 +220,15 @@
             ]
           },
           {
-            "field": "dataSensitivity",
-            "gte": 3
+            "any": [
+              {
+                "field": "dataSensitivity",
+                "gte": 3
+              },
+              {
+                "flag": "personalData"
+              }
+            ]
           }
         ]
       },

@@ -30,17 +30,20 @@ const asList = (v) => (Array.isArray(v) ? v : v == null || v === '' ? [] : [v]);
 const intersects = (a, b) => asList(a).some((x) => b.includes(x));
 
 // Answers that contradict each other are resolved towards the riskier reading before scoring:
-// - personal, health, financial, or credential data is at least Level 3, whatever level was picked;
+// - a data type sets a minimum level, following CITRA's Data Classification Policy examples: personal
+//   data at least Level 2 (Tier 2 lists name, civil ID, contact details), health at least 3 (medical
+//   records are Tier 3), credentials at least 4 (encryption keys are Tier 4); financial at least 3 is
+//   this tool's judgement, as CITRA gives no example;
 // - a model vendor's API is a component from outside the organisation, even if "None" was picked;
 // - reading a mailbox or the public web is reading content outsiders wrote, even if "None" was picked.
-const LEVEL_FLOOR_TYPES = ['personal', 'health', 'financial', 'credentials'];
+export const LEVEL_FLOORS = { personal: 2, health: 3, financial: 3, credentials: 4 };
+const floorOf = (a) => Math.max(0, ...asList(a.dataTypes).map((t) => LEVEL_FLOORS[t] ?? 0));
 const SOURCE_IMPLIES_UNTRUSTED = { mailbox: 'inbound_email', web: 'web_browsing' };
 const addTo = (list, v) => [...asList(list).filter((x) => x !== 'none'), v];
 export function normaliseAnswers(answers) {
   const a = { ...(answers ?? {}) };
-  const raisedBy = asList(a.dataTypes).filter((t) => LEVEL_FLOOR_TYPES.includes(t));
   const stated = Number(a.dataSensitivity) || 0;
-  if (raisedBy.length && stated > 0 && stated < 3) a.dataSensitivity = '3';
+  if (stated > 0 && floorOf(a) > stated) a.dataSensitivity = String(floorOf(a));
   if (asList(a.hosting).includes('vendor_api') && !asList(a.supplyChain).includes('vendor_model'))
     a.supplyChain = addTo(a.supplyChain, 'vendor_model');
   for (const [source, input] of Object.entries(SOURCE_IMPLIES_UNTRUSTED))
@@ -59,7 +62,7 @@ export function answerAdjustments(answers) {
   const a = normaliseAnswers(raw);
   const out = [];
   const note = dataLevelNote(raw);
-  if (note) out.push(`Data scored as Level 3, not the Level ${note.stated} answered: the agent reaches ${note.raisedBy.map((t) => optionLabel('dataTypes', t).toLowerCase()).join(', ')}.`);
+  if (note) out.push(`Data scored as Level ${note.used}, not the Level ${note.stated} answered: the agent reaches ${note.raisedBy.map((t) => optionLabel('dataTypes', t).toLowerCase()).join(', ')}.`);
   if (asList(a.supplyChain).includes('vendor_model') && !asList(raw.supplyChain).includes('vendor_model'))
     out.push(`Commercial model API counted as an outside component: the model runs on a vendor's API.`);
   for (const [source, input] of Object.entries(SOURCE_IMPLIES_UNTRUSTED))
@@ -70,9 +73,11 @@ export function answerAdjustments(answers) {
   return out;
 }
 export function dataLevelNote(answers) {
-  const raisedBy = asList(answers?.dataTypes).filter((t) => LEVEL_FLOOR_TYPES.includes(t));
-  const stated = Number(answers?.dataSensitivity) || 0;
-  return raisedBy.length && stated > 0 && stated < 3 ? { stated, used: 3, raisedBy } : null;
+  const a = answers ?? {};
+  const stated = Number(a.dataSensitivity) || 0;
+  const used = floorOf(a);
+  if (!(stated > 0 && used > stated)) return null;
+  return { stated, used, raisedBy: asList(a.dataTypes).filter((t) => (LEVEL_FLOORS[t] ?? 0) > stated) };
 }
 
 // Some controls restate an Architecture answer (a control with `setBy`). Their state comes only
@@ -237,10 +242,9 @@ function blastRadius(a) {
     const rest = Math.max(1, ...asList(a.actions).filter((v) => !top.includes(v)).map((v) => scaleOf('actions', v)));
     levers.push({ change: `remove ${top.map((v) => `"${optionLabel('actions', v)}"`).join(' and ')}`, score: toScore(rest * autonomy * data) });
   }
-  // Personal, health, financial, or credential data is floored at Level 3, so below that the data
-  // lever is keeping those data types out of reach rather than picking a lower level.
-  const floored = intersects(a.dataTypes, LEVEL_FLOOR_TYPES);
-  if (data > 1 && !(floored && data === 3)) {
+  // A data type's minimum level can't be picked away: below it, the data lever would be keeping
+  // that data type out of reach, which is a different design, so it isn't offered.
+  if (data > 1 && data - 1 >= floorOf(a)) {
     levers.push({ change: `limit the data it can reach to Level ${data - 1} or lower`, score: toScore(action * autonomy * (data - 1)) });
   }
   const lever = levers.sort((x, y) => x.score - y.score)[0] ?? null;

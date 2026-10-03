@@ -215,10 +215,12 @@ test('blast radius comes with a band and the single change that lowers it most',
   // halving the data level (14) or approving every action (19).
   assert.equal(b.lever.score, 9);
   assert.ok(b.lever.change.includes('Send email or messages outside the organisation'));
-  // With personal data the level is floored at 3, so the data lever is not "pick Level 2".
+  // Personal data is CITRA Tier 2: a Level 2 answer stands, and the data lever can't go below it.
   const personal = assess({ ...tracker, dataTypes: ['personal'] }, []).blastRadius;
-  assert.equal(personal.score, 42);
+  assert.equal(personal.score, 28);
   assert.ok(!personal.lever.change.includes('Level'), personal.lever.change);
+  // Health data is Tier 3: a Level 2 answer is raised.
+  assert.equal(assess({ ...tracker, dataTypes: ['health'] }, []).blastRadius.score, 42);
 });
 
 // An appointment tracker as entered in a real assessment: reads a mailbox, but "no outsider content".
@@ -234,7 +236,7 @@ test('reading a mailbox counts as reading content outsiders wrote', () => {
   assert.ok(r.flags.untrustedContent);
   assert.equal(r.trifecta.status.startsWith('Blocked'), true, r.trifecta.status);
   assert.ok(r.adjustments.some((x) => x.includes('inbound email') && x.includes('Mailbox')), r.adjustments.join(' | '));
-  assert.ok(r.adjustments.some((x) => x.startsWith('Data scored as Level 3')));
+  assert.ok(!r.adjustments.some((x) => x.startsWith('Data scored')), 'personal data at Level 2 is not adjusted');
   assert.deepEqual(assess({ ...tracker, dataSources: ['crm'] }, []).adjustments.filter((x) => x.includes('Mailbox')), []);
 });
 
@@ -294,6 +296,19 @@ test('the target never loosens a derived control that already holds', () => {
   assert.equal(t.result.blastRadius.score, assess(cv, controls).blastRadius.score, 'blast radius unchanged');
   assert.deepEqual(applyDerivedFixes({ autonomy: 'suggest' }, ['human_approval']).autonomy, 'suggest');
   assert.deepEqual(applyDerivedFixes({ autonomy: 'autonomous' }, ['human_approval']).autonomy, 'approve_high_risk');
+});
+
+test('data levels follow CITRA examples: personal 2, health 3, financial 3, credentials 4', () => {
+  const level = (types, stated = '1') => normaliseAnswers({ dataSensitivity: stated, dataTypes: types }).dataSensitivity;
+  assert.equal(level(['personal']), '2');
+  assert.equal(level(['personal'], '2'), '2');
+  assert.equal(level(['health']), '3');
+  assert.equal(level(['financial']), '3');
+  assert.equal(level(['credentials']), '4');
+  assert.equal(level(['personal', 'credentials'], '3'), '4');
+  assert.equal(level(['personal'], '4'), '4', 'a higher answer is never lowered');
+  // Wrong-user disclosure still applies to personal data at Level 2.
+  assert.ok(assess({ ...tracker, dataSensitivity: '2' }, []).threats.some((t) => t.id === 'T-LEAK-01'));
 });
 
 test('Kuwait personal data outside Kuwait is Critical; in-country is not', () => {
