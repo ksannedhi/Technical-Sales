@@ -29,7 +29,7 @@
       "version": "2.0",
       "description": "The DoD ZT Reference Architecture defines the seven pillars of ZT for defense and national security environments.",
       "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
-      "maturityLabels": ["Target Level", "Advanced Level"],
+      "maturityLabels": ["Pre-Target", "Approaching Target", "Target Level", "Advanced Level"],
       "geos": ["US-DoD"]
     },
     {
