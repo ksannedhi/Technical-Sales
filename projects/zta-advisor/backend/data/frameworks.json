@@ -6,7 +6,8 @@
       "shortName": "CISA ZTMM",
       "version": "2.0",
       "description": "The CISA ZTMM provides a gradient of implementation across five pillars to assist agencies in developing ZT strategies and plans.",
-      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "pillars": ["identity", "devices", "networks", "applications", "data"],
+      "crossCutting": ["visibility"],
       "maturityLabels": ["Traditional", "Initial", "Advanced", "Optimal"],
       "geos": ["US"]
     },
@@ -16,7 +17,8 @@
       "shortName": "NIST 800-207",
       "version": "1.0",
       "description": "NIST SP 800-207 defines Zero Trust Architecture and provides a roadmap for federal agencies and organizations adopting ZTA.",
-      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "pillars": ["identity", "devices", "networks", "applications", "data"],
+      "crossCutting": ["visibility"],
       "maturityLabels": ["Ad-hoc", "Defined", "Managed", "Optimized"],
       "geos": ["US"]
     },
@@ -36,7 +38,8 @@
       "shortName": "NCSC ZT",
       "version": "1.0",
       "description": "The NCSC Zero Trust Architecture guidance outlines eight principles for designing and deploying ZTA in UK organizations.",
-      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "pillars": ["identity", "devices", "networks", "applications", "data"],
+      "crossCutting": ["visibility"],
       "maturityLabels": ["None", "Partial", "Informed", "Optimised"],
       "geos": ["UK"]
     },
@@ -46,7 +49,8 @@
       "shortName": "ENISA ZT",
       "version": "2023",
       "description": "ENISA guidelines on Zero Trust for EU member states and organizations, aligned with the EU cybersecurity strategy.",
-      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "pillars": ["identity", "devices", "networks", "applications", "data"],
+      "crossCutting": ["visibility"],
       "maturityLabels": ["Initial", "Developing", "Defined", "Optimised"],
       "geos": ["EU"]
     },
@@ -56,7 +60,8 @@
       "shortName": "NIS2",
       "version": "2022/2555",
       "description": "EU NIS2 Directive establishes cybersecurity requirements for essential and important entities, with ZT-aligned access controls and incident management.",
-      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "pillars": ["identity", "devices", "networks", "applications", "data"],
+      "crossCutting": ["visibility"],
       "maturityLabels": ["Non-compliant", "Partial", "Substantial", "High"],
       "geos": ["EU"]
     },
@@ -66,7 +71,8 @@
       "shortName": "ISO 27001",
       "version": "2022",
       "description": "ISO 27001:2022 includes ZT-relevant controls in Annex A covering access control, cryptography, network security, and threat intelligence.",
-      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "pillars": ["identity", "devices", "networks", "applications", "data"],
+      "crossCutting": ["visibility"],
       "maturityLabels": ["Non-conformant", "Partial", "Substantial", "Certified"],
       "geos": ["APAC", "Global", "ME-GCC"]
     },
@@ -76,7 +82,8 @@
       "shortName": "SAMA CSF",
       "version": "1.0",
       "description": "The Saudi Arabian Monetary Authority Cyber Security Framework mandates ZT-aligned controls for financial institutions across the GCC, covering identity, access, data protection, and continuous monitoring.",
-      "pillars": ["identity", "devices", "networks", "applications", "data", "visibility"],
+      "pillars": ["identity", "devices", "networks", "applications", "data"],
+      "crossCutting": ["visibility"],
       "maturityLabels": ["None", "Partial", "Defined", "Managed"],
       "geos": ["ME-GCC"]
     }
