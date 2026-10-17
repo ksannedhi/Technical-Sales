@@ -17,6 +17,15 @@ AI RMF subcategory text in `ai-rmf.json` is copied from NIST AI 100-1 (a US Gove
 
 ATLAS IDs are mapped only where the technique's own description matches the threat. Threats with no clean match carry an empty `atlas` list rather than a loose one.
 
+Re-checked October 2026 against release 2026.09 (still the latest): all 20 ATLAS IDs in `threats.json` exist with the names used. The four threats with no ATLAS ID, and why:
+
+| Threat | Why no ATLAS ID |
+|---|---|
+| T-OUT-01 Improper output handling downstream | A downstream system trusting agent output is a design weakness; no technique in 2026.09 describes it |
+| T-MIS-01 Confident wrong answers in a regulated context | Needs no attacker. AML.T0060 and AML.T0062 involve hallucinations but describe attacker recon and package squatting, not the risk itself |
+| T-TRU-01 Approval fatigue and persuasive explanations | AML.T0067 (LLM Trusted Output Components Manipulation) fits the persuasion half only; the threat is mainly approval fatigue, a human-factors risk with no attacker. Left empty; revisit if the threat is split in two |
+| T-ROG-01 Autonomous agent drifts out of scope unnoticed | Needs no attacker; no technique describes drift
+
 ## Kuwait residency scope (checked October 2026, framework V2.4 from citra.gov.kw)
 
 - §1.2 applies the framework's regulations to licensed providers with Kuwaiti data centres hosting Level 3/4 data, but §4.1.1 and §4.2.1.1 place duties directly on **subscribers** of cloud services, government or private. A private company using a model vendor's API is a subscriber, so KW-01 applies to it.
@@ -66,7 +75,7 @@ CITRA's own tier names, from its Data Classification Policy: Tier 1 Public Data,
 | SDAIA AI Ethics Principles | primary | Advisory only |
 | SDAIA Generative AI Guidelines for Government (Jan 2024) | secondary | Advisory only |
 | UAE PDPL (Federal Decree-Law 45 of 2021) | compiled | Art. 22, Art. 23 |
-| DIFC Data Protection Regulations — Regulation 10 | primary | Regulation 10 |
+| DIFC Data Protection Regulations | primary | Regulation 10 |
 | Qatar PDPPL (Law 13 of 2016) | compiled | Art. 15 |
 | NCSA Qatar — Guidelines for Secure Adoption and Usage of AI v1.0 (2024) | primary | Advisory only |
 

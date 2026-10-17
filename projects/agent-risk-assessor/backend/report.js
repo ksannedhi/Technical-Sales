@@ -175,7 +175,10 @@ export function buildReportHtml({ profile = {}, controls = [], result, path, reg
         ? ' <span class="muted">· Regulatory</span><br><span class="muted">Requirement and source under <a href="#findings">Regulatory findings</a>.</span>'
         : `<br><span class="muted">${esc(r.description)}</span>`}</td>
       <td>${badge(r.inherent)}</td><td>${badge(r.residual)}</td><td>${r.treatment.length ? r.treatment.map(esc).join('<br>') : 'Controls in place'}</td>
-      <td>${list([...r.owaspLlm, ...r.owaspAgentic])}</td><td>${list(r.atlas)}</td><td>${list(r.aiRmf)}</td></tr>`).join('')}
+      ${r.type === 'Regulatory'
+        // OWASP and ATLAS classify technical threats; a legal requirement has neither, so say so instead of a bare dash.
+        ? '<td class="muted">n/a (regulatory)</td><td class="muted">n/a (regulatory)</td>'
+        : `<td>${list([...r.owaspLlm, ...r.owaspAgentic])}</td><td>${list(r.atlas)}</td>`}<td>${list(r.aiRmf)}</td></tr>`).join('')}
     </table>
 
     <h2 id="gaps">Control gaps</h2>

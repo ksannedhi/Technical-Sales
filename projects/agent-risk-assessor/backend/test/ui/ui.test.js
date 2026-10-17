@@ -146,10 +146,12 @@ test('controls page: derived controls are read-only, ill-fitting ones are flagge
     return { disabled: l.querySelector('input').disabled, checked: l.querySelector('input').checked };
   });
   assert.deepEqual(perUser, { disabled: true, checked: false });
-  // The bank agent can't run code, so a ticked sandbox is not applicable, with the reason.
+  // The bank agent can't run code, so a ticked sandbox is not applicable, with the reason and the fix.
   await page.evaluate(() => [...document.querySelectorAll('label.control')].find((x) => x.textContent.includes('Sandboxed code execution')).querySelector('input').click());
   await page.waitForFunction(() => document.querySelector('.tag.warn'));
   assert.match(await text(page, 'main, body'), /applies only when the agent can run code/);
+  // ...and says how to fix it: change the answer it depends on, or untick it.
+  assert.match(await text(page, 'main, body'), /add "Execute code or shell commands" under "What can the agent do\?"\. Otherwise, untick it\./);
   await page.close();
 });
 

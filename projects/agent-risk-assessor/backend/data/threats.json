@@ -101,7 +101,7 @@
         "egress_restriction",
         "untrusted_tool_restriction",
         "dlp_redaction",
-        "sandboxed_execution"
+        "sandboxed_execution","approval_transparency"
       ]
     },
     {

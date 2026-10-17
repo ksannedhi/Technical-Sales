@@ -44,7 +44,7 @@ export default function ControlsStep({ data, value, onChange, answers }) {
                   </span>
                 )}
                 {has.has(c.id) && engine?.na.has(c.id) && (
-                  <span className="small block">Not counted for this design: {c.appliesNote}.</span>
+                  <span className="small block">Not counted for this design: {c.appliesNote}. {c.appliesFix} Otherwise, untick it.</span>
                 )}
               </span>
             </label>

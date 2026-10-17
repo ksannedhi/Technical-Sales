@@ -207,14 +207,18 @@ function trifectaStatus(a, flags, has) {
   const breakers = [];
   if (has('egress_restriction')) breakers.push('egress_restriction');
   if (has('untrusted_tool_restriction')) breakers.push('untrusted_tool_restriction');
-  if (a.autonomy === 'suggest') breakers.push('autonomy:suggest');
-  if (a.autonomy === 'approve_each' && has('approval_transparency')) breakers.push('autonomy:approve_each+approval_transparency');
+  const actions = asList(a.actions);
+  const readsWeb = asList(a.untrustedInputs).includes('web_browsing') || asList(a.dataSources).includes('web');
+  // Oversight gates the agent's actions, not its reading: an agent that fetches web pages does so
+  // without asking anyone, and a fetched URL can carry data out. So suggest-only or approve-each
+  // oversight blocks the path only when reading the web is not one of the ways out.
+  if (!readsWeb && a.autonomy === 'suggest') breakers.push('autonomy:suggest');
+  if (!readsWeb && a.autonomy === 'approve_each' && has('approval_transparency')) breakers.push('autonomy:approve_each+approval_transparency');
   // Otherwise the path is blocked only if every open way out is individually closed. A no-network
   // sandbox closes the code-execution route, but not email or web requests.
-  const actions = asList(a.actions);
   const routes = [
     ...actions.filter((x) => EXTERNAL_ACTIONS.includes(x)),
-    ...(asList(a.untrustedInputs).includes('web_browsing') || asList(a.dataSources).includes('web') ? ['web'] : []),
+    ...(readsWeb ? ['web'] : []),
   ];
   const ROUTE_BLOCKERS = { execute_code: 'sandboxed_execution' };
   const openRoutes = routes.filter((r) => !(ROUTE_BLOCKERS[r] && has(ROUTE_BLOCKERS[r])));

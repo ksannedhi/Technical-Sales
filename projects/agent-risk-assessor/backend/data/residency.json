@@ -401,7 +401,7 @@
       "remediation": "Issue the Regulation 10 transparency notice and record deployer / operator responsibilities in the contract with the model provider.",
       "sources": [
         {
-          "instrument": "DIFC Data Protection Regulations — Regulation 10",
+          "instrument": "DIFC Data Protection Regulations",
           "clause": "Regulation 10",
           "verified": "primary"
         }

@@ -78,6 +78,7 @@
       "timeline": "medium",
       "appliesWhen": { "any": [{ "field": "dataSources", "in": ["rag_index"] }, { "field": "supplyChain", "in": ["external_rag"] }] },
       "appliesNote": "it applies only when the agent searches a document index (RAG) or uses outside knowledge-base content",
+      "appliesFix": "If the agent searches a document index or outside content, add \"Document index (RAG)\" under \"Sources the agent reads\", or \"Externally sourced knowledge base content\" under \"Components from outside the organisation\".",
       "atlas": [
         "AML.M0025"
       ],
@@ -94,6 +95,7 @@
       "timeline": "medium",
       "appliesWhen": { "field": "memory", "in": ["persistent_user", "persistent_shared"] },
       "appliesNote": "it applies only when the agent remembers things between conversations",
+      "appliesFix": "If the agent remembers things between conversations, set \"Memory\" to \"Persistent, per user\" or \"Persistent, shared across users\".",
       "atlas": [
         "AML.M0031"
       ],
@@ -195,6 +197,7 @@
       "timeline": "short",
       "appliesWhen": { "any": [{ "field": "autonomy", "in": ["approve_each", "approve_high_risk"] }, { "all": [{ "field": "autonomy", "in": ["suggest"] }, { "flag": "untrustedContent" }] }] },
       "appliesNote": "it applies only when a person approves the agent's actions, or acts on its suggestions after it has read outsider content",
+      "appliesFix": "If a person approves the agent's actions, set \"Human oversight, for the least-supervised action\" to \"Human approves every action\" or \"Human approves high-risk actions only\". A suggest-only agent also counts once it reads content outsiders could have written.",
       "atlas": [
         "AML.M0029"
       ],
@@ -249,6 +252,7 @@
       "timeline": "medium",
       "appliesWhen": { "field": "actions", "in": ["execute_code"] },
       "appliesNote": "it applies only when the agent can run code",
+      "appliesFix": "If the agent can run code, add \"Execute code or shell commands\" under \"What can the agent do?\".",
       "atlas": [
         "AML.M0032"
       ],
@@ -276,6 +280,7 @@
       "timeline": "medium",
       "appliesWhen": { "field": "supplyChain", "in": ["vendor_model", "open_weights", "third_party_mcp", "community_plugins", "external_rag"] },
       "appliesNote": "it applies only when the agent uses models, tools, or content from outside the organisation",
+      "appliesFix": "If the agent uses models, tools, or content from outside the organisation, select them under \"Components from outside the organisation\".",
       "atlas": [
         "AML.M0023",
         "AML.M0014"

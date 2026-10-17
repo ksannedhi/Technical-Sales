@@ -1,12 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { assess, evaluate, deriveFlags, pathToGo, pathTarget, answerConflicts, effectiveControls, applyDerivedFixes, normaliseAnswers, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
+import { buildReportHtml } from '../report.js';
 
 const inputIds = new Set(inputs.sections.flatMap((s) => s.inputs).map((i) => i.id));
 const optionValues = Object.fromEntries(
   inputs.sections.flatMap((s) => s.inputs).map((i) => [i.id, new Set((i.options ?? []).map((o) => o.value))])
 );
 const controlIds = new Set(controlsData.controls.map((c) => c.id));
+const inputLabels = new Set(inputs.sections.flatMap((s) => s.inputs).flatMap((i) => [i.label, ...(i.options ?? []).map((o) => o.label)]));
 const flags = new Set(['untrustedContent', 'externalChannel', 'sensitiveData', 'personalData', 'highImpactAction', 'trifecta']);
 
 function checkCondition(cond, where) {
@@ -192,6 +194,10 @@ test('every appliesWhen and setBy condition references real fields and options',
   for (const c of controlsData.controls) {
     if (c.appliesWhen) checkCondition(c.appliesWhen, `${c.id}.appliesWhen`);
     assert.equal(Boolean(c.appliesWhen), Boolean(c.appliesNote), `${c.id}: appliesWhen and appliesNote go together`);
+    assert.equal(Boolean(c.appliesWhen), Boolean(c.appliesFix), `${c.id}: appliesWhen and appliesFix go together`);
+    // Every quoted name in the hint must be a real question or option label, so a rename can't leave it stale.
+    for (const [, quoted] of (c.appliesFix ?? '').matchAll(/"([^"]+)"/g))
+      assert.ok(inputLabels.has(quoted), `${c.id}.appliesFix quotes unknown label "${quoted}"`);
     if (c.setBy) {
       checkCondition({ field: c.setBy.field, in: c.setBy.only }, `${c.id}.setBy`);
       if (c.setBy.unless) checkCondition(c.setBy.unless, `${c.id}.setBy.unless`);
@@ -510,4 +516,47 @@ test('a blocked leak path is not contradicted by a Critical exfiltration threat'
   const r = assess(a, ['sandboxed_execution']);
   assert.equal(r.trifecta.status, 'Blocked');
   assert.notEqual(r.threats.find((t) => t.id === 'T-EXF-01').priority, 'Critical');
+});
+
+test('report register: regulatory rows say n/a for OWASP and ATLAS; threat rows never do', () => {
+  const bank = scenariosData.scenarios.find((x) => x.id === 'bank-cs');
+  const result = assess(bank.answers, bank.controls);
+  const register = riskRegister(bank.answers, result.controlsInPlace, result);
+  const html = buildReportHtml({ profile: bank.answers, controls: result.controlsInPlace, result, path: pathToGo(bank.answers, bank.controls), register, aiRmf, inputs, controlsData, coverage: rmfCoverage(result) });
+  const rows = html.split('<tr>').filter((r) => /class="tid">(T|KW|SA|AE|DIFC|QA|NA)-/.test(r));
+  const reg = rows.filter((r) => r.includes('· Regulatory'));
+  const threats = rows.filter((r) => /class="tid">T-/.test(r));
+  assert.ok(reg.length > 0 && threats.length > 0);
+  reg.forEach((r) => assert.equal((r.match(/n\/a \(regulatory\)/g) ?? []).length, 2));
+  threats.forEach((r) => assert.ok(!r.includes('n/a (regulatory)')));
+});
+
+test('a blocked trifecta never sits beside Critical exfiltration', () => {
+  const bank = scenariosData.scenarios.find((x) => x.id === 'bank-cs');
+  const base = { ...bank.answers, dataSources: ['crm'], untrustedInputs: ['inbound_email'], actions: ['read_only', 'send_external'] };
+  const exfil = (r) => r.threats.find((t) => t.id === 'T-EXF-01');
+  // Approve-each with the raw action shown blocks the path, and the approver also lowers exfiltration.
+  const approved = assess({ ...base, autonomy: 'approve_each' }, ['approval_transparency']);
+  assert.equal(approved.trifecta.status, 'Blocked');
+  assert.ok(exfil(approved).residual < 4);
+  // Oversight gates actions, not reading: a suggest-only agent that reads the public web stays open...
+  const webSuggest = { ...base, autonomy: 'suggest', actions: ['read_only'], dataSources: ['crm', 'web'] };
+  assert.equal(assess(webSuggest, []).trifecta.status, 'Open — data can leak');
+  // ...until an outbound allowlist covers the web route.
+  assert.equal(assess(webSuggest, ['egress_restriction']).trifecta.status, 'Blocked');
+  // And across many designs, Blocked and Critical exfiltration never appear together.
+  const qs = inputs.sections.flatMap((s) => s.inputs).filter((q) => q.options);
+  const ids = controlsData.controls.map((c) => c.id);
+  let seed = 23;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  for (let i = 0; i < 1000; i++) {
+    const a = { orgName: 'T' };
+    for (const q of qs) {
+      const v = q.options.map((o) => o.value);
+      const m = v.filter((x) => x !== 'none' && rnd() < 0.3);
+      a[q.id] = q.type === 'multi' ? (m.length ? m : [v[0]]) : v[Math.floor(rnd() * v.length)];
+    }
+    const r = assess(a, ids.filter(() => rnd() < 0.5));
+    if (r.trifecta.broken) assert.ok(exfil(r).residual < 4, `design ${i}: Blocked but exfiltration Critical`);
+  }
 });

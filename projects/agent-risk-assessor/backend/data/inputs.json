@@ -285,7 +285,7 @@
           "options": [
             {
               "value": "read_only",
-              "label": "Read and answer only",
+              "label": "Read and answer",
               "scale": 1
             },
             {
