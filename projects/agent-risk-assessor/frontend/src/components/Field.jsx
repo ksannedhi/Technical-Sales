@@ -1,5 +1,5 @@
 // Renders one question from inputs.json. Multi-selects treat "none" as exclusive.
-export default function Field({ input, value, onChange, warning }) {
+export default function Field({ input, value, onChange, warning, limit }) {
   const { id, label, type, options = [], rationale } = input;
 
   if (type === 'text' || type === 'textarea') {
@@ -27,7 +27,9 @@ export default function Field({ input, value, onChange, warning }) {
       </legend>
       {rationale && <p className="hint">{rationale}</p>}
       <div className="options" role={type === 'single' ? 'radiogroup' : 'group'}>
-        {options.map((o) => (
+        {options.map((o) => {
+          const off = limit?.disabled?.includes(o.value) && !selected.includes(o.value);
+          return (
           <button
             key={o.value}
             type="button"
@@ -35,13 +37,15 @@ export default function Field({ input, value, onChange, warning }) {
             aria-checked={selected.includes(o.value)}
             className={`chip ${selected.includes(o.value) ? 'on' : ''}`}
             onClick={() => toggle(o.value)}
+            disabled={off}
             data-field={id}
           >
             {o.label}
           </button>
-        ))}
+          );
+        })}
       </div>
-      {warning && <p className="warn" role="alert">{warning}</p>}
+      {warning ? <p className="warn" role="alert">{warning}</p> : limit?.note && <p className="hint">{limit.note}</p>}
     </fieldset>
   );
 }

@@ -7,7 +7,7 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {
-  assess, pathToGo, pathTarget, riskRegister, rmfCoverage, answerConflicts,
+  assess, pathToGo, pathTarget, riskRegister, rmfCoverage, answerConflicts, optionLimits,
   inputs, controlsData, scenariosData, aiRmf,
 } from './engine.js';
 import { writeBrief, narrativeEnabled, briefStats } from './narrative.js';
@@ -53,7 +53,7 @@ app.post('/api/assess', (req, res) => {
 });
 
 // Contradictions between answers, for the Architecture page (works on partial answers).
-app.post('/api/check', (req, res) => res.json({ conflicts: answerConflicts(req.body?.answers ?? {}) }));
+app.post('/api/check', (req, res) => res.json({ conflicts: answerConflicts(req.body?.answers ?? {}), limits: optionLimits(req.body?.answers ?? {}) }));
 
 // Separate from /assess so the results render instantly and the brief fills in after.
 // writeBrief reuses a brief already written for the same assessment and merges duplicate requests.

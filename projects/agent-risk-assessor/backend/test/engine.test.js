@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assess, evaluate, deriveFlags, pathToGo, pathTarget, answerConflicts, effectiveControls, applyDerivedFixes, normaliseAnswers, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
+import { assess, evaluate, deriveFlags, pathToGo, pathTarget, answerConflicts, effectiveControls, applyDerivedFixes, normaliseAnswers, optionLimits, riskRegister, rmfCoverage, inputs, controlsData, threatsData, residencyData, scenariosData, aiRmf } from '../engine.js';
 import { buildReportHtml } from '../report.js';
 
 const inputIds = new Set(inputs.sections.flatMap((s) => s.inputs).map((i) => i.id));
@@ -559,4 +559,13 @@ test('a blocked trifecta never sits beside Critical exfiltration', () => {
     const r = assess(a, ids.filter(() => rnd() < 0.5));
     if (r.trifecta.broken) assert.ok(exfil(r).residual < 4, `design ${i}: Blocked but exfiltration Critical`);
   }
+});
+
+test('data types grey out classification levels below their floor', () => {
+  assert.deepEqual(optionLimits({ dataTypes: ['none'] }), {});
+  assert.deepEqual(optionLimits({ dataTypes: ['personal'] }).dataSensitivity.disabled, ['1']);
+  const health = optionLimits({ dataTypes: ['personal', 'health'] }).dataSensitivity;
+  assert.deepEqual(health.disabled, ['1', '2']);
+  assert.match(health.note, /^Health data is at least Level 3/);
+  assert.deepEqual(optionLimits({ dataTypes: ['credentials'] }).dataSensitivity.disabled, ['1', '2', '3']);
 });

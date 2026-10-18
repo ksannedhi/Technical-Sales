@@ -42,11 +42,12 @@ export default function App() {
 
   // Contradictions come from the engine (/api/check), so warnings and scoring use the same rules.
   const [conflicts, setConflicts] = useState({});
+  const [limits, setLimits] = useState({});
   useEffect(() => {
     let live = true;
     fetch('/api/check', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answers }) })
-      .then((r) => (r.ok ? r.json() : { conflicts: {} }))
-      .then((d) => live && setConflicts(d.conflicts ?? {}))
+      .then((r) => (r.ok ? r.json() : { conflicts: {}, limits: {} }))
+      .then((d) => { if (live) { setConflicts(d.conflicts ?? {}); setLimits(d.limits ?? {}); } })
       .catch(() => {});
     return () => { live = false; };
   }, [answers]);
@@ -129,7 +130,7 @@ export default function App() {
             <section key={sec.id} className="card">
               <h2>{sec.label}</h2>
               {sec.inputs.map((input) => (
-                <Field key={input.id} input={input} value={answers[input.id]} onChange={(v) => set(input.id, v)} warning={conflicts[input.id]?.text} />
+                <Field key={input.id} input={input} value={answers[input.id]} onChange={(v) => set(input.id, v)} warning={conflicts[input.id]?.text} limit={limits[input.id]} />
               ))}
             </section>
           ))}

@@ -30,7 +30,7 @@ const asList = (v) => (Array.isArray(v) ? v : v == null || v === '' ? [] : [v]);
 const intersects = (a, b) => asList(a).some((x) => b.includes(x));
 
 // Answers that contradict each other are resolved towards the riskier reading before scoring:
-// - a data type sets a minimum level, following CITRA's Data Classification Policy examples: personal
+// - a data type sets a minimum level, following the examples in CITRA's former Data Classification Policy (repealed 2024): personal
 //   data at least Level 2 (Tier 2 lists name, civil ID, contact details), health at least 3 (medical
 //   records are Tier 3), credentials at least 4 (encryption keys are Tier 4); financial at least 3 is
 //   this tool's judgement, as CITRA gives no example;
@@ -75,6 +75,18 @@ export function answerAdjustments(answers) {
 // Contradictions to show on the Architecture page, keyed by question id. `block: true` must be fixed
 // before moving on; the others say how scoring resolves them. Built from the same rules as
 // normaliseAnswers, so the page and the score can't disagree; the frontend asks /api/check.
+// Options the Architecture page greys out, so a contradiction can't be entered in the first place:
+// a data type's minimum level rules out picking anything lower. answerConflicts still warns when
+// an earlier answer already sits below the floor (e.g. a data type added after the level).
+export function optionLimits(answers) {
+  const a = answers ?? {};
+  const floor = floorOf(a);
+  if (floor <= 1) return {};
+  const by = asList(a.dataTypes).filter((t) => LEVEL_FLOORS[t] === floor).map((t) => optionLabel('dataTypes', t));
+  const disabled = (inputIndex.dataSensitivity?.options ?? []).map((o) => o.value).filter((v) => Number(v) < floor);
+  return { dataSensitivity: { disabled, note: `${by.join(' and ')} ${by.length > 1 ? 'are' : 'is'} at least Level ${floor}, so lower levels aren't available.` } };
+}
+
 export function answerConflicts(answers) {
   const a = answers ?? {};
   const out = {};

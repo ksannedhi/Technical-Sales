@@ -155,6 +155,23 @@ test('controls page: derived controls are read-only, ill-fitting ones are flagge
   await page.close();
 });
 
+test('architecture page: data types come first and grey out lower classification levels', async () => {
+  const { page } = await openApp();
+  await loadPreset(page, 'Bank customer-service agent');
+  const state = await page.evaluate(() => JSON.parse(sessionStorage.getItem('agent-risk-assessor:v1')));
+  state.step = 1;
+  state.answers = { ...state.answers, dataTypes: ['health'], dataSensitivity: '3' };
+  await setState(page, state);
+  await page.waitForSelector('[data-field="dataSensitivity"]');
+  const order = await page.$$eval('fieldset .options button[data-field]', (b) => [...new Set(b.map((x) => x.dataset.field))]);
+  assert.ok(order.indexOf('dataTypes') < order.indexOf('dataSensitivity'), 'data types before classification');
+  await page.waitForFunction(() => document.querySelectorAll('[data-field="dataSensitivity"]:disabled').length === 2);
+  const off = await page.$$eval('[data-field="dataSensitivity"]:disabled', (b) => b.map((x) => x.textContent));
+  assert.ok(off.every((t) => /^Level [12]/.test(t)), off.join(' | '));
+  assert.match(await text(page, 'main, body'), /Health data is at least Level 3, so lower levels aren't available\./);
+  await page.close();
+});
+
 test('architecture page: a blocking contradiction disables Next; a soft one only warns', async () => {
   const { page } = await openApp();
   await loadPreset(page, 'Bank customer-service agent');

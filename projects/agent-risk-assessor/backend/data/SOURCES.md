@@ -46,7 +46,7 @@ The four levels follow Kuwait's CITRA Level 1–4 (the levels its residency rule
 | Bahrain | Top Secret · Secret · Restricted, plus public | Secondary source only |
 | Oman, UAE federal, other emirates | Not found or not checked | — |
 
-CITRA's own tier names, from its Data Classification Policy: Tier 1 Public Data, Tier 2 Private Insensitive Data, Tier 3 Private Sensitive Data, Tier 4 Highly Sensitive Data (examples under Kuwait in the residency table below). The options describe levels by impact with CITRA's examples. Minimum levels per data type follow the same examples: personal 2, health 3, credentials 4; financial 3 is this tool's judgement.
+CITRA's own tier names, from its Data Classification Policy (repealed in 2024, see below): Tier 1 Public Data, Tier 2 Private Insensitive Data, Tier 3 Private Sensitive Data, Tier 4 Highly Sensitive Data (examples under Kuwait in the residency table below). The options describe levels by impact with CITRA's examples. Minimum levels per data type follow the same examples: personal 2, health 3, credentials 4; financial 3 is this tool's judgement.
 
 ## Lethal trifecta
 
@@ -68,7 +68,7 @@ CITRA's own tier names, from its Data Classification Policy: Tier 1 Public Data,
 | Instrument | Verified | Clauses used |
 |---|---|---|
 | CITRA Cloud Computing Regulatory Framework (Resolution 112 of 2021) | primary | §3.1.4.2, §3.2.1.2.2, §3.2.1.3.2, §4.2.1.1, §4.2.1.2 (public, hybrid, community cloud only) |
-| CITRA Data Classification Policy (citra.gov.kw) | primary | §2.1.2 scope: government and private entities. Tier 2 "Private Insensitive Data": name, job title and employer, email, civil ID number, gender, age, academic qualification, social status, contact details, address. Tier 3 "Private Sensitive Data": business plans, internal reports, legal files, medical records, fingerprints and DNA. Tier 4: encryption keys, political and international-relations data, military and state-security data. |
+| CITRA Data Classification Policy (citra.gov.kw) | primary text; **repealed** | Repealed by CITRA Decision No. 34 of 2024, per Access Partnership (19 Mar 2024) and Chambers Data Protection & Privacy 2025; the decision text itself not seen. The tool keeps its examples as the basis for the level floors and says so in the UI and KW-01. §2.1.2 scope: government and private entities. Tier 2 "Private Insensitive Data": name, job title and employer, email, civil ID number, gender, age, academic qualification, social status, contact details, address. Tier 3 "Private Sensitive Data": business plans, internal reports, legal files, medical records, fingerprints and DNA. Tier 4: encryption keys, political and international-relations data, military and state-security data. |
 | Kuwait NBCC (NCSC) | compiled | GOV-3, CLD-12, CLD-13 |
 | CBK Cyber and Operational Resilience Framework (CORF) v1.0, Dec 2025 | primary | Ch. 4 Cyber Resilience Baselines: 7.1 scope (names AI and ML as emerging technologies), 7.1.1.2 (CBK approval one month before go-live), 7.2 scope (public, community, hybrid cloud only), 7.2.1.3 (approval one month before signing cloud outsourcing involving sensitive data), 7.2.2.2(d) (location and data residency in cloud risk assessment) |
 | Saudi PDPL + Transfer Regulation (2023) | compiled | Art. 29; TR Art. 2, Art. 8 |
