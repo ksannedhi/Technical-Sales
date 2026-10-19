@@ -391,9 +391,12 @@ const EXACT_SEARCH_SIZE = 4;
 
 // Fewest missing controls that lift the verdict one level, and a path to Go.
 // Exact search over small combinations first; a greedy search takes over for longer paths.
-export function pathToGo(answers, controlsGiven = []) {
+// opts.waiveResidency: approvals already assumed granted (a what-if of the Go route), so they are
+// neither re-listed nor counted against the design.
+export function pathToGo(answers, controlsGiven = [], opts = {}) {
+  const granted = opts.waiveResidency ?? [];
   const controlsInPlace = effectiveControls(answers, controlsGiven);
-  const base = assess(answers, controlsInPlace);
+  const base = assess(answers, controlsInPlace, { waiveResidency: granted });
   const current = base.verdict.decision;
   if (current === 'go') return { current, architecture: [], approvals: [], steps: [] };
 
@@ -414,10 +417,10 @@ export function pathToGo(answers, controlsGiven = []) {
 
   // High residency findings are closed by approvals or paperwork. They cap the verdict at
   // "Go with conditions" until done; for the Go target they're assumed done and listed.
-  const approvals = assess(design, controlsInPlace).residency
+  const approvals = assess(design, controlsInPlace, { waiveResidency: granted }).residency
     .filter((r) => r.severity === 3)
     .map((r) => ({ id: r.id, title: r.title, action: r.remediation }));
-  const waiveFor = { go_with_conditions: [], go: approvals.map((a) => a.id) };
+  const waiveFor = { go_with_conditions: granted, go: [...granted, ...approvals.map((a) => a.id)] };
 
   // human_approval is always a candidate: a fully autonomous agent needs it for Go even when no
   // triggered threat lists it.

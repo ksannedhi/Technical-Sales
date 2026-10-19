@@ -569,3 +569,18 @@ test('data types grey out classification levels below their floor', () => {
   assert.match(health.note, /^Health data is at least Level 3/);
   assert.deepEqual(optionLimits({ dataTypes: ['credentials'] }).dataSensitivity.disabled, ['1', '2', '3']);
 });
+
+test('the Go route, with its approvals granted, reaches Go and matches the PDF target', () => {
+  const bank = scenariosData.scenarios.find((x) => x.id === 'bank-cs');
+  const p = pathToGo(bank.answers, bank.controls);
+  const go = p.steps.find((x) => x.target === 'go');
+  assert.ok(go.approvals.length > 0, 'bank Go route needs approvals');
+  const design = Object.assign({ ...bank.answers }, ...p.architecture.map((a) => a.fix ?? {}), ...go.controls.map((c) => c.fix ?? {}));
+  const ctl = [...new Set([...bank.controls, ...go.controls.map((c) => c.id)])];
+  const granted = go.approvals.map((a) => a.id);
+  assert.equal(assess(design, ctl).verdict.decision, 'go_with_conditions');
+  assert.equal(assess(design, ctl, { waiveResidency: granted }).verdict.decision, 'go');
+  assert.equal(pathTarget(bank.answers, bank.controls, p).result.verdict.decision, 'go');
+  // Granted approvals are not listed again.
+  assert.deepEqual(pathToGo(design, ctl, { waiveResidency: granted }).steps, []);
+});

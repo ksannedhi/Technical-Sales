@@ -168,7 +168,7 @@ The steps are **cumulative**: the Go route starts from the Go-with-conditions ro
 
 ### What-if view
 
-**Try this path** applies a Path-to-Go step — its architecture fix and controls — as a what-if layered over the actual design. The actual answers and controls are never changed. The what-if shows a banner listing every assumed change, the verdict is labelled "What-if verdict", and **Back to actual design** discards it. Editing the actual design, changing controls, or leaving the results step also discards it. In a what-if, the **Change controls** button reads **Edit actual controls**: it returns to step 3 to edit the real design, and the what-if is discarded.
+**Try this path** applies a Path-to-Go step — its architecture fix, controls, and (for the Go route) its approvals, treated as granted — as a what-if layered over the actual design. The actual answers and controls are never changed. The what-if shows a banner listing every assumed change, the verdict is labelled "What-if verdict", and **Back to actual design** discards it. Editing the actual design, changing controls, or leaving the results step also discards it. In a what-if, the **Change controls** button reads **Edit actual controls**: it returns to step 3 to edit the real design, and the what-if is discarded.
 
 Blast radius does not move in a what-if that only adds controls: it is actions × autonomy × data sensitivity, the worst case before controls. Controls show up in residual threat levels, the trifecta status, and the verdict.
 

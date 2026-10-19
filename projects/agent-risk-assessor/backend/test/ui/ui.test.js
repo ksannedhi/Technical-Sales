@@ -155,6 +155,29 @@ test('controls page: derived controls are read-only, ill-fitting ones are flagge
   await page.close();
 });
 
+test('Path to Go: the Go route what-if assumes its approvals and shows Go; wording names the architecture change', async () => {
+  const { page } = await openApp();
+  await loadPreset(page, 'Bank customer-service agent');
+  // Try the Go route, as a user would from the Results page.
+  await page.evaluate(() => {
+    const card = [...document.querySelectorAll('.card.inner')].find((c) => c.querySelector('h3')?.textContent.trim() === 'To reach Go');
+    [...card.querySelectorAll('button')].find((b) => b.textContent.includes('Try this path')).click();
+  });
+  await page.waitForFunction(() => document.body.innerText.includes('What-if, not your actual design'));
+  await page.waitForFunction(() => document.querySelector('.verdict-label')?.textContent.trim() === 'Go');
+  assert.match(await text(page, 'main, body'), /Assumed granted: CBK approval/);
+  // Back on the actual design, with the Go-with-conditions controls ticked, the remaining step says
+  // the architecture change is still needed.
+  await click(page, 'button', 'Back to actual design');
+  const state = await page.evaluate(() => JSON.parse(sessionStorage.getItem('agent-risk-assessor:v1')));
+  state.controls = [...new Set([...state.controls, 'untrusted_tool_restriction', 'dlp_redaction'])];
+  state.step = 3;
+  await setState(page, state);
+  await page.waitForFunction(() => document.body.innerText.includes('Path to Go'));
+  assert.match(await text(page, 'main, body'), /No new controls needed after the architecture change above\./);
+  await page.close();
+});
+
 test('architecture page: data types come first and grey out lower classification levels', async () => {
   const { page } = await openApp();
   await loadPreset(page, 'Bank customer-service agent');

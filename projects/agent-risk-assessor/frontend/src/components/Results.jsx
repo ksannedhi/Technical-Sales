@@ -53,7 +53,7 @@ const Badge = ({ level, label = level }) => <span className={`badge b-${String(l
 // Blast-radius bands reuse the risk colours.
 const BAND_LEVEL = { Low: 'Low', Moderate: 'Medium', High: 'High', Severe: 'Critical' };
 
-export default function Results({ answers, controls, whatIf, narrative, onApply, onExitWhatIf, onEditControls, controlTitles = {}, controlNotes = {} }) {
+export default function Results({ answers, controls, whatIf, approvals = [], narrative, onApply, onExitWhatIf, onEditControls, controlTitles = {}, controlNotes = {} }) {
   const controlTitle = (id) => controlTitles[id] ?? id;
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState(null);
@@ -65,10 +65,10 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
 
   // Each brief is a paid Claude call. Briefs are remembered per design (here for the tab, and on the
   // server), and a what-if gets one only when asked for, since what-ifs are usually quick looks.
-  const briefKey = JSON.stringify({ answers, controls });
+  const briefKey = JSON.stringify({ answers, controls, approvals });
   const requestBrief = (isLive = () => true) => {
     setBrief({ state: 'loading', text: null });
-    return postRetry('/api/brief', { answers, controls })
+    return postRetry('/api/brief', { answers, controls, whatIf, approvals })
       .then((r) => r.json())
       .then((d) => {
         if (!isLive()) return;
@@ -82,7 +82,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
     let live = true;
     setData(null);
     setLoadError(null);
-    postRetry('/api/assess', { answers, controls })
+    postRetry('/api/assess', { answers, controls, whatIf, approvals })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((d) => live && setData(d))
       .catch((e) => live && setLoadError(e.message));
@@ -110,8 +110,8 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
   const exportFile = async (kind) => {
     setBusy(kind); setExportError(null);
     try {
-      if (kind === 'pdf') await download('/api/export/pdf', { answers, controls, whatIf, brief: brief.text }, 'agent-risk-assessment.pdf');
-      else await download('/api/export/register', { answers, controls, whatIf }, 'ai-risk-register.csv');
+      if (kind === 'pdf') await download('/api/export/pdf', { answers, controls, whatIf, approvals, brief: brief.text }, 'agent-risk-assessment.pdf');
+      else await download('/api/export/register', { answers, controls, whatIf, approvals }, 'ai-risk-register.csv');
     } catch (e) { setExportError(e.message); }
     setBusy(null);
   };
@@ -195,7 +195,7 @@ export default function Results({ answers, controls, whatIf, narrative, onApply,
                 <h3>To reach {s.label}</h3>
                 {s.controls ? (
                   <>
-                    {s.controls.length === 0 && <p className="muted">No new controls needed.</p>}
+                    {s.controls.length === 0 && <p className="muted">No new controls needed{path.architecture.length ? ' after the architecture change above' : ''}.</p>}
                     {(() => {
                       const carried = s.controls.filter((c) => c.fromPrevious).length;
                       const added = s.controls.filter((c) => !c.fromPrevious);

@@ -34,9 +34,12 @@ function run(body) {
   const whatIf = Array.isArray(body.whatIf) && body.whatIf.length ? body.whatIf.map(String) : null;
   // The engine decides which ticked controls count (derived ones follow their Architecture answer,
   // not-applicable ones are dropped); exports list only those.
-  const result = assess(answers, ticked);
+  // A what-if of the Go route also assumes that route's approvals are granted, as the PDF's target
+  // projection does; the what-if banner and exports list each one.
+  const granted = whatIf && Array.isArray(body.approvals) ? body.approvals.map(String) : [];
+  const result = assess(answers, ticked, { waiveResidency: granted });
   const controls = result.controlsInPlace;
-  const path = pathToGo(answers, ticked);
+  const path = pathToGo(answers, ticked, { waiveResidency: granted });
   return {
     answers, controls, result, whatIf, path,
     // A what-if export already is a target, so it gets no second comparison.

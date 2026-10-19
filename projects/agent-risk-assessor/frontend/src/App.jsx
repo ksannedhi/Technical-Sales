@@ -72,18 +72,21 @@ export default function App() {
 
   // Applies a Path-to-Go step to the current view (actual, or an existing what-if) as a new what-if.
   const applyPath = (pathStep, architecture) => {
-    const base = whatIf ?? { answers, controls, changes: [] };
+    const base = whatIf ?? { answers, controls, changes: [], approvals: [] };
     // A control derived from an Architecture answer (c.fix) changes that answer instead.
     const changes = [
       ...base.changes,
       ...architecture.map((a) => a.change),
       ...pathStep.controls.filter((c) => !base.controls.includes(c.id))
         .map((c) => (c.fix ? c.change : `Control in place: ${c.title}`)),
+      // The Go route's approvals are part of the route; the what-if assumes them granted and says so.
+      ...(pathStep.approvals ?? []).map((a) => `Assumed granted: ${a.title}`),
     ];
     setWhatIf({
       answers: Object.assign({ ...base.answers }, ...architecture.map((a) => a.fix ?? {}), ...pathStep.controls.map((c) => c.fix ?? {})),
       controls: [...new Set([...base.controls, ...pathStep.controls.map((c) => c.id)])],
       changes: [...new Set(changes)],
+      approvals: [...new Set([...(base.approvals ?? []), ...(pathStep.approvals ?? []).map((a) => a.id)])],
     });
   };
   const view = whatIf ?? { answers, controls };
@@ -152,7 +155,7 @@ export default function App() {
 
       {step === 3 && (
         <Results
-          answers={view.answers} controls={view.controls} whatIf={whatIf?.changes ?? null}
+          answers={view.answers} controls={view.controls} whatIf={whatIf?.changes ?? null} approvals={whatIf?.approvals ?? []}
           narrative={meta.health.narrative} onApply={applyPath}
           onExitWhatIf={() => setWhatIf(null)} onEditControls={() => goStep(2)}
           controlTitles={Object.fromEntries(meta.controlsData.controls.map((c) => [c.id, c.title]))}
