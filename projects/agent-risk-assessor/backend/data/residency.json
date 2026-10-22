@@ -274,8 +274,8 @@
         ]
       },
       "severity": 3,
-      "finding": "Every inference call is a cross-border transfer of the personal data in the prompt. It needs an adequacy decision or appropriate safeguards, limited to the minimum necessary data. Continuous transfers of sensitive data also need a written risk assessment.",
-      "remediation": "Establish the transfer basis (adequacy or SCCs/BCRs), minimise personal data in prompts, and complete the transfer risk assessment before go-live.",
+      "finding": "Every inference call is a cross-border transfer of the personal data in the prompt. The destination must be on SDAIA's list of countries with an appropriate level of protection, or the transfer must fall in one of the exemption cases and use its safeguards (standard contractual clauses, binding common rules, or an approval certificate), and only the minimum data necessary may be sent. A risk assessment is required before transfer when relying on an exemption, or when sensitive data is transferred on a continuous or widespread basis.",
+      "remediation": "Establish the transfer basis (an adequate destination, or an exemption case with its safeguards), minimise personal data in prompts, and complete the transfer risk assessment before go-live where Art. 7 requires one.",
       "sources": [
         {
           "instrument": "Saudi PDPL (Royal Decree M/19 of 2021, amended M/148 of 2023)",
@@ -283,9 +283,9 @@
           "verified": "compiled"
         },
         {
-          "instrument": "Regulation on Personal Data Transfer outside the Kingdom (2023)",
-          "clause": "Art. 2, Art. 8",
-          "verified": "compiled"
+          "instrument": "Regulation on Personal Data Transfer outside the Kingdom (SDAIA, Version 2.0, August 2024)",
+          "clause": "Art. 2, Art. 3, Art. 4, Art. 7",
+          "verified": "primary"
         }
       ]
     },

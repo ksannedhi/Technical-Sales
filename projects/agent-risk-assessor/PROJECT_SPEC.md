@@ -153,7 +153,7 @@ Hosting country × data classification × jurisdiction → findings. Inference c
 | KW-04 | Advisory | Vendor telemetry and logs may carry prompts out of Kuwait | NBCC CLD-12, CLD-13 |
 | KW-05 | High | Bank: CBK approval before signing cloud outsourcing involving sensitive data | CBK CORF 7.2.1.3 |
 | KW-06 | High | Bank: CBK approval before an AI system goes live | CBK CORF 7.1.1.2 |
-| SA-01 | High | Saudi personal data transferred outside the Kingdom | PDPL Art. 29; Transfer Regulation Art. 2, 8 |
+| SA-01 | High | Saudi personal data transferred outside the Kingdom | PDPL Art. 29; Transfer Regulation (2024) Art. 2, 3, 4, 7 |
 | SA-02 | Advisory | SDAIA AI Ethics Principles apply | SDAIA AI Ethics Principles |
 | SA-03 | Advisory | Government use of generative AI | SDAIA Generative AI Guidelines for Government |
 | AE-01 | High | UAE personal data transferred outside the UAE | UAE PDPL Art. 22, 23 |
