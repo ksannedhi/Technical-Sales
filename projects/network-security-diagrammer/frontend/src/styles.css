@@ -205,6 +205,23 @@ button:disabled {
   background: #ebe8e2;
 }
 
+.present-btn {
+  background: #1f4f46;
+  border: none;
+  border-radius: 6px;
+  color: #e0f2f1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 13px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s;
+}
+
+.present-btn:hover {
+  background: #2a6b60;
+}
+
 .bullet-list {
   padding-left: 18px;
   color: #27272a;

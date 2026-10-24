@@ -8,9 +8,10 @@ import { toExcalidrawElements } from "../lib/excalidraw";
 interface DiagramCanvasProps {
   title: string;
   elements: DiagramSeed[];
+  onPresent?: () => void;
 }
 
-export function DiagramCanvas({ title, elements }: DiagramCanvasProps) {
+export function DiagramCanvas({ title, elements, onPresent }: DiagramCanvasProps) {
   const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null);
   const excalidrawElements = useMemo(() => toExcalidrawElements(elements), [elements]);
 
@@ -42,7 +43,14 @@ export function DiagramCanvas({ title, elements }: DiagramCanvasProps) {
     <section className="panel canvas-panel">
       <div className="status-header">
         <h2>{title}</h2>
-        <span className="status-pill neutral">Editable canvas</span>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span className="status-pill neutral">Editable canvas</span>
+          {onPresent && (
+            <button className="present-btn" onClick={onPresent}>
+              ▶ Present
+            </button>
+          )}
+        </div>
       </div>
       <div className="canvas-shell">
         <Excalidraw

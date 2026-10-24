@@ -5,6 +5,7 @@ import { AssumptionsPanel } from "./components/AssumptionsPanel";
 import { BadPromptWarning } from "./components/BadPromptWarning";
 import { DiagramCanvas } from "./components/DiagramCanvas";
 import { FollowUpBox } from "./components/FollowUpBox";
+import { PresentMode } from "./components/PresentMode";
 import { PromptHistory } from "./components/PromptHistory";
 import { PromptInput } from "./components/PromptInput";
 import { analyzePrompt, followupDiagram, generateDiagram } from "./lib/api";
@@ -34,6 +35,7 @@ export default function App() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refinedFromPrompt, setRefinedFromPrompt] = useState<string | null>(null);
+  const [showPresent, setShowPresent] = useState(false);
   const assumptions = diagram?.architecture.assumptions ?? [];
   const appliedChanges = diagram?.architecture.appliedChanges ?? [];
 
@@ -157,6 +159,10 @@ export default function App() {
   }
 
   return (
+    <>
+    {showPresent && diagram && (
+      <PresentMode diagram={diagram} onClose={() => setShowPresent(false)} />
+    )}
     <main className="app-shell">
       <div className="app-grid">
         <div className="left-column">
@@ -242,7 +248,11 @@ export default function App() {
           {diagram ? (
             <>
               <PromptHistory entries={promptHistory} />
-              <DiagramCanvas title={diagram.architecture.title} elements={diagram.elements} />
+              <DiagramCanvas
+                title={diagram.architecture.title}
+                elements={diagram.elements}
+                onPresent={() => setShowPresent(true)}
+              />
               <FollowUpBox
                 instruction={followUp}
                 loading={loading}
@@ -281,5 +291,6 @@ export default function App() {
         </div>
       </div>
     </main>
+    </>
   );
 }
