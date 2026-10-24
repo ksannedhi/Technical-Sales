@@ -158,6 +158,10 @@ Accumulated learnings — apply when modifying generator, layout, or follow-up l
 - **`convertToExcalidrawElements` ignores input width** — it re-measures with internal font metrics (5–15 px narrower than browser canvas). Post-process: override text element widths with layout-computed values after conversion.
 - **`strokeStyle` must be passed explicitly for rectangles** — omitting it causes dashed-border components (logical constructs like VPN tunnels) to render solid.
 
+### PresentMode SVG rendering (`frontend/src/components/PresentMode.tsx`)
+- **CSS `animation-delay` pauses when the browser tab is in the background** — the in-app browser pane (and any background tab) suspends CSS animations; a zone reveal driven by `animation-delay` will stay at opacity 0 indefinitely. Fix: drive visibility with React state (`useState` + `setInterval`) and use CSS `transition` (not `animation`) for the opacity fade. Transitions execute whenever the state value changes regardless of tab visibility. Hit Oct 2026 on the architecture slide zone reveal.
+- **SVG in a `display:flex; flex-direction:column` container ignores its viewBox aspect ratio** — the flex container sets the SVG's height to the container's available space rather than computing it from `width × (viewBox height / viewBox width)`. A 1400×1432 viewBox in a 644px-tall container scaled everything to 0.44×, making the diagram unreadably small. Fix: remove `display:flex` from the slide container so the SVG is a block element and the browser computes its natural height from the viewBox. The container keeps `overflow:auto` for vertical scrolling.
+
 ## Model split and caching
 
 - **Model split** `[model-behavior · 2026-08]` — `ANTHROPIC_ANALYZE_MODEL` (default: haiku) for the lightweight `analyze` step; `ANTHROPIC_GENERATE_MODEL` (default: sonnet) for `generate` and `followup`. Sonnet is meaningfully more reliable for generating deeply nested Excalidraw JSON with cross-referenced IDs.
